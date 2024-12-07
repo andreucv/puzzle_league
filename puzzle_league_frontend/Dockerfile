@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM ubuntu:24.04
 
 WORKDIR /workspace/puzzle_league_frontend
 
@@ -8,11 +8,7 @@ WORKDIR /workspace/puzzle_league_frontend
 # (it easies the development of the DevContainer config)
 COPY package.json .
 
-RUN apk update && apk upgrade && \
-    apk add --no-cache bash git openssh
-
-
-RUN chown -R node:node /workspace/puzzle_league_frontend
-USER node
-
+RUN apt-get update && apt-get install -y npm
+RUN npx playwright install
+RUN npx playwright install-deps
 RUN npm install --loglevel verbose

@@ -1,0 +1,12 @@
+name: puzzle_league
+services:
+    web-frontend:
+        build:
+            context: puzzle_league_frontend/
+            network: host
+        command: npm run dev -- --host
+        volumes:
+            - .:/workspace:bind
+        ports:
+            - "5173:5173"
+

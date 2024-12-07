@@ -1,0 +1,15 @@
+{
+    "name": "PuzzleLeagueFrontend",
+    "dockerComposeFile": ["../../docker-compose.yaml"],
+    "service": "web-frontend",
+    "shutdownAction": "none",
+    "workspaceFolder": "/workspace/puzzle_league_frontend",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "svelte.svelte-vscode",
+                "ms-playwright.playwright"
+            ]
+        }
+    }
+}

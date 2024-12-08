@@ -1,5 +1,5 @@
-<script lang="ts">
-    // import { t, locales, locale } from '$lib/translations';
+<script>
+    let { children } = $props();
 </script>
 
 <svelte:head>
@@ -11,7 +11,7 @@
     <p>
         Puzzles League for everyone
     </p>
-    <button class="btn bg-success-100" on:click={() => window.location.href = '/competitions_list'}>Explore Competitions</button>
+    <button class="btn bg-success-100">Explore Competitions</button>
 </div>
 
 <style>

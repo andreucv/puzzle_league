@@ -44,7 +44,9 @@
         <div class="mt-4">
           <div class="flex items-center justify-between">
             <label for="input_password">Password</label>
-            <a href="#" class="text-sm font-semibold text-indigo-500 focus:text-indigo-700">Forgot Password?</a>
+            {#if action == "login"}
+                <a href="#" class="text-sm font-semibold text-indigo-500 focus:text-indigo-700">Forgot Password?</a>
+            {/if}
           </div>
           <input bind:value={password} type="password" name="password" id="input_password" placeholder="Enter Password" minlength="5" class="w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 border text-black focus:border-indigo-500
                 focus:bg-white focus:outline-none" required>

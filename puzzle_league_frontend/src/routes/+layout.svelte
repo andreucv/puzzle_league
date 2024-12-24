@@ -17,6 +17,7 @@
 						user: user,
 					};
 				});
+	            console.log("user is", user);
 	        } else {
 	            console.log('User is signed out');
 	        }

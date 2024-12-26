@@ -8,10 +8,10 @@ import {
     PUBLIC_FIREBASE_MEASUREMENT_ID
 } from '$env/static/public';
 
-import { initializeApp, getApps, getApp, deleteApp, type FirebaseApp } from 'firebase/app';
+import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, onIdTokenChanged,
     signInWithEmailAndPassword as _signInWithEmailAndPassword,
-    signInWithRedirect, GoogleAuthProvider,
+    GoogleAuthProvider,
     signOut as _signOut,
     createUserWithEmailAndPassword,
     signInWithPopup
@@ -53,7 +53,7 @@ export function initializeFirebase() {
         throw new Error('Cannot use the Firebase client on the server side');
     }
 
-    if (!firebaseApp) {
+    if (firebaseApp == null) {
         firebaseApp = initializeApp(firebaseConfig);
         listenForAuthChanges();
     }
@@ -64,9 +64,10 @@ export async function signInWithEmailAndPassword(email, password) {
     const firebaseAuth = getAuth();
 
     try {
-        await _signInWithEmailAndPassword(firebaseAuth, email, password);
+        return await _signInWithEmailAndPassword(firebaseAuth, email, password);
     } catch (error) {
         console.error(error);
+        throw new Error(error);
     }
 }
 

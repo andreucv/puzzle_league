@@ -24,14 +24,30 @@
             
             try {
                 registerUserWithEmailAndPassword(email, password);
+                window.location.href = "/";
             } catch (error) {
                 console.error(error);
             }
         } else if (action == "login") {
             try {
-                signInWithEmailAndPassword(email, password);
+              let result = await signInWithEmailAndPassword(email, password);
+              console.log("result is ", result);
+              window.location.href = "/";
             } catch (error) {
-                console.error(error);
+                console.error("error is ", error);
+                switch(error.code){
+                    case "auth/invalid-email":
+                        alert('Invalid email');
+                        break;
+                    case "auth/user-not-found":
+                        alert('User not found');
+                        break;
+                    case "auth/wrong-password":
+                        alert('Wrong password');
+                        break;
+                    default:
+                        alert('An error occurred');
+                }
             }
         } 
     }

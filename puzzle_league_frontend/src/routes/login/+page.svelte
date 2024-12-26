@@ -8,11 +8,12 @@
 <script>
     import UserForm from "$lib/components/UserForm.svelte";
     import { signInWithGoogle as _signInWithGoogle } from "$lib/firebase/client";
-    import Icon from "@iconify/svelte";
+    import { redirect } from "@sveltejs/kit";
 
     async function signInWithGoogle() {
         try {
             await _signInWithGoogle();
+            window.location.href = "/";
         } catch (error) {
             console.error(error);
         }

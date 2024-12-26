@@ -1,5 +1,9 @@
 <script lang="ts">
-    import { auth_helpers } from "$lib/firebase/auth_helpers";
+    import { 
+        signInWithGoogle,
+        registerUserWithEmailAndPassword,
+        signInWithEmailAndPassword
+    } from "$lib/firebase/client";
 
     let email = '';
     let password = '';
@@ -20,13 +24,13 @@
             }
             
             try {
-                auth_helpers.register(email, password);
+                registerUserWithEmailAndPassword(email, password);
             } catch (error) {
                 console.error(error);
             }
         } else if (action == "login") {
             try {
-                auth_helpers.login(email, password);
+                signInWithEmailAndPassword(email, password);
             } catch (error) {
                 console.error(error);
             }

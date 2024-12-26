@@ -7,8 +7,19 @@ import {
     PUBLIC_FIREBASE_APP_ID,
     PUBLIC_FIREBASE_MEASUREMENT_ID
 } from '$env/static/public';
-import { initializeApp, getApps, getApp, deleteApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+
+import { initializeApp, getApps, getApp, deleteApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, onIdTokenChanged,
+    signInWithEmailAndPassword as _signInWithEmailAndPassword,
+    signInWithRedirect, GoogleAuthProvider,
+    signOut as _signOut,
+    createUserWithEmailAndPassword,
+    signInWithPopup
+} from 'firebase/auth';
+
+import { authStore } from '../../stores/authStore';
+import { invalidateAll } from '$app/navigation';
+import { browser } from '$app/environment';
 
 const firebaseConfig = {
     apiKey: PUBLIC_FIREBASE_API_KEY,
@@ -20,17 +31,70 @@ const firebaseConfig = {
     measurementId: PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
-let firebaseApp;
+function listenForAuthChanges() {
+    const firebaseAuth = getAuth();
 
-if (!getApps().length) {
-    firebaseApp = initializeApp(firebaseConfig);
-} else {
-    firebaseApp = getApp();
-    deleteApp(firebaseApp);
-    firebaseApp = initializeApp(firebaseConfig);
+    onIdTokenChanged(firebaseAuth, async (newUser) => {
+        if (newUser) {
+            console.log('User signed in', newUser);
+            authStore.set({ isLoading: false, user: newUser});
+        } else {
+            console.log('User signed out');
+            authStore.set({ isLoading: false, user: null });
+        }
+        await invalidateAll();
+    });
+}
+// Initialize Firebase
+export let firebaseApp: FirebaseApp;
+
+export function initializeFirebase() {
+    if (!browser) {
+        throw new Error('Cannot use the Firebase client on the server side');
+    }
+
+    if (!firebaseApp) {
+        firebaseApp = initializeApp(firebaseConfig);
+        listenForAuthChanges();
+    }
 }
 
-// Export auth
-const firebaseAuth = getAuth(firebaseApp);
-export { firebaseApp, firebaseAuth };
+// Functions to interact with Firebase Auth
+export async function signInWithEmailAndPassword(email, password) {
+    const firebaseAuth = getAuth();
+
+    try {
+        await _signInWithEmailAndPassword(firebaseAuth, email, password);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export async function registerUserWithEmailAndPassword(email, password) {
+    const firebaseAuth = getAuth();
+
+    try {
+        await createUserWithEmailAndPassword(firebaseAuth, email, password);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export async function signInWithGoogle() {
+    const firebaseAuth = getAuth();
+    try {
+        const googleAuthProvider = new GoogleAuthProvider();
+        await signInWithPopup(firebaseAuth, googleAuthProvider);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export async function signOut() {
+    const firebaseAuth = getAuth();
+    try {
+        await _signOut(firebaseAuth);
+    } catch (error) {
+        console.error(error);
+    }
+}

@@ -1,30 +1,17 @@
 <script lang="ts">
 	import '../app.css';
 	import Header from '$lib/components/Header.svelte';
-	import { onMount } from 'svelte';
-	import { firebaseAuth } from '$lib/firebase/client';
-    import { authStore } from '../stores/authStore';
-
-	onMount(() => {
-	    const unsuscribe = firebaseAuth.onAuthStateChanged(user => {
-	        console.log(user);
-			if (user) {
-	            console.log('User is signed in');
-				authStore.update((current) => {
-					return {
-						...current,
-						isLoading: false,
-						user: user,
-					};
-				});
-	            console.log("user is", user);
-	        } else {
-	            console.log('User is signed out');
-	        }
-	    });
-		return unsuscribe;
-	});
+    import { browser } from '$app/environment';
+	import { initializeFirebase } from '$lib/firebase/client';
 	let { children } = $props();
+
+	if (browser) {
+		try {
+			initializeFirebase();
+		} catch (error) {
+			console.error(error);
+		}
+	}
 </script>
 
 <Header />

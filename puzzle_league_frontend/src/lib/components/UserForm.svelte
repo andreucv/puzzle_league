@@ -9,8 +9,7 @@
     let password = '';
     let passwordConfirm = '';
     
-    export let action : string;
-
+    export let action: string;
     async function handleSubmit() {
         if (!email || !password || (action == "register" && !passwordConfirm)) {
             alert('Please fill in all fields');
@@ -68,7 +67,7 @@
 
     {#if action == "login"}
       <p class="mt-8">Not registered yet? 
-        <a href="#" on:click={() => action = "register"} class="text-indigo-500 hover:text-indigo-700 font-semibold">Create an account</a>
+        <a href="#" id="create-account-button" on:click={() => action = "register"} class="text-indigo-500 hover:text-indigo-700 font-semibold">Create an account</a>
       </p>
     {:else}
       <p class="mt-8">Already have an account? 

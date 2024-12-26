@@ -66,8 +66,9 @@ export async function signInWithEmailAndPassword(email, password) {
     try {
         return await _signInWithEmailAndPassword(firebaseAuth, email, password);
     } catch (error) {
-        console.error(error);
-        throw new Error(error);
+        const _error = await error;
+        console.error("FirebaseClient: error", _error);
+        throw new Error(_error);
     }
 }
 

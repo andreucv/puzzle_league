@@ -11,4 +11,9 @@ COPY package.json .
 RUN apt-get update && apt-get install -y npm
 RUN npx playwright install
 RUN npx playwright install-deps
+
+
+RUN npm config set fetch-retry-mintimeout 100000
+RUN npm config set fetch-retry-maxtimeout 500000
+RUN npm config set fetch-retries 5
 RUN npm install --loglevel verbose

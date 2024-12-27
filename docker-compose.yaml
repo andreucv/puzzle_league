@@ -10,3 +10,12 @@ services:
         ports:
             - "5173:5173"
 
+    web-backend:
+        build:
+            context: puzzle_league_backend/
+            network: host
+        command: python manage.py runserver 0.0.0.0:8000
+        volumes:
+            - .:/workspace:bind
+        ports:
+            - "8000:8000"

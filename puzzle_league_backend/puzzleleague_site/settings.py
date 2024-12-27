@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-eayny)xvyzqmsulh%!+1_()5jcfrda5b#w*54f^-!k(m%i4q=5'
+SECRET_KEY = 'django-insecure-b%u&p781l8e_j!+7090+w5fep%kr9y(u@k-ieip*kifqz)rusz'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -37,6 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'taggit',
+    'puzzles',
+    'users',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -67,6 +72,12 @@ TEMPLATES = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny' )
+}
+
 WSGI_APPLICATION = 'puzzleleague_site.wsgi.application'
 
 
@@ -80,6 +91,7 @@ DATABASES = {
     }
 }
 
+SITE_ID=1
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -99,6 +111,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = "users.CustomUser"
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

@@ -1,4 +1,4 @@
-name: puzzle_league
+name: puzzle-league
 services:
     web-frontend:
         build:

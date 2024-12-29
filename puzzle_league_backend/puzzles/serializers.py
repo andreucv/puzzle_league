@@ -1,12 +1,8 @@
 from rest_framework import serializers
 
-from .models import Puzzle, Participant, Competition, Category, Brand, Location
+from .models import Participant, Party, Register, Competition, Category, Location
+from django.contrib.auth.models import User
 from taggit.serializers import (TagListSerializerField, TaggitSerializer)
-
-class BrandSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Brand
-        fields = ['id', 'name']
 
 class CompetitionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,7 +12,7 @@ class CompetitionSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.HyperlinkedModelSerializer):
     #competition = serializers.ChoiceField(choices=Competition.objects.all())
     competition = serializers.PrimaryKeyRelatedField(queryset=Competition.objects.all())
-    puzzle = serializers.PrimaryKeyRelatedField(queryset=Puzzle.objects.all())
+    #puzzle = serializers.PrimaryKeyRelatedField(queryset=Puzzle.objects.all())
 
     class Meta:
         model = Category
@@ -29,7 +25,7 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
                   'total_places',
                   'parties_registered',
                   'public_puzzle',
-                  'puzzle',
+                  #'puzzle',
                   'registers',
                 ]
 
@@ -57,11 +53,4 @@ class CompetitionCategorySerializer(serializers.ModelSerializer):
 class ParticipantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Participant
-        fields = ['id', 'country', 'user']
-
-class PuzzleSerializer(TaggitSerializer, serializers.ModelSerializer):
-    tags = TagListSerializerField()
-
-    class Meta:
-        model = Puzzle
-        fields = ['id', 'brand', 'name', 'npieces', 'image', 'tags', 'measures_x', 'measures_y', 'brand_code']
+        fields = ['id', 'country', 'user', 'puzzleitem_collection']

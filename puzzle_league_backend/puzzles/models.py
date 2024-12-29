@@ -1,38 +1,7 @@
 from django.db import models
-from taggit.managers import TaggableManager
-#from django_countries.fields import CountryField
-from users.models import CustomUser as User
+from django.contrib.auth.models import User
 
-# Create your models here.
-class Brand(models.Model):
-    name = models.CharField(max_length=12)
-
-    def __str__(self):
-        return str(self.name)
-
-class Puzzle(models.Model):
-    brand       = models.ForeignKey(Brand, on_delete=models.DO_NOTHING)
-    name        = models.CharField(max_length=40)
-    npieces     = models.IntegerField()
-    image       = models.CharField(max_length=300)
-    tags        = TaggableManager()
-    measures_x  = models.IntegerField()
-    measures_y  = models.IntegerField()
-    brand_code  = models.CharField(max_length=20, blank=True)
-    barcode     = models.CharField(max_length=20, blank=True)
-
-    def __str__(self):
-        # e.g. : Pieces 1000 ; Brand Educa ; Name : Nordic Houses
-        return str(self.brand) + ' : ' + str(self.npieces) + ' : ' + self.name
-
-class Location(models.Model):
-    full_address    = models.CharField(max_length=200)
-    city            = models.CharField(max_length=50)
-    country         = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.city + ' ' + self.country.name
-
+# Register your models here.
 class Participant(models.Model):
     country     = models.CharField(max_length=30)
     pending_user= models.BooleanField(default=True)
@@ -42,6 +11,25 @@ class Participant(models.Model):
     def __str__(self):
         # e.g. : Peter Smith - Berlin (Germany)
         return str(self.user.first_name + self.user.last_name + ' - ' + str(self.country))
+
+class Register(models.Model):
+    time              = models.TimeField()
+    date              = models.DateField()
+    completed_npieces = models.IntegerField()
+    participants      = models.ManyToManyField(Participant)
+    group_name        = models.CharField(max_length=30, blank=True)
+    #puzzle            = models.ForeignKey(Puzzle, on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return "Register: Finished Puzzle: Participants : " + str([participant for participant in self.participants.all()]) + 'Completed: ' + str(self.completed_npieces) + ' pieces in ' + str(self.time) + ' - ' + str(self.date)
+
+class Location(models.Model):
+    full_address    = models.CharField(max_length=200)
+    city            = models.CharField(max_length=50)
+    #country         = CountryField()
+
+    def __str__(self):
+        return self.city
 
 
 class Party(models.Model):
@@ -56,17 +44,6 @@ class Party(models.Model):
         else:
             return "Equipo " + self.group_name
 
-class Register(models.Model):
-    time              = models.TimeField()
-    date              = models.DateField()
-    completed_npieces = models.IntegerField()
-    participants      = models.ManyToManyField(Participant)
-    group_name        = models.CharField(max_length=30, blank=True)
-    puzzle            = models.ForeignKey(Puzzle, on_delete=models.DO_NOTHING)
-
-    def __str__(self):
-        return "Register: Finished Puzzle: " + str(self.puzzle) + " Participants : " + str([participant for participant in self.participants.all()]) + 'Completed: ' + str(self.completed_npieces) + ' pieces in ' + str(self.time) + ' - ' + str(self.date)
-
 class Competition(models.Model):
     name        = models.CharField(max_length=100)
     start_date  = models.DateField(blank=True)
@@ -77,7 +54,16 @@ class Competition(models.Model):
 
     def __str__(self):
         return self.name + ' ' + str(self.start_date)
-    
+
+    # def today_competitions(self):
+    #     from datetime import datetime, timedelta, time
+
+    #     today = datetime.now().date()
+    #     tomorrow = today + timedelta(1)
+    #     today_start = datetime.combine(today, time())
+    #     today_end = datetime.combine(tomorrow, time())
+    #     return self.filter(start_date__lte=today_end, end_date__gte=today_start)
+
 class Category(models.Model):
     class CategoryType(models.TextChoices):
         INDIVIDUAL  = 'Individual'
@@ -97,7 +83,7 @@ class Category(models.Model):
     total_places        = models.IntegerField(blank=True)
     parties_registered  = models.ManyToManyField(Party, blank=True)
     public_puzzle       = models.BooleanField(default=False)
-    puzzle              = models.ForeignKey(Puzzle, on_delete=models.DO_NOTHING, blank=True)
+    #puzzle              = models.ForeignKey(Puzzle, on_delete=models.DO_NOTHING, blank=True)
 
     # After the category competition
     registers           = models.ManyToManyField(Register, blank=True)

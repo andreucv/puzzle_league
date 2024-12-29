@@ -22,6 +22,5 @@ function makeApp() {
     databaseURL: `https://${PUBLIC_FIREBASE_PROJECT_ID}.firebaseio.com`,
   });
 }
-export const firebase = makeApp();
-export const auth = getAuth(firebase);
-export const firestore = getFirestore();
+export const app = makeApp();
+export const auth = getAuth(app);

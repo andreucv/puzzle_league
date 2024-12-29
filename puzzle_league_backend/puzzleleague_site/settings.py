@@ -25,8 +25,12 @@ SECRET_KEY = 'django-insecure-b%u&p781l8e_j!+7090+w5fep%kr9y(u@k-ieip*kifqz)rusz
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    'puzzle-league-web-backend-1',
+    'localhost',
+    '.pythonanywhere.com',
+    '.vercel.app'
+]
 
 # Application definition
 
@@ -38,10 +42,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'taggit',
-    'puzzles',
-    'users',
     'rest_framework',
+    'login_firebase',
+    'puzzles',
+    'taggit',
+    'knox',
 ]
 
 MIDDLEWARE = [
@@ -72,14 +77,16 @@ TEMPLATES = [
     },
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-        'rest_framework.permissions.AllowAny' )
-}
-
 WSGI_APPLICATION = 'puzzleleague_site.wsgi.application'
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'login_firebase.firebase_auth_backend.FirebaseAuthBackend',
+]
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -92,6 +99,24 @@ DATABASES = {
 }
 
 SITE_ID=1
+
+# Starting Firebase app here
+import os
+import firebase_admin
+
+cred = firebase_admin.credentials.Certificate(os.path.join(BASE_DIR, "firebase.config.json"))
+firebase_admin.initialize_app(cred)
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'knox.auth.TokenAuthentication'
+    ],
+}
+
+REST_KNOX = {
+    'TOKEN_LIMIT_PER_USER': 1,
+    'AUTO_REFRESH': True,
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -110,8 +135,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
-AUTH_USER_MODEL = "users.CustomUser"
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

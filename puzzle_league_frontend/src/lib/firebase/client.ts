@@ -8,18 +8,20 @@ import {
     PUBLIC_FIREBASE_MEASUREMENT_ID
 } from '$env/static/public';
 
-import { initializeApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, onIdTokenChanged,
+import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
+import {
+    getAuth, onAuthStateChanged,
     signInWithEmailAndPassword as _signInWithEmailAndPassword,
     GoogleAuthProvider,
     signOut as _signOut,
     createUserWithEmailAndPassword,
-    signInWithPopup
+    signInWithPopup,
 } from 'firebase/auth';
 
 import { authStore } from '../../stores/authStore';
 import { invalidateAll } from '$app/navigation';
 import { browser } from '$app/environment';
+import { fromStore } from 'svelte/store';
 
 const firebaseConfig = {
     apiKey: PUBLIC_FIREBASE_API_KEY,
@@ -31,32 +33,59 @@ const firebaseConfig = {
     measurementId: PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-function listenForAuthChanges() {
+export function listenForAuthChanges() {
     const firebaseAuth = getAuth();
-
-    onIdTokenChanged(firebaseAuth, async (newUser) => {
-        if (newUser) {
-            console.log('User signed in', newUser);
-            authStore.set({ isLoading: false, user: newUser});
+    
+    onAuthStateChanged(firebaseAuth, async (user) => {
+        if (user != null) {
+            const previous_user = fromStore(authStore).current.user;
+            const previous_backend_token = fromStore(authStore).current.backend_token;
+            console.log('client.ts: listenForAuthChanges: previous_user', previous_user);
+            console.log('client.ts: listenForAuthChanges: previous_backend_token', previous_backend_token);
+            if (user.email == previous_user?.email && previous_backend_token != null) {
+                // We will login the user with the knox token login endpoint using token
+                return;
+            }
+            const idToken = await user.getIdToken();
+            console.log('User signed in', user);
+            if (idToken) {
+                const result = await fetch('/api/send_token_to_backend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ token: idToken }),
+                });
+                console.log('client.ts: listenForAuthChanges: idToken', idToken);
+                console.log('client.ts: listenForAuthChanges: result', result);
+                const body = await result.json();
+                console.log('client.ts: listenForAuthChanges: storing authStore', user, body.token)
+                authStore.set({ isLoading: false, user: user, backend_token: body.token });
+                localStorage.setItem('auth', JSON.stringify({ user: user, backend_token: body.token }, function(k, v) { return v === undefined ? null : v; }));
+            }
         } else {
             console.log('User signed out');
-            authStore.set({ isLoading: false, user: null });
+            authStore.set({ isLoading: false, user: null, backend_token: null });
+            localStorage.removeItem('auth');
         }
-        await invalidateAll();
+        invalidateAll();
     });
 }
+
 // Initialize Firebase
-export let firebaseApp: FirebaseApp;
+export let firebaseApp: FirebaseApp | undefined;
+export let firebaseAuth: Auth;
 
 export function initializeFirebase() {
     if (!browser) {
         throw new Error('Cannot use the Firebase client on the server side');
     }
-
-    if (firebaseApp == null) {
+    if (firebaseApp == undefined && !getApps().length) {
         firebaseApp = initializeApp(firebaseConfig);
-        listenForAuthChanges();
+    } else {
+        firebaseApp = getApps()[0];
     }
+    firebaseAuth = getAuth(firebaseApp);
 }
 
 // Functions to interact with Firebase Auth

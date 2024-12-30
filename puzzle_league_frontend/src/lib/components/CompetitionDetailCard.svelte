@@ -1,0 +1,74 @@
+<script>
+    export let competition;
+
+    $: defaultStartDate =  new Date(competition.start_date);
+    $: defaultEndDate = new Date(competition.end_date);
+
+    $: monthNumber = defaultStartDate.getDate(); // getMonth() is 0-indexed
+    $: monthAbbreviation = defaultStartDate.toLocaleString('default', { month: 'short' });
+    $: year = defaultStartDate.getFullYear();
+</script>
+
+<a href="competition_details/{competition.id}">
+<div class="mt-2 py-1 card">
+    <div>
+        <div class="flex">
+            <div class="px-2 flex-grow">
+                <h2 class="text-lg">{competition.name}</h2>
+                <p class="text-sm">{competition.location.city}</p>
+            </div>
+            <div class="text-center image-container">
+            </div>
+            <div class="text-center date-display">
+                <div class="px-2">
+                    <p class="month-number">{monthNumber}</p>
+                    <p class="month-year">{monthAbbreviation}</p>
+                    <p class="month-year">{year}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr class="opacity-50" />
+    <div class="snap-x snap-mandatory scroll-smooth flex gap-2 overflow-x-auto p-2" >
+        <!-- we list here all the categories that the competition holds -->
+        {#each competition.categories as category}
+        <div class="">
+            <div class="flex items-center">
+                <span class="chip variant-filled-surface">{category.category_type}</span>
+            </div>
+        </div>
+        {/each}
+    </div>
+</div>
+</a>
+
+<style>
+    .vertLine {
+        border-right:20px #ff0000;    /* line 1 pixel width, length of "Some content" */
+    }
+
+    .category-times {
+        display: flex;
+        gap: 1rem; /* Adjust the gap as needed */
+    }
+
+    .date-display {
+        display: flex;
+        align-items: center;
+    }
+    .month-number {
+      font-size: 2rem; /* Larger font size for the month number */
+      line-height: 1;
+    }
+    .month-year {
+      font-size: 1rem; /* Smaller font size for the month abbreviation and year */
+      line-height: 1;
+    }
+    .image-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 2.5rem; /* Adjust as needed */
+        overflow: hidden;
+    }
+</style>

@@ -6,12 +6,19 @@
     import { signOut } from '$lib/firebase/client';
     $: currentPath = $page.url.pathname;
     $: currentUser = $authStore.user;
+
+    import { getDrawerStore } from "@skeletonlabs/skeleton";
+    const drawerStore = getDrawerStore();
+
+    function openDrawer() {
+        drawerStore.open();
+    }
 </script>
 
 <header>
     <AppBar padding="m-4" background="bg-transparent" slotTrail="place-items-end" regionRowMain="">
         <svelte:fragment slot="lead">
-            <button id="states-button" type="button">
+            <button id="states-button" on:click={openDrawer} type="button">
                 <Icon icon="icon-park:hamburger-button" width="1.5rem" height="1.5rem" />
             </button>
         </svelte:fragment>

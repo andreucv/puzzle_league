@@ -40,7 +40,7 @@ class CategoryNameSerializer(serializers.ModelSerializer):
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
-        fields = ['id', 'full_address', 'city']
+        fields = ['id', 'full_address', 'city', 'country']
 
 class CompetitionCategorySerializer(serializers.ModelSerializer):
     categories = CategoryNameSerializer(many=True, read_only=True)

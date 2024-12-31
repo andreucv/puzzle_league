@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import Header from '$lib/components/Header.svelte';
+	import Footer from '$lib/components/Footer.svelte';
 	import { initializeFirebase, listenForAuthChanges } from '$lib/firebase/client';
     import { onMount } from 'svelte';
     import { authStore } from '../stores/authStore';
@@ -20,3 +21,4 @@
 
 <Header />
 {@render children()}
+<Footer />

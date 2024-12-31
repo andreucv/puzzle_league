@@ -1,0 +1,915 @@
+[
+    {
+        "locations": [
+            {
+                "id": 1,
+                "full_address": "Asociaci\u00f3n de Vecinos Sagrada Familia. Calle Penedes, S/N. Manresa",
+                "city": "Manresa",
+                "country": "ES"
+            },
+            {
+                "id": 2,
+                "full_address": "Feria de Santa Tecla - Carpa Central. P. de la Industria, delante del N. 16. Berga.",
+                "city": "Berga",
+                "country": "ES"
+            },
+            {
+                "id": 3,
+                "full_address": "Calle Mariano Aguilo, entre C. Joncar y Llull. Poblenou - Barcelona",
+                "city": "Barcelona",
+                "country": "ES"
+            },
+            {
+                "id": 4,
+                "full_address": "Vila Vella. Calle Moss\u00e8n Josep Duran - Plaza Sant Jordi",
+                "city": "Sant Vicen\u00e7 dels Horts",
+                "country": "ES"
+            },
+            {
+                "id": 5,
+                "full_address": "Centro Cultural de Cambrils. Calle Sant Pl\u00e0cid, 18. Cambrils, Tarragona",
+                "city": "Cambrils",
+                "country": "ES"
+            },
+            {
+                "id": 6,
+                "full_address": "Casal de Vallserrat, Sant Esteve Sesrovires",
+                "city": "Sant Esteve Sesrovires",
+                "country": "ES"
+            },
+            {
+                "id": 7,
+                "full_address": "Parc de l'Espanya Industrial. delante de la Casa del Mig. Calle Muntadas, 5. Barcelona",
+                "city": "Barcelona",
+                "country": "ES"
+            },
+            {
+                "id": 8,
+                "full_address": "Carpa Centro Esc\u00e9nico Quijotes y Sanchos",
+                "city": "Villamayor de Santiago",
+                "country": "ES"
+            },
+            {
+                "id": 9,
+                "full_address": "Av. Juan Carlos I, 11. Rota, Cadiz",
+                "city": "Cadiz",
+                "country": "ES"
+            },
+            {
+                "id": 10,
+                "full_address": "Calle Mayor, 9. Cazalegas, Toledo",
+                "city": "Cazalegas",
+                "country": "ES"
+            },
+            {
+                "id": 11,
+                "full_address": "Paseo de la Ermita s/n. Simancas, Valladolid",
+                "city": "Valladolid",
+                "country": "ES"
+            },
+            {
+                "id": 12,
+                "full_address": "Calle Angel Guimera, 4. La pobla de Lillet, Barcelona",
+                "city": "La pobla de Lillet",
+                "country": "ES"
+            },
+            {
+                "id": 13,
+                "full_address": "Auditorio Cal Figueres. Plaza Cal Figueres, 1. Hostalets de Pierola, Barcelona.",
+                "city": "Hostalets de Pierola",
+                "country": "ES"
+            },
+            {
+                "id": 14,
+                "full_address": "Casal de la Gent Gran. Av. Catalunya, 3. Sant Esteve de Sesrovires, Barcelona.",
+                "city": "Sant Esteve Sesrovires",
+                "country": "ES"
+            },
+            {
+                "id": 15,
+                "full_address": "Casa de la Cultura. Calle Fueros de Laguna, 25. Laguna de Negrillos, Leon.",
+                "city": "Laguna de Negrillos",
+                "country": "ES"
+            },
+            {
+                "id": 16,
+                "full_address": "Passeig Carles Padros. Mataro",
+                "city": "Matar\u00f3",
+                "country": "ES"
+            },
+            {
+                "id": 17,
+                "full_address": "Gimnasio Hipolito Ruiz Lopez. Av. de Burgos, 7. Belorado, Burgos",
+                "city": "Belorado",
+                "country": "ES"
+            },
+            {
+                "id": 18,
+                "full_address": "NH Alicante, Calle Mexico 18, Alicante",
+                "city": "Alicante",
+                "country": "ES"
+            },
+            {
+                "id": 19,
+                "full_address": "Els Casots",
+                "city": "Els Casots",
+                "country": "ES"
+            },
+            {
+                "id": 20,
+                "full_address": "Complejo deportivo Espartales. Avda de los Jesuitas 44. Alcala de Henares",
+                "city": "Alcala de Henares",
+                "country": "ES"
+            },
+            {
+                "id": 21,
+                "full_address": "Ingenia Mostoles",
+                "city": "Madrid",
+                "country": "ES"
+            },
+            {
+                "id": 22,
+                "full_address": "Patronato Cultural y Recreativo. Calle Mossen Jacint Verdaguer, 52. Cornella.",
+                "city": "Cornella",
+                "country": "ES"
+            },
+            {
+                "id": 23,
+                "full_address": "Parc de Lluis Companys, al costat del TAP",
+                "city": "Bigues i Riells",
+                "country": "ES"
+            }
+        ],
+        "competitions": [
+            {
+                "id": 1,
+                "name": "1er Concurso de Puzzles de Manresa",
+                "start_date": "2024-10-05",
+                "end_date": "2024-10-05",
+                "location": 1,
+                "image": "1er_Concurso_de_Puzzles_de_Manresa",
+                "created_by": 1
+            },
+            {
+                "id": 2,
+                "name": "Concurso de Puzzles por Parejas de Berga",
+                "start_date": "2024-09-22",
+                "end_date": "2024-09-22",
+                "location": 2,
+                "image": "Concurso_de_Puzzles_por_Parejas_de_Berga",
+                "created_by": 1
+            },
+            {
+                "id": 3,
+                "name": "Concurso de Puzzles Poblenou de Puzzlemania",
+                "start_date": "2024-09-15",
+                "end_date": "2024-09-15",
+                "location": 3,
+                "image": "Concurso_de_Puzzles_Poblenou_de_Puzzlemania",
+                "created_by": 1
+            },
+            {
+                "id": 4,
+                "name": "6a Edicion del Concurso de Puzzles de Sant Vicen\u00e7 dels Horts",
+                "start_date": "2024-09-14",
+                "end_date": "2024-09-14",
+                "location": 4,
+                "image": "6a_Edicion_del_Concurso_de_Puzzles_de_Sant_Vicen\u00e7_dels_Horts",
+                "created_by": 1
+            },
+            {
+                "id": 5,
+                "name": "I Concurso de Puzzles Solidario de Cambrils",
+                "start_date": "2024-09-14",
+                "end_date": "2024-09-14",
+                "location": 5,
+                "image": "I_Concurso_de_Puzzles_Solidario_de_Cambrils",
+                "created_by": 1
+            },
+            {
+                "id": 6,
+                "name": "1er Campeonato de Puzzles por Relevos",
+                "start_date": "2024-09-08",
+                "end_date": "2024-09-08",
+                "location": 6,
+                "image": "1er_Campeonato_de_Puzzles_por_Relevos",
+                "created_by": 1
+            },
+            {
+                "id": 7,
+                "name": "I Concurso de Puzzles del Abierto Internade Ajedrez de Sants - Barcelona",
+                "start_date": "2024-08-27",
+                "end_date": "2024-08-27",
+                "location": 7,
+                "image": "I_Concurso_de_Puzzles_del_Abierto_Internade_Ajedrez_de_Sants_-_Barcelona",
+                "created_by": 1
+            },
+            {
+                "id": 8,
+                "name": "I Concurso de Puzzles de Villamayor de Santiago",
+                "start_date": "2024-08-17",
+                "end_date": "2024-08-17",
+                "location": 8,
+                "image": "I_Concurso_de_Puzzles_de_Villamayor_de_Santiago",
+                "created_by": 1
+            },
+            {
+                "id": 9,
+                "name": "2 Concurso de Puzzles Villa de Rota Costa Ballena",
+                "start_date": "2024-08-17",
+                "end_date": "2024-08-17",
+                "location": 9,
+                "image": "2_Concurso_de_Puzzles_Villa_de_Rota_Costa_Ballena",
+                "created_by": 1
+            },
+            {
+                "id": 10,
+                "name": "I Concurso de Puzzles de Cazalegas",
+                "start_date": "2024-08-10",
+                "end_date": "2024-08-10",
+                "location": 10,
+                "image": "I_Concurso_de_Puzzles_de_Cazalegas",
+                "created_by": 1
+            },
+            {
+                "id": 11,
+                "name": "VIII Concurso de Puzzles Villa de Simancas",
+                "start_date": "2024-08-04",
+                "end_date": "2024-08-04",
+                "location": 11,
+                "image": "VIII_Concurso_de_Puzzles_Villa_de_Simancas",
+                "created_by": 1
+            },
+            {
+                "id": 12,
+                "name": "IX Concurso de Puzzles del Torneo Internacional de Ajedrez de la Pobla de Lillet",
+                "start_date": "2024-08-03",
+                "end_date": "2024-08-03",
+                "location": 12,
+                "image": "IX_Concurso_de_Puzzles_del_Torneo_Internacional_de_Ajedrez_de_la_Pobla_de_Lillet",
+                "created_by": 1
+            },
+            {
+                "id": 13,
+                "name": "Concurso de Puzzles de Hostalets de Pierola",
+                "start_date": "2024-07-27",
+                "end_date": "2024-07-27",
+                "location": 13,
+                "image": "Concurso_de_Puzzles_de_Hostalets_de_Pierola",
+                "created_by": 1
+            },
+            {
+                "id": 14,
+                "name": "26e Concurso de Puzzles de Sant Esteve de Sesrovires",
+                "start_date": "2024-07-26",
+                "end_date": "2024-07-26",
+                "location": 14,
+                "image": "26e_Concurso_de_Puzzles_de_Sant_Esteve_de_Sesrovires",
+                "created_by": 1
+            },
+            {
+                "id": 15,
+                "name": "V Concurso de Puzzles Laguna de Negrillos",
+                "start_date": "2024-07-13",
+                "end_date": "2024-07-13",
+                "location": 15,
+                "image": "V_Concurso_de_Puzzles_Laguna_de_Negrillos",
+                "created_by": 1
+            },
+            {
+                "id": 16,
+                "name": "3er Torneo de Puzzles. Fiesta Molins 2024",
+                "start_date": "2024-07-07",
+                "end_date": "2024-07-07",
+                "location": 16,
+                "image": "3er_Torneo_de_Puzzles._Fiesta_Molins_2024",
+                "created_by": 1
+            },
+            {
+                "id": 17,
+                "name": "I Concurso de Puzzles Belorado",
+                "start_date": "2024-07-06",
+                "end_date": "2024-07-06",
+                "location": 17,
+                "image": "I_Concurso_de_Puzzles_Belorado",
+                "created_by": 1
+            },
+            {
+                "id": 18,
+                "name": "Rainbow Fest 2024",
+                "start_date": "2024-06-29",
+                "end_date": "2024-06-29",
+                "location": 18,
+                "image": "Rainbow_Fest_2024",
+                "created_by": 1
+            },
+            {
+                "id": 19,
+                "name": "2n Concurs de puzzles del Penedes",
+                "start_date": "2024-06-16",
+                "end_date": "2024-06-16",
+                "location": 19,
+                "image": "2n_Concurs_de_puzzles_del_Penedes",
+                "created_by": 1
+            },
+            {
+                "id": 20,
+                "name": "1er Campeonato de Puzzles de Alcala de Henares",
+                "start_date": "2024-06-14",
+                "end_date": "2024-06-16",
+                "location": 20,
+                "image": "1er_Campeonato_de_Puzzles_de_Alcala_de_Henares",
+                "created_by": 1
+            },
+            {
+                "id": 21,
+                "name": "3 Fiesta del puzzle edicion Madrid",
+                "start_date": "2024-06-02",
+                "end_date": "2024-06-02",
+                "location": 21,
+                "image": "3_Fiesta_del_puzzle_edicion_Madrid",
+                "created_by": 1
+            },
+            {
+                "id": 22,
+                "name": "Concurso de Puzzles Fiesta Mayor",
+                "start_date": "2024-06-01",
+                "end_date": "2024-06-01",
+                "location": 22,
+                "image": "Concurso_de_Puzzles_Fiesta_Mayor",
+                "created_by": 1
+            },
+            {
+                "id": 23,
+                "name": "6 Concurs de Puzzles de Bigues i Riells",
+                "start_date": "2024-05-26",
+                "end_date": "2024-05-26",
+                "location": 23,
+                "image": "6_Concurs_de_Puzzles_de_Bigues_i_Riells",
+                "created_by": 1
+            }
+        ],
+        "categories": [
+            {
+                "id": 1,
+                "category_type": "pairs",
+                "competition": 1,
+                "date": "2024-10-05",
+                "start_time": "11:00:00",
+                "end_time": "13:00:00",
+                "participation_fee": "15",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 2,
+                "category_type": "pairs",
+                "competition": 2,
+                "date": "2024-09-22",
+                "start_time": "17:00:00",
+                "end_time": "19:00:00",
+                "participation_fee": "15",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 3,
+                "category_type": "pairs",
+                "competition": 3,
+                "date": "2024-09-15",
+                "start_time": "12:00:00",
+                "end_time": "14:00:00",
+                "participation_fee": "12",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 4,
+                "category_type": "pairs",
+                "competition": 4,
+                "date": "2024-09-14",
+                "start_time": "11:00:00",
+                "end_time": "13:00:00",
+                "participation_fee": "0",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 5,
+                "category_type": "kids_pairs",
+                "competition": 4,
+                "date": "2024-09-14",
+                "start_time": "11:00:00",
+                "end_time": "13:00:00",
+                "participation_fee": "0",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 6,
+                "category_type": "pairs",
+                "competition": 5,
+                "date": "2024-09-14",
+                "start_time": "10:00:00",
+                "end_time": "12:30:00",
+                "participation_fee": "15",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 7,
+                "category_type": "teams_relays",
+                "competition": 6,
+                "date": "2024-09-08",
+                "start_time": "10:00:00",
+                "end_time": "14:30:00",
+                "participation_fee": "40",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 8,
+                "category_type": "pairs",
+                "competition": 7,
+                "date": "2024-08-27",
+                "start_time": "11:00:00",
+                "end_time": "13:00:00",
+                "participation_fee": "0",
+                "total_places": 40,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 9,
+                "category_type": "kids",
+                "competition": 8,
+                "date": "2024-08-17",
+                "start_time": "11:00:00",
+                "end_time": "13:30:00",
+                "participation_fee": "10",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 10,
+                "category_type": "individual",
+                "competition": 8,
+                "date": "2024-08-17",
+                "start_time": "11:00:00",
+                "end_time": "13:30:00",
+                "participation_fee": "12",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 11,
+                "category_type": "pairs",
+                "competition": 8,
+                "date": "2024-08-17",
+                "start_time": "16:00:00",
+                "end_time": "18:30:00",
+                "participation_fee": "16",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 12,
+                "category_type": "pairs",
+                "competition": 9,
+                "date": "2024-08-17",
+                "start_time": "17:00:00",
+                "end_time": "19:00:00",
+                "participation_fee": "20",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 13,
+                "category_type": "kids",
+                "competition": 10,
+                "date": "2024-08-10",
+                "start_time": "11:00:00",
+                "end_time": "13:30:00",
+                "participation_fee": "10",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 14,
+                "category_type": "individual",
+                "competition": 10,
+                "date": "2024-08-10",
+                "start_time": "11:00:00",
+                "end_time": "13:30:00",
+                "participation_fee": "12",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 15,
+                "category_type": "pairs",
+                "competition": 10,
+                "date": "2024-08-10",
+                "start_time": "16:00:00",
+                "end_time": "18:30:00",
+                "participation_fee": "16",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 16,
+                "category_type": "pairs",
+                "competition": 11,
+                "date": "2024-08-04",
+                "start_time": "11:00:00",
+                "end_time": "13:00:00",
+                "participation_fee": "20",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 17,
+                "category_type": "pairs",
+                "competition": 12,
+                "date": "2024-08-03",
+                "start_time": "11:00:00",
+                "end_time": "13:00:00",
+                "participation_fee": "10",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 18,
+                "category_type": "pairs",
+                "competition": 13,
+                "date": "2024-07-27",
+                "start_time": "16:00:00",
+                "end_time": "18:00:00",
+                "participation_fee": "15",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 19,
+                "category_type": "pairs",
+                "competition": 14,
+                "date": "2024-07-26",
+                "start_time": "17:00:00",
+                "end_time": "19:00:00",
+                "participation_fee": "0",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 20,
+                "category_type": "kids",
+                "competition": 14,
+                "date": "2024-07-26",
+                "start_time": "18:00:00",
+                "end_time": "19:00:00",
+                "participation_fee": "0",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 21,
+                "category_type": "pairs",
+                "competition": 15,
+                "date": "2024-07-13",
+                "start_time": "11:00:00",
+                "end_time": "13:00:00",
+                "participation_fee": "20",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 22,
+                "category_type": "kids",
+                "competition": 16,
+                "date": "2024-07-07",
+                "start_time": "11:00:00",
+                "end_time": "13:00:00",
+                "participation_fee": "0",
+                "total_places": 10,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 23,
+                "category_type": "pairs",
+                "competition": 16,
+                "date": "2024-07-07",
+                "start_time": "11:00:00",
+                "end_time": "13:00:00",
+                "participation_fee": "0",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 24,
+                "category_type": "individual",
+                "competition": 17,
+                "date": "2024-07-06",
+                "start_time": "11:30:00",
+                "end_time": "13:30:00",
+                "participation_fee": "15",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 25,
+                "category_type": "pairs",
+                "competition": 17,
+                "date": "2024-07-06",
+                "start_time": "16:30:00",
+                "end_time": "18:30:00",
+                "participation_fee": "20",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 26,
+                "category_type": "individual",
+                "competition": 18,
+                "date": "2024-06-29",
+                "start_time": "10:00:00",
+                "end_time": "12:00:00",
+                "participation_fee": "20",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 27,
+                "category_type": "pairs",
+                "competition": 18,
+                "date": "2024-06-29",
+                "start_time": "12:15:00",
+                "end_time": "14:30:00",
+                "participation_fee": "25",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 28,
+                "category_type": "teams",
+                "competition": 18,
+                "date": "2024-06-29",
+                "start_time": "17:00:00",
+                "end_time": "20:00:00",
+                "participation_fee": "30",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 29,
+                "category_type": "individual",
+                "competition": 19,
+                "date": "2024-06-16",
+                "start_time": "10:30:00",
+                "end_time": "11:15:00",
+                "participation_fee": "8",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 30,
+                "category_type": "pairs",
+                "competition": 19,
+                "date": "2024-06-16",
+                "start_time": "11:30:00",
+                "end_time": "13:00:00",
+                "participation_fee": "16",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 31,
+                "category_type": "teams",
+                "competition": 19,
+                "date": "2024-06-16",
+                "start_time": "15:00:00",
+                "end_time": "18:00:00",
+                "participation_fee": "26",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 32,
+                "category_type": "puzzle_chess",
+                "competition": 20,
+                "date": "2024-06-14",
+                "start_time": "18:00:00",
+                "end_time": "20:00:00",
+                "participation_fee": "15",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 33,
+                "category_type": "individual",
+                "competition": 20,
+                "date": "2024-06-15",
+                "start_time": "11:00:00",
+                "end_time": "13:00:00",
+                "participation_fee": "20",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 34,
+                "category_type": "kids",
+                "competition": 20,
+                "date": "2024-06-15",
+                "start_time": "11:30:00",
+                "end_time": "14:00:00",
+                "participation_fee": "10",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 35,
+                "category_type": "pairs",
+                "competition": 20,
+                "date": "2024-06-15",
+                "start_time": "17:00:00",
+                "end_time": "19:00:00",
+                "participation_fee": "25",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 36,
+                "category_type": "teams",
+                "competition": 20,
+                "date": "2024-06-16",
+                "start_time": "10:00:00",
+                "end_time": "13:00:00",
+                "participation_fee": "30",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 37,
+                "category_type": "teams_relays",
+                "competition": 21,
+                "date": "2024-06-02",
+                "start_time": "10:30:00",
+                "end_time": "14:30:00",
+                "participation_fee": "40",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 38,
+                "category_type": "pairs",
+                "competition": 21,
+                "date": "2024-06-02",
+                "start_time": "17:00:00",
+                "end_time": "18:30:00",
+                "participation_fee": "18",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 39,
+                "category_type": "pairs",
+                "competition": 22,
+                "date": "2024-06-01",
+                "start_time": "11:00:00",
+                "end_time": "13:00:00",
+                "participation_fee": "14",
+                "total_places": 28,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            },
+            {
+                "id": 40,
+                "category_type": "pairs",
+                "competition": 23,
+                "date": "2024-05-26",
+                "start_time": "11:00:00",
+                "end_time": "13:00:00",
+                "participation_fee": "10",
+                "total_places": 30,
+                "parties_registered": [],
+                "public_puzzle": false,
+                "puzzle": 1,
+                "registers": []
+            }
+        ]
+    }
+]

@@ -1,7 +1,4 @@
 <script>
-    import ListCompetitions from "$lib/components/ListCompetitions.svelte";
-
-    let { data } = $props();
 </script>
 
 <svelte:head>
@@ -13,8 +10,7 @@
     <p>
         Puzzles League for everyone
     </p>
-    <button class="btn bg-success-100">Explore Competitions</button>
-    <ListCompetitions upcoming_competitions={data.props.upcoming_competitions} past_competitions={data.props.past_competitions} />
+    <button class="btn bg-success-100"><a href='/competitions'>Explore Competitions</a></button>
 </div>
 
 <style>

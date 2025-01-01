@@ -6,7 +6,6 @@ WORKDIR /workspace/puzzle_league_frontend
 # After that, all the files will be mounted with docker-compose volumes
 # Dockerfile being in the same folder as package.json is necessary 
 # (it easies the development of the DevContainer config)
-COPY package.json .
 
 RUN apt-get update && apt-get install -y npm
 RUN npx playwright install
@@ -16,4 +15,6 @@ RUN npx playwright install-deps
 RUN npm config set fetch-retry-mintimeout 100000
 RUN npm config set fetch-retry-maxtimeout 500000
 RUN npm config set fetch-retries 5
+
+COPY package.json .
 RUN npm install --loglevel verbose

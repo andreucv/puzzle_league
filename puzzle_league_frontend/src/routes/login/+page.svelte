@@ -8,7 +8,6 @@
         createUserWithEmailAndPassword,
     } from "firebase/auth";
 
-    import UserForm from "$lib/components/UserForm.svelte";
     const googleProvider = new GoogleAuthProvider();
     const auth = getFirebaseClient();
 

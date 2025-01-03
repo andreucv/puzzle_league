@@ -1,26 +1,12 @@
-import { cert, getApps, initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
-import { getAuth } from "firebase-admin/auth";
-import {
-  FIREBASE_ADMIN_PRIVATE_KEY,
-  FIREBASE_ADMIN_CLIENT_EMAIL,
-} from "$env/static/private";
-import { PUBLIC_FIREBASE_PROJECT_ID } from "$env/static/public";
+import admin, { type ServiceAccount } from "firebase-admin";
+import { firebase_admin_config } from "../../../.env.firebase_admin_config";
 
-function makeApp() {
-  const apps = getApps();
-  if (apps.length > 0) {
-    return apps[0]!;
-  }
-
-  return initializeApp({
-    credential: credential.cert({
-      privateKey: FIREBASE_ADMIN_PRIVATE_KEY,
-      clientEmail: FIREBASE_ADMIN_CLIENT_EMAIL,
-      projectId: PUBLIC_FIREBASE_PROJECT_ID,
-    }),
-    databaseURL: `https://${PUBLIC_FIREBASE_PROJECT_ID}.firebaseio.com`,
-  });
+export function getFirebaseAdmin() {
+    if (!admin.apps.length) {
+        const serviceAccount = firebase_admin_config as ServiceAccount;
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+        });
+    }
+    return admin;
 }
-export const app = makeApp();
-export const auth = getAuth(app);

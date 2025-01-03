@@ -9,7 +9,7 @@
     <div class="landing-page-container-image">
         <enhanced:img src="../../static/landing_page.jpg" alt="Speed Puzzling Image" class="cover-image"/>
         <div class="landing-page-container-text-overlay" style="bottom: 10%;">
-            <h1 class="h1-title">Join the Puzzle League</h1>
+            <h1 class="h1-title card p-2">Join the Puzzle League</h1>
             <div class="arrows">
                 <svg width="40" height="40" viewBox="0 0 40 40">
                     <path d="M10 15 L20 25 L30 15" stroke="currentColor" stroke-width="3" fill="none"/>

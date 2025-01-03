@@ -2,26 +2,19 @@
 	import '../app.css';
 	import Header from '$lib/components/Header.svelte';
 	import Footer from '$lib/components/Footer.svelte';
-	import { initializeFirebase, listenForAuthChanges } from '$lib/firebase/client';
-    import { onMount } from 'svelte';
-    import { authStore } from '../stores/authStore';
 	import Icon from '@iconify/svelte';
 
 	let { children } = $props();
-
+	
+	import { page } from '$app/stores';
+	let currentPath = $derived($page.url.pathname);
+    let user 		= $derived($page.data.userSession);
+    console.log(user);
+    
 	import { Drawer, initializeStores, getDrawerStore} from '@skeletonlabs/skeleton';
 	initializeStores();
 	const drawerStore = getDrawerStore();
 
-	onMount(() =>{
-		const auth = localStorage.getItem('auth');
-		if (auth) {
-			const parsed_auth = JSON.parse(auth);
-			authStore.set({isLoading: false, user: parsed_auth.user, backend_token: parsed_auth.backend_token});
-		}
-		initializeFirebase();
-		listenForAuthChanges();
-	});
 </script>
 
 <Drawer>
@@ -41,6 +34,6 @@
 		</ul>
 	</nav>
 </Drawer>
-<Header />
+<Header user={user} currentPath={currentPath}/>
 {@render children()}
 <Footer />

@@ -69,3 +69,9 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         if user_id is not None:
             queryset = queryset.filter(user=user_id)
         return JsonResponse(ParticipantSerializer(queryset, many=True).data, safe=False)
+    
+    @action(detail=False, methods=['get'])
+    def get_participant(self, request):
+        print("get participant request", str(request), flush=True)
+        return JsonResponse(ParticipantSerializer(Participant.objects.filter(user=request.user), many=False).data, safe=False)
+    

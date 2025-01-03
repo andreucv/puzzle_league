@@ -1,13 +1,114 @@
-<script>
-    import UserForm from "$lib/components/UserForm.svelte";
-    import { signInWithGoogle as _signInWithGoogle } from "$lib/firebase/client";
+<script lang="ts">
+    import { goto, invalidateAll } from "$app/navigation";
+    import { getFirebaseClient } from "$lib/firebase/client";
+    import {
+        signInWithPopup,
+        GoogleAuthProvider,
+        signInWithEmailAndPassword as _signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
+    } from "firebase/auth";
 
-    export async function signInWithGoogle() {
+    import UserForm from "$lib/components/UserForm.svelte";
+    const googleProvider = new GoogleAuthProvider();
+    const auth = getFirebaseClient();
+
+    async function sendIdToken(idToken: string): Promise<void> {
         try {
-            await _signInWithGoogle();
-            window.location.href = "/";
+            const res = await fetch("/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    idToken,
+                }),
+            });
+            invalidateAll();
+            console.log("After login", res);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // Functions to interact with Firebase Auth
+    export async function signInWithEmailAndPassword(email, password) {
+        try {
+            const user = await _signInWithEmailAndPassword(auth, email, password);
+            const idToken = await user.user.getIdToken();
+            await sendIdToken(idToken);
+            goto("/");
+        } catch (error) {
+            const _error = await error;
+            console.error("FirebaseClient: error", _error);
+            throw new Error(_error);
+        } finally {
+            auth.signOut();
+        }
+    }
+
+    export async function registerUserWithEmailAndPassword(email, password) {
+        try {
+            const user = await createUserWithEmailAndPassword(auth, email, password);
+            const idToken = await user.user.getIdToken();
+            await sendIdToken(idToken);
+            goto("/");
         } catch (error) {
             console.error(error);
+        } finally {
+            auth.signOut();
+        }
+    }
+    export async function signInWithGoogle() {
+        try {
+            const user = await signInWithPopup(auth, googleProvider);
+            const idToken = await user.user.getIdToken();
+            await sendIdToken(idToken);
+            goto('/');
+        } catch (err) {
+            console.error(err);
+        } finally {
+            auth.signOut();
+        }
+    }
+
+    let email = "";
+    let password = "";
+    let passwordConfirm = "";
+
+    let action: string = "login";
+
+    async function handleSubmit() {
+        if (!email || !password || (action == "register" && !passwordConfirm)) {
+            alert("Please fill in all fields");
+            return;
+        }
+
+        if (action == "register") {
+            if (password != passwordConfirm) {
+                alert("Passwords do not match");
+                return;
+            }
+
+            try {
+                registerUserWithEmailAndPassword(email, password);
+            } catch (error) {
+                console.error(error);
+            }
+        } else if (action == "login") {
+            try {
+                let result = await signInWithEmailAndPassword(email, password);
+            } catch (error) {
+                console.error(error);
+                switch (error.code) {
+                    case "auth/invalid-credential":
+                        alert(
+                            "Provided credential is invalid. Did you login with Google?",
+                        );
+                        break;
+                    default:
+                        alert("An error occurred");
+                }
+            }
         }
     }
 </script>
@@ -34,7 +135,68 @@
                 <span class="mx-4 text-gray-500">or</span>
                 <hr class="flex-grow border-t border-gray-300">
             </div>
-            <UserForm action="login" />
+            
+        
+        <div>
+            <form class="mt-2">
+                <div>
+                    <label for="input_email" class="block">Email</label>
+                    <input
+                        bind:value={email}
+                        name="email"
+                        id="input_email"
+                        placeholder="Enter Email"
+                        class="w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 border text-black focus:border-indigo-500 focus:bg-white focus:outline-none"
+                        required
+                    />
+                </div>
+        
+                <div class="mt-4">
+                    <div class="flex items-center justify-between">
+                        <label for="input_password">Password</label>
+                    </div>
+                    <input bind:value={password} type="password" name="password" id="input_password" placeholder="Enter Password" minlength="5" class="w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 border text-black focus:border-indigo-500
+                        focus:bg-white focus:outline-none"
+                        required />
+                    {#if action == "register"}
+                        <input bind:value={passwordConfirm} type="password" name="password_confirm" id="input_password_confirm"
+                            placeholder="Confirm Password" minlength="5" class="w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 border text-black focus:border-indigo-500
+                        focus:bg-white focus:outline-none" required />
+                    {/if}
+                </div>
+        
+                <button on:click={handleSubmit} class="w-full block bg-indigo-500 hover:bg-indigo-400 focus:bg-indigo-400 text-white font-semibold rounded-lg
+                      px-4 py-3 mt-4">{action == "register" ? "Register" : "Log In"}</button>
+            </form>
+        
+            <hr class="border-gray-300 w-full" />
+        
+            {#if action == "login"}
+                <p class="mt-8">
+                    Not registered yet?
+                    <a
+                        href="#"
+                        id="create-account-button"
+                        on:click={() => (action = "register")}
+                        class="text-indigo-500 hover:text-indigo-700 font-semibold"
+                        >Create an account</a
+                    >
+                </p>
+                <a href="#" class="text-indigo-500 hover:text-indigo-700 font-semibold"
+                    >Forgot Password?</a
+                >
+            {:else}
+                <p class="mt-8">
+                    Already have an account?
+                    <a
+                        href="#"
+                        on:click={() => (action = "login")}
+                        class="text-indigo-500 hover:text-indigo-700 font-semibold"
+                        >Sign in</a
+                    >
+                </p>
+            {/if}
+        </div>
         </div>
     </div>
 </section>

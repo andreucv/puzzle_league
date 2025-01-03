@@ -1,14 +1,12 @@
 <script lang="ts">
-    import {
-        registerUserWithEmailAndPassword,
-        signInWithEmailAndPassword,
-    } from "$lib/firebase/client";
-
     let email = "";
     let password = "";
     let passwordConfirm = "";
 
     export let action: string;
+    
+    import { signInWithEmailAndPassword } from "firebase/auth";
+
     async function handleSubmit() {
         if (!email || !password || (action == "register" && !passwordConfirm)) {
             alert("Please fill in all fields");
@@ -22,16 +20,16 @@
             }
 
             try {
-                registerUserWithEmailAndPassword(email, password);
-                window.location.href = "/";
+                auth.registerUserWithEmailAndPassword(email, password);
             } catch (error) {
                 console.error(error);
             }
         } else if (action == "login") {
             try {
-                let result = await signInWithEmailAndPassword(email, password);
-                window.location.href = "/";
+                let result = await auth.signInWithEmailAndPassword(email, password);
+                console.log(result);
             } catch (error) {
+                console.error(error);
                 switch (error.code) {
                     case "auth/invalid-credential":
                         alert(

@@ -53,4 +53,4 @@ class CompetitionCategorySerializer(serializers.ModelSerializer):
 class ParticipantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Participant
-        fields = ['id', 'country', 'user', 'puzzleitem_collection']
+        fields = ['id', 'country', 'user']

@@ -1,6 +1,6 @@
 import { BASE_API_URI_ENV } from "$env/static/private"
 
-export const fetch_get_from_url = async (url: string, token?: string ): Promise<JSON | undefined>=> {
+export const fetch_get_from_url = async (url: string, token?: string | null): Promise<JSON | undefined>=> {
     let fetch_result : Response;
     const fetch_url = `${BASE_API_URI_ENV}/${url}`;
     //console.log("utils.ts fetch_get_from_url fetch_url", fetch_url);

@@ -10,24 +10,32 @@ export const handle: Handle = async ({ event, resolve }) => {
     console.log("hooks.server.ts: serving event.body", event.request.body);
     if (!session || session === "") {
         console.info("No session found");
-        event.locals.userSession = undefined;
+        event.locals.user = undefined;
+        event.locals.token = undefined;
     } else {
         let decodedClaims: DecodedIdToken | undefined = undefined;
         try {
             const admin = getFirebaseAdmin();
             decodedClaims = await admin
                 .auth()
-                .verifySessionCookie(session, false);
+                .verifyIdToken(session, false);
+            console.log("decodedClaims user is ", user);  
         } catch (err) {
             console.error("Error verifying session cookie", err);
-            event.locals.userSession = undefined;
+            event.locals.user = undefined;
+            event.locals.token = undefined;
         }
+
         if (!decodedClaims) {
             console.error("No decoded claims found");
-            event.locals.userSession = undefined;
+            event.locals.user = undefined;
+            event.locals.token = undefined;
         } else {
             console.info("User session verified");
-            event.locals.userSession = decodedClaims;
+            event.locals.user = decodedClaims;
+            event.locals.token = session;
+            console.log("hooks.server.ts: decodedClaims", decodedClaims);
+            console.log("hooks.server.ts: token", session);
         }
     }
 

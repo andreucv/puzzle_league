@@ -1,5 +1,6 @@
 import type { LayoutServerLoad } from "./$types";
 
 export const load = (({ locals }) => {
-    return { userSession: locals.userSession };
+    console.log("layout.server.ts loading locals from load function: ", locals.user);
+    return { user: locals.user };
 }) satisfies LayoutServerLoad;

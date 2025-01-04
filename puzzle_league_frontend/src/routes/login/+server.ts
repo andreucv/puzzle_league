@@ -24,10 +24,12 @@ export async function POST({ request }: { request: Request }) {
         sameSite: "strict",
     };
 
+    // TODO: this session cookie should be sessionCookie, but I set now idToken 
+    // because of backend django_firebase_auth is not able to check sessionCookie
     const header = new Headers();
     header.append(
         "set-cookie",
-        `session=${sessionCookie}; ${JSON.stringify(options)}`,
+        `session=${body.idToken}; ${JSON.stringify(options)}`,
     );
 
     return new Response("login", {

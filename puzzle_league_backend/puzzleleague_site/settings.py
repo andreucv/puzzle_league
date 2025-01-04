@@ -43,10 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'rest_framework',
-    'login_firebase',
     'puzzles',
     'taggit',
-    'knox',
+    'django_firebase_auth'
 ]
 
 MIDDLEWARE = [
@@ -85,7 +84,6 @@ CORS_ALLOWED_ORIGINS = [
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'login_firebase.firebase_auth_backend.FirebaseAuthBackend',
 ]
 
 # Database
@@ -100,22 +98,14 @@ DATABASES = {
 
 SITE_ID=1
 
-# Starting Firebase app here
 import os
-import firebase_admin
-
-cred = firebase_admin.credentials.Certificate(os.path.join(BASE_DIR, "firebase.config.json"))
-firebase_admin.initialize_app(cred)
+FIREBASE_CREDENTIALS_FILE = os.path.join(BASE_DIR, "firebase.config.json")
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'knox.auth.TokenAuthentication'
+        'rest_framework.authentication.SessionAuthentication',
+        'django_firebase_auth.firebase_auth.FirebaseAuthentication'
     ],
-}
-
-REST_KNOX = {
-    'TOKEN_LIMIT_PER_USER': 1,
-    'AUTO_REFRESH': True,
 }
 
 # Password validation

@@ -8,7 +8,7 @@
 	
 	import { page } from '$app/stores';
 	let currentPath = $derived($page.url.pathname);
-    let user 		= $derived($page.data.userSession);
+    let user 		= $derived($page.data.user);
     console.log(user);
     
 	import { Drawer, initializeStores, getDrawerStore} from '@skeletonlabs/skeleton';

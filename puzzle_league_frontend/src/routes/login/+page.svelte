@@ -22,7 +22,7 @@
                     idToken,
                 }),
             });
-            invalidateAll();
+            await invalidateAll();
             console.log("After login", res);
         } catch (err) {
             console.error(err);
@@ -35,7 +35,7 @@
             const user = await _signInWithEmailAndPassword(auth, email, password);
             const idToken = await user.user.getIdToken();
             await sendIdToken(idToken);
-            goto("/");
+            await goto("/");
         } catch (error) {
             const _error = await error;
             console.error("FirebaseClient: error", _error);
@@ -50,7 +50,7 @@
             const user = await createUserWithEmailAndPassword(auth, email, password);
             const idToken = await user.user.getIdToken();
             await sendIdToken(idToken);
-            goto("/");
+            await goto("/");
         } catch (error) {
             console.error(error);
         } finally {
@@ -62,7 +62,7 @@
             const user = await signInWithPopup(auth, googleProvider);
             const idToken = await user.user.getIdToken();
             await sendIdToken(idToken);
-            goto('/');
+            await goto("/");
         } catch (err) {
             console.error(err);
         } finally {
@@ -112,9 +112,9 @@
     }
 </script>
 
-<section class="flex flex-col md:mt-40 h-screen m-4">
+<section class="flex flex-col md:mt-40 h-screen">
     <div
-        class="w-full md:max-w-md lg:max-w-full md:mx-auto md:mx-0 md:w-1/2 xl:w-1/3 mt-6 lg:px-16 xl:px-12
+        class="w-full md:max-w-md lg:max-w-full md:mx-auto md:mx-0 md:w-1/2 xl:w-1/3 mt-4 lg:px-16 xl:px-12
           flex items-center justify-center">
         <div class="w-full h-100">
             <h1 class="text-xl md:text-2xl font-bold leading-tight">
@@ -129,6 +129,7 @@
                 </svg>
                 <span>Log in with Google</span>
             </button>
+        <!--
             <div class="flex items-center my-4">
                 <hr class="flex-grow border-t border-gray-300">
                 <span class="mx-4 text-gray-500">or</span>
@@ -196,6 +197,6 @@
                 </p>
             {/if}
         </div>
-        </div>
+        </div> -->
     </div>
 </section>

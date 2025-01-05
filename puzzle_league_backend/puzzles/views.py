@@ -73,7 +73,13 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     @permission_classes((IsAuthenticated, ))
     def get_participant(self, request):
-        print("get participant request", str(request), flush=True)
-        print(self.queryset)
-        return JsonResponse(ParticipantSerializer(Participant.objects.filter(user=request.user), many=False).data, safe=False)
-    
+        print("get participant request user", str(request.user.pk), flush=True)
+        participant_queryset = Participant.objects.filter(user=request.user.pk)
+        print("get participant request participant", participant_queryset, flush=True)
+        if len(participant_queryset) == 1:
+            return JsonResponse(ParticipantSerializer(participant_queryset[0], many=False).data, safe=False)
+        elif len(participant_queryset) == 0:
+            participant = Participant.objects.create(user=request.user)
+            return JsonResponse(ParticipantSerializer(participant).data, safe=False)
+        else:
+            return JsonResponse({}, safe=False)

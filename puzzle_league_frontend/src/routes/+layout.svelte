@@ -35,5 +35,9 @@
 	</nav>
 </Drawer>
 <Header user={user} currentPath={currentPath}/>
+<div class="p-4">
 {@render children()}
+</div>
+{#if currentPath == "/"}
 <Footer />
+{/if}

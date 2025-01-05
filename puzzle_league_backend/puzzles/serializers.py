@@ -53,4 +53,4 @@ class CompetitionCategorySerializer(serializers.ModelSerializer):
 class ParticipantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Participant
-        fields = ['id', 'user', 'country']
+        fields = ['id', 'user', 'country', 'public_country', 'public_ranking', 'public_points', 'public_puzzles', 'public_awards']

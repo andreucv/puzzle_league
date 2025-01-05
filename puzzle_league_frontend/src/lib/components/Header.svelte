@@ -1,8 +1,8 @@
 <script >
     import { AppBar, Avatar } from '@skeletonlabs/skeleton';
     import Icon from '@iconify/svelte';
-    import { signOut } from '$lib/firebase/client';
     import { getDrawerStore } from "@skeletonlabs/skeleton";
+    import { goto, invalidateAll } from '$app/navigation';
     const drawerStore = getDrawerStore();
 
     let { user, currentPath } = $props();
@@ -10,12 +10,24 @@
     function openDrawer() {
         drawerStore.open();
     }
+
+    export async function signOut() {
+        try {
+            await fetch("/login", {
+                method: "DELETE",
+            });
+            await invalidateAll();
+            await goto("/login");
+        } catch (err) {
+            console.error(err);
+        }
+    }
 </script>
 
 <header>
     <AppBar padding="m-4" background="bg-transparent" slotTrail="place-items-end" regionRowMain="">
         <svelte:fragment slot="lead">
-            <button id="states-button" on:click={openDrawer} type="button">
+            <button id="states-button" onclick={openDrawer} type="button">
                 <Icon icon="icon-park:hamburger-button" width="1.5rem" height="1.5rem" />
             </button>
         </svelte:fragment>
@@ -32,17 +44,18 @@
                     {#if user?.picture === undefined}
                         <Icon icon="lets-icons:user-alt-fill" width="1.5rem" height="1.5rem" class="mx-2"/>
                     {:else}
-                        <Avatar
-                            id="user-avatar"
-                            initials="ac"
-                            src="{user.picture}"
-                            alt="{user.name}"
-                            width="w-8"
-                            referrerPolicy={'no-referrer'}
-                            on:click={() => signOut()}
-                        ></Avatar>
+                        <a href="/profile">
+                            <Avatar
+                                id="user-avatar"
+                                initials="ac"
+                                src="{user.picture}"
+                                alt="{user.name}"
+                                width="w-8"
+                                referrerPolicy={'no-referrer'}>
+                            </Avatar>
+                        </a>
                     {/if}
-                    <button id="sign-out" type="button" class="btn btn-sm variant-filled" on:click={() => signOut()}>
+                    <button id="sign-out" type="button" class="btn btn-sm variant-filled" onclick={() => signOut()}>
                         Sign out
                     </button>
                 </div>

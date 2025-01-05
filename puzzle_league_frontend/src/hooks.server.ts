@@ -1,4 +1,5 @@
 import { getFirebaseAdmin } from "$lib/firebase/admin";
+import { fetch_get_from_url } from "$lib/api_utils";
 import { redirect, type Handle } from "@sveltejs/kit";
 import type { DecodedIdToken } from "firebase-admin/lib/auth/token-verifier";
 
@@ -12,6 +13,7 @@ export const handle: Handle = async ({ event, resolve }) => {
         console.info("No session found");
         event.locals.user = undefined;
         event.locals.token = undefined;
+        event.locals.participant = undefined;
     } else {
         let decodedClaims: DecodedIdToken | undefined = undefined;
         try {
@@ -24,21 +26,24 @@ export const handle: Handle = async ({ event, resolve }) => {
             console.error("Error verifying session cookie", err);
             event.locals.user = undefined;
             event.locals.token = undefined;
+            event.locals.participant = undefined;
         }
 
         if (!decodedClaims) {
             console.error("No decoded claims found");
             event.locals.user = undefined;
             event.locals.token = undefined;
+            event.locals.participant = undefined;
         } else {
             console.info("User session verified");
             event.locals.user = decodedClaims;
             event.locals.token = session;
+            event.locals.participant = await fetch_get_from_url('api/puzzles/participants/get_participant/', session);
             console.log("hooks.server.ts: decodedClaims", decodedClaims);
             console.log("hooks.server.ts: token", session);
         }
-    }
 
+    }
     // if (event.url.pathname !== "/login" && !event.locals.userSession) {
     //     throw redirect(303, "/login");
     // }

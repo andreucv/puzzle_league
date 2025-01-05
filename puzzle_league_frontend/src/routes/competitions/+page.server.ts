@@ -1,5 +1,5 @@
 import type { PageServerLoad } from "./$types";
-import { fetch_get_from_url } from "$lib/utils";
+import { fetch_get_from_url } from "$lib/api_utils";
 
 export const load: PageServerLoad = async (event) => {
 

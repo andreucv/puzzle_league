@@ -13,15 +13,3 @@ export function getFirebaseClient() {
     void setPersistence(auth, browserLocalPersistence);
     return auth;
 }
-
-export async function signOut() {
-    try {
-        await fetch("/login", {
-            method: "DELETE",
-        });
-        invalidateAll();
-        await goto("/login");
-    } catch (err) {
-        console.error(err);
-    }
-}

@@ -16,8 +16,8 @@
 
 </script>
 
-<div class="px-2">
-    <div class="py-2">
+<div>
+    <div>
         <div class="card">
             <div class="p-1 flex vertical-center">
                 <div class="p-2">

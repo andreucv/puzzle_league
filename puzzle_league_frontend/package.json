@@ -24,6 +24,7 @@
 		"firebase-admin": "^13.0.2",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
+		"svelteworld": "^1.0.1",
 		"tailwindcss": "^3.4.9",
 		"typescript": "^5.0.0",
 		"vite": "^6.0.0"

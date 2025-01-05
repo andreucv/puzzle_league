@@ -3,10 +3,17 @@ from django.contrib.auth.models import User
 from django_countries.fields import CountryField
 
 # Register your models here.
+# Participant profile must have all properties with a default value
+# It will be created on first time the user asks for participant data
 class Participant(models.Model):
-    country     = models.CharField(max_length=30)
-    pending_user= models.BooleanField(default=True)
+    public_country = models.BooleanField(default=True)
+    country     = models.CharField(max_length=30, default='', blank=True)
+    public_ranking = models.BooleanField(default=True)
+    public_points  = models.BooleanField(default=True)
+    public_puzzles = models.BooleanField(default=True)
+    public_awards  = models.BooleanField(default=True)
     user        = models.OneToOneField(User, on_delete=models.CASCADE)
+    
     #puzzleitem_collection = models.ManyToManyField(PuzzleItem, blank=True)
 
     def __str__(self):

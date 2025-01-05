@@ -1,0 +1,22 @@
+{
+    "page": {
+        "page_title": "Puzzles Hub"
+    },
+    "landing_page": {
+        "welcome": "Welcome to the Puzzles Hub",
+        "welcome_text": "Discover a world of puzzles! Our website is dedicated to providing comprehensive data on puzzle competitions, puzzle times, and much more. Whether you're a puzzle enthusiast or a competitive solver, you'll find valuable information and resources here.",
+        "explore_competitions": "Explore Competitions"
+    },
+    "competitions": {
+        "upcoming_competitions": "Upcoming Competitions",
+        "past_competitions": "Past Competitions",
+        "categories": "Categories",
+        "pairs": "Pairs",
+        "teams": "Teams",
+        "individual": "Individual",
+        "kids": "Kids",
+        "teams_relays": "Relay Teams",
+        "kids_pairs": "Kids Pairs",
+        "puzzle_chess": "PuzzleChess"
+    }
+}

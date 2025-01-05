@@ -15,6 +15,7 @@
 	initializeStores();
 	const drawerStore = getDrawerStore();
 
+	import { t, locale, locales } from '$lib/translations';
 </script>
 
 <Drawer>
@@ -29,7 +30,7 @@
 				<a href="/" onclick={() => drawerStore.close()}>Home</a>
 			</li>
 			<li>
-				<a href="/competitions" onclick={() => drawerStore.close()}>Competitions</a>
+				<a href="/competitions" onclick={() => drawerStore.close()}>{$t('common.landing_page.explore_competitions')}</a>
 			</li>
 		</ul>
 	</nav>

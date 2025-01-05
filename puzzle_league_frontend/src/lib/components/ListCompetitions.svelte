@@ -1,6 +1,7 @@
 <script lang="ts">
     import CompetitionDetailCard from '$lib/components/CompetitionDetailCard.svelte';
     import Icon from '@iconify/svelte';
+    import { t } from '$lib/translations';
 
     export let upcoming_competitions;
     export let past_competitions;
@@ -29,7 +30,7 @@
     </div>
     <div class="p-1">
         <div class="p-1 flex items-center justify-between">
-            <h1 class="text-lg">Upcoming competitions</h1>
+            <h1 class="text-lg">{$t('common.competitions.upcoming_competitions')}</h1>
             {#if filter !== ''}
                 <span class="ml-2 text-sm">{upcoming_filtered_count} / {upcoming_total_count}</span>
             {/if}

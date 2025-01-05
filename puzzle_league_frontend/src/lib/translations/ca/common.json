@@ -1,0 +1,22 @@
+{
+    "page": {
+        "page_title": "Puzzles Hub"
+    },
+    "landing_page": {
+        "welcome": "Benvingut a Puzzles Hub",
+        "welcome_text": "Descobreix un món de puzzles! Aquest web està dedicat a proporcionar informació de concursos de puzzles, temps de muntatge i més. Tant si ets un entusiasta o un muntador competitiu, aquí trobaràs informació de valor i recursos útils.",
+        "explore_competitions": "Explorar Concursos"
+    },
+    "competitions": {
+        "upcoming_competitions": "Pròxims Concursos",
+        "past_competitions": "Concursos Pasats",
+        "categories": "Categories",
+        "pairs": "Parelles",
+        "teams": "Equips",
+        "individual": "Individual",
+        "kids": "Nens",
+        "teams_relays": "Equips per relleus",
+        "kids_pairs": "Parelles nens",
+        "puzzle_chess": "PuzzleChess"
+    }
+}

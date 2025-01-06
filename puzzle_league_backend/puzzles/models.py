@@ -7,12 +7,12 @@ from django_countries.fields import CountryField
 # It will be created on first time the user asks for participant data
 class Participant(models.Model):
     public_country = models.BooleanField(default=True)
-    country     = models.CharField(max_length=30, default='', blank=True)
     public_ranking = models.BooleanField(default=True)
     public_points  = models.BooleanField(default=True)
     public_puzzles = models.BooleanField(default=True)
     public_awards  = models.BooleanField(default=True)
-    user        = models.OneToOneField(User, on_delete=models.CASCADE)
+    country        = models.CharField(max_length=30, default='', blank=True)
+    user           = models.OneToOneField(User, on_delete=models.CASCADE)
     
     #puzzleitem_collection = models.ManyToManyField(PuzzleItem, blank=True)
 

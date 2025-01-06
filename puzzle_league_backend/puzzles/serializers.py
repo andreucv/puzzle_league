@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import Participant, Party, Register, Competition, Category, Location
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from taggit.serializers import (TagListSerializerField, TaggitSerializer)
 
 class CompetitionSerializer(serializers.ModelSerializer):
@@ -50,7 +50,21 @@ class CompetitionCategorySerializer(serializers.ModelSerializer):
         model = Competition
         fields = ['id', 'name', 'start_date', 'end_date', 'location', 'image', 'created_by', 'categories']
 
-class ParticipantSerializer(serializers.ModelSerializer):
+class GroupSerializer(serializers.ModelSerializer):    
+    class Meta:
+        model = Group
+        fields = ['name']
+
+class UserSerializer(serializers.ModelSerializer):    
+    groups = GroupSerializer(many=True)
+    
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'groups']
+
+class ParticipantSerializer(serializers.ModelSerializer):   
+    user = UserSerializer()
+    
     class Meta:
         model = Participant
         fields = ['id', 'user', 'country', 'public_country', 'public_ranking', 'public_points', 'public_puzzles', 'public_awards']

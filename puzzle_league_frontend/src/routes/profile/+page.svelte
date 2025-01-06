@@ -3,7 +3,8 @@
     import type { PageData } from '../$types';
     let { data }: {data : PageData} = $props();
     let participant = $derived(data.participant);
-    let user        = data.user;
+    let user        = $derived(data.user);
+    const groups    = $derived(participant.user.groups);
 </script>
 
 <main class="container">
@@ -24,6 +25,19 @@
         </div>
     </div>
 
+    <div>
+    <div class="card mt-2">
+        <div class="card-body p-4">
+            <h2 class="h2">Groups</h2>
+            <div class="form-group px-2">
+                {#each groups as group}
+                    <div class="mt-1 flex">
+                        <p class="text-gray">{group.name}</p>
+                    </div>
+                {/each}
+            </div>
+        </div>
+    </div>
     <!-- This is participant data space -->
     <!-- participant data model is:
             public_country, boolean (checkbox)

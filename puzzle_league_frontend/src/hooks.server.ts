@@ -41,6 +41,7 @@ export const handle: Handle = async ({ event, resolve }) => {
             event.locals.participant = await fetch_get_from_url('api/puzzles/participants/get_participant/', session);
             console.log("hooks.server.ts: decodedClaims", decodedClaims);
             console.log("hooks.server.ts: token", session);
+            console.log("hooks.server.ts: participant", event.locals.participant);
         }
 
     }

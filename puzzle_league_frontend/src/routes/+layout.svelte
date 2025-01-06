@@ -8,8 +8,7 @@
 	
 	import { page } from '$app/stores';
 	let currentPath = $derived($page.url.pathname);
-    let user 		= $derived($page.data.user);
-    console.log(user);
+    let user	= $derived($page.data.user);
     
 	import { Drawer, initializeStores, getDrawerStore} from '@skeletonlabs/skeleton';
 	initializeStores();
@@ -39,6 +38,6 @@
 <div class="p-4">
 {@render children()}
 </div>
-{#if currentPath == "/"}
+{#if currentPath == "/" || currentPath.includes("footer")}
 <Footer />
 {/if}

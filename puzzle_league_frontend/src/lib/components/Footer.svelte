@@ -1,10 +1,8 @@
 <footer class="mt-10">
     <div class="footer-content">
         <div class="footer-section">
-            <h4>Links</h4>
-            <a href="/privacy_policy">Privacy Policy</a>
-            <a href="/terms">Terms of Service</a>
-            <a href="/contact">Contact Us</a>
+            <a href="/footer/privacy_policy">Privacy Policy</a>
+            <a href="/footer/terms_of_service">Terms of Service</a>
         </div>
         <div class="footer-section">
             <p>© 2025 Puzzle League. All rights reserved.</p>
@@ -32,11 +30,6 @@
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-    }
-
-    h4 {
-        margin-bottom: 1rem;
-        color: #fff;
     }
 
     a {

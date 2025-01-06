@@ -10,5 +10,5 @@ export const load = async ({ data }) => {
   await setRoute(route);
   await setLocale(locale);
 
-  return i18n;
+  return data;
 };

@@ -8,8 +8,10 @@
 	
 	import { page } from '$app/stores';
 	let currentPath = $derived($page.url.pathname);
-    let user	= $derived($page.data.user);
-    
+	console.log("layout.svelte: currentPath", currentPath);
+	console.log("layout.svelte: $page", $page);
+    let user = $derived($page.data.user);
+    console.log("layout.svelte: user", user);
 	import { Drawer, initializeStores, getDrawerStore} from '@skeletonlabs/skeleton';
 	initializeStores();
 	const drawerStore = getDrawerStore();

@@ -23,9 +23,9 @@ export const load = (({ url, locals, cookies }) => {
     loadTranslations(locale, pathname);
 
     return {
-        i18n: { locale, route: pathname },
         translations: translations.get(), 
         user: locals.user,
-        participant: locals.participant
+        participant: locals.participant,
+        i18n: { locale, route: pathname },
     };
 }) satisfies LayoutServerLoad;

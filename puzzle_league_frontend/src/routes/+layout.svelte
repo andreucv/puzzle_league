@@ -37,7 +37,7 @@
 	</nav>
 </Drawer>
 <Header user={user} currentPath={currentPath}/>
-<div class="p-4">
+<div class="px-4">
 {@render children()}
 </div>
 {#if currentPath == "/" || currentPath.includes("footer")}

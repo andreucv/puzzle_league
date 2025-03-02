@@ -41,4 +41,12 @@
     a:hover {
         color: #fff;
     }
+
+    @media (min-width: 1200px) {
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+    }
 </style>

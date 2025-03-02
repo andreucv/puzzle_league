@@ -2,9 +2,21 @@
     import { Avatar, SlideToggle } from '@skeletonlabs/skeleton';
     import type { PageData } from '../$types';
     let { data }: {data : PageData} = $props();
-    let participant = $derived(data.participant);
-    let user        = $derived(data.user);
-    const groups    = $derived(participant.user.groups);
+    const participant = $derived(data.participant);
+    const user        = $derived(data.user);
+    const groups      = $derived(data.participant.user.groups);
+
+    export async function signOut() {
+        try {
+            await fetch("/login", {
+                method: "DELETE",
+            });
+            await invalidateAll();
+            await goto("/login");
+        } catch (err) {
+            console.error(err);
+        }
+    }
 </script>
 
 <main class="container">
@@ -69,4 +81,8 @@
             <button type="submit" class="btn btn-primary mt-2">Save</button>
         </div>
     </form>
+
+    <button id="sign-out" type="button" class="btn btn-sm variant-filled" onclick={() => signOut()}>
+        Sign out
+    </button>
 </main>

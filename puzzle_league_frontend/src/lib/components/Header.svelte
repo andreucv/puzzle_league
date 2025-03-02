@@ -10,18 +10,6 @@
     function openDrawer() {
         drawerStore.open();
     }
-
-    export async function signOut() {
-        try {
-            await fetch("/login", {
-                method: "DELETE",
-            });
-            await invalidateAll();
-            await goto("/login");
-        } catch (err) {
-            console.error(err);
-        }
-    }
 </script>
 
 <header>
@@ -55,9 +43,6 @@
                             </Avatar>
                         </a>
                     {/if}
-                    <button id="sign-out" type="button" class="btn btn-sm variant-filled" onclick={() => signOut()}>
-                        Sign out
-                    </button>
                 </div>
             {/if}
         </svelte:fragment>

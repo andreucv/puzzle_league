@@ -2,10 +2,14 @@ import { getSessionById, getUserById } from "$lib/database";
 import { redirect, type Handle } from "@sveltejs/kit";
 import { sequence } from "@sveltejs/kit/hooks";
 
+type Locals = {
+  user?: any;
+};
+
 // Auth handler
 const handleAuth: Handle = async ({ event, resolve }) => {
   const sessionId = event.cookies.get("session");
-  event.locals.user = undefined;
+  (event.locals as Locals).user = undefined;
 
   try {
     if (sessionId) {
@@ -18,7 +22,7 @@ const handleAuth: Handle = async ({ event, resolve }) => {
         const user = await getUserById(session.userId);
 
         if (user) {
-          event.locals.user = user;
+          (event.locals as Locals).user = user;
         }
       } else if (session) {
         // Session exists but is expired, clean up by deleting the cookie
@@ -36,6 +40,7 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 
 // Protected routes handler
 const protectedRoutes: Handle = async ({ event, resolve }) => {
+  const locals = event.locals as Locals;
   const protectedPaths = [
     "/profile",
     "/competitions/create_competition"
@@ -46,8 +51,7 @@ const protectedRoutes: Handle = async ({ event, resolve }) => {
     event.url.pathname.startsWith(path)
   );
 
-  // If the path is protected and the user is not logged in, redirect to login
-  if (isProtectedPath && !event.locals.user) {
+  if (isProtectedPath && !locals.user) {
     throw redirect(303, "/login");
   }
 

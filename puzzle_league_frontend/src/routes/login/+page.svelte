@@ -66,7 +66,7 @@
     }
 
     // Functions to interact with Firebase Auth
-    export async function signInWithEmailAndPassword(email, password) {
+    export async function signInWithEmailAndPassword(email: string, password: string) {
         try {
             const userCredential = await _signInWithEmailAndPassword(auth, email, password);
             const idToken = await userCredential.user.getIdToken();
@@ -75,13 +75,13 @@
         } catch (error) {
             const _error = await error;
             console.error("FirebaseClient: error", _error);
-            throw new Error(_error);
+            throw new Error(String(_error));
         } finally {
             auth.signOut();
         }
     }
 
-    export async function registerUserWithEmailAndPassword(email, password) {
+    export async function registerUserWithEmailAndPassword(email: string, password: string) {
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const idToken = await userCredential.user.getIdToken();
@@ -103,9 +103,6 @@
             // Get user info from the credential
             const userData = userCredential.user;
 
-            // Make sure providerId is set correctly
-            userData.providerId = 'google.com';
-
             await sendIdToken(idToken, userData);
             await goto("/");
         } catch (err) {
@@ -122,9 +119,6 @@
 
             // Get user info from the credential
             const userData = userCredential.user;
-
-            // Make sure providerId is set correctly
-            userData.providerId = 'facebook.com';
 
             await sendIdToken(idToken, userData);
             await goto("/");
@@ -157,7 +151,7 @@
 
             try {
                 await registerUserWithEmailAndPassword(email, password);
-            } catch (error) {
+            } catch (error: any) {
                 console.error(error);
                 if (error.code === 'auth/email-already-in-use') {
                     errorMessage = "Email is already in use";
@@ -170,7 +164,7 @@
         } else if (action == "login") {
             try {
                 await signInWithEmailAndPassword(email, password);
-            } catch (error) {
+            } catch (error: any) {
                 console.error(error);
                 if (error.code === 'auth/invalid-credential') {
                     errorMessage = "Invalid email or password";

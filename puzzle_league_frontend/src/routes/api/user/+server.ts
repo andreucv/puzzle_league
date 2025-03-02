@@ -55,10 +55,10 @@ export async function POST({ request }) {
         console.error('Error processing user data:', err);
 
         // Return proper error based on the type
-        if (err.status) {
+        if (err instanceof Error && 'status' in err) {
             // It's already a SvelteKit error
             throw err;
-        } else if (err.code && err.code.includes('auth/')) {
+        } else if (err instanceof Error && 'code' in err && typeof err.code === 'string' && err.code.includes('auth/')) {
             // Firebase auth error
             throw error(401, { message: err.message || 'Authentication error' });
         } else {

@@ -33,6 +33,8 @@
 	},
 	"dependencies": {
 		"@iconify/svelte": "^4.1.0",
-		"firebase": "^11.0.2"
+		"@prisma/client": "^6.4.1",
+		"firebase": "^11.0.2",
+		"prisma": "^6.4.1"
 	}
 }

@@ -5,7 +5,7 @@
 	import Icon from '@iconify/svelte';
 
 	let { children } = $props();
-	
+
 	import { page } from '$app/stores';
 	let currentPath = $derived($page.url.pathname);
 	console.log("layout.svelte: currentPath", currentPath);
@@ -17,6 +17,11 @@
 	const drawerStore = getDrawerStore();
 
 	import { t, locale, locales } from '$lib/translations';
+    import { authStore } from '../stores/authStore';
+
+	function handleLogout() {
+		authStore.logout();
+	}
 </script>
 
 <Drawer>
@@ -33,6 +38,14 @@
 			<li>
 				<a href="/competitions" onclick={() => drawerStore.close()}>{$t('common.landing_page.explore_competitions')}</a>
 			</li>
+			{#if user !== undefined}
+				<li>
+					<a href="/profile" onclick={() => drawerStore.close()}>Profile Settings</a>
+				</li>
+				<li>
+					<a href="/" onclick={() => {drawerStore.close(); handleLogout();}}>Logout</a>
+				</li>
+			{/if}
 		</ul>
 	</nav>
 </Drawer>

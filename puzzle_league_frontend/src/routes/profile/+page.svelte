@@ -21,7 +21,7 @@
     let errorMessage = '';
 
     // Countries for select dropdown
-    let countries = [];
+    let countries: { code: string; name: string }[] = [];
 
     // Form action results
     export let form;

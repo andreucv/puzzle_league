@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User model to store authentication data
+model User {
+  id            String    @id
+  email         String    @unique
+  displayName   String?
+  photoURL      String?
+  authProvider  String    @default("email")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  profile       Profile?
+}
+
+// Profile model to store additional user data
+model Profile {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
+  displayName   String?
+  bio           String?   @default("")
+  country       String?
+  publicProfile Boolean   @default(true)
+  publicRanking Boolean   @default(true)
+  publicPoints  Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// Participation in competitions
+model Participant {
+  id          String  @id @default(cuid())
+  userId      String
+  ranking     Int?
+  points      Int     @default(0)
+}
+
+// For session management
+model Session {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}

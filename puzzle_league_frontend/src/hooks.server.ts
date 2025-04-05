@@ -1,54 +1,62 @@
-import { getFirebaseAdmin } from "$lib/firebase/admin";
-import { fetch_get_from_url } from "$lib/api_utils";
+import { getSessionById, getUserById } from "$lib/database";
 import { redirect, type Handle } from "@sveltejs/kit";
-import type { DecodedIdToken } from "firebase-admin/lib/auth/token-verifier";
+import { sequence } from "@sveltejs/kit/hooks";
 
-export const handle: Handle = async ({ event, resolve }) => {
-    const now = performance.now();
-    const session = event.cookies.get("session") ?? "";
-    console.log("hooks.server.ts: session", session);
-    console.log("hooks.server.ts: serving event.url", event.url);
-    console.log("hooks.server.ts: serving event.body", event.request.body);
-    if (!session || session === "") {
-        console.info("No session found");
-        event.locals.user = undefined;
-        event.locals.token = undefined;
-        event.locals.participant = undefined;
-    } else {
-        let decodedClaims: DecodedIdToken | undefined = undefined;
-        try {
-            const admin = getFirebaseAdmin();
-            decodedClaims = await admin
-                .auth()
-                .verifyIdToken(session, false);
-            console.log("decodedClaims user is ", user);  
-        } catch (err) {
-            console.error("Error verifying session cookie", err);
-            event.locals.user = undefined;
-            event.locals.token = undefined;
-            event.locals.participant = undefined;
+type Locals = {
+  user?: any;
+};
+
+// Auth handler
+const handleAuth: Handle = async ({ event, resolve }) => {
+  const sessionId = event.cookies.get("session");
+  (event.locals as Locals).user = undefined;
+
+  try {
+    if (sessionId) {
+      // Get the session from our database
+      const session = await getSessionById(sessionId);
+
+      // Check if session exists and is not expired
+      if (session && session.expiresAt > new Date()) {
+        // Get the user data
+        const user = await getUserById(session.userId);
+
+        if (user) {
+          (event.locals as Locals).user = user;
         }
-
-        if (!decodedClaims) {
-            console.error("No decoded claims found");
-            event.locals.user = undefined;
-            event.locals.token = undefined;
-            event.locals.participant = undefined;
-        } else {
-            console.info("User session verified");
-            event.locals.user = decodedClaims;
-            event.locals.token = session;
-            event.locals.participant = await fetch_get_from_url('api/puzzles/participants/get_participant/', session);
-            console.log("hooks.server.ts: decodedClaims", decodedClaims);
-            console.log("hooks.server.ts: token", session);
-            console.log("hooks.server.ts: participant", event.locals.participant);
-        }
-
+      } else if (session) {
+        // Session exists but is expired, clean up by deleting the cookie
+        event.cookies.delete("session", { path: "/" });
+      }
     }
-    // if (event.url.pathname !== "/login" && !event.locals.userSession) {
-    //     throw redirect(303, "/login");
-    // }
+  } catch (error) {
+    console.error("Error verifying session:", error);
+    // Clear invalid session cookie
+    event.cookies.delete("session", { path: "/" });
+  }
 
-    console.debug(`Request took ${(performance.now() - now).toFixed(1)}ms`);
-    return resolve(event);
-}
+  return await resolve(event);
+};
+
+// Protected routes handler
+const protectedRoutes: Handle = async ({ event, resolve }) => {
+  const locals = event.locals as Locals;
+  const protectedPaths = [
+    "/profile",
+    "/competitions/create_competition"
+  ];
+
+  // Check if the current path is protected
+  const isProtectedPath = protectedPaths.some(path =>
+    event.url.pathname.startsWith(path)
+  );
+
+  if (isProtectedPath && !locals.user) {
+    throw redirect(303, "/login");
+  }
+
+  return await resolve(event);
+};
+
+// Combine the handlers
+export const handle = sequence(handleAuth, protectedRoutes);

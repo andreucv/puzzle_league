@@ -1,8 +1,8 @@
-<script >
+<script lang="ts">
     import { AppBar, Avatar } from '@skeletonlabs/skeleton';
     import Icon from '@iconify/svelte';
     import { getDrawerStore } from "@skeletonlabs/skeleton";
-    import { goto, invalidateAll } from '$app/navigation';
+
     const drawerStore = getDrawerStore();
 
     let { user, currentPath } = $props();
@@ -11,17 +11,6 @@
         drawerStore.open();
     }
 
-    export async function signOut() {
-        try {
-            await fetch("/login", {
-                method: "DELETE",
-            });
-            await invalidateAll();
-            await goto("/login");
-        } catch (err) {
-            console.error(err);
-        }
-    }
 </script>
 
 <header>
@@ -40,24 +29,21 @@
                     <a href="/login">Log in</a>
                 </button>
             {:else}
-                <div class="flex items-center items-bottom">
-                    {#if user?.picture === undefined}
-                        <Icon icon="lets-icons:user-alt-fill" width="1.5rem" height="1.5rem" class="mx-2"/>
-                    {:else}
-                        <a href="/profile">
+                <div class="flex items-center items-bottom relative">
+                    <a href="/profile">
+                        {#if user?.photoURL === undefined}
+                            <Icon icon="lets-icons:user-alt-fill" width="1.5rem" height="1.5rem" class="mx-2"/>
+                        {:else}
                             <Avatar
                                 id="user-avatar"
-                                initials="ac"
-                                src="{user.picture}"
-                                alt="{user.name}"
+                                initials={user.name ? user.name.substring(0,2) : 'U'}
+                                src={user.photoURL}
+                                alt={user.name}
                                 width="w-8"
-                                referrerPolicy={'no-referrer'}>
+                                referrerPolicy='no-referrer'>
                             </Avatar>
-                        </a>
-                    {/if}
-                    <button id="sign-out" type="button" class="btn btn-sm variant-filled" onclick={() => signOut()}>
-                        Sign out
-                    </button>
+                        {/if}
+                    </a>
                 </div>
             {/if}
         </svelte:fragment>

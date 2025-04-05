@@ -73,9 +73,7 @@
             await sendIdToken(idToken, userCredential.user);
             await goto("/");
         } catch (error) {
-            const _error = await error;
-            console.error("FirebaseClient: error", _error);
-            throw new Error(String(_error));
+            throw error;
         } finally {
             auth.signOut();
         }
@@ -166,6 +164,7 @@
                 await signInWithEmailAndPassword(email, password);
             } catch (error: any) {
                 console.error(error);
+                console.error("Code is " + error.code);
                 if (error.code === 'auth/invalid-credential') {
                     errorMessage = "Invalid email or password";
                 } else if (error.code === 'auth/user-not-found') {

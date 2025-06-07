@@ -6,22 +6,13 @@
 
 	let { children } = $props();
 
-	import { page } from '$app/stores';
-	let currentPath = $derived($page.url.pathname);
-	console.log("layout.svelte: currentPath", currentPath);
-	console.log("layout.svelte: $page", $page);
-    let user = $derived($page.data.user);
-    console.log("layout.svelte: user", user);
 	import { Drawer, initializeStores, getDrawerStore} from '@skeletonlabs/skeleton';
 	initializeStores();
 	const drawerStore = getDrawerStore();
 
 	import { t, locale, locales } from '$lib/translations';
-    import { authStore } from '../stores/authStore';
+    import type { LayoutLoad } from './$types';
 
-	function handleLogout() {
-		authStore.logout();
-	}
 </script>
 
 <Drawer>
@@ -38,21 +29,13 @@
 			<li>
 				<a href="/competitions" onclick={() => drawerStore.close()}>{$t('common.landing_page.explore_competitions')}</a>
 			</li>
-			{#if user !== undefined}
-				<li>
-					<a href="/profile" onclick={() => drawerStore.close()}>Profile Settings</a>
-				</li>
-				<li>
-					<a href="/" onclick={() => {drawerStore.close(); handleLogout();}}>Logout</a>
-				</li>
-			{/if}
 		</ul>
 	</nav>
 </Drawer>
-<Header user={user} currentPath={currentPath}/>
+<Header/>
 <div class="px-4">
 {@render children()}
 </div>
-{#if currentPath == "/" || currentPath.includes("footer")}
+<!-- {#if currentPath == "/" || currentPath.includes("footer")}
 <Footer />
-{/if}
+{/if} -->

@@ -1,5 +1,4 @@
 import type { PageServerLoad } from "../$types";
-import { fetch_get_from_url } from '$lib/api_utils';
 
 let competition_details = undefined;
 
@@ -15,7 +14,7 @@ let competition_details = undefined;
 
 export const load: PageServerLoad = async ( event ) => {
     const competition_id = event.url.pathname.split('/')[2];
-    const competition_and_categories = await fetch_get_from_url(`api/puzzles/competitions/${competition_id}/get_categories/`);
+    const competition_and_categories = []; // await (await fetch(`api/puzzles/competitions/${competition_id}/get_categories/`)).json();
     const image_url = undefined; //await cloudinary.url(competition_and_categories.image);
     console.log('competition_categories', competition_and_categories);
     console.log('image_url', image_url);

@@ -3,7 +3,7 @@ import type { Action, Actions, PageServerLoad } from './$types';
 
 import { v2 as cloudinary } from "cloudinary";
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } from '$env/static/private'
-import { fetch_post_from_url } from '$lib/api_utils';
+//import { fetch_post_from_url } from '$lib/api_utils';
 
 cloudinary.config({
     cloud_name: CLOUDINARY_CLOUD_NAME,
@@ -36,7 +36,7 @@ const create_competition: Action = async ({ locals, request, url }) => {
 
     console.log('data', data);
     console.log('user', locals.user);
-    
+
     let image_id = undefined;
     if (data.competition_image.size != 0) {
         const buffer = Buffer.from(await (data.competition_image as File).arrayBuffer());
@@ -49,7 +49,7 @@ const create_competition: Action = async ({ locals, request, url }) => {
                 console.log('result', result);
                 resolve(result);
             }).end(buffer);
-        });     
+        });
         let upload_image_promise_result = await upload_image_promise;
         if (upload_image_promise_result.error) {
             return fail(400, { error_message: "An error occurred while uploading the image. Image upload failed" })
@@ -100,7 +100,7 @@ const create_competition: Action = async ({ locals, request, url }) => {
             participation_fee: category.participation_fee,
         }
         console.log('category_post_body', category_post_body);
-        const category_post_result = await fetch_post_from_url('api/categories/', category_post_body, token);
+        const category_post_result = {}; // wait fetch_post_from_url('api/categories/', category_post_body, token);
         const category_post_result_json = await category_post_result.json();
         if (category_post_result.status != 201) {
             console.log('Submition failed');

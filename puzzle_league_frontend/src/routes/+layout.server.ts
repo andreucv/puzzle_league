@@ -1,12 +1,15 @@
-import { redirect } from "@sveltejs/kit";
 import type { LayoutServerLoad } from "./$types";
 import { loadTranslations, locales, translations } from "$lib/translations";
+import { auth } from "$lib/auth";
 
-export const load = (({ url, locals, cookies }) => {
-    console.log("layout.server.ts loading locals from load function: ", locals.user);
-    
+export const load = async ({ url, cookies, locals, request }) => {
+    // Get user session
+    const session = await auth.api.getSession({
+        headers: request.headers,
+    });
+
+    // Get the locales and translations for the current route
     const { pathname } = url;
-
     let locale = "es";
     // 1. Lets take the locale from the window browser object
     if (typeof window !== "undefined") {
@@ -23,9 +26,8 @@ export const load = (({ url, locals, cookies }) => {
     loadTranslations(locale, pathname);
 
     return {
-        translations: translations.get(), 
-        user: locals.user,
-        participant: locals.participant,
+        translations: translations.get(),
         i18n: { locale, route: pathname },
+        user: session?.user,
     };
-}) satisfies LayoutServerLoad;
+};

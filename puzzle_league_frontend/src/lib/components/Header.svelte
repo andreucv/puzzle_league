@@ -3,9 +3,12 @@
     import Icon from '@iconify/svelte';
     import { getDrawerStore } from "@skeletonlabs/skeleton";
 
-    const drawerStore = getDrawerStore();
+    import { page } from '$app/stores';
+    let user = $derived($page.data.user);
+    console.log("Header.svelte: user", user);
+    let currentPath = $derived($page.url.pathname);
 
-    let { user, currentPath } = $props();
+    const drawerStore = getDrawerStore();
 
     function openDrawer() {
         drawerStore.open();
@@ -31,13 +34,13 @@
             {:else}
                 <div class="flex items-center items-bottom relative">
                     <a href="/profile">
-                        {#if user?.photoURL === undefined}
+                        {#if user?.image === undefined}
                             <Icon icon="lets-icons:user-alt-fill" width="1.5rem" height="1.5rem" class="mx-2"/>
                         {:else}
                             <Avatar
                                 id="user-avatar"
                                 initials={user.name ? user.name.substring(0,2) : 'U'}
-                                src={user.photoURL}
+                                src={user.image}
                                 alt={user.name}
                                 width="w-8"
                                 referrerPolicy='no-referrer'>

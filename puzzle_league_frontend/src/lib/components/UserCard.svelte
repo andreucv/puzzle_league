@@ -29,6 +29,7 @@
     <header class="card-header flex items-center gap-4 pb-4">
         {#if user.image}
             <img
+                id="user-avatar"
                 src={user.image}
                 alt="{user.name}'s profile"
                 class="w-16 h-16 rounded-full border-2 border-surface-300"

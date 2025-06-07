@@ -28,8 +28,10 @@ vite.config.ts.timestamp-*
 *.db
 
 # Playwright
-playwright-report/
-playwright/.auth/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
 
 # Chrome devtools files
 com.chrome.devtools.json

@@ -89,15 +89,15 @@
                     </div>
 
                     {#if errorMessage}
-                        <div class="text-red-500 mt-2 text-sm">{errorMessage}</div>
+                        <div id="login_error_message" class="text-red-500 mt-2 text-sm">{errorMessage}</div>
                     {/if}
 
                     {#if action == "register"}
-                        <button type="button" onclick={registerWithEmailAndPassword} class="w-full block bg-indigo-500 hover:bg-indigo-400 focus:bg-indigo-400 text-white font-semibold rounded-lg
+                        <button id="login_submit" type="button" onclick={registerWithEmailAndPassword} class="w-full block bg-indigo-500 hover:bg-indigo-400 focus:bg-indigo-400 text-white font-semibold rounded-lg
                           px-4 py-3 mt-4">Register</button>
                     {/if}
                     {#if action == "login"}
-                        <button type="button" onclick={signInWithEmailAndPassword} class="w-full block bg-indigo-500 hover:bg-indigo-400 focus:bg-indigo-400 text-white font-semibold rounded-lg
+                        <button id="login_submit" type="button" onclick={signInWithEmailAndPassword} class="w-full block bg-indigo-500 hover:bg-indigo-400 focus:bg-indigo-400 text-white font-semibold rounded-lg
                             px-4 py-3 mt-4">Log In</button>
                     {/if}
                 </form>

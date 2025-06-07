@@ -23,6 +23,7 @@
 		"autoprefixer": "^10.4.20",
 		"better-auth": "^1.2.8",
 		"cloudinary": "^2.5.1",
+		"dotenv": "^16.5.0",
 		"firebase-admin": "^13.0.2",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",

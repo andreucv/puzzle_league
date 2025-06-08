@@ -1,6 +1,7 @@
 import type { LayoutServerLoad } from "./$types";
 import { loadTranslations, locales, translations } from "$lib/translations";
 import { auth } from "$lib/auth";
+import { getRoleAssignments } from "$lib/database";
 
 export const load = async ({ url, cookies, locals, request }) => {
     // Get user session
@@ -25,9 +26,13 @@ export const load = async ({ url, cookies, locals, request }) => {
 
     loadTranslations(locale, pathname);
 
+    // Get here the user role assignments
+    const roleAssignments = await getRoleAssignments(session.user.id);
+
     return {
         translations: translations.get(),
         i18n: { locale, route: pathname },
         user: session?.user,
+        roleAssignments
     };
 };

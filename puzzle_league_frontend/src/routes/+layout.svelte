@@ -4,7 +4,8 @@
 	import Footer from '$lib/components/Footer.svelte';
 	import Icon from '@iconify/svelte';
 
-	let { children } = $props();
+	let { children, data } = $props();
+    console.log("+layout.svelte data", data);
 
 	import { Drawer, initializeStores, getDrawerStore} from '@skeletonlabs/skeleton';
 	initializeStores();
@@ -12,7 +13,7 @@
 
 	import { t, locale, locales } from '$lib/translations';
     import type { LayoutLoad } from './$types';
-
+    import { Role } from '@prisma/client'
 </script>
 
 <Drawer>
@@ -29,6 +30,16 @@
 			<li>
 				<a href="/competitions" onclick={() => drawerStore.close()}>{$t('common.landing_page.explore_competitions')}</a>
 			</li>
+            {#if data.roleAssignments?.some(role => role.role === Role.ORGANIZER)}
+            <li>
+                <a href="/competitions/create_competition" onclick={() => drawerStore.close()}>Create Competition</a>
+            </li>
+            {/if}
+            {#if data.roleAssignments?.some(role => role.role === Role.ADMIN)}
+            <li>
+                <a href="/admin/review_requests" onclick={() => drawerStore.close()}>Review Permissions Request</a>
+            </li>
+            {/if}
 		</ul>
 	</nav>
 </Drawer>

@@ -29,7 +29,7 @@ Databse is formed by:
         e. RoleAssignment table:
             This table is to store the different roles assigned to a user.
             There are 4 main roles:
-            1. Participant: This is the default user role for every one. They can List all the competitions.
+            1. Participant: This is the default user role for every one participating in a competition. It does not have any special permissions.
             2. Organizer: This role is the one that is needed to be able to access the create competition form. Enables users to Create, Update and Delete their competitions.
             3. Judge: A user can be judge of a Competition. Organizers can select judges. They only can write Participants finish times.
             4. Admin: This role is administrator of the app and can Create, Update and Delete any field of a competition.

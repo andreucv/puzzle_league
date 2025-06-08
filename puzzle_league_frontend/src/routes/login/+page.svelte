@@ -4,6 +4,7 @@
 
     let action = "login";
     let email = "";
+    let name = "";
     let password = "";
     let passwordConfirm = "";
     let errorMessage : string = "";
@@ -73,7 +74,19 @@
                             required
                         />
                     </div>
-
+                    {#if action == "register"}
+                        <div class="mt-2">
+                            <label for="input_name" class="block">Name</label>
+                            <input
+                                bind:value={name}
+                                name="name"
+                                id="input_name"
+                                placeholder="Enter Name"
+                                class="w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 border text-black focus:border-indigo-500 focus:bg-white focus:outline-none"
+                                required
+                            />
+                        </div>
+                    {/if}
                     <div class="mt-4">
                         <div class="flex items-center justify-between">
                             <label for="input_password">Password</label>

@@ -8,15 +8,19 @@ datasource db {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean
-  image         String?
-  createdAt     DateTime
-  updatedAt     DateTime
-  sessions      Session[]
-  accounts      Account[]
+  id              String           @id
+  name            String
+  email           String
+  emailVerified   Boolean
+  image           String?
+  createdAt       DateTime
+  updatedAt       DateTime
+  sessions        Session[]
+  accounts        Account[]
+  parties         Party[]
+  roleAssignments RoleAssignment[]
+  requests        Request[]
+  leaguePoints    LeaguePoints[]
 
   @@unique([email])
   @@map("user")
@@ -65,4 +69,127 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+}
+
+enum CategoryType {
+  INDIVIDUAL
+  PAIRS
+  TEAM
+  JUNIOR_INDIVIDUAL
+  JUNIOR_PAIRS
+  PUZZLE_CHESS
+}
+
+enum CompetitionStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum UserRole {
+  PARTICIPANT
+  ORGANIZER
+  JUDGE
+  ADMIN
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model League {
+  id           String         @id @default(cuid())
+  name         String
+  description  String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  competitions Competition[]
+  leaguePoints LeaguePoints[]
+
+  @@map("league")
+}
+
+model Competition {
+  id              String            @id @default(cuid())
+  name            String
+  description     String?
+  startDate       DateTime
+  endDate         DateTime
+  status          CompetitionStatus @default(UPCOMING)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  leagueId        String
+  league          League            @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  categories      Category[]
+  roleAssignments RoleAssignment[]
+  requests        Request[]
+
+  @@map("competition")
+}
+
+model Category {
+  id            String       @id @default(cuid())
+  type          CategoryType
+  startTime     DateTime
+  endTime       DateTime
+  startDate     DateTime
+  endDate       DateTime
+  competitionId String
+  competition   Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  parties       Party[]
+
+  @@map("category")
+}
+
+model Party {
+  id         String    @id @default(cuid())
+  finishTime DateTime?
+  points     Int       @default(0)
+  categoryId String
+  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  users      User[]
+
+  @@map("party")
+}
+
+model RoleAssignment {
+  id            String       @id @default(cuid())
+  role          UserRole
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  competitionId String?
+  competition   Competition? @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@map("role_assignment")
+}
+
+model Request {
+  id            String        @id @default(cuid())
+  role          UserRole
+  status        RequestStatus @default(PENDING)
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  competitionId String?
+  competition   Competition?  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("request")
+}
+
+model LeaguePoints {
+  id          String @id @default(cuid())
+  totalPoints Int    @default(0)
+  league      League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  leagueId    String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+
+  @@unique([userId, leagueId])
+  @@map("league_points")
 }

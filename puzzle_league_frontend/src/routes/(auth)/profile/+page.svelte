@@ -5,17 +5,14 @@
     import { goto } from "$app/navigation";
     import UserCard from "$lib/components/UserCard.svelte";
 
-    const { user } = $derived($page.data) as PageData;
-
-    // TODO: Get account info from authClient
-    // this info will be used to enable or disable the form fields
+    const { user, roleAssignments } = $derived($page.data) as PageData;
 
     // Handle logout
     async function signOut() {
         await authClient.signOut({
             fetchOptions: {
                 onSuccess: () => {
-                    goto("/login"); // redirect to login page
+                    goto("/login");
                 },
             },
         });
@@ -23,22 +20,29 @@
 </script>
 
 <div class="container">
-    {#if user}
-        <div class="space-y-6">
-            <h1 class="h1 font-bold">Profile</h1>
+    <div class="space-y-6">
+        <h1 class="h1 font-bold">Profile</h1>
 
-            <UserCard {user} />
+        <UserCard {user} />
 
-            <div class="flex justify-end">
+        <div class="flex justify-start gap-4">
+            {#if !roleAssignments.some((role) => role.role === "organizer")}
                 <button
-                    id="sign-out"
                     type="button"
-                    class="btn variant-filled-error"
-                    onclick={signOut}
+                    class="btn variant-filled-primary"
+                    onclick={() => goto("/request_permissions")}
                 >
-                    Sign out
+                    Request Organizer Role
                 </button>
-            </div>
+            {/if}
+            <button
+                id="sign-out"
+                type="button"
+                class="btn variant-filled-error"
+                onclick={signOut}
+            >
+                Sign out
+            </button>
         </div>
-    {/if}
+    </div>
 </div>

@@ -1,28 +1,25 @@
 <script lang="ts">
-    interface User {
-        id: string;
-        name: string;
-        email: string;
-        emailVerified: boolean;
-        image?: string;
-        createdAt: Date;
-        updatedAt: Date;
-    }
+    let { user } = $props();
 
-    interface Props {
-        user: User;
-    }
-
-    let { user }: Props = $props();
+    let displayName = $state(user.name || "Pending name...");
 
     // Format date for display
-    const formatDate = (date: Date) => {
-        return new Intl.DateTimeFormat('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        }).format(new Date(date));
+    const formatDate = (date: Date | string) => {
+        if (!date) return "N/A";
+
+        const dateObj = date instanceof Date ? date : new Date(date);
+
+        if (isNaN(dateObj.getTime())) {
+            return "Invalid Date";
+        }
+
+        return new Intl.DateTimeFormat("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+        }).format(dateObj);
     };
+
 </script>
 
 <div class="card variant-filled-surface-50 p-6 shadow-lg">
@@ -31,25 +28,25 @@
             <img
                 id="user-avatar"
                 src={user.image}
-                alt="{user.name}'s profile"
+                alt="{user.email}'s profile"
                 class="w-16 h-16 rounded-full border-2 border-surface-300"
             />
         {:else}
             <div class="w-16 h-16 rounded-full bg-primary-500 flex items-center justify-center">
                 <span class="text-2xl font-bold text-white">
-                    {user.name.charAt(0).toUpperCase()}
+                    {user.email.charAt(0).toUpperCase()}
                 </span>
             </div>
         {/if}
-        <div>
-            <h2 class="h3 font-bold">{user.name}</h2>
+        <div class="flex-1">
+            <h2 class="h3 font-bold">{displayName}</h2>
             <p class="text-surface-600">{user.email}</p>
         </div>
     </header>
 
     <div class="card-body space-y-3">
         <div class="flex items-center gap-2">
-            <span class="badge variant-soft-{user.emailVerified ? 'success' : 'warning'}">
+            <span class="pt-2">
                 {user.emailVerified ? '✓ Verified' : '⚠ Unverified'}
             </span>
         </div>

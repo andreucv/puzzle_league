@@ -1,7 +1,7 @@
 import type { LayoutServerLoad } from "./$types";
 import { redirect } from "@sveltejs/kit";
 import { auth } from "$lib/auth";
-
+import { getRoleAssignments } from "$lib/database";
 /**
  * Layout server load function
  *
@@ -21,11 +21,13 @@ export const load: LayoutServerLoad = async ({ request }) => {
     throw redirect(302, "/login");
   }
 
+  // Get here the user role assignments
+  const roleAssignments = await getRoleAssignments(session.user.id);
   /**
    * If the user is authenticated, let them through, and add the user to the page data.
    */
-  console.log("(auth)/+layout.server.ts session", session);
   return {
     user: session.user,
+    roleAssignments
   };
 };

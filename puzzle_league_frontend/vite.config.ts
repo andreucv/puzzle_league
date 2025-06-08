@@ -6,13 +6,5 @@ export default defineConfig({
 	plugins: [
 		enhancedImages(),
 		sveltekit()
-	],
-	server: {
-		proxy: {
-			'/__/auth': {
-				target: 'https://puzzleleague-3eb69.firebaseapp.com',
-				changeOrigin: true
-			}
-		}
-	}
+	]
 });

@@ -1,8 +1,0 @@
-{
-    "rewrites": [
-        {
-            "source": "/__/auth/:path*",
-            "destination": "https://puzzleleague-3eb69.firebaseapp.com/__/auth/:path*"
-        }
-    ]
-}

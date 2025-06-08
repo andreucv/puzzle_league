@@ -119,7 +119,7 @@
 </div>
 
 <style>
-    
+
     .data-input {
         display: block;
         width: 100%;

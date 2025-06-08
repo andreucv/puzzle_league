@@ -1,112 +1,89 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Action, Actions, PageServerLoad } from './$types';
+import { createCompetition, getAllLeagues } from '$lib/database';
 
-import { v2 as cloudinary } from "cloudinary";
-import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } from '$env/static/private'
-//import { fetch_post_from_url } from '$lib/api_utils';
-
-cloudinary.config({
-    cloud_name: CLOUDINARY_CLOUD_NAME,
-    api_key: CLOUDINARY_API_KEY,
-    api_secret: CLOUDINARY_API_SECRET,
-    secure: false
-});
-
-
-export const load: PageServerLoad = async ( event ) => {
-    const token = event.locals.token;
-    // we will create here all the necessary data for the client page to render
-    // a competition creation page
+export const load: PageServerLoad = async (event) => {
+    // Load all leagues so the user can select which league to create the competition in
+    try {
+        const leagues = await getAllLeagues();
+        return {
+            leagues
+        };
+    } catch (error) {
+        console.error('Error loading leagues:', error);
+        return {
+            leagues: []
+        };
+    }
 }
 
 const create_competition: Action = async ({ locals, request, url }) => {
-    const token = locals.token;
     const formData = await request.formData();
-    const data = {};
 
-    for (const [name, value] of formData.entries()) {
-        if (value instanceof File) {
-            data[name] = value;
-        } else if (name == 'categories') {
-            data[name] = JSON.parse(value);
-        } else {
-            data[name] = value.toString();
-        }
-    }
+    // Extract form data
+    const competitionName = formData.get('competition_name')?.toString();
+    const description = formData.get('description')?.toString() || null;
+    const startDate = formData.get('start_date')?.toString();
+    const endDate = formData.get('end_date')?.toString();
+    const leagueId = formData.get('league_id')?.toString();
+    const categoriesJson = formData.get('categories')?.toString();
 
-    console.log('data', data);
-    console.log('user', locals.user);
-
-    let image_id = undefined;
-    if (data.competition_image.size != 0) {
-        const buffer = Buffer.from(await (data.competition_image as File).arrayBuffer());
-        let upload_image_promise = new Promise((resolve, reject) => {
-            cloudinary.uploader.upload_stream({}, function (error, result) {
-                if(error) {
-                    reject(error);
-                    return;
-                }
-                console.log('result', result);
-                resolve(result);
-            }).end(buffer);
+    // Validate required fields
+    if (!competitionName || !startDate || !leagueId) {
+        return fail(400, {
+            error_message: "Competition name, start date, and league are required."
         });
-        let upload_image_promise_result = await upload_image_promise;
-        if (upload_image_promise_result.error) {
-            return fail(400, { error_message: "An error occurred while uploading the image. Image upload failed" })
-        }
-        console.log('upload_image_promise_result', upload_image_promise_result)
-        image_id = upload_image_promise_result.public_id;
     }
 
-    let end_date = undefined;
-    if (!data.bool_same_day) {
-        end_date = data.start_date;
-    } else {
-        end_date = data.end_date;
-    }
-    const competition_post_body = {
-        name: data.competition_name,
-        start_date: new Date(data.start_date).toISOString().split('T')[0],
-        end_date: new Date(end_date).toISOString().split('T')[0],
-        location: data.location,
-        image: image_id,
-        created_by: locals.user.pk
-    };
-
-    console.log('competition_post_body', competition_post_body);
-    const api_post_result = await fetch_post_from_url('api/competitions/', competition_post_body, token);
-    const api_post_result_json = await api_post_result.json();
-    console.log('api_post_result_json', api_post_result_json)
-    if (api_post_result.status != 201) {
-        console.log('Submition failed');
-        return fail(400, { error_message: "An error occurred while submitting the competition." })
-    }
-    else {
-        console.log('Competition created successfully in backend.');
+    // Parse categories
+    let categories: any[] = [];
+    if (categoriesJson) {
+        try {
+            categories = JSON.parse(categoriesJson);
+        } catch (error) {
+            return fail(400, {
+                error_message: "Invalid categories format."
+            });
+        }
     }
 
-    // now we create the categories here
-    const competition_id = api_post_result_json.pk;
-    let count = 0;
-    data.categories.forEach(async (category) => {
-        console.log('category'+count, category)
-        count++;
-        const category_post_body = {
-            category_type: category.category_type,
-            competition: competition_id,
-            date: category.date ? category.date : competition_post_body.start_date,
-            start_time: category.start_time,
-            end_time: category.end_time,
-            participation_fee: category.participation_fee,
-        }
-        console.log('category_post_body', category_post_body);
-        const category_post_result = {}; // wait fetch_post_from_url('api/categories/', category_post_body, token);
-        const category_post_result_json = await category_post_result.json();
-        if (category_post_result.status != 201) {
-            console.log('Submition failed');
-            return fail(400, { error_message: "An error occurred while submitting the category." })
-        }
+    // Convert categories to the format expected by our database function
+    const formattedCategories = categories.map(category => {
+        const categoryDate = category.date || startDate;
+        const categoryStartTime = new Date(`${categoryDate}T${category.start_time || '09:00'}`);
+        const categoryEndTime = new Date(`${categoryDate}T${category.end_time || '17:00'}`);
+
+        return {
+            type: category.category_type as 'INDIVIDUAL' | 'PAIRS' | 'TEAM' | 'JUNIOR_INDIVIDUAL' | 'JUNIOR_PAIRS' | 'PUZZLE_CHESS',
+            startTime: categoryStartTime,
+            endTime: categoryEndTime,
+            startDate: new Date(categoryDate),
+            endDate: new Date(categoryDate)
+        };
     });
+
+    try {
+        // Create competition with categories
+        const result = await createCompetition(
+            competitionName,
+            description,
+            new Date(startDate),
+            new Date(endDate || startDate),
+            leagueId,
+            formattedCategories
+        );
+
+        console.log('Competition created successfully:', result.competition.id);
+
+        // Redirect to the competitions page or the new competition's detail page
+        throw redirect(303, `/competitions/competition_details/${result.competition.id}`);
+
+    } catch (error) {
+        console.error('Error creating competition:', error);
+        return fail(500, {
+            error_message: "An error occurred while creating the competition."
+        });
+    }
 }
 
 export const actions: Actions = { create_competition }

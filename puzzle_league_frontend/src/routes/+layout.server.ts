@@ -27,7 +27,10 @@ export const load = async ({ url, cookies, locals, request }) => {
     loadTranslations(locale, pathname);
 
     // Get here the user role assignments
-    const roleAssignments = await getRoleAssignments(session.user.id);
+    let roleAssignments = [];
+    if (session?.user) {
+        roleAssignments = await getRoleAssignments(session.user.id) || [];
+    }
 
     return {
         translations: translations.get(),

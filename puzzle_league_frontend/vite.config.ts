@@ -6,5 +6,11 @@ export default defineConfig({
 	plugins: [
 		enhancedImages(),
 		sveltekit()
-	]
+	],
+    // To enable hot module reloading, we need to enable polling because of docker environment
+	server: {
+		watch: {
+			usePolling: true,
+		}
+	}
 });

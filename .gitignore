@@ -1,5 +1,6 @@
 test-results
 node_modules
+package-lock.json
 
 # Output
 .output
@@ -22,3 +23,16 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Prisma DB
+*.db
+dev.*
+
+# Playwright
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Chrome devtools files
+com.chrome.devtools.json

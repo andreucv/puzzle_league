@@ -28,7 +28,7 @@ export const load: LayoutServerLoad = async ({ request }) => {
     // Check if user has admin role
     const hasAdminRole = roleAssignments.some(assignment => assignment.role === Role.ADMIN);
     if (!hasAdminRole) {
-        throw redirect(302, "/login");
+        throw redirect(302, "/error/no_permission/");
     }
     /**
      * If the user is authenticated, let them through, and add the user to the page data.

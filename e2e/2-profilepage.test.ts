@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+test.use({ storageState: "playwright/.auth/participant_user.json" });
+
 test('GivenHomePage_WhenAccessingUserProfile_ThenUserProfileIsVisible', async ({ page }) => {
     await page.goto('/profile');
     await expect(page.getByRole('heading', { name: 'Profile' }).first()).toBeVisible();

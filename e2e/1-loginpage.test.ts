@@ -30,8 +30,8 @@ test('WhenAccessingLoginPage_Login_AfterSubmitWrongUserPassword_ErrorIsVisible',
 
 test('WhenAccessingLoginPage_Login_AfterSubmitCorrectUserPassword_RedirectsToHomePage', async ({ page }) => {
     await page.goto('/login');
-    await page.locator('#input_email').fill(process.env.TEST_USER_EMAIL);
-    await page.locator('#input_password').fill(process.env.TEST_USER_PASSWORD);
+    await page.locator('#input_email').fill(process.env.TEST_PARTICIPANT_USER_EMAIL);
+    await page.locator('#input_password').fill(process.env.TEST_PARTICIPANT_USER_PASSWORD);
     const loginButton = page.locator('#login_submit');
     await loginButton.click();
 
@@ -50,8 +50,8 @@ test('WhenAccessingLoginPage_Login_AfterSubmitCorrectUserPassword_RedirectsToHom
 
 //     await page.waitForURL(/\/login.*/);
 
-//     await page.locator('#input_email').fill(process.env.TEST_USER_EMAIL);
-//     await page.locator('#input_password').fill(process.env.TEST_USER_PASSWORD);
+//     await page.locator('#input_email').fill(process.env.TEST_PARTICIPANT_USER_EMAIL);
+//     await page.locator('#input_password').fill(process.env.TEST_PARTICIPANT_USER_PASSWORD);
 //     const loginButton = page.locator('#login_submit');
 //     await loginButton.click();
 
@@ -70,8 +70,8 @@ test('WhenAccessingAdminPage_WhenNotLoggedIn_ThenRedirectsToLoginPage', async ({
 
 test('WhenAccessingAdminPage_WhenLoggedInUserWithoutPermission_ThenAdminPageIsNotVisible', async ({ page }) => {
     await page.goto('/login');
-    await page.locator('#input_email').fill(process.env.TEST_USER_EMAIL);
-    await page.locator('#input_password').fill(process.env.TEST_USER_PASSWORD);
+    await page.locator('#input_email').fill(process.env.TEST_PARTICIPANT_USER_EMAIL);
+    await page.locator('#input_password').fill(process.env.TEST_PARTICIPANT_USER_PASSWORD);
     const loginButton = page.locator('#login_submit');
     await loginButton.click();
 

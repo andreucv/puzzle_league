@@ -6,7 +6,7 @@
     import UserCard from "$lib/components/UserCard.svelte";
 
     const { user, roleAssignments } = $derived($page.data) as PageData;
-
+    console.log(roleAssignments);
     // Handle logout
     async function signOut() {
         await authClient.signOut({
@@ -23,10 +23,10 @@
     <div class="space-y-6">
         <h1 class="h1 font-bold">Profile</h1>
 
-        <UserCard {user} />
+        <UserCard {user} {roleAssignments}/>
 
         <div class="flex justify-start gap-4">
-            {#if !roleAssignments.some((role) => role.role === "organizer")}
+            {#if !roleAssignments?.some((role) => role.role === "ORGANIZER")}
                 <button
                     type="button"
                     class="btn variant-filled-primary"

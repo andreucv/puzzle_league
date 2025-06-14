@@ -151,13 +151,13 @@ export async function createCompetition(
     description: string | null,
     startDate: Date,
     endDate: Date,
-    leagueId: string,
+    leagueId: string | null,
     categories: {
-        type: 'INDIVIDUAL' | 'PAIRS' | 'TEAM' | 'JUNIOR_INDIVIDUAL' | 'JUNIOR_PAIRS' | 'PUZZLE_CHESS',
-        startTime: Date,
-        endTime: Date,
-        startDate: Date,
-        endDate: Date
+        type: string,  // Changed from categoryId to type
+        date: Date,  // Added date field
+        startTime: Date,  // Changed to Date to match form data
+        endTime: Date,    // Changed to Date to match form data
+        participationFee: number
     }[]
 ) {
     try {
@@ -170,8 +170,8 @@ export async function createCompetition(
                     description,
                     startDate,
                     endDate,
-                    leagueId,
-                    status: 'UPCOMING'
+                    status: 'UPCOMING',
+                    leagueId: leagueId || null,
                 }
             });
 
@@ -180,6 +180,7 @@ export async function createCompetition(
                 categories.map(async (category) => {
                     return await tx.category.create({
                         data: {
+                            name: category.name,
                             type: category.type as any, // Cast to CategoryType enum
                             startTime: category.startTime,
                             endTime: category.endTime,
@@ -190,6 +191,8 @@ export async function createCompetition(
                     });
                 })
             );
+
+            console.log("database.ts: createdCategories", createdCategories);
 
             return {
                 competition,
@@ -204,25 +207,13 @@ export async function createCompetition(
     }
 }
 
-export async function getCompetitionWithCategories(competitionId: string) {
+export async function getCompetitionWithCategories(competitionId: number) {
     try {
         const competition = await prisma.competition.findUnique({
             where: { id: competitionId },
             include: {
                 categories: true,
                 league: true,
-                roleAssignments: {
-                    include: {
-                        user: {
-                            select: {
-                                id: true,
-                                name: true,
-                                email: true,
-                                image: true
-                            }
-                        }
-                    }
-                }
             }
         });
 

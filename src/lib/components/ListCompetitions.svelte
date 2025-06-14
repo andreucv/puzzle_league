@@ -5,6 +5,7 @@
 
     export let upcoming_competitions;
     export let past_competitions;
+    export let roleAssignments;
 
     let filter = '';
     $:filtered_upcoming_competitions = upcoming_competitions.filter(competition => competition.name.toLowerCase().includes(filter.toLowerCase()));
@@ -31,6 +32,12 @@
     <div class="p-1">
         <div class="p-1 flex items-center justify-between">
             <h1 class="text-lg">{$t('common.competitions.upcoming_competitions')}</h1>
+            {#if roleAssignments?.some(role => role.role === 'ORGANIZER')}
+                <a class="btn btn-sm variant-filled-primary" href="create_competition">
+                    <Icon icon="mdi:plus" class="mr-1" />
+                    Create Competition
+                </a>
+            {/if}
             {#if filter !== ''}
                 <span class="ml-2 text-sm">{upcoming_filtered_count} / {upcoming_total_count}</span>
             {/if}

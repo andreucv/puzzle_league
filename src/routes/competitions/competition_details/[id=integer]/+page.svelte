@@ -1,143 +1,154 @@
 <script lang="ts">
-    import CategoryCard from '$lib/components/CategoryCard.svelte';
-    // import { CldImage } from 'svelte-cloudinary';
-
     import Icon from '@iconify/svelte';
-    //import map from '$lib/images/map.png';
-    // import { Modal, getModalStore } from '@skeletonlabs/skeleton';
-    // import { t } from '$lib/translations';
-
-    // const modalStore = getModalStore();
 
     let { data } = $props();
 
-    const competitionName         = data.props.competition_and_categories?.name;
-    const competitionLocation     = data.props.competition_and_categories?.location;
-    const competition_startDate   = new Date(data.props.competition_and_categories?.start_date);
-    const competition_endDate     = new Date(data.props.competition_and_categories?.end_date);
-    console.log(competition_startDate, competition_endDate);
-    const bool_more_than_one_day = competition_startDate !== undefined &&
-                                 competition_endDate !== undefined &&
-                                 String(competition_startDate) !== String(competition_endDate);
+    const competition = data.props.competition_and_categories;
+    const competitionName = competition?.name;
+    const competitionDescription = competition?.description;
+    const competitionStatus = competition?.status;
+    const competition_startDate = new Date(competition?.startDate);
+    const competition_endDate = new Date(competition?.endDate);
 
-    const categories = data.props.competition_and_categories.categories;
+    const bool_more_than_one_day = competition_startDate.toDateString() !== competition_endDate.toDateString();
+
+    const categories = competition?.categories || [];
 
     const monthNumber = competition_startDate.getDate();
     const monthAbbreviation = competition_startDate.toLocaleString('default', { month: 'short' });
     const year = competition_startDate.getFullYear();
 
-    // function onDestroy() {
-    //     modalStore.clear();
-    // }
+    // Helper function to format time
+    function formatTime(date: Date) {
+        return date.toLocaleTimeString('default', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+    }
 
-    // const modal: ModalSettings = {
-    //     type: 'alert',
-    //     // Data
-    //     href:"#",
-    //     title: 'Image',
-    //     image: data.props.image_url,
-    // };
-
-    // function openModal() {
-    //     modalStore.trigger(modal);
-    // }
+    // Helper function to get category type display name
+    function getCategoryTypeName(type: string) {
+        const typeNames: Record<string, string> = {
+            'INDIVIDUAL': 'Individual',
+            'PAIRS': 'Pairs',
+            'TEAM': 'Team',
+            'JUNIOR_INDIVIDUAL': 'Junior Individual',
+            'JUNIOR_PAIRS': 'Junior Pairs',
+            'PUZZLE_CHESS': 'Puzzle Chess'
+        };
+        return typeNames[type] || type;
+    }
 </script>
 
 <svelte:head>
-    <title>Competition Details</title>
+    <title>{competitionName} - Competition Details</title>
 </svelte:head>
 
-<div class="p-4 relative">
-    <div class="flex">
-        <div class="">
-            <h1 class="text-3xl">{competitionName}</h1>
-            <!-- {#if data.props.user_id === data.props.competition_and_categories.created_by}
-                <a href="/create_competition_categories" class="bg-gray-500 text-white px-2 py-2 rounded-full flex justify-center items-center absolute top-4 right-4">
-                    <Icon icon="ic:baseline-edit" class="text-white" />
-                </a>
-            {/if} -->
+<div class="container mx-auto p-4">
+    <!-- Header Section -->
+    <div class="card preset-filled-surface-100-900 p-6 mb-6">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="h1 mb-2">{competitionName}</h1>
+                {#if competitionDescription}
+                    <p class="text-surface-600-400">{competitionDescription}</p>
+                {/if}
+
+                <!-- Status Badge -->
+                <span class="badge preset-filled-primary-500 mt-2">
+                    {competitionStatus}
+                </span>
+            </div>
+        </div>
+
+        <!-- Date and Location Info -->
+        <div class="mt-6 space-y-3">
+            <div class="flex items-center gap-2">
+                <Icon icon="mdi:calendar-clock" width="1.5rem" height="1.5rem" class="text-primary-500" />
+                <span class="text-lg">
+                    {monthNumber} {monthAbbreviation} {year}
+                    {#if bool_more_than_one_day}
+                        - {competition_endDate.getDate()} {competition_endDate.toLocaleString('default', { month: 'short' })} {competition_endDate.getFullYear()}
+                    {/if}
+                </span>
+            </div>
+
+            {#if competition?.league}
+                <div class="flex items-center gap-2">
+                    <Icon icon="mdi:trophy" width="1.5rem" height="1.5rem" class="text-primary-500" />
+                    <span class="text-lg">Part of: {competition.league.name}</span>
+                </div>
+            {/if}
         </div>
     </div>
+
+    <!-- Categories Section -->
     <div>
-        <!-- {#if bool_more_than_one_day}
-            <p class="text-lg">Competition Starts</p>
-            <p class="text-lg">{competition_startDate}</p>
-            <p class="text-lg">Competition Ends</p>
-            <p class="text-lg">{competition_endDate}</p>
-        {:else} -->
-            <div class="w-full p-2 mt-1">
-                <div class="flex items-center">
-                    <Icon icon="mdi:clock-outline" width="2rem" height="2rem" />
-                    <p class="text-xl date-format px-1">{monthNumber} {monthAbbreviation} {year}</p>
-                    {#if bool_more_than_one_day}
-                        <p class="text-xl date-format px-1"> - </p>
-                        <p class="text-xl date-format px-1">{competition_endDate.getDate()} {competition_endDate.toLocaleString('default', { month: 'short' })} {competition_endDate.getFullYear()}</p>
-                    {/if}
-                </div>
-                <div class="flex items-center">
-                    <Icon icon="mdi:map-marker" width="2rem" height="2rem" />
-                    <p class="text-xl">{competitionLocation.full_address}</p>
-                </div>
+        <h2 class="h2 mb-4">Competition Categories</h2>
+
+        {#if categories.length > 0}
+            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {#each categories as category}
+                    <div class="card preset-outlined-surface-200-800 p-4 hover:preset-tonal-primary transition-all">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="h4 font-semibold">
+                                {getCategoryTypeName(category.type)}
+                            </h3>
+                            <Icon
+                                icon={category.type.includes('TEAM') ? 'mdi:account-group' :
+                                     category.type.includes('PAIRS') ? 'mdi:account-multiple' :
+                                     category.type.includes('CHESS') ? 'mdi:chess-pawn' :
+                                     'mdi:account'}
+                                width="1.5rem"
+                                height="1.5rem"
+                                class="text-primary-500"
+                            />
+                        </div>
+
+                        {#if category.name}
+                            <p class="text-surface-600-400 mb-2">{category.name}</p>
+                        {/if}
+
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center gap-2">
+                                <Icon icon="mdi:clock-start" width="1.2rem" height="1.2rem" />
+                                <span>Start: {formatTime(new Date(category.startTime))}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <Icon icon="mdi:clock-end" width="1.2rem" height="1.2rem" />
+                                <span>End: {formatTime(new Date(category.endTime))}</span>
+                            </div>
+
+                            {#if bool_more_than_one_day && category.startDate}
+                                <div class="flex items-center gap-2 text-surface-500-500">
+                                    <Icon icon="mdi:calendar" width="1.2rem" height="1.2rem" />
+                                    <span>
+                                        {new Date(category.startDate).toLocaleDateString()}
+                                    </span>
+                                </div>
+                            {/if}
+                        </div>
+                    </div>
+                {/each}
             </div>
-        <!-- {/if} -->
+        {:else}
+            <div class="card preset-filled-surface-100-900 p-8 text-center">
+                <Icon icon="mdi:alert-circle-outline" width="3rem" height="3rem" class="mx-auto mb-2 text-surface-500" />
+                <p class="text-surface-600-400">No categories have been added to this competition yet.</p>
+            </div>
+        {/if}
     </div>
-    <div class="snap-x snap-mandatory scroll-smooth flex gap-4 overflow-x-auto mt-2" style="scrollbar-width: none; -ms-overflow-style: none;">
-        <!-- google maps miniature first -->
-        <!-- images after (image of competition first) -->
-        <!-- <div class="h-40 w-auto flex-none" on:click={openModal}>
-            <CldImage src={data.props.competition_and_categories?.image} class="h-full w-auto" />
-        </div> -->
-        <!-- <div class="h-40 w-auto flex-none">
-            <img src={map} alt="map" class="h-full w-auto object-contain"/>
-        </div> -->
+
+    <!-- Action Buttons -->
+    <div class="mt-8 flex gap-4 justify-center">
+        <a href="/competitions" class="btn preset-tonal">
+            <Icon icon="mdi:arrow-left" width="1.2rem" height="1.2rem" />
+            Back to Competitions
+        </a>
+        <button type="button" class="btn preset-filled-primary-500">
+            <Icon icon="mdi:account-plus" width="1.2rem" height="1.2rem" />
+            Sign Up for Competition
+        </button>
     </div>
-    <h1 class="text-xl font-bold mt-4">Categories</h1>
-    <div class="mt-2">
-        {#each categories as category}
-            <CategoryCard category={category} show_date={bool_more_than_one_day}/>
-        {/each}
-    </div>
-    <!-- <div class="flex justify-between">
-        <a href="/signup_for_competition/{data.props.competition_and_categories.id}" class="submit-button bg-indigo-500 text-white px-2 rounded">Sign Up for Competition</a>
-    </div> -->
 </div>
-
-<style>
-.data-input {
-    display: block;
-    width: 100%;
-    padding: 0.5rem;
-    margin: 0.25rem 0;
-    border: 1px solid #ccc;
-    border-radius: 0.25rem;
-    color: black;
-}
-
-.submit-button {
-    width: 100%;
-    display: block;
-    color: white;
-    font-weight: bold;
-    border-radius: 0.25rem;
-    padding: 0.5rem;
-    margin-top: 1rem;
-}
-
-.date-circle {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      background-color: white;
-      text-align: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-
-.date-format {
-    line-height: 1;
-    margin: 0;
-}
-</style>

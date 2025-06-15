@@ -115,16 +115,17 @@ const create_competition: Action = async ({ locals, request, url }) => {
             leagueId || '',
             formattedCategories
         );
-
-        console.log('Competition created successfully:', result.competition.id);
-
-        // Redirect to the new competition's detail page
-        throw redirect(303, `/competitions/competition_details/${result.competition.id}`);
-
+        // Return success with competition details
+        return {
+            success: true,
+            message: "Competition created successfully!",
+            competitionId: result.data?.competition.id
+        };
     } catch (error) {
         console.error('Error creating competition:', error);
         return fail(500, {
-            error_message: "An error occurred while creating the competition."
+            success: false,
+            message: "An error occurred while creating the competition."
         });
     }
 }

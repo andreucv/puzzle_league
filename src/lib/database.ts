@@ -153,11 +153,13 @@ export async function createCompetition(
     endDate: Date,
     leagueId: string | null,
     categories: {
-        type: string,  // Changed from categoryId to type
-        date: Date,  // Added date field
-        startTime: Date,  // Changed to Date to match form data
-        endTime: Date,    // Changed to Date to match form data
-        participationFee: number
+        name: string,
+        type: string,
+        startTime: Date,
+        endTime: Date,
+        startDate: Date,
+        endDate: Date,
+        participationFee: number,
     }[]
 ) {
     try {
@@ -180,7 +182,7 @@ export async function createCompetition(
                 categories.map(async (category) => {
                     return await tx.category.create({
                         data: {
-                            name: category.name,
+                            name: category.name || category.type,
                             type: category.type as any, // Cast to CategoryType enum
                             startTime: category.startTime,
                             endTime: category.endTime,
@@ -199,11 +201,18 @@ export async function createCompetition(
                 categories: createdCategories
             };
         });
-
-        return result;
+        return {
+            success: true,
+            data: result,
+            message: 'Competition and categories created successfully'
+        };
     } catch (error) {
         console.error('Error creating competition:', error);
-        throw error;
+        return {
+            success: false,
+            data: null,
+            message: error instanceof Error ? error.message : 'Unknown error occurred'
+        };
     }
 }
 

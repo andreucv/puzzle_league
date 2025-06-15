@@ -1,19 +1,15 @@
 <script lang="ts">
-    import { AppBar } from '@skeletonlabs/skeleton';
-    import type { PageData } from './$types';
+    let {data, form} = $props();
 
-    export let data: PageData;
-
-    let selectedLeague = '';
-    let selectedCategories: string[] = [];
-    let sameDay = true;
+    let selectedLeague = $state('');
+    let sameDay = $state(true);
 
     // Form data
-    let competitionName = '';
-    let description = '';
-    let location = '';
-    let startDate = '';
-    let endDate = '';
+    let competitionName = $state('');
+    let description = $state('');
+    let location = $state('');
+    let startDate = $state('');
+    let endDate = $state('');
 
     // Category configurations
     let categoryConfigs: Array<{
@@ -24,7 +20,7 @@
         startTime: string;
         endTime: string;
         participationFee: number;
-    }> = [];
+    }> = $state([]);
 
     function addCategory() {
         const newCategory = {
@@ -36,7 +32,7 @@
             endTime: '11:00',
             participationFee: 0
         };
-        categoryConfigs = [...categoryConfigs, newCategory];
+        categoryConfigs.push(newCategory);
     }
 
     function removeCategory(categoryId: string) {
@@ -50,18 +46,33 @@
     }
 
     // Update selectedCategories to reflect current categoryConfigs
-    $: selectedCategories = categoryConfigs
-        .filter(config => config.categoryType)
-        .map(config => config.categoryType);
+    let selectedCategories = $derived(
+        categoryConfigs
+            .filter(config => config.categoryType)
+            .map(config => config.categoryType)
+    );
+
 </script>
 
 <h1 class="h1 font-bold">Create Competition</h1>
+{#if form?.success === false}
+    <div class="alert variant-filled-error mt-4">
+        <p>{form.message}</p>
+    </div>
+    {/if}
+    {#if form?.success === true}
+    <div class="alert variant-filled-success mt-4">
+        <p>{form.message}</p>
+        <p>Go to competition <a href={`/competitions/competition_details/${form.competitionId}`}>here</a>.</p>
+    </div>
+{/if}
 <form method="POST" action="?/create_competition" enctype="multipart/form-data" class="max-w-6xl mx-auto space-y-4 mb-4">
     <!-- Basic Information Section -->
     <section class="">
         <div class="flex items-center mt-4">
             <h2 class="h3 font-semibold">Basic Information</h2>
         </div>
+
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
             <label class="label">
@@ -151,7 +162,7 @@
             <button
                 type="button"
                 class="btn variant-filled-primary btn-sm"
-                on:click={addCategory}
+                onclick={addCategory}
             >
                 <span>➕</span>
                 <span>Add Category</span>
@@ -167,7 +178,7 @@
                         <button
                             type="button"
                             class="absolute top-2 right-2 btn btn-sm variant-ghost-error opacity-60 hover:opacity-100 transition-opacity"
-                            on:click={() => removeCategory(category.id)}
+                            onclick={() => removeCategory(category.id)}
                         >
                             <span>🗑️</span>
                         </button>
@@ -177,7 +188,7 @@
                                 <span class="text-sm font-medium">Category Type *</span>
                                 <select
                                     value={category.categoryType}
-                                    on:change={(e) => updateCategoryConfig(category.id, 'categoryType', e.currentTarget.value)}
+                                    onchange={(e) => updateCategoryConfig(category.id, 'categoryType', e.currentTarget.value)}
                                     required
                                 >
                                     <option value="">Select a category type</option>
@@ -201,7 +212,7 @@
                                         <input
                                             type="date"
                                             value={category.date}
-                                            on:change={(e) => updateCategoryConfig(category.id, 'date', e.currentTarget.value)}
+                                            onchange={(e) => updateCategoryConfig(category.id, 'date', e.currentTarget.value)}
                                             min={startDate}
                                             max={endDate || startDate}
                                         />
@@ -213,7 +224,7 @@
                                     <input
                                         type="time"
                                         value={category.startTime}
-                                        on:change={(e) => updateCategoryConfig(category.id, 'startTime', e.currentTarget.value)}
+                                        onchange={(e) => updateCategoryConfig(category.id, 'startTime', e.currentTarget.value)}
                                     />
                                 </label>
 
@@ -222,7 +233,7 @@
                                     <input
                                         type="time"
                                         value={category.endTime}
-                                        on:change={(e) => updateCategoryConfig(category.id, 'endTime', e.currentTarget.value)}
+                                        onchange={(e) => updateCategoryConfig(category.id, 'endTime', e.currentTarget.value)}
                                     />
                                 </label>
 
@@ -231,7 +242,7 @@
                                     <input
                                         type="number"
                                         value={category.participationFee}
-                                        on:change={(e) => updateCategoryConfig(category.id, 'participationFee', parseFloat(e.currentTarget.value))}
+                                        onchange={(e) => updateCategoryConfig(category.id, 'participationFee', parseFloat(e.currentTarget.value))}
                                         min="0"
                                         step="0.01"
                                     />
@@ -248,7 +259,7 @@
                     <button
                         type="button"
                         class="btn variant-filled-primary"
-                        on:click={addCategory}
+                        onclick={addCategory}
                     >
                         <span>➕</span>
                         <span>Add Your First Category</span>
@@ -268,7 +279,7 @@
         <button
             type="submit"
             class="btn variant-filled-primary btn-lg"
-            disabled={!competitionName  || selectedCategories.length === 0}
+            disabled={!competitionName  || categoryConfigs.length == 0}
         >
             <span>Create Competition</span>
         </button>

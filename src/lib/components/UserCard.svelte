@@ -1,5 +1,5 @@
 <script lang="ts">
-    let { user } = $props();
+    let { user, roleAssignments } = $props();
 
     let displayName = $state(user.name || "Pending name...");
 
@@ -41,6 +41,12 @@
         <div class="flex-1">
             <h2 class="h3 font-bold">{displayName}</h2>
             <p class="text-surface-600">{user.email}</p>
+            {#if roleAssignments?.some((role) => role.role === "ORGANIZER")}
+                <span class="badge variant-filled-primary">Organizer</span>
+            {/if}
+            {#if roleAssignments?.some((role) => role.role === "ADMIN")}
+                <span class="badge variant-filled-secondary">Admin</span>
+            {/if}
         </div>
     </header>
 

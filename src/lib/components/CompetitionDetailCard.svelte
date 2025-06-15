@@ -1,21 +1,21 @@
 <script>
     export let competition;
 
-    $: defaultStartDate =  new Date(competition.start_date);
-    $: defaultEndDate = new Date(competition.end_date);
+    $: defaultStartDate =  new Date(competition.startDate);
+    $: defaultEndDate = new Date(competition.endDate);
 
     $: monthNumber = defaultStartDate.getDate(); // getMonth() is 0-indexed
     $: monthAbbreviation = defaultStartDate.toLocaleString('default', { month: 'short' });
     $: year = defaultStartDate.getFullYear();
 </script>
 
-<a href="competition_details/{competition.id}">
+<a href="competitions/competition_details/{competition.id}">
 <div class="mt-2 py-1 card">
     <div>
         <div class="flex">
             <div class="px-2 flex-grow">
                 <h2 class="text-lg">{competition.name}</h2>
-                <p class="text-sm">{competition.location.city}</p>
+                <!-- <p class="text-sm">{competition.location.city}</p> -->
             </div>
             <div class="text-center image-container">
             </div>
@@ -34,7 +34,7 @@
         {#each competition.categories as category}
         <div class="">
             <div class="flex items-center">
-                <span class="chip variant-filled-surface">{category.category_type}</span>
+                <span class="chip variant-filled-surface">{category.type}</span>
             </div>
         </div>
         {/each}

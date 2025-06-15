@@ -151,13 +151,15 @@ export async function createCompetition(
     description: string | null,
     startDate: Date,
     endDate: Date,
-    leagueId: string,
+    leagueId: string | null,
     categories: {
-        type: 'INDIVIDUAL' | 'PAIRS' | 'TEAM' | 'JUNIOR_INDIVIDUAL' | 'JUNIOR_PAIRS' | 'PUZZLE_CHESS',
+        name: string,
+        type: string,
         startTime: Date,
         endTime: Date,
         startDate: Date,
-        endDate: Date
+        endDate: Date,
+        participationFee: number,
     }[]
 ) {
     try {
@@ -170,8 +172,8 @@ export async function createCompetition(
                     description,
                     startDate,
                     endDate,
-                    leagueId,
-                    status: 'UPCOMING'
+                    status: 'UPCOMING',
+                    leagueId: leagueId || null,
                 }
             });
 
@@ -180,6 +182,7 @@ export async function createCompetition(
                 categories.map(async (category) => {
                     return await tx.category.create({
                         data: {
+                            name: category.name || category.type,
                             type: category.type as any, // Cast to CategoryType enum
                             startTime: category.startTime,
                             endTime: category.endTime,
@@ -191,38 +194,35 @@ export async function createCompetition(
                 })
             );
 
+            console.log("database.ts: createdCategories", createdCategories);
+
             return {
                 competition,
                 categories: createdCategories
             };
         });
-
-        return result;
+        return {
+            success: true,
+            data: result,
+            message: 'Competition and categories created successfully'
+        };
     } catch (error) {
         console.error('Error creating competition:', error);
-        throw error;
+        return {
+            success: false,
+            data: null,
+            message: error instanceof Error ? error.message : 'Unknown error occurred'
+        };
     }
 }
 
-export async function getCompetitionWithCategories(competitionId: string) {
+export async function getCompetitionWithCategories(competitionId: number) {
     try {
         const competition = await prisma.competition.findUnique({
             where: { id: competitionId },
             include: {
                 categories: true,
                 league: true,
-                roleAssignments: {
-                    include: {
-                        user: {
-                            select: {
-                                id: true,
-                                name: true,
-                                email: true,
-                                image: true
-                            }
-                        }
-                    }
-                }
             }
         });
 

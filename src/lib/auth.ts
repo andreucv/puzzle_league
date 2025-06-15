@@ -6,12 +6,11 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {
-        provider: "sqlite", // or "mysql", "postgresql", ...etc
+        provider: "postgresql", // or "mysql", "postgresql", ...etc
     }),
     emailAndPassword: {
         enabled: true
     },
-    trustedOrigins: ["http://localhost:4173", "http://localhost:5173", "https://puzzle-league.vercel.app"],
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID as string,

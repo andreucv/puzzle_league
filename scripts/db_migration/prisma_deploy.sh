@@ -28,6 +28,13 @@ insert_test_users() {
     DATABASE_URL=$DATABASE_URL npx tsx "$PROJECT_ROOT/scripts/db_migration/insert_users_to_db.ts"
 }
 
+make_me_admin() {
+    echo "👑 Making me admin..."
+
+    # Run the script with the correct DATABASE_URL
+    DATABASE_URL=$DATABASE_URL npx tsx "$PROJECT_ROOT/scripts/db_migration/make_me_admin.ts"
+}
+
 # Function to display usage
 usage() {
     echo "Usage: $0 [local|test|prod]"
@@ -98,6 +105,8 @@ DATABASE_URL=$DATABASE_URL npx prisma migrate deploy
 # Insert test users for non-production environments
 if [ "$ENV" != "prod" ]; then
     insert_test_users
+else
+    make_me_admin
 fi
 
 echo "✅ Migration completed successfully for $ENV environment!"

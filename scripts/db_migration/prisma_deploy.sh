@@ -1,5 +1,4 @@
 #!/bin/bash
-# filepath: /Users/treus/repositories/puzzle_league/scripts/migrate.sh
 
 # Exit on error
 set -e
@@ -7,19 +6,27 @@ set -e
 # Get the directory of the script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Assuming the script is in the project root or a subdirectory
-PROJECT_ROOT="$SCRIPT_DIR"
+PROJECT_ROOT=${SCRIPT_DIR/\/scripts\/db_migration/}
 
 # Load .env file if it exists
 if [ -f "$PROJECT_ROOT/.env" ]; then
     echo "📄 Loading environment variables from .env file..."
     export $(cat "$PROJECT_ROOT/.env" | grep -v '^#' | xargs)
-elif [ -f "$PROJECT_ROOT/../.env" ]; then
+elif [ -f "$PROJECT_ROOT/../../.env" ]; then
     # Check parent directory if script is in a subdirectory
-    echo "📄 Loading environment variables from ../.env file..."
-    export $(cat "$PROJECT_ROOT/../.env" | grep -v '^#' | xargs)
+    echo "📄 Loading environment variables from ../../.env file..."
+    export $(cat "$PROJECT_ROOT/../../.env" | grep -v '^#' | xargs)
 else
     echo "⚠️  Warning: No .env file found"
 fi
+
+# Function to insert test users
+insert_test_users() {
+    echo "👥 Inserting test users..."
+
+    # Run the script with the correct DATABASE_URL
+    DATABASE_URL=$DATABASE_URL npx tsx "$PROJECT_ROOT/scripts/db_migration/insert_users_to_db.ts"
+}
 
 # Function to display usage
 usage() {
@@ -78,16 +85,21 @@ case $ENV in
 esac
 
 # Display current database URL (masked for security)
-echo "📍 Database: ${DATABASE_URL%%@*}@***"
+echo "📍 Database: ${ENV} ${DATABASE_URL}"
+
+# Generate Prisma Client for the current database
+echo "🔄 Generating Prisma Client..."
+DATABASE_URL=$DATABASE_URL npx prisma generate
 
 # Deploy migrations
 echo "🔄 Deploying migrations..."
-npx prisma migrate deploy
+DATABASE_URL=$DATABASE_URL npx prisma migrate deploy
 
-# Optionally run seed (only for non-production)
-if [ "$ENV" != "prod" ] && [ "$2" == "--seed" ]; then
-    echo "🌱 Running seed..."
-    npx prisma db seed
+# Insert test users for non-production environments
+if [ "$ENV" != "prod" ]; then
+    insert_test_users
 fi
 
 echo "✅ Migration completed successfully for $ENV environment!"
+
+DATABASE_URL=$LOCAL_DATABASE_URL npx prisma generate

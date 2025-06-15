@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -92,7 +93,7 @@ enum Role {
   ORGANIZER
   JUDGE
   ADMIN
-	@@map("UserRole")
+  @@map("UserRole")
 }
 
 enum RequestStatus {
@@ -132,7 +133,7 @@ model Competition {
 }
 
 model Category {
-  id            Int               @id @default(autoincrement())
+  id            Int          @id @default(autoincrement())
   name          String
   type          CategoryType
   startTime     DateTime
@@ -167,20 +168,21 @@ model RoleAssignment {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
+  @@unique([userId, role])
   @@map("role_assignment")
 }
 
 model Request {
-  id            String        @id @default(cuid())
-  role          Role
-  status        RequestStatus @default(PENDING)
-  userId        String
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  competitionId Int?
-  competition   Competition?  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  reason        String?
+  id             String        @id @default(cuid())
+  role           Role
+  status         RequestStatus @default(PENDING)
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  competitionId  Int?
+  competition    Competition?  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  reason         String?
   additionalInfo String?
 
   @@map("request")

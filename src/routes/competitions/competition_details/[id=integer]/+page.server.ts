@@ -1,5 +1,5 @@
 import type { PageServerLoad } from "../$types";
-
+import { getCompetitionWithCategories } from "$lib/database";
 let competition_details = undefined;
 
 // import { v2 as cloudinary } from "cloudinary";
@@ -13,11 +13,10 @@ let competition_details = undefined;
 // });
 
 export const load: PageServerLoad = async ( event ) => {
-    const competition_id = event.url.pathname.split('/')[2];
-    const competition_and_categories = []; // await (await fetch(`api/puzzles/competitions/${competition_id}/get_categories/`)).json();
+    const competition_id = event.url.pathname.split('/')[3];
+    const competition_and_categories = await getCompetitionWithCategories(parseInt(competition_id));
     const image_url = undefined; //await cloudinary.url(competition_and_categories.image);
-    console.log('competition_categories', competition_and_categories);
-    console.log('image_url', image_url);
+    console.log(`competitions/competition_details/${competition_id} competition_categories`, competition_and_categories);
     return {
         props:
         {

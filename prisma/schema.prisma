@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -92,7 +93,7 @@ enum Role {
   ORGANIZER
   JUDGE
   ADMIN
-	@@map("UserRole")
+  @@map("UserRole")
 }
 
 enum RequestStatus {
@@ -114,7 +115,7 @@ model League {
 }
 
 model Competition {
-  id              String            @id @default(cuid())
+  id              Int               @id @default(autoincrement())
   name            String
   description     String?
   startDate       DateTime
@@ -122,8 +123,8 @@ model Competition {
   status          CompetitionStatus @default(UPCOMING)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  leagueId        String
-  league          League            @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  leagueId        String?
+  league          League?           @relation(fields: [leagueId], references: [id], onDelete: Cascade)
   categories      Category[]
   roleAssignments RoleAssignment[]
   requests        Request[]
@@ -132,13 +133,14 @@ model Competition {
 }
 
 model Category {
-  id            String       @id @default(cuid())
+  id            Int          @id @default(autoincrement())
+  name          String
   type          CategoryType
   startTime     DateTime
   endTime       DateTime
   startDate     DateTime
   endDate       DateTime
-  competitionId String
+  competitionId Int
   competition   Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   parties       Party[]
 
@@ -149,7 +151,7 @@ model Party {
   id         String    @id @default(cuid())
   finishTime DateTime?
   points     Int       @default(0)
-  categoryId String
+  categoryId Int
   category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   users      User[]
 
@@ -161,25 +163,26 @@ model RoleAssignment {
   role          Role
   userId        String
   user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  competitionId String?
+  competitionId Int?
   competition   Competition? @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
+  @@unique([userId, role])
   @@map("role_assignment")
 }
 
 model Request {
-  id            String        @id @default(cuid())
-  role          Role
-  status        RequestStatus @default(PENDING)
-  userId        String
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  competitionId String?
-  competition   Competition?  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  reason        String?
+  id             String        @id @default(cuid())
+  role           Role
+  status         RequestStatus @default(PENDING)
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  competitionId  Int?
+  competition    Competition?  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  reason         String?
   additionalInfo String?
 
   @@map("request")

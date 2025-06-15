@@ -30,7 +30,7 @@
 			</li>
             {#if data.roleAssignments?.some(role => role.role === "ORGANIZER")}
             <li>
-                <a href="/competitions/create_competition" onclick={() => drawerStore.close()}>Create Competition</a>
+                <a href="/create_competition" onclick={() => drawerStore.close()}>Create Competition</a>
             </li>
             {/if}
             {#if data.roleAssignments?.some(role => role.role === "ADMIN")}

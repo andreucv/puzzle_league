@@ -1,6 +1,5 @@
 <script>
     import ListCompetitions from "$lib/components/ListCompetitions.svelte";
-    import Icon from "@iconify/svelte";
     let { data } = $props();
     console.log("competitions +page.svelte: data", data);
 </script>

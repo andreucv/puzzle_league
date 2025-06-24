@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { CompetitionStatus, PrismaClient } from '@prisma/client';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -15,6 +15,72 @@ export async function getRoleAssignments(userId: string) {
     }
     catch (error) {
         console.error('Error getting user role assignments:', error);
+        throw error;
+    }
+}
+
+// Helper function to get competitions where user is registered
+async function getUserRegisteredCompetitions(userId: string, statusFilter?: CompetitionStatus) {
+    const whereClause: any = {
+        categories: {
+            some: {
+                parties: {
+                    some: {
+                        users: {
+                            some: {
+                                id: userId
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    if (statusFilter) {
+        whereClause.status = statusFilter;
+    }
+
+    return await prisma.competition.findMany({
+        where: whereClause,
+        include: {
+            categories: {
+                include: {
+                    parties: {
+                        where: {
+                            users: {
+                                some: {
+                                    id: userId
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            league: true
+        },
+        orderBy: {
+            startDate: 'desc'
+        }
+    });
+}
+
+export async function getUpcomingRegisteredCompetitions(userId: string) {
+    try {
+        const competitions = await getUserRegisteredCompetitions(userId, CompetitionStatus.UPCOMING);
+        return competitions;
+    } catch (error) {
+        console.error('Error getting upcoming registered competitions:', error);
+        throw error;
+    }
+}
+
+export async function getParticipatedCompetitions(userId: string) {
+    try {
+        const competitions = await getUserRegisteredCompetitions(userId, CompetitionStatus.COMPLETED);
+        return competitions;
+    } catch (error) {
+        console.error('Error getting participated competitions:', error);
         throw error;
     }
 }

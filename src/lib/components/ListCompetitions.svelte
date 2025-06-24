@@ -2,10 +2,11 @@
     import CompetitionDetailCard from '$lib/components/CompetitionDetailCard.svelte';
     import Icon from '@iconify/svelte';
     import { t } from '$lib/translations';
+    import type { Competition, RoleAssignment } from '@prisma/client/wasm';
 
-    export let upcoming_competitions;
-    export let past_competitions;
-    export let roleAssignments;
+    export let upcoming_competitions: Competition[];
+    export let past_competitions: Competition[];
+    export let roleAssignments: RoleAssignment[];
 
     let filter = '';
     $:filtered_upcoming_competitions = upcoming_competitions.filter(competition => competition.name.toLowerCase().includes(filter.toLowerCase()));

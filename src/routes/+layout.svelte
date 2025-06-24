@@ -42,7 +42,7 @@
 	</nav>
 </Drawer>
 <Header/>
-<div class="px-4">
+<div class="px-4 pb-4">
 {@render children()}
 </div>
 <!-- {#if currentPath == "/" || currentPath.includes("footer")}

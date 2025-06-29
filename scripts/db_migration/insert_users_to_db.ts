@@ -26,12 +26,13 @@ async function main() {
 
   for (const userData of users) {
     try {
+        console.log(`Creating user ${userData.email} with password ${userData.password}`)
         const { headers, response } = await auth.api.signUpEmail({
             returnHeaders: true,
             body: {
+                name: userData.name,
                 email: userData.email,
-                password: userData.password,
-                name: userData.name
+                password: userData.password
             }
         })
         console.log("api.signUpEmail response", response)

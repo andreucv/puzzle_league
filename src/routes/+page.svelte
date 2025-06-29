@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import Footer from '$lib/components/Footer.svelte';
     import { t } from '$lib/translations';
 
@@ -6,11 +6,11 @@
 
     // Check if user has organizer role
     const hasOrganizerRole = $derived(
-        data.roleAssignments?.some(role => role.role === 'ORGANIZER') ?? false
+        data.roleAssignments?.some((role: any) => role.role === 'ORGANIZER') ?? false
     );
 
     const hasAdminRole = $derived(
-        data.roleAssignments?.some(role => role.role === 'ADMIN') ?? false
+        data.roleAssignments?.some((role: any) => role.role === 'ADMIN') ?? false
     );
 
     console.log("+page.svelte: data", data);
@@ -88,11 +88,7 @@
                                 <h3 class="h3">{competition.name}</h3>
                             </header>
                             <section class="p-4">
-                                <p class="text-sm mb-2">{competition.format}</p>
                                 <p class="text-xs opacity-75">Completed</p>
-                                <div class="mt-3">
-                                    <span class="badge variant-filled-primary">Rank: {competition.rank}</span>
-                                </div>
                             </section>
                         </div>
                     {/each}

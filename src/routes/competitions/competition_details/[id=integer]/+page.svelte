@@ -8,8 +8,8 @@
     const competitionName = competition?.name;
     const competitionDescription = competition?.description;
     const competitionStatus = competition?.status;
-    const competition_startDate = new Date(competition?.startDate);
-    const competition_endDate = new Date(competition?.endDate);
+    const competition_startDate = new Date(competition?.startDate || new Date());
+    const competition_endDate = new Date(competition?.endDate || new Date());
 
     const bool_more_than_one_day = competition_startDate.toDateString() !== competition_endDate.toDateString();
 

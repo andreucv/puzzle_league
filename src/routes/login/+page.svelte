@@ -31,13 +31,13 @@
     }
 
     async function signInWithGoogle() {
-        const data = await authClient.signIn.social({
+        const { data, error } = await authClient.signIn.social({
             provider: "google"
         });
         after_login(data, error);
     }
 
-    async function after_login(data, error) {
+    async function after_login(data: any, error: any) {
         if (error) {
             errorMessage = String(error?.message);
             console.error(error);

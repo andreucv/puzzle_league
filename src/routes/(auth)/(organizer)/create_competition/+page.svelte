@@ -1,4 +1,6 @@
 <script lang="ts">
+    import type { CategoryType } from "@prisma/client/wasm";
+
     let {data, form} = $props();
 
     let selectedLeague = $state('');
@@ -37,7 +39,7 @@
         categoryConfigs.push(newCategory);
     }
 
-    function getPartySize(categoryType) {
+    function getPartySize(categoryType : CategoryType) {
         if (categoryType === 'INDIVIDUAL' || categoryType === 'JUNIOR_INDIVIDUAL') {
             return 1;
         } else if (categoryType === 'PAIRS' || categoryType === 'JUNIOR_PAIRS') {
@@ -309,17 +311,8 @@
     </div>
 </form>
 
-<style>
+<style lang="postcss">
     input, select {
         @apply w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 text-black focus:border-indigo-500 focus:bg-white focus:outline-none;
-    }
-
-    /* Override the styles for checkboxes */
-    input[type="checkbox"] {
-        width: auto;
-        background: none;
-        padding: 0;
-        margin: 0;
-        border: none;
     }
 </style>

@@ -1,4 +1,4 @@
-import type { PageServerLoad } from "../$types";
+import type { PageServerLoad, Actions } from "./$types";
 import { getCompetitionWithCategories, getPartiesFromCompetition, removeUserFromCategory } from "$lib/database";
 import { auth } from "$lib/auth";
 
@@ -36,9 +36,15 @@ export const load: PageServerLoad = async ( event ) => {
 export const actions: Actions = {
     remove_party: async ({ request }) => {
         const data = await request.formData();
-        const competition_id = data.get('competition_id')?.toString();
         const category_id = data.get('category_id')?.toString();
         const user_id = data.get('user_id')?.toString();
+
+        if (!category_id || !user_id) {
+            return {
+                success: false,
+                message: 'Missing required fields'
+            }
+        }
 
         const result = await removeUserFromCategory(parseInt(category_id), user_id);
         if (result) {

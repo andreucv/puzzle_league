@@ -149,8 +149,7 @@ that are available in a competition -->
     <div class="bg-gray-100 p-4 rounded-lg mb-6">
         <h2 class="text-xl font-semibold mb-2">Competition Details</h2>
         <p><strong>Date:</strong> {competition?.startDate}</p>
-        <p><strong>Location:</strong> {competition?.location}</p>
-        <p><strong>Description:</strong> {competition.description}</p>
+        <p><strong>Description:</strong> {competition?.description}</p>
     </div>
     {#if form?.message}
         <div class="bg-green-100 p-4 rounded-lg mb-6">
@@ -165,7 +164,7 @@ that are available in a competition -->
         </div>
     {/if}
     <form method="post" action="?/signup" class="space-y-6">
-        <input type="hidden" name="competition_id" value={competition.id} />
+        <input type="hidden" name="competition_id" value={competition?.id} />
 
         <!-- Single hidden input for all selected categories data -->
         <input type="hidden" name="selected_categories" value={prepareSubmissionData()} />
@@ -204,7 +203,6 @@ that are available in a competition -->
                                     {category.name}
                                 </label>
                             </div>
-                            <p class="text-gray-600 mb-2">{category.description || ''}</p>
                             <div class="flex gap-4 text-sm text-gray-500">
                                 {#if category.startTime && category.endTime}
                                     <span>🕐 {new Date(category.startTime).toLocaleTimeString()} - {new Date(category.endTime).toLocaleTimeString()}</span>
@@ -350,16 +348,16 @@ that are available in a competition -->
 
         <button
             type="submit"
-            disabled={selectedCategoryIds.length === 0 || selectedCategories.some(cat =>
+            disabled={selectedCategories && (selectedCategoryIds.length === 0 || selectedCategories.some(cat =>
                 cat.type !== 'INDIVIDUAL' &&
                 (selectedTeammatesByCategory[cat.id]?.length || 0) < ((cat.maxPartySize || 2) - 1)
-            )}
+            ))}
             class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
         >
             {#if selectedCategoryIds.length === 0}
                 Please select at least one category
             {:else}
-                {#each selectedCategories as cat}
+                {#each selectedCategories || [] as cat}
                     {#if cat.type !== 'INDIVIDUAL' && (selectedTeammatesByCategory[cat.id]?.length || 0) < ((cat.maxPartySize || 2) - 1)}
                         Complete team for {cat.name} ({((cat.maxPartySize || 2) - 1) - (selectedTeammatesByCategory[cat.id]?.length || 0)} more needed)
                     {:else}

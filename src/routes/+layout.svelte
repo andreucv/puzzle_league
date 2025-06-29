@@ -28,12 +28,12 @@
 			<li>
 				<a href="/competitions" onclick={() => drawerStore.close()}>{$t('drawer_menu.explore_competitions')}</a>
 			</li>
-            {#if data.roleAssignments?.some(role => role.role === "ORGANIZER")}
+			{#if data.roleAssignments?.some((role: any) => role.role === "ORGANIZER")}
             <li>
                 <a href="/create_competition" onclick={() => drawerStore.close()}>{$t('drawer_menu.create_competition')}</a>
             </li>
             {/if}
-            {#if data.roleAssignments?.some(role => role.role === "ADMIN")}
+			{#if data.roleAssignments?.some((role: any) => role.role === "ADMIN")}
             <li>
                 <a href="/admin/review_requests" onclick={() => drawerStore.close()}>{$t('landing_page.review_requests')}</a>
             </li>

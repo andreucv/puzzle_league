@@ -17,17 +17,17 @@ export const config = {
   loaders: [
     {
       locale: 'en',
-      key: 'common',
+      key: '',
       loader: async () => (await import('./en/common.json')).default,
     },
     {
       locale: 'es',
-      key: 'common',
+      key: '',
       loader: async () => (await import('./es/common.json')).default,
     },
     {
       locale: 'ca',
-      key: 'common',
+      key: '',
       loader: async () => (await import('./ca/common.json')).default,
     },
   ],

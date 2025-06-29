@@ -9,8 +9,8 @@ const authFile = path.join(__dirname, '../playwright/.auth/participant_user.json
 setup('authenticate_participant', async ({ page }) => {
     // Perform authentication steps. Replace these actions with your own.
     await page.goto('/login');
-    await page.locator('#input_email').fill(process.env.TEST_PARTICIPANT_USER_EMAIL);
-    await page.locator('#input_password').fill(process.env.TEST_PARTICIPANT_USER_PASSWORD);
+    await page.locator('#input_email').fill(process.env.TEST_PARTICIPANT_USER_EMAIL!);
+    await page.locator('#input_password').fill(process.env.TEST_PARTICIPANT_USER_PASSWORD!);
     const loginButton = page.locator('#login_submit');
     await loginButton.click();
 

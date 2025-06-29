@@ -2,6 +2,7 @@
     import Icon from '@iconify/svelte';
 
     let { data } = $props();
+    console.log("competition_details +page.svelte: data", data);
 
     const competition = data.props.competition_and_categories;
     const competitionName = competition?.name;

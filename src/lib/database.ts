@@ -620,5 +620,67 @@ export async function signUpUsersToCompetition(
     }
 }
 
+export async function getPartiesFromCompetition(competitionId: number, userId: string) {
+    try {
+        const parties = await prisma.party.findMany({
+            where: {
+                category: {
+                    competitionId
+                },
+                users: {
+                    some: {
+                        id: userId
+                    }
+                }
+            },
+            include: {
+                users: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        image: true
+                    }
+                },
+                category: {
+                    include: {
+                        competition: {
+                            select: {
+                                id: true,
+                                name: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        return parties;
+    } catch (error) {
+        console.error('Error getting parties from competition:', error);
+        throw error;
+    }
+}
+
+export async function removeUserFromCategory(categoryId: number, userId: string) {
+    try {
+        const result = await prisma.party.deleteMany({
+            where: {
+                categoryId,
+                users: {
+                    some: {
+                        id: userId
+                    }
+                }
+            }
+        });
+
+        return result;
+    } catch (error) {
+        console.error('Error removing user from category:', error);
+        throw error;
+    }
+}
+
 // Export the prisma client for direct use in other files
 export { prisma };

@@ -3,6 +3,7 @@
     import Icon from '@iconify/svelte';
     import { t } from '$lib/translations';
     import type { Competition, RoleAssignment } from '@prisma/client/wasm';
+    import { cp } from 'fs';
 
     export let upcoming_competitions: Competition[];
     export let past_competitions: Competition[];
@@ -30,13 +31,13 @@
             </div>
         </div>
     </div>
-    <div class="p-1">
-        <div class="p-1 flex items-center justify-between">
-            <h1 class="text-lg">{$t('common.competitions.upcoming_competitions')}</h1>
+    <div class="pt-2">
+        <div class="flex items-center justify-between">
+            <h1 class="text-lg">{$t('competitions.upcoming_competitions')}</h1>
             {#if roleAssignments?.some(role => role.role === 'ORGANIZER')}
                 <a class="btn btn-sm variant-filled-primary" href="create_competition">
                     <Icon icon="mdi:plus" class="mr-1" />
-                    Create Competition
+                    {$t('competitions.create_competition')}
                 </a>
             {/if}
             {#if filter !== ''}
@@ -51,7 +52,7 @@
     </div>
     <div class="p-1">
         <div class="p-1 flex items-center justify-between">
-            <h1 class="text-lg">Past Competitions</h1>
+            <h1 class="text-lg">{$t('competitions.past_competitions')}</h1>
             {#if filter !== ''}
                 <span class="ml-2 text-sm">{past_filtered_count} / {past_total_count}</span>
             {/if}

@@ -20,10 +20,10 @@ test('GivenProfilePage_WhenClickingOnHambugerMenu_ThenCreateCompetitionIsNotVisi
     await expect(page.getByRole('link', { name: 'Create Competition' }).first()).not.toBeVisible();
 });
 
-test.describe('GivenProfilePageOrganizer_WhenClickingOnHambugerMenu_ThenCreateCompetitionIsNotVisible', () => {
+test.describe('GivenProfilePageOrganizer_WhenClickingOnHambugerMenu_ThenCreateCompetitionIsVisible', () => {
     test.use({ storageState: "playwright/.auth/organizer_user.json" });
 
-    test('GivenProfilePageOrganizer_WhenClickingOnHambugerMenu_ThenCreateCompetitionIsNotVisible', async ({ page }) => {
+    test('GivenProfilePageOrganizer_WhenClickingOnHambugerMenu_ThenCreateCompetitionIsVisible', async ({ page }) => {
         await page.goto('/profile');
         await page.locator('#states-button').click();
         await expect(page.getByRole('link', { name: 'Create Competition' }).first()).toBeVisible();

@@ -45,7 +45,7 @@
     <title>{competitionName} - Competition Details</title>
 </svelte:head>
 
-<div class="container mx-auto p-4">
+<div class="container mx-auto">
     <!-- Header Section -->
     <div class="card preset-filled-surface-100-900 p-6 mb-6">
         <div class="flex justify-between items-start">
@@ -141,14 +141,14 @@
     </div>
 
     <!-- Action Buttons -->
-    <div class="mt-8 flex gap-4 justify-center">
+    <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
         <a href="/competitions" class="btn preset-tonal">
             <Icon icon="mdi:arrow-left" width="1.2rem" height="1.2rem" />
             Back to Competitions
         </a>
-        <button type="button" class="btn preset-filled-primary-500">
+        <a href="/sign_up_competition/{competition?.id}" class="btn preset-filled-primary-500">
             <Icon icon="mdi:account-plus" width="1.2rem" height="1.2rem" />
             Sign Up for Competition
-        </button>
+        </a>
     </div>
 </div>

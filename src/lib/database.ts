@@ -53,6 +53,15 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
                                     id: userId
                                 }
                             }
+                        },
+                        include: {
+                            users: {
+                                select: {
+                                    name: true,
+                                    email: true,
+                                    image: true
+                                }
+                            }
                         }
                     }
                 }
@@ -324,7 +333,7 @@ export async function getAllCompetitions() {
     }
 }
 
-export async function updateCompetitionStatus(competitionId: string, status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED') {
+export async function updateCompetitionStatus(competitionId: number, status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED') {
     try {
         const updatedCompetition = await prisma.competition.update({
             where: { id: competitionId },
@@ -340,7 +349,7 @@ export async function updateCompetitionStatus(competitionId: string, status: 'UP
 
 // Category related functions
 export async function createCategory(
-    competitionId: string,
+    competitionId: number,
     type: 'INDIVIDUAL' | 'PAIRS' | 'TEAM' | 'JUNIOR_INDIVIDUAL' | 'JUNIOR_PAIRS' | 'PUZZLE_CHESS',
     startTime: Date,
     endTime: Date,
@@ -366,7 +375,7 @@ export async function createCategory(
     }
 }
 
-export async function getCategoriesByCompetition(competitionId: string) {
+export async function getCategoriesByCompetition(competitionId: number) {
     try {
         const categories = await prisma.category.findMany({
             where: { competitionId },
@@ -437,6 +446,175 @@ export async function getAllLeagues() {
     } catch (error) {
         console.error('Error getting all leagues:', error);
         throw error;
+    }
+}
+
+export async function getUsersNameAndEmail() {
+    try {
+        const users = await prisma.user.findMany({
+            select: {
+                name: true,
+                email: true
+            }
+        });
+
+        return users;
+    } catch (error) {
+        console.error('Error getting all users:', error);
+        throw error;
+    }
+}
+
+export async function getUsers() {
+    try {
+        const users = await prisma.user.findMany({
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                image: true
+            }
+        });
+
+        return users;
+    } catch (error) {
+        console.error('Error getting all users:', error);
+        throw error;
+    }
+}
+
+// Better type definition
+interface CategorySignup {
+  categoryId: number;
+  teammateIds: string[];
+}
+
+export async function signUpUsersToCompetition(
+    categorySignups: CategorySignup[],
+    currentUserId: string
+) {
+    try {
+        // Input validation
+        if (!categorySignups.length) {
+            return { success: false, error: 'No categories selected for signup' };
+        }
+
+        const result = await prisma.$transaction(async (tx) => {
+            const createdParties = [];
+
+            // Get all category IDs to fetch in one query
+            const categoryIds = categorySignups.map(signup => signup.categoryId);
+
+            // Fetch categories with their competition info and existing parties
+            const categories = await tx.category.findMany({
+                where: { id: { in: categoryIds } },
+                include: {
+                    competition: true,
+                    parties: {
+                        where: {
+                            users: {
+                                some: { id: currentUserId }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Validate all categories exist
+            if (categories.length !== categoryIds.length) {
+                const foundIds = categories.map(c => c.id);
+                const missingIds = categoryIds.filter(id => !foundIds.includes(id));
+                throw new Error(`Categories not found: ${missingIds.join(', ')}`);
+            }
+
+            // Check for duplicate registrations
+            const alreadyRegistered = categories.filter(cat => cat.parties.length > 0);
+            if (alreadyRegistered.length > 0) {
+                const categoryNames = alreadyRegistered.map(c => c.name || c.type);
+                throw new Error(`Already registered for categories: ${categoryNames.join(', ')}`);
+            }
+
+            // Validate all users exist (including current user and teammates)
+            const allUserIds = new Set([currentUserId]);
+            categorySignups.forEach(signup => {
+                signup.teammateIds.forEach(id => allUserIds.add(id));
+            });
+
+            const existingUsers = await tx.user.findMany({
+                where: { id: { in: Array.from(allUserIds) } },
+                select: { id: true }
+            });
+
+            if (existingUsers.length !== allUserIds.size) {
+                const foundUserIds = existingUsers.map(u => u.id);
+                const missingUserIds = Array.from(allUserIds).filter(id => !foundUserIds.includes(id));
+                throw new Error(`Users not found: ${missingUserIds.join(', ')}`);
+            }
+
+            // Create parties for each category
+            for (const signup of categorySignups) {
+                const category = categories.find(c => c.id === signup.categoryId)!;
+                const allPartyUserIds = [currentUserId, ...signup.teammateIds];
+
+                // Validate party size against category limits
+                if (category.maxPartySize && allPartyUserIds.length > category.maxPartySize) {
+                    throw new Error(`Party size (${allPartyUserIds.length}) exceeds maximum for category ${category.name || category.type} (${category.maxPartySize})`);
+                }
+
+                // Check if competition registration is still open
+                const now = new Date();
+                if (category.competition.status !== 'UPCOMING') {
+                    throw new Error(`Registration closed for competition: ${category.competition.name}`);
+                }
+
+                // Create the party
+                const party = await tx.party.create({
+                    data: {
+                        categoryId: signup.categoryId,
+                        users: {
+                            connect: allPartyUserIds.map(id => ({ id }))
+                        }
+                    },
+                    include: {
+                        users: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                image: true
+                            }
+                        },
+                        category: {
+                            include: {
+                                competition: {
+                                    select: {
+                                        id: true,
+                                        name: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                createdParties.push(party);
+            }
+
+            return createdParties;
+        });
+
+        return {
+            success: true,
+            data: result,
+            message: `Successfully registered for ${result.length} categories`
+        };
+    } catch (error) {
+        console.error('Error signing up users to competition:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error occurred',
+            data: null
+        };
     }
 }
 

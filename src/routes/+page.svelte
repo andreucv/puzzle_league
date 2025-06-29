@@ -1,4 +1,7 @@
 <script>
+    import Footer from '$lib/components/Footer.svelte';
+    import { t } from '$lib/translations';
+
     let { data } = $props();
 
     // Check if user has organizer role
@@ -11,6 +14,8 @@
     );
 
     console.log("+page.svelte: data", data);
+    console.log("+page.svelte: upcomingRegisteredCompetitions", data.props.upcomingRegisteredCompetitions);
+    console.log("+page.svelte: upcomingRegisteredCompetitions.categories", data.props.upcomingRegisteredCompetitions?.at(0)?.categories?.at(0)?.parties.at(0)?.users);
 </script>
 
 <svelte:head>
@@ -20,22 +25,47 @@
 {#if data.user}
     <div class="container mx-auto">
         <section class="space-y-4 mb-8">
-            <h2 class="h2">Competitions</h2>
-
+            <h2 class="h2">Your upcoming competitions</h2>
             {#if data?.props?.upcomingRegisteredCompetitions != null && data?.props?.upcomingRegisteredCompetitions?.length > 0}
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="flex overflow-x-auto gap-2 pb-4">
                     {#each data?.props?.upcomingRegisteredCompetitions as competition}
-                        <div class="card preset-tonal-surface">
+
+                        <div class="card preset-tonal-surface flex-shrink-0 w-32">
+                            <a href="/competitions/competition_details/{competition.id}">
                             <header class="card-header">
                                 <h3 class="h3">{competition.name}</h3>
                             </header>
                             <section class="p-4">
-                                <p class="text-sm mb-2">{competition.format}</p>
                                 <p class="text-xs opacity-75">Starts in 2 days</p>
-                                <div class="mt-3">
-                                    <span class="badge variant-filled-primary">Rank: {competition.rank}</span>
-                                </div>
+
+                                {#if competition.categories && competition.categories.length > 0}
+                                    <div class="mt-3">
+                                        {#each competition.categories as category}
+                                            {#if category.parties && category.parties.length > 0}
+                                                {#each category.parties as party}
+                                                    {#if party.users && party.users.length > 0}
+                                                        <div class="mt-2">
+                                                            {#if category.type === 'INDIVIDUAL' || category.type === 'JUNIOR_INDIVIDUAL'}
+                                                            <p class="text-xs font-semibold mb-1">Individual</p>
+                                                            {:else if category.type === 'PAIRS' || category.type === 'JUNIOR_PAIRS' || category.type === 'TEAM'}
+                                                            <p class="text-xs font-semibold mb-1">{category.type} with:</p>
+                                                            {/if}
+                                                            {#each party.users as user}
+                                                                {#if user.email !== data.user.email}
+                                                                <span class="badge variant-filled-secondary text-xs mr-1">
+                                                                    {user.name}
+                                                                </span>
+                                                                {/if}
+                                                            {/each}
+                                                        </div>
+                                                    {/if}
+                                                {/each}
+                                            {/if}
+                                        {/each}
+                                    </div>
+                                {/if}
                             </section>
+                            </a>
                         </div>
                     {/each}
                 </div>
@@ -124,7 +154,7 @@
         <div class="landing-page-container-image">
             <enhanced:img src="../../static/landing_page.jpg" alt="Speed Puzzling Image" class="cover-image"/>
             <div class="landing-page-container-text-overlay" style="bottom: 10%;">
-                <h1 class="h1-title card p-2">Join the Puzzle League</h1>
+                <h1 class="h1-title card m-4 p-2 text-center">{$t('landing_page.welcome')}</h1>
                 <div class="arrows">
                     <svg width="40" height="40" viewBox="0 0 40 40">
                         <path d="M10 15 L20 25 L30 15" stroke="currentColor" stroke-width="3" fill="none"/>
@@ -134,29 +164,18 @@
             </div>
         </div>
         <div class="center-text-inside mt-10">
-            <h2 class="my-2 h2-title">Who We Are?</h2>
-            <p>Welcome to a community dedicated to puzzle enthusiasts!</p>
-            <p>If you're passionate about solving puzzles and want to test your skills in competitive environments, you've found your place.</p>
+            <p>{$t('landing_page.welcome_text')}</p>
         </div>
         <div class="center-text-inside mt-10">
-            <h2 class="my-2 h2-title">For Participants</h2>
+            <h2 class="my-2 h2-title">{$t('landing_page.participant_welcome')}</h2>
             <ul>
-                <li>Participate in thrilling speed puzzles, self-register for any competition, and check real-time results once they end</li>
-                <li>Challenge yourself with diverse puzzle types, from logic challenges to pattern recognition</li>
-                <li>Track your progress, earn achievements, and climb the global leaderboards</li>
-                <li>Connect with fellow puzzle enthusiasts, share strategies, and join our vibrant community</li>
-                <li>Practice with unlimited training modes to sharpen your skills before competitions</li>
+                <li>{$t('landing_page.participant_welcome_text')}</li>
             </ul>
         </div>
         <div class="center-text-inside mt-10">
-            <h2 class="my-2 h2-title">For Organizers</h2>
+            <h2 class="my-2 h2-title">{$t('landing_page.organizer_welcome')}</h2>
             <ul>
-                <li>Publish new competitions, manage participants, and monitor performance in real time</li>
-                <li>Create custom puzzle sets with our intuitive puzzle builder interface</li>
-                <li>Set flexible tournament formats, from quick sprints to marathon challenges</li>
-                <li>Access detailed analytics and participant statistics to optimize your events</li>
-                <li>Automate scoring and ranking systems while maintaining full control over competition parameters</li>
-                <li>Generate comprehensive reports and share results across multiple platforms</li>
+                <li>{$t('landing_page.organizer_welcome_text')}</li>
             </ul>
         </div>
     </div>

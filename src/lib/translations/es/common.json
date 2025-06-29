@@ -26,6 +26,7 @@
     "create_competition": "Crea Competición"
   },
   "drawer_menu": {
-    "create_competition": "Crear Competición"
+    "create_competition": "Crear Competición",
+    "explore_competitions": "Explorar Competiciones"
   }
 }

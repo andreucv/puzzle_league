@@ -20,6 +20,7 @@
         startTime: string;
         endTime: string;
         participationFee: number;
+        maxPartySize: number;
     }> = $state([]);
 
     function addCategory() {
@@ -30,19 +31,41 @@
             date: startDate,
             startTime: '09:00',
             endTime: '11:00',
-            participationFee: 0
+            participationFee: 0,
+            maxPartySize: 0
         };
         categoryConfigs.push(newCategory);
     }
 
+    function getPartySize(categoryType) {
+        if (categoryType === 'INDIVIDUAL' || categoryType === 'JUNIOR_INDIVIDUAL') {
+            return 1;
+        } else if (categoryType === 'PAIRS' || categoryType === 'JUNIOR_PAIRS') {
+            return 2;
+        } else if (categoryType === 'TEAM') {
+            return 4;
+        } else {
+            return 8;
+        }
+    }
     function removeCategory(categoryId: string) {
         categoryConfigs = categoryConfigs.filter(config => config.id !== categoryId);
     }
 
     function updateCategoryConfig(categoryId: string, field: string, value: any) {
-        categoryConfigs = categoryConfigs.map(config =>
-            config.id === categoryId ? { ...config, [field]: value } : config
-        );
+        categoryConfigs = categoryConfigs.map(config => {
+            if (config.id === categoryId) {
+                let updatedConfig = { ...config, [field]: value };
+
+                // Update maxPartySize when categoryType changes
+                if (field === 'categoryType') {
+                    updatedConfig.maxPartySize = getPartySize(value);
+                }
+
+                return updatedConfig;
+            }
+            return config;
+        });
     }
 
     // Update selectedCategories to reflect current categoryConfigs
@@ -107,7 +130,7 @@
                 />
             </label>
 
-            <label class="label">
+            <!-- <label class="label">
                 <span class="text-sm font-medium">League</span>
                 <select
                     name="league_id"
@@ -118,7 +141,7 @@
                         <option value={league.id}>{league.name}</option>
                     {/each}
                 </select>
-            </label>
+            </label> -->
         </div>
     </section>
 

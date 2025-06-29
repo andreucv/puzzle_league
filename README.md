@@ -13,7 +13,7 @@ This is the repository for the Puzzle League platform app.
 
 Two main branches are used for development:
 - `main` - the main branch
-- `develop` - the development branch
+- `test` - the testing features branch
 
 When working on a new feature, create a new branch from `develop` and name it according to the feature you are working on.
 When the feature is complete, create a pull request to merge the feature branch into `develop`.

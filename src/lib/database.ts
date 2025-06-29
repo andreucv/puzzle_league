@@ -235,6 +235,7 @@ export async function createCompetition(
         startDate: Date,
         endDate: Date,
         participationFee: number,
+        maxPartySize: number,
     }[]
 ) {
     try {
@@ -263,7 +264,8 @@ export async function createCompetition(
                             endTime: category.endTime,
                             startDate: category.startDate,
                             endDate: category.endDate,
-                            competitionId: competition.id
+                            competitionId: competition.id,
+                            maxPartySize: category.maxPartySize,
                         }
                     });
                 })

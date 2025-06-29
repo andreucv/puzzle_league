@@ -79,6 +79,7 @@ enum CategoryType {
   JUNIOR_INDIVIDUAL
   JUNIOR_PAIRS
   PUZZLE_CHESS
+  OTHER
 }
 
 enum CompetitionStatus {
@@ -136,6 +137,7 @@ model Category {
   id            Int          @id @default(autoincrement())
   name          String
   type          CategoryType
+  maxPartySize  Int?
   startTime     DateTime
   endTime       DateTime
   startDate     DateTime

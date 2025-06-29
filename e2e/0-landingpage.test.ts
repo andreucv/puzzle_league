@@ -21,7 +21,7 @@ test('GivenLandingPage_WhenOpeningLeftMenu_ThenHomeButtonIsVisible', async ({ pa
     await page.goto('/');
     await page.click('#states-button');
     await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Explorar Concursos' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Explore Competitions' })).toBeVisible();
 });
 
 // test('GivenExploreCompetitionsPage_SearchBar_Next_And_Past_AreVisible', async ({ page }) => {

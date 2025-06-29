@@ -26,25 +26,26 @@
 				<a href="/" onclick={() => drawerStore.close()}>Home</a>
 			</li>
 			<li>
-				<a href="/competitions" onclick={() => drawerStore.close()}>{$t('common.landing_page.explore_competitions')}</a>
+				<a href="/competitions" onclick={() => drawerStore.close()}>{$t('drawer_menu.explore_competitions')}</a>
 			</li>
             {#if data.roleAssignments?.some(role => role.role === "ORGANIZER")}
             <li>
-                <a href="/create_competition" onclick={() => drawerStore.close()}>Create Competition</a>
+                <a href="/create_competition" onclick={() => drawerStore.close()}>{$t('drawer_menu.create_competition')}</a>
             </li>
             {/if}
             {#if data.roleAssignments?.some(role => role.role === "ADMIN")}
             <li>
-                <a href="/admin/review_requests" onclick={() => drawerStore.close()}>Review Permissions Request</a>
+                <a href="/admin/review_requests" onclick={() => drawerStore.close()}>{$t('landing_page.review_requests')}</a>
             </li>
             {/if}
 		</ul>
 	</nav>
 </Drawer>
 <Header/>
-<div class="px-4">
+<div class="px-4 pb-4">
 {@render children()}
 </div>
-<!-- {#if currentPath == "/" || currentPath.includes("footer")}
+<!-- {#if !data.user || currentPath.includes("footer")} -->
+{#if !data.user}
 <Footer />
-{/if} -->
+{/if}

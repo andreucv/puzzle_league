@@ -1,22 +1,30 @@
 {
-    "page": {
-        "page_title": "Puzzles Hub"
-    },
-    "landing_page": {
-        "welcome": "Welcome to the Puzzles Hub",
-        "welcome_text": "Discover a world of puzzles! Our website is dedicated to providing comprehensive data on puzzle competitions, puzzle times, and much more. Whether you're a puzzle enthusiast or a competitive solver, you'll find valuable information and resources here.",
-        "explore_competitions": "Explore Competitions"
-    },
-    "competitions": {
-        "upcoming_competitions": "Upcoming Competitions",
-        "past_competitions": "Past Competitions",
-        "categories": "Categories",
-        "pairs": "Pairs",
-        "teams": "Teams",
-        "individual": "Individual",
-        "kids": "Kids",
-        "teams_relays": "Relay Teams",
-        "kids_pairs": "Kids Pairs",
-        "puzzle_chess": "PuzzleChess"
-    }
+  "page": {
+    "page_title": "Puzzle League"
+  },
+  "landing_page": {
+    "welcome": "Welcome to the Puzzles League",
+    "welcome_text": "Discover a world of puzzles! Our website is dedicated to provide with comprehensive data on speed puzzle competitions, puzzle times, and much more. Whether you're a puzzle enthusiast or a competitive solver, you'll find valuable information and resources here.",
+    "participant_welcome": "For participants",
+    "participant_welcome_text": "Participate in thrilling speed puzzle competitions, self-register for any category, and check real-time results once they end.",
+    "organizer_welcome": "For Organizers",
+    "organizer_welcome_text": "Publish new competitions, manage participants, and monitor performance in real time.",
+    "review_requests": "Review Permissions Requests"
+  },
+  "drawer_menu": {
+    "explore_competitions": "Explore Competitions",
+    "create_competition": "Create Competition"
+  },
+  "competitions": {
+    "upcoming_competitions": "Upcoming Competitions",
+    "past_competitions": "Past Competitions",
+    "categories": "Categories",
+    "pairs": "Pairs",
+    "teams": "Teams",
+    "individual": "Individual",
+    "kids": "Kids",
+    "teams_relays": "Relay Teams",
+    "kids_pairs": "Kids Pairs",
+    "puzzle_chess": "PuzzleChess"
+  }
 }

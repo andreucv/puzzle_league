@@ -1,22 +1,31 @@
 {
-    "page": {
-        "page_title": "Puzzles Hub"
-    },
-    "landing_page": {
-        "welcome": "Benvingut a Puzzles Hub",
-        "welcome_text": "Descobreix un món de puzzles! Aquest web està dedicat a proporcionar informació de concursos de puzzles, temps de muntatge i més. Tant si ets un entusiasta o un muntador competitiu, aquí trobaràs informació de valor i recursos útils.",
-        "explore_competitions": "Explorar Concursos"
-    },
-    "competitions": {
-        "upcoming_competitions": "Pròxims Concursos",
-        "past_competitions": "Concursos Pasats",
-        "categories": "Categories",
-        "pairs": "Parelles",
-        "teams": "Equips",
-        "individual": "Individual",
-        "kids": "Nens",
-        "teams_relays": "Equips per relleus",
-        "kids_pairs": "Parelles nens",
-        "puzzle_chess": "PuzzleChess"
-    }
+  "page": {
+    "page_title": "Puzzles Hub"
+  },
+  "landing_page": {
+    "welcome": "Benvingut a Puzzles League",
+    "welcome_text": "Descobreix un món de puzzles! Aquest web està dedicat a proporcionar informació de concursos de puzzles, temps de muntatge i més. Tant si ets un entusiasta o un muntador competitiu, aquí trobaràs informació de valor i recursos útils.",
+    "explore_competitions": "Explorar Concursos",
+    "participant_welcome_text": "Participa en concursos de velocitat emocionants, registra't per a qualsevol categoria i comprova els resultats en temps real.",
+    "organizer_welcome": "Per Organitzadors",
+    "organizer_welcome_text": "Publica noves competicions, controla els participants i monitoreja els resultats en temps real.",
+    "participant_welcome": "Per Participants",
+    "review_requests": "Revisar Peticions de Permisos"
+  },
+  "competitions": {
+    "upcoming_competitions": "Pròxims Concursos",
+    "past_competitions": "Concursos Passats",
+    "categories": "Categories",
+    "pairs": "Parelles",
+    "teams": "Equips",
+    "individual": "Individual",
+    "kids": "Nens",
+    "teams_relays": "Equips per relleus",
+    "kids_pairs": "Parelles nens",
+    "puzzle_chess": "PuzzleChess",
+    "create_competition": "Crea Competició"
+  },
+  "drawer_menu": {
+    "create_competition": "Crear Competició"
+  }
 }

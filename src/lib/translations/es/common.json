@@ -1,22 +1,31 @@
 {
-    "page": {
-        "page_title": "Puzzles Hub"
-    },
-    "landing_page": {
-        "welcome": "Bienvenido a Puzzles Hub",
-        "welcome_text": "Descubre un mundo de puzzles! Esta web está dedicada a proporcionar información de concursos de puzzles, tiempos de montaje i más. Tanto si eres un entusiasta o un montador competitivo de puzzles, aquí encontrarás información de valor i recursos útiles.",
-        "explore_competitions": "Explorar Concursos"
-    },
-    "competitions": {
-        "upcoming_competitions": "Próximos Concursos",
-        "past_competitions": "Concursos Pasados",
-        "categories": "Categorias",
-        "pairs": "Parejas",
-        "teams": "Equipos",
-        "individual": "Individual",
-        "kids": "Niños",
-        "teams_relays": "Equipos por relevos",
-        "kids_pairs": "Parejas niños",
-        "puzzle_chess": "PuzzleChess"
-    }
+  "page": {
+    "page_title": "Puzzles Hub"
+  },
+  "landing_page": {
+    "welcome": "Bienvenido a Puzzles League",
+    "welcome_text": "Descubre un mundo de puzzles! Esta web está dedicada a proporcionar información de concursos de puzzles, tiempos de montaje y más. Tanto si eres un entusiasta o un montador competitivo de puzzles, aquí encontrarás información de valor y recursos útiles.",
+    "explore_competitions": "Explorar Concursos",
+    "participant_welcome_text": "Participa en competiciones de puzzles, registrate para cualquier categoría y comprueba los resultados en tiempo real.",
+    "organizer_welcome": "Para Organizadores",
+    "organizer_welcome_text": "Publica nuevas competiciones, controla los participantes y monitorea los resultados en tiempo real.",
+    "participant_welcome": "Para Participantes",
+    "review_requests": "Revisar Peticiones de Permisos"
+  },
+  "competitions": {
+    "upcoming_competitions": "Próximos Concursos",
+    "past_competitions": "Concursos Pasados",
+    "categories": "Categorias",
+    "pairs": "Parejas",
+    "teams": "Equipos",
+    "individual": "Individual",
+    "kids": "Niños",
+    "teams_relays": "Equipos por relevos",
+    "kids_pairs": "Parejas niños",
+    "puzzle_chess": "PuzzleChess",
+    "create_competition": "Crea Competición"
+  },
+  "drawer_menu": {
+    "create_competition": "Crear Competición"
+  }
 }

@@ -13,8 +13,11 @@ export const load = async ({ url, cookies, locals, request }) => {
     const { pathname } = url;
     let locale = "es";
     // 1. Lets take the locale from the window browser object
-    if (typeof window !== "undefined") {
-        locale = window.navigator.language;
+    // Get locale from Accept-Language header
+    const acceptLanguage = request.headers.get('accept-language');
+    if (acceptLanguage) {
+        // Parse the first preferred language
+        locale = acceptLanguage.split(',')[0].split('-')[0];
     }
     // 2. Lets take the locale from the cookie
     locale = cookies.get("lang") || locale;

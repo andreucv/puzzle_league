@@ -94,7 +94,8 @@ const create_competition: Action = async ({ locals, request, url }) => {
                 endTime: endDateTime,
                 startDate: new Date(categoryDate),
                 endDate: new Date(categoryDate),
-                participationFee: config.participationFee || 0
+                participationFee: config.participationFee || 0,
+                maxPartySize: config.maxPartySize,
             };
         });
     console.log('(auth)/(organizer)/create_competition/+page.server.ts formattedCategories:', formattedCategories);

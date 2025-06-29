@@ -111,16 +111,16 @@
                 <h2 class="h2 text-center">Organizer Actions</h2>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <a href="/my-organized-competitions" class="card card-hover preset-tonal-success">
+                    <!-- <a href="/my-organized-competitions" class="card card-hover preset-tonal-success">
                         <header class="card-header">
                             <h3 class="h3">My Organized Competitions</h3>
                         </header>
                         <section class="p-2">
                             <p class="text-sm">Manage competitions you've created and monitor participants</p>
                         </section>
-                    </a>
+                    </a> -->
 
-                    <a href="/competitions/create" class="card card-hover preset-tonal-warning">
+                    <a href="/create_competition" class="card card-hover preset-tonal-warning">
                         <header class="card-header">
                             <h3 class="h3">Create New Competition</h3>
                         </header>

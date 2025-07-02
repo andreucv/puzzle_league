@@ -5,12 +5,18 @@ import { getRoleAssignments } from "$lib/database";
 
 export const load = async ({ url, cookies, locals, request }) => {
     // Get user session
-    const session = await auth.api.getSession({
-        headers: request.headers,
-    });
-    const account = await auth.api.listUserAccounts({
-        headers: request.headers,
-    });
+    let session = undefined;
+    let account = undefined;
+    try {
+        session = await auth.api.getSession({
+            headers: request.headers,
+        });
+        account = await auth.api.listUserAccounts({
+            headers: request.headers,
+        });
+    } catch (error) {
+        console.error("Error fetching user session:", error);
+    }
     // Get the locales and translations for the current route
     const { pathname } = url;
     let locale = "es";

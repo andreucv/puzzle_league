@@ -143,8 +143,8 @@ that are available in a competition -->
             },
         ]
     -->
+<h4>Sign Up for {competition?.name}</h4>
 <div class="container mx-auto max-w-4xl">
-    <h1 class="text-3xl font-bold mb-6">Sign Up for {competition?.name}</h1>
 
     <div class="bg-gray-100 p-4 rounded-lg mb-6">
         <h2 class="text-xl font-semibold mb-2">Competition Details</h2>

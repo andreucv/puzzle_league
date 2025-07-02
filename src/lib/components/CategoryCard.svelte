@@ -10,7 +10,7 @@
 
 </script>
 
-<div class="w-full lg:max-w-full lg:flex p-1 mb-2 card variant-glass-secondary">
+<div class="w-full lg:max-w-full lg:flex p-1 mb-2 card preset-tonal-secondary">
     <div class="flex items-center justify-between px-2">
         <div class="order-first">
             <div class="flex flex-col">

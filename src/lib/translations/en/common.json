@@ -25,6 +25,25 @@
     "kids": "Kids",
     "teams_relays": "Relay Teams",
     "kids_pairs": "Kids Pairs",
-    "puzzle_chess": "PuzzleChess"
+    "puzzle_chess": "PuzzleChess",
+    "create_competition": "Create Competition",
+    "list_all_competitions": "Competitions"
+  },
+  "list_competitions": {
+    "look_for_competition": "Look for a competition"
+  },
+  "profile": {
+    "my_profile": "My profile",
+    "roles": "Roles",
+    "preferences": "Profile preferences",
+    "data": "Profile data"
+  },
+  "admin": {
+    "review_requests": {
+      "search_placeholder": "Search requests"
+    }
+  },
+  "create_competition": {
+    "title": "Create competition form"
   }
 }

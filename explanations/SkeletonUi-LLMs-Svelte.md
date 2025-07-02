@@ -462,35 +462,35 @@ Skeleton provides a uniform design language and structured framework for control
 
     <div className="col-span-1 md:col-span-2 card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
     	<h3 className="h3">Functional Components</h3>
-    	
+
     	<p className="text-surface-700-300">
     		Skeleton provides an optional suite of functional components built atop the foundation of <a href="https://zagjs.com/" target="_blank" class="anchor">Zag.js</a>. These components automatically adapt to the Skeleton design system out of the box. We currently support React and Svelte, with plans for other frameworks in the future.
     	</p>
     </div>
     <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
     	<h3 className="h3">Open Source</h3>
-    	
+
     	<p className="text-surface-700-300">
     		Skeleton is provided as <a href="https://github.com/skeletonlabs/skeleton" target="_blank" class="anchor">free and open-source software (FOSS)</a> under the <a href="https://github.com/skeletonlabs/skeleton?tab=MIT-1-ov-file#readme" target="_blank" class="anchor">MIT License</a>.
     	</p>
     </div>
     <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
     	<h3 className="h3">The Community</h3>
-    	
+
     	<p className="text-surface-700-300">
     		A huge community of users and contributors across <a href="https://github.com/skeletonlabs/skeleton" target="_blank" class="anchor">GitHub</a>, <a href="https://discord.gg/EXqV7W8MtY" target="_blank" class="anchor">Discord</a>, and <a href="https://bsky.app/profile/skeleton.dev" target="_blank" class="anchor">Bluesky</a>.
     	</p>
     </div>
     <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
     	<h3 className="h3">Frequent Updates</h3>
-    	
+
     	<p className="text-surface-700-300">
     		Skeleton has maintained a frequent release cadence over for years. Just take a look at our <a href="https://github.com/skeletonlabs/skeleton/blob/dev/packages/skeleton/CHANGELOG.md" target="_blank" class="anchor">changelog</a>.
     	</p>
     </div>
     <div className="card preset-outlined-surface-200-800 bg-surface-50-950 p-10 space-y-4">
     	<h3 className="h3">Figma UI Kit</h3>
-    	
+
     	<p className="text-surface-700-300">
     		Skeleton provides access to a fully featured <a href="/figma" class="anchor">Figma UI Kit</a> to assist designers in drafting a visual concept of upcoming projects.
     	</p>
@@ -646,29 +646,29 @@ Your preset theme should be automatically migrated by the CLI, you're all set!
 
 #### For Custom Themes
 
-1. Use the [Import feature](https://themes.skeleton.dev/themes/import) provided by the new Theme Generator.
+1. Use the [Import feature](https://themes.skeleton.dev/themes/import) provided by the new Theme Generator.
 2. Drag and Drop your v2 theme into the file upload field.
 3. Your theme will be automatically converted to the newest format.
 4. Update and modify any theme settings in the live preview.
 5. Make sure to set a valid theme name in the right-hand panel.
 6. Tap the “Code” tab to preview your generated theme code.
-7. Copy the theme code, then following our [custom theme instructions](/docs/design/themes#custom-themes).
+7. Copy the theme code, then following our [custom theme instructions](/docs/design/themes#custom-themes).
 8. Similar to preset themes, you will need to both register and set an active theme.
 
 ### Replace AppShell with Custom Layouts
 
-Skeleton has sunset the ([troublesome](https://github.com/skeletonlabs/skeleton/issues/2383)) `<AppShell>` component in favor of user-defined custom layouts. We've provided a [Layouts](/docs/guides/layouts) guide for replicating common page structures using only semantic HTML and Tailwind - no Skeleton specific features needed!
+Skeleton has sunset the ([troublesome](https://github.com/skeletonlabs/skeleton/issues/2383)) `<AppShell>` component in favor of user-defined custom layouts. We've provided a [Layouts](/docs/guides/layouts) guide for replicating common page structures using only semantic HTML and Tailwind - no Skeleton specific features needed!
 
 ### Migrating Components
 
 Components have undergone the biggest update in Skeleton v3. Given the sheer number of changes, we recommend you compare each component to it's equivalent v3 documentation. We’ve highlighted a few of the key changes below:
 
-- Changes to adopt the new [Svelte 5 APIs](https://svelte.dev/docs/svelte/v5-migration-guide) like runes, snippets, event handlers, etc.
-- Changes to support [Zag.js](https://zagjs.com/), which serves as a foundation of our cross-framework components.
-- Changes to the import path: `@skeletonlabs/skeleton-svelte`.
+- Changes to adopt the new [Svelte 5 APIs](https://svelte.dev/docs/svelte/v5-migration-guide) like runes, snippets, event handlers, etc.
+- Changes to support [Zag.js](https://zagjs.com/), which serves as a foundation of our cross-framework components.
+- Changes to the import path: `@skeletonlabs/skeleton-svelte`.
 - Changes to the component name and/or structure (including sub-components)
 - Changes based on newly introduces features and properties.
-- Changes to adopt the new [style prop conventions](/docs/get-started/fundamentals#style-props) and cross-framework standardization.
+- Changes to adopt the new [style prop conventions](/docs/get-started/fundamentals#style-props) and cross-framework standardization.
 
 Here's an example of changes for a single component from v2 to the new equivalent:
 
@@ -973,7 +973,7 @@ Install and configure Skeleton for Next.js.
         ### Create a Project
         Use the [Next.js CLI](https://nextjs.org/docs/app/getting-started/installation) to scaffold a new project.
         ```console
-        npm create next-app@latest my-skeleton-app 
+        npm create next-app@latest my-skeleton-app
         cd my-skeleton-app
         ```
     </ProcessStep>
@@ -1695,7 +1695,7 @@ For even more customization, try mixing and matching various [Presets](/docs/des
 ---
 
 <div class="w-full space-y-8">
-	
+
 	<div class="card preset-outlined-success-500 grid grid-cols-1 items-center gap-4 p-4 lg:grid-cols-[1fr_auto]">
 		<div>
 			<p class="font-bold">Success</p>
@@ -1705,7 +1705,7 @@ For even more customization, try mixing and matching various [Presets](/docs/des
 			<button class="btn preset-tonal hover:preset-filled">Dismiss</button>
 		</div>
 	</div>
-	
+
 	<div class="card preset-outlined-warning-500 grid grid-cols-1 items-center gap-4 p-4 lg:grid-cols-[auto_1fr_auto]">
 		<TriangleAlert />
 		<div>
@@ -1716,7 +1716,7 @@ For even more customization, try mixing and matching various [Presets](/docs/des
 			<button class="btn preset-tonal hover:preset-filled">Dismiss</button>
 		</div>
 	</div>
-	
+
 	<div class="card preset-outlined-error-500 grid grid-cols-1 items-center gap-4 p-4 lg:grid-cols-[auto_1fr_auto]">
 		<TriangleAlert />
 		<div>
@@ -1925,7 +1925,7 @@ let messageFeed = [
 		messageFeed.map((bubble) => {
 			return (
 				<>
-					
+
 					{bubble.host ? (
 						// Host Bubble
 						<div class="grid grid-cols-[auto_1fr] gap-2">
@@ -2973,7 +2973,7 @@ function setIndentationClass(depth: number) {
 			{
 				headings.map((heading: PageHeadings) => (
 					<li>
-						
+
 						<a href={`#${heading.slug}`} class="anchor block" class:list={setIndentationClass(heading.depth)}>
 							{heading.text}
 						</a>
@@ -3297,9 +3297,9 @@ preset-filled-{color}-{lightModeShade}-{darkModeShade}
 
 ```html
 <div class="w-full grid grid-cols-2 lg:grid-cols-4 gap-2">
-	
+
 	<div class="preset-filled flex items-center justify-center p-4">(neutral)</div>
-	
+
 	<div class="preset-filled-primary-950-50 flex items-center justify-center p-4">950-50</div>
 	<div class="preset-filled-primary-900-100 flex items-center justify-center p-4">900-100</div>
 	<div class="preset-filled-primary-800-200 flex items-center justify-center p-4">800-200</div>
@@ -3323,9 +3323,9 @@ preset-tonal-{color}
 
 ```html
 <div class="w-full grid grid-cols-2 lg:grid-cols-4 gap-2">
-	
+
 	<div class="preset-tonal flex items-center justify-center p-4">(neutral)</div>
-	
+
 	<div class="preset-tonal-primary flex items-center justify-center p-4">primary</div>
 	<div class="preset-tonal-secondary flex items-center justify-center p-4">secondary</div>
 	<div class="preset-tonal-tertiary flex items-center justify-center p-4">tertiary</div>
@@ -3345,9 +3345,9 @@ preset-outlined-{color}-{shade}-{shade}
 
 ```html
 <div class="grid w-full grid-cols-2 gap-2 lg:grid-cols-4">
-	
+
 	<div class="preset-outlined flex items-center justify-center p-4">(neutral)</div>
-	
+
 	<div class="preset-outlined-primary-950-50 flex items-center justify-center p-4">950-50</div>
 	<div class="preset-outlined-primary-900-100 flex items-center justify-center p-4">900-100</div>
 	<div class="preset-outlined-primary-800-200 flex items-center justify-center p-4">800-200</div>
@@ -4344,11 +4344,11 @@ const imgSrc =
 	href="#"
 	class="card preset-filled-surface-100-900 border-[1px] border-surface-200-800 card-hover divide-surface-200-800 block max-w-md divide-y overflow-hidden"
 >
-	
+
 	<header>
 		<img src={imgSrc} class="aspect-[21/9] w-full grayscale hue-rotate-90" alt="banner" />
 	</header>
-	
+
 	<article class="space-y-4 p-4">
 		<div>
 			<h2 class="h6">Announcements</h2>
@@ -4359,7 +4359,7 @@ const imgSrc =
 			nisi sapiente. Iste beatae laboriosam iure molestias cum expedita architecto itaque quae rem.
 		</p>
 	</article>
-	
+
 	<footer class="flex items-center justify-between gap-4 p-4">
 		<small class="opacity-60">By Alex</small>
 		<small class="opacity-60">On {new Date().toLocaleDateString()}</small>
@@ -4377,27 +4377,27 @@ Provides full support of [Presets](/docs/design/presets).
 	<div class="card p-4 preset-filled-primary-500">Card</div>
 	<div class="card p-4 preset-tonal-primary">Card</div>
 	<div class="card p-4 preset-outlined-primary-500">Card</div>
-	
+
 	<div class="card p-4 preset-filled-secondary-500">Card</div>
 	<div class="card p-4 preset-tonal-secondary">Card</div>
 	<div class="card p-4 preset-outlined-secondary-500">Card</div>
-	
+
 	<div class="card p-4 preset-filled-tertiary-500">Card</div>
 	<div class="card p-4 preset-tonal-tertiary">Card</div>
 	<div class="card p-4 preset-outlined-tertiary-500">Card</div>
-	
+
 	<div class="card p-4 preset-filled-success-500">Card</div>
 	<div class="card p-4 preset-tonal-success">Card</div>
 	<div class="card p-4 preset-outlined-success-500">Card</div>
-	
+
 	<div class="card p-4 preset-filled-warning-500">Card</div>
 	<div class="card p-4 preset-tonal-warning">Card</div>
 	<div class="card p-4 preset-outlined-warning-500">Card</div>
-	
+
 	<div class="card p-4 preset-filled-error-500">Card</div>
 	<div class="card p-4 preset-tonal-error">Card</div>
 	<div class="card p-4 preset-outlined-error-500">Card</div>
-	
+
 	<div class="card p-4 preset-filled-surface-500">Card</div>
 	<div class="card p-4 preset-tonal-surface">Card</div>
 	<div class="card p-4 preset-outlined-surface-500">Card</div>
@@ -4493,7 +4493,7 @@ When applied to a `<button>` element, you can use the `disabled` attribute.
 
 	return (
 		<div className="flex gap-2">
-			
+
 			{color &&
 				colors.map((c) => (
 					// On selection, set the color state, dynamically update classes
@@ -8512,4 +8512,3 @@ Skeleton will always favor native browser APIs over third-party libraries such a
 - [CSS Anchoring Position](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_anchor_positioning)
 
 ---
-

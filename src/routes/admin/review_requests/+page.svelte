@@ -2,6 +2,7 @@
     import Icon from '@iconify/svelte';
     import { t } from '$lib/translations';
     import { enhance } from '$app/forms';
+    import SearchInput from '$lib/components/SearchInput.svelte';
 
     export let data;
 
@@ -27,21 +28,11 @@
     <title>Review Requests - Puzzle League</title>
 </svelte:head>
 
+<h4>Review Permission Requests</h4>
 <div class="container mx-auto">
-    <h1 class="text-3xl font-bold mb-6">Review Permission Requests</h1>
 
     <div class="mb-6">
-        <div class="card p-4">
-            <div class="flex items-center gap-3">
-                <Icon icon="simple-line-icons:magnifier" class="text-surface-500" />
-                <input
-                    class="input-full-width"
-                    type="text"
-                    placeholder="{$t('admin.review_requests.search_placeholder')}"
-                    bind:value={filter}
-                />
-            </div>
-        </div>
+        <SearchInput placeholder={$t('admin.review_requests.search_placeholder')} bind:filter />
     </div>
 
     <div class="mb-4 flex items-center justify-between">
@@ -68,7 +59,7 @@
     {:else}
         <div class="space-y-4">
             {#each filteredRequests as request}
-                <div class="card p-6 border border-surface-300">
+                <div class="card p-6">
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex items-center gap-4">
                             {#if request.user.image}
@@ -87,7 +78,7 @@
                                 <p class="text-surface-600">{request.user.email}</p>
                             </div>
                         </div>
-                        <span class="badge variant-soft-primary">
+                        <span class="badge preset-tonal-primary">
                             {formatRole(request.role)}
                         </span>
                     </div>
@@ -107,9 +98,9 @@
                     </div>
 
                     {#if request.reason}
-                        <div class="mb-4">
-                            <h4 class="text-sm font-semibold text-surface-700 mb-1">Reason:</h4>
-                            <p class="text-sm text-surface-600 bg-surface-100 p-3 rounded">
+                        <div class="mb-4 flex">
+                            <h4 class="text-sm font-semibold text-surface-700 mb-1 pr-2">Reason:</h4>
+                            <p class="text-sm text-surface-600">
                                 {request.reason}
                             </p>
                         </div>
@@ -129,7 +120,7 @@
                             <input type="hidden" name="requestId" value={request.id} />
                             <button
                                 type="submit"
-                                class="btn variant-filled-success flex items-center gap-2"
+                                class="btn preset-filled-success-500 flex items-center gap-2"
                             >
                                 <Icon icon="mdi:check" />
                                 Accept
@@ -140,7 +131,7 @@
                             <input type="hidden" name="requestId" value={request.id} />
                             <button
                                 type="submit"
-                                class="btn variant-filled-error flex items-center gap-2"
+                                class="btn preset-filled-error-500 flex items-center gap-2"
                             >
                                 <Icon icon="mdi:close" />
                                 Reject
@@ -158,7 +149,6 @@
         width: 100%;
         border: none;
         background-color: transparent;
-        padding: 0.5rem 0;
     }
 
     .input-full-width:focus {

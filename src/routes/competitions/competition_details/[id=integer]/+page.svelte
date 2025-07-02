@@ -1,5 +1,8 @@
 <script lang="ts">
     import Icon from '@iconify/svelte';
+    import { formatTime } from '$lib/utils/datetime_utils';
+    import { getCategoryTypeName } from '$lib/utils/category_utils';
+    import { enhance } from '$app/forms';
 
     let { data } = $props();
     console.log("competition_details +page.svelte: data", data);
@@ -19,26 +22,15 @@
     const monthAbbreviation = competition_startDate.toLocaleString('default', { month: 'short' });
     const year = competition_startDate.getFullYear();
 
-    // Helper function to format time
-    function formatTime(date: Date) {
-        return date.toLocaleTimeString('default', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
+    // Helper function to get user registration for a specific category
+    function getUserRegistrationForCategory(categoryId: number) {
+        if (!data.props.registers) return null;
+        return data.props.registers.find(register => register.categoryId === categoryId);
     }
 
-    // Helper function to get category type display name
-    function getCategoryTypeName(type: string) {
-        const typeNames: Record<string, string> = {
-            'INDIVIDUAL': 'Individual',
-            'PAIRS': 'Pairs',
-            'TEAM': 'Team',
-            'JUNIOR_INDIVIDUAL': 'Junior Individual',
-            'JUNIOR_PAIRS': 'Junior Pairs',
-            'PUZZLE_CHESS': 'Puzzle Chess'
-        };
-        return typeNames[type] || type;
+    // Helper function to check if category is individual
+    function isIndividualCategory(categoryType: string) {
+        return categoryType.includes('INDIVIDUAL');
     }
 </script>
 
@@ -48,46 +40,45 @@
 
 <div class="container mx-auto">
     <!-- Header Section -->
-    <div class="card preset-filled-surface-100-900 p-6 mb-6">
+    <div class="space-y-4">
         <div class="flex justify-between items-start">
             <div>
-                <h1 class="h1 mb-2">{competitionName}</h1>
+                <p class="text-2xl mb-2">{competitionName}</p>
                 {#if competitionDescription}
-                    <p class="text-surface-600-400">{competitionDescription}</p>
+                    <p>{competitionDescription}</p>
                 {/if}
-
-                <!-- Status Badge -->
-                <span class="badge preset-filled-primary-500 mt-2">
-                    {competitionStatus}
-                </span>
             </div>
         </div>
 
+        <div class="flex items-center gap-2">
+            <Icon icon="mdi:location" width="1.5rem" height="1.5rem" class="text-primary-500" />
+            <span class="text-lg">
+                {competition?.location}
+            </span>
+        </div>
         <!-- Date and Location Info -->
-        <div class="mt-6 space-y-3">
-            <div class="flex items-center gap-2">
-                <Icon icon="mdi:calendar-clock" width="1.5rem" height="1.5rem" class="text-primary-500" />
-                <span class="text-lg">
-                    {monthNumber} {monthAbbreviation} {year}
-                    {#if bool_more_than_one_day}
-                        - {competition_endDate.getDate()} {competition_endDate.toLocaleString('default', { month: 'short' })} {competition_endDate.getFullYear()}
-                    {/if}
-                </span>
-            </div>
-
-            {#if competition?.league}
+        <div class="space-y-3">
+            <div class="flex items-center justify-between w-full">
                 <div class="flex items-center gap-2">
-                    <Icon icon="mdi:trophy" width="1.5rem" height="1.5rem" class="text-primary-500" />
-                    <span class="text-lg">Part of: {competition.league.name}</span>
+                    <Icon icon="mdi:calendar-clock" width="1.5rem" height="1.5rem" class="text-primary-500" />
+                    <span class="text-lg">
+                        {monthNumber} {monthAbbreviation} {year}
+                        {#if bool_more_than_one_day}
+                            - {competition_endDate.getDate()} {competition_endDate.toLocaleString('default', { month: 'short' })} {competition_endDate.getFullYear()}
+                        {/if}
+                    </span>
                 </div>
-            {/if}
+                <div class="flex justify-end">
+                    <span class="badge preset-filled-primary-500">
+                        {competitionStatus}
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Categories Section -->
-    <div>
-        <h2 class="h2 mb-4">Competition Categories</h2>
-
+    <div class="mt-4">
         {#if categories.length > 0}
             <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {#each categories as category}
@@ -103,33 +94,76 @@
                                      'mdi:account'}
                                 width="1.5rem"
                                 height="1.5rem"
-                                class="text-primary-500"
+                                class="text-primary-800"
                             />
                         </div>
 
-                        {#if category.name}
+                        {#if category.name !== getCategoryTypeName(category.type).toUpperCase()}
                             <p class="text-surface-600-400 mb-2">{category.name}</p>
                         {/if}
 
-                        <div class="space-y-2 text-sm">
+                        <!-- TODO: if competition is more than one day, we should show day for each category -->
+                        <div class="space-y-2 text-sm grid grid-cols-2 gap-2">
                             <div class="flex items-center gap-2">
                                 <Icon icon="mdi:clock-start" width="1.2rem" height="1.2rem" />
                                 <span>Start: {formatTime(new Date(category.startTime))}</span>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="justify-end flex items-center gap-2">
                                 <Icon icon="mdi:clock-end" width="1.2rem" height="1.2rem" />
                                 <span>End: {formatTime(new Date(category.endTime))}</span>
                             </div>
+                        </div>
 
-                            {#if bool_more_than_one_day && category.startDate}
-                                <div class="flex items-center gap-2 text-surface-500-500">
-                                    <Icon icon="mdi:calendar" width="1.2rem" height="1.2rem" />
-                                    <span>
-                                        {new Date(category.startDate).toLocaleDateString()}
-                                    </span>
+                        <!-- Registration Status Display -->
+                        {#if competitionStatus === 'UPCOMING' && data.props.registers !== undefined}
+                            {@const userRegistration = getUserRegistrationForCategory(category.id)}
+                            {#if userRegistration}
+                                <div class="mt-4 p-3 bg-success-50 border border-success-200 rounded-lg">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center gap-2">
+                                            <Icon icon="mdi:check-circle" width="1.2rem" height="1.2rem" class="text-success-600" />
+                                            <span class="text-sm font-medium text-success-800">Registered</span>
+                                        </div>
+                                        <!-- Remove Registration Button -->
+                                        <form method="post" action="?/remove_party" use:enhance>
+                                            <input type="hidden" name="category_id" value={category.id} />
+                                            <input type="hidden" name="user_id" value={data.user?.id} />
+                                            <button
+                                                type="submit"
+                                                class="btn btn-sm preset-filled-error-500 hover:preset-filled-error-600 transition-colors"
+                                                title="Remove registration"
+                                            >
+                                                <Icon icon="mdi:close" width="1rem" height="1rem" />
+                                                Remove
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <!-- Display team members -->
+                                    <div class="space-y-2">
+                                        {#if isIndividualCategory(category.type)}
+                                            <div class="badge preset-filled-primary-500">
+                                                You are registered
+                                            </div>
+                                        {:else}
+                                            <div class="text-xs text-success-700 mb-1">Team Members:</div>
+                                            <div class="flex flex-wrap gap-1">
+                                                {#each userRegistration.users as user}
+                                                    <div class="badge preset-filled-primary-500 text-xs flex items-center gap-1">
+                                                        {#if user.image}
+                                                            <img src={user.image} alt={user.name} class="w-4 h-4 rounded-full" />
+                                                        {:else}
+                                                            <Icon icon="mdi:account-circle" width="1rem" height="1rem" />
+                                                        {/if}
+                                                        {user.name}
+                                                    </div>
+                                                {/each}
+                                            </div>
+                                        {/if}
+                                    </div>
                                 </div>
                             {/if}
-                        </div>
+                        {/if}
                     </div>
                 {/each}
             </div>

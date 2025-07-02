@@ -8,7 +8,9 @@ export const load = async ({ url, cookies, locals, request }) => {
     const session = await auth.api.getSession({
         headers: request.headers,
     });
-
+    const account = await auth.api.listUserAccounts({
+        headers: request.headers,
+    });
     // Get the locales and translations for the current route
     const { pathname } = url;
     let locale = "es";
@@ -39,6 +41,7 @@ export const load = async ({ url, cookies, locals, request }) => {
         translations: translations.get(),
         i18n: { locale, route: pathname },
         user: session?.user,
+        account: account?.[0],
         roleAssignments
     };
 };

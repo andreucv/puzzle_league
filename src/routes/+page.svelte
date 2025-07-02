@@ -1,6 +1,7 @@
 <script lang="ts">
     import Footer from '$lib/components/Footer.svelte';
     import { t } from '$lib/translations';
+    import { Avatar } from '@skeletonlabs/skeleton-svelte';
 
     let { data } = $props();
 
@@ -23,20 +24,19 @@
 </svelte:head>
 
 {#if data.user}
+    <h4>Your upcoming competitions</h4>
     <div class="container mx-auto">
         <section class="space-y-4 mb-8">
-            <h2 class="h2">Your upcoming competitions</h2>
             {#if data?.props?.upcomingRegisteredCompetitions != null && data?.props?.upcomingRegisteredCompetitions?.length > 0}
                 <div class="flex overflow-x-auto gap-2 pb-4">
                     {#each data?.props?.upcomingRegisteredCompetitions as competition}
-
-                        <div class="card preset-tonal-surface flex-shrink-0 w-32">
-                            <a href="/competitions/competition_details/{competition.id}">
+                    <a href="/competitions/competition_details/{competition.id}" class="card shrink-0 w-32">
+                        <div class="">
                             <header class="card-header">
-                                <h3 class="h3">{competition.name}</h3>
+                                <h3 class="h5 p-2">{competition.name}</h3>
                             </header>
-                            <section class="p-4">
-                                <p class="text-xs opacity-75">Starts in 2 days</p>
+                            <section class="pl-2">
+                                <p class="text-xs opacity-75">In 2 days</p>
 
                                 {#if competition.categories && competition.categories.length > 0}
                                     <div class="mt-3">
@@ -44,19 +44,21 @@
                                             {#if category.parties && category.parties.length > 0}
                                                 {#each category.parties as party}
                                                     {#if party.users && party.users.length > 0}
-                                                        <div class="mt-2">
+                                                        <div class="mt-2 mb-2">
                                                             {#if category.type === 'INDIVIDUAL' || category.type === 'JUNIOR_INDIVIDUAL'}
                                                             <p class="text-xs font-semibold mb-1">Individual</p>
                                                             {:else if category.type === 'PAIRS' || category.type === 'JUNIOR_PAIRS' || category.type === 'TEAM'}
-                                                            <p class="text-xs font-semibold mb-1">{category.type} with:</p>
+                                                            <p class="text-xs font-semibold mb-1">{category.name} with:</p>
                                                             {/if}
+                                                            <div class="flex grid grid-cols-6 gap-2">
                                                             {#each party.users as user}
                                                                 {#if user.email !== data.user.email}
-                                                                <span class="badge variant-filled-secondary text-xs mr-1">
-                                                                    {user.name}
+                                                                <span class="">
+                                                                    <Avatar name={user.name} src={user?.image ?? undefined} classes="w-7 h-7"></Avatar>
                                                                 </span>
                                                                 {/if}
                                                             {/each}
+                                                            </div>
                                                         </div>
                                                     {/if}
                                                 {/each}
@@ -65,16 +67,16 @@
                                     </div>
                                 {/if}
                             </section>
-                            </a>
                         </div>
+                    </a>
                     {/each}
                 </div>
             {:else}
-                <div class="card preset-tonal-surface">
+                <div class="card">
                     <section class="p-4 text-center">
                         <p class="text-sm">You are not registered to any competition soon</p>
                         <p class="text-sm">Choose a competition to register to</p>
-                        <a href="/competitions" class="btn btn-sm variant-filled-primary">Browse Competitions</a>
+                        <a href="/competitions" class="btn btn-sm preset-filled-primary-500">Browse Competitions</a>
                     </section>
                 </div>
             {/if}
@@ -83,7 +85,7 @@
                 <h3 class="h3 text-center mb-4">Participated Competitions</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {#each data?.props?.participatedCompetitions as competition}
-                        <div class="card preset-tonal-surface">
+                        <div class="card">
                             <header class="card-header">
                                 <h3 class="h3">{competition.name}</h3>
                             </header>
@@ -94,7 +96,7 @@
                     {/each}
                 </div>
             {:else}
-                <div class="card preset-tonal-surface">
+                <div class="card">
                     <section class="p-4 text-center">
                         <p class="text-sm">No completed competitions yet</p>
                     </section>
@@ -116,13 +118,15 @@
                         </section>
                     </a> -->
 
-                    <a href="/create_competition" class="card card-hover preset-tonal-warning">
+                    <a href="/create_competition">
+                        <div class="card card-hover">
                         <header class="card-header">
                             <h3 class="h3">Create New Competition</h3>
                         </header>
                         <section class="p-2">
                             <p class="text-sm">Set up a new puzzle competition with custom rules and formats</p>
                         </section>
+                        </div>
                     </a>
                 </div>
             </section>
@@ -133,13 +137,15 @@
                 <h2 class="h2 text-center">Admin Actions</h2>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <a href="/admin/requests" class="card card-hover preset-tonal-primary">
+                    <a href="/admin/requests">
+                    <div class="card card-hover preset-tonal-primary">
                         <header class="card-header">
                             <h3 class="h3">Review Permissions Requests</h3>
                         </header>
                         <section class="p-2">
                             <p class="text-sm">Review and approve pending permissions requests</p>
                         </section>
+                    </div>
                     </a>
                 </div>
             </section>

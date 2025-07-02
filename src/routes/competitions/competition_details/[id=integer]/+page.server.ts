@@ -16,19 +16,20 @@ export const load: PageServerLoad = async ( event ) => {
     const competition_id = event.url.pathname.split('/')[3];
     const competition_and_categories = await getCompetitionWithCategories(parseInt(competition_id));
     const session = await auth.api.getSession(event.request);
-    let signedup_categories = undefined;
+    let registers = undefined;
     if (session?.user && competition_and_categories) {
         const user_id = session.user.id;
-        signedup_categories = await getPartiesFromCompetition(parseInt(competition_id), user_id);
+        registers = await getPartiesFromCompetition(parseInt(competition_id), user_id);
     }
-    const image_url = undefined; //await cloudinary.url(competition_and_categories.image);
+    const competition_image_url = undefined; //await cloudinary.url(competition_and_categories.image);
     console.log(`competitions/competition_details/${competition_id} competition_categories`, competition_and_categories);
+    console.log(`competitions/competition_details/${competition_id} registers`, registers);
     return {
         props:
         {
             competition_and_categories,
-            signedup_categories,
-            image_url,
+            registers,
+            competition_image_url,
         }
     }
 }

@@ -14,6 +14,5 @@ test.describe('GivenHomePageOrganizer_WhenAccessingLandingPage_ThenOrganizerActi
     test('GivenProfilePageOrganizer_WhenClickingOnHambugerMenu_ThenCreateCompetitionIsVisible', async ({ page }) => {
         await page.goto('/');
         await expect(page.getByRole('heading', { name: 'Organizer Actions' }).first()).toBeVisible();
-        await expect(page.getByRole('link', { name: 'My Organized Competitions' }).first()).toBeVisible();
     });
 });

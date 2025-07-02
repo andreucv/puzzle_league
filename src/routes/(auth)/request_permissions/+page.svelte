@@ -19,13 +19,13 @@
 	<h1 class="h1 font-bold">Request Permissions</h1>
 
 	{#if form?.success}
-		<div class="alert variant-filled-success mt-4">
+		<div class="alert preset-filled-success-500 mt-4">
 			<p>Your request has been submitted successfully! You will be notified once it's reviewed.</p>
 		</div>
 	{/if}
 
 	{#if form?.error}
-		<div class="alert variant-filled-error mt-4">
+		<div class="alert preset-filled-error-500 mt-4">
 			<p>{form.error}</p>
 		</div>
 	{/if}
@@ -102,10 +102,10 @@
 
         <!-- Submit Button -->
         <div class="flex justify-end gap-4">
-            <a href="/" class="btn variant-ghost">Cancel</a>
+            <a href="/" class="btn preset-tonal border border-surface-500">Cancel</a>
             <button
                 type="submit"
-                class="btn variant-filled-primary"
+                class="btn preset-filled-primary-500"
                 disabled={isSubmitting || formDisabled}
             >
                 {isSubmitting ? 'Submitting...' : 'Submit Request'}

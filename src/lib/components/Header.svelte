@@ -1,34 +1,26 @@
 <script lang="ts">
-    import { AppBar, Avatar } from '@skeletonlabs/skeleton';
+    import { AppBar, Avatar } from '@skeletonlabs/skeleton-svelte';
     import Icon from '@iconify/svelte';
-    import { getDrawerStore } from "@skeletonlabs/skeleton";
-
     import { page } from '$app/stores';
     let user = $derived($page.data.user);
-    console.log("Header.svelte: user", user);
     let currentPath = $derived($page.url.pathname);
 
-    const drawerStore = getDrawerStore();
-
-    function openDrawer() {
-        drawerStore.open();
-    }
-
+    import { drawerState } from '../../shareds/drawer.svelte';
 </script>
 
 <header>
-    <AppBar padding="m-4" background="bg-transparent" slotTrail="place-items-end" regionRowMain="">
-        <svelte:fragment slot="lead">
-            <button id="states-button" onclick={openDrawer} type="button">
+    <AppBar padding="p-4" background="bg-transparent" base="" >
+        {#snippet lead()}
+            <button id="states-button" onclick={() => drawerState.open = true} type="button">
                 <Icon icon="icon-park:hamburger-button" width="1.5rem" height="1.5rem" />
             </button>
-        </svelte:fragment>
+        {/snippet}
         <div class="text-left">
-            <h1 class="text-left h4" style="font-weight: 800; font-stretch: 125%;"><a href='/'>Puzzle League</a></h1>
+            <h1 class="text-left h4 font-sans" style="font-weight: 800; font-stretch: 125%;"><a href='/'>Puzzle League</a></h1>
         </div>
-        <svelte:fragment slot="trail">
+        {#snippet trail()}
             {#if user === undefined}
-                <button id="login-button" type="button" class="btn btn-sm variant-filled" style:visibility="{currentPath === '/login' ? 'hidden' : 'visible'}">
+                <button id="login-button" type="button" class="btn btn-sm preset-filled" style:visibility="{currentPath === '/login' ? 'hidden' : 'visible'}">
                     <a href="/login">Log in</a>
                 </button>
             {:else}
@@ -38,17 +30,14 @@
                             <Icon icon="lets-icons:user-alt-fill" width="1.5rem" height="1.5rem" class="mx-2"/>
                         {:else}
                             <Avatar
-                                id="user-avatar"
-                                initials={user.name ? user.name.substring(0,2) : 'U'}
-                                src={user.image}
-                                alt={user.name}
-                                width="w-8"
-                                referrerPolicy='no-referrer'>
+                            name={user.name ? user.name.substring(0,2) : 'U'}
+                            src={user.image}
+                            classes="w-8 h-8">
                             </Avatar>
                         {/if}
                     </a>
                 </div>
             {/if}
-        </svelte:fragment>
+        {/snippet}
     </AppBar>
 </header>

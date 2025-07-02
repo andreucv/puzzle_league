@@ -10,17 +10,17 @@
 </script>
 
 <a href="competitions/competition_details/{competition.id}">
-<div class="mt-2 py-1 card">
+<div class="card">
     <div>
         <div class="flex">
-            <div class="px-2 flex-grow">
+            <div class="px-2 m-1 grow">
                 <h2 class="text-lg">{competition.name}</h2>
-                <!-- <p class="text-sm">{competition.location.city}</p> -->
+                <p class="text-sm">{competition.location}</p>
             </div>
             <div class="text-center image-container">
             </div>
             <div class="text-center date-display">
-                <div class="px-2">
+                <div class="px-2 m-1">
                     <p class="month-number">{monthNumber}</p>
                     <p class="month-year">{monthAbbreviation}</p>
                     <p class="month-year">{year}</p>
@@ -29,12 +29,12 @@
         </div>
     </div>
     <hr class="opacity-50" />
-    <div class="snap-x snap-mandatory scroll-smooth flex gap-2 overflow-x-auto p-2" >
+    <div class="snap-x snap-mandatory scroll-smooth flex overflow-x-auto" >
         <!-- we list here all the categories that the competition holds -->
         {#each competition.categories as category}
         <div class="">
             <div class="flex items-center">
-                <span class="chip variant-filled-surface">{category.type}</span>
+                <span class="chip preset-filled-surface-500 m-2">{category.type}</span>
             </div>
         </div>
         {/each}

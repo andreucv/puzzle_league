@@ -1,4 +1,7 @@
 <script lang="ts">
+    import type { CategoryType } from "@prisma/client/wasm";
+    import { t } from '$lib/translations';
+
     let {data, form} = $props();
 
     let selectedLeague = $state('');
@@ -37,7 +40,7 @@
         categoryConfigs.push(newCategory);
     }
 
-    function getPartySize(categoryType) {
+    function getPartySize(categoryType : CategoryType) {
         if (categoryType === 'INDIVIDUAL' || categoryType === 'JUNIOR_INDIVIDUAL') {
             return 1;
         } else if (categoryType === 'PAIRS' || categoryType === 'JUNIOR_PAIRS') {
@@ -77,14 +80,14 @@
 
 </script>
 
-<h1 class="h1 font-bold">Create Competition</h1>
+<h4>{$t('create_competition.title')}</h4>
 {#if form?.success === false}
-    <div class="alert variant-filled-error mt-4">
+    <div class="alert preset-filled-error-500 mt-4">
         <p>{form.message}</p>
     </div>
     {/if}
     {#if form?.success === true}
-    <div class="alert variant-filled-success mt-4">
+    <div class="alert preset-filled-success-500 mt-4">
         <p>{form.message}</p>
         <p>Go to competition <a href={`/competitions/competition_details/${form.competitionId}`}>here</a>.</p>
     </div>
@@ -92,11 +95,6 @@
 <form method="POST" action="?/create_competition" enctype="multipart/form-data" class="max-w-6xl mx-auto space-y-4 mb-4">
     <!-- Basic Information Section -->
     <section class="">
-        <div class="flex items-center mt-4">
-            <h2 class="h3 font-semibold">Basic Information</h2>
-        </div>
-
-
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
             <label class="label">
                 <span class="text-sm font-medium">Competition Name *</span>
@@ -147,12 +145,6 @@
 
     <!-- Date Configuration Section -->
     <section class="">
-        <div class="flex">
-            <h2 class="h3 font-semibold flex">
-                Competition Dates
-            </h2>
-        </div>
-
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div class="flex flex-col sm:flex-row gap-4 w-full">
                 <label class="label flex-1">
@@ -180,11 +172,10 @@
 
     <!-- Categories Section -->
     <section class="">
-        <div class="flex items-center justify-between gap-2">
-            <h2 class="h3 font-semibold">Competition Categories</h2>
+        <div class="flex items-center justify-end gap-2">
             <button
                 type="button"
-                class="btn variant-filled-primary btn-sm"
+                class="btn preset-filled-primary-500 btn-sm"
                 onclick={addCategory}
             >
                 <span>➕</span>
@@ -195,12 +186,12 @@
         <div class="space-y-4 mt-4">
             {#each categoryConfigs as category (category.id)}
                 <div class="relative group">
-                    <div class="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none"></div>
+                    <div class="absolute inset-0 bg-linear-to-r from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none"></div>
                     <div class="relative p-4 border-2 border-surface-200-700 rounded-lg transition-all duration-200 hover:border-surface-300-600">
                         <!-- Floating remove button -->
                         <button
                             type="button"
-                            class="absolute top-2 right-2 btn btn-sm variant-ghost-error opacity-60 hover:opacity-100 transition-opacity"
+                            class="absolute top-2 right-2 btn btn-sm preset-tonal-error border border-error-500 opacity-60 hover:opacity-100 transition-opacity"
                             onclick={() => removeCategory(category.id)}
                         >
                             <span>🗑️</span>
@@ -281,7 +272,7 @@
                     <p class="text-surface-600 dark:text-surface-400 mb-4">No categories added yet</p>
                     <button
                         type="button"
-                        class="btn variant-filled-primary"
+                        class="btn preset-filled-primary-500"
                         onclick={addCategory}
                     >
                         <span>➕</span>
@@ -298,10 +289,10 @@
 
     <!-- Submit Button -->
     <div class="flex justify-end gap-4 pt-4 border-t-2 border-surface-200-700">
-        <a href="/competitions" class="btn variant-ghost-surface">Cancel</a>
+        <a href="/competitions" class="btn preset-tonal-surface border border-surface-500">Cancel</a>
         <button
             type="submit"
-            class="btn variant-filled-primary btn-lg"
+            class="btn preset-filled-primary-500 btn-lg"
             disabled={!competitionName  || categoryConfigs.length == 0}
         >
             <span>Create Competition</span>
@@ -309,17 +300,10 @@
     </div>
 </form>
 
-<style>
+<style lang="postcss">
+    @reference "../../../../app.css";
+
     input, select {
         @apply w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 text-black focus:border-indigo-500 focus:bg-white focus:outline-none;
-    }
-
-    /* Override the styles for checkboxes */
-    input[type="checkbox"] {
-        width: auto;
-        background: none;
-        padding: 0;
-        margin: 0;
-        border: none;
     }
 </style>

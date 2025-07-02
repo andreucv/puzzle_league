@@ -31,13 +31,13 @@
     }
 
     async function signInWithGoogle() {
-        const data = await authClient.signIn.social({
+        const { data, error } = await authClient.signIn.social({
             provider: "google"
         });
         after_login(data, error);
     }
 
-    async function after_login(data, error) {
+    async function after_login(data: any, error: any) {
         if (error) {
             errorMessage = String(error?.message);
             console.error(error);
@@ -117,9 +117,9 @@
             </div>
 
             <div class="flex items-center my-4">
-                <hr class="flex-grow border-t border-gray-300">
+                <hr class="grow border-t border-gray-300">
                 <span class="mx-4 text-gray-500">or</span>
-                <hr class="flex-grow border-t border-gray-300">
+                <hr class="grow border-t border-gray-300">
             </div>
 
             <div class="space-y-3">

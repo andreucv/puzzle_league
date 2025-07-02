@@ -23,9 +23,28 @@
     "teams_relays": "Equipos por relevos",
     "kids_pairs": "Parejas niños",
     "puzzle_chess": "PuzzleChess",
-    "create_competition": "Crea Competición"
+    "create_competition": "Crea Competición",
+    "list_all_competitions": "Competiciones"
   },
   "drawer_menu": {
-    "create_competition": "Crear Competición"
+    "create_competition": "Crear Competición",
+    "explore_competitions": "Explorar Competiciones"
+  },
+  "list_competitions": {
+    "look_for_competition": "Busca una competición"
+  },
+  "profile": {
+    "my_profile": "Mi perfil",
+    "roles": "Permisos",
+    "preferences": "Preferencias",
+    "data": "Datos del perfil"
+  },
+  "admin": {
+    "review_requests": {
+      "search_placeholder": "Busca peticiones"
+    }
+  },
+  "create_competition": {
+    "title": "Crea una competición"
   }
 }

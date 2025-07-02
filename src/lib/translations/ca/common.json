@@ -23,9 +23,28 @@
     "teams_relays": "Equips per relleus",
     "kids_pairs": "Parelles nens",
     "puzzle_chess": "PuzzleChess",
-    "create_competition": "Crea Competició"
+    "create_competition": "Crea Competició",
+    "list_all_competitions": "Competicions"
   },
   "drawer_menu": {
-    "create_competition": "Crear Competició"
+    "create_competition": "Crear Competició",
+    "explore_competitions": "Explorar Competicions"
+  },
+  "list_competitions": {
+    "look_for_competition": "Busca una competició"
+  },
+  "profile": {
+    "my_profile": "El meu perfil",
+    "roles": "Permisos",
+    "preferences": "Preferències",
+    "data": "Dades del perfil"
+  },
+  "admin": {
+    "review_requests": {
+      "search_placeholder": "Cerca peticions"
+    }
+  },
+  "create_competition": {
+    "title": "Crea una competició"
   }
 }

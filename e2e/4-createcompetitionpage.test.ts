@@ -3,13 +3,20 @@ import { time } from 'console';
 
 test.use({ storageState: "playwright/.auth/organizer_user.json" });
 
-test('GivenCreateCompetitionPage_WhenOrganizerAccess_ThenOrganizerIsAbleToCreateCompetition', async ({ page }) => {
+test('GivenCreateCompetitionPage_WhenOrganizerCreatesCompetition_ThenOrganizerIsAbleToCheckCompetition', async ({ page }) => {
+    const competitionData = {
+        name: 'TestName',
+        venue: 'TestVenue',
+        description: 'TestDescription',
+        startDate: '2025-10-15',
+    }
+
     await page.goto('/create_competition');
     await expect(page.getByRole('heading', { name: 'Create Competition Form' }).first()).toBeVisible();
-    await page.getByPlaceholder('Enter competition name').fill('Test1');
-    await page.getByPlaceholder('Enter venue location').fill('Test1');
-    await page.getByPlaceholder('Describe your competition...').fill('Test1');
-    await page.getByLabel('Start Date *').fill('2025-10-15');
+    await page.getByPlaceholder('Enter competition name').fill(competitionData.name);
+    await page.getByPlaceholder('Enter venue location').fill(competitionData.venue);
+    await page.getByPlaceholder('Describe your competition...').fill(competitionData.description);
+    await page.getByLabel('Start Date *').fill(competitionData.startDate);
     await page.getByRole('button', { name: '➕ Add Category' }).click();
     await page.getByLabel('Category Type *').selectOption({ label: 'INDIVIDUAL' });
     await page.getByLabel('Start Time').fill('10:00');
@@ -24,5 +31,7 @@ test('GivenCreateCompetitionPage_WhenOrganizerAccess_ThenOrganizerIsAbleToCreate
     await expect(page.getByText('Competition created').first()).toBeVisible();
 
     await page.getByRole('link', { name: 'here' }).click();
-    await expect(page.locator('span').filter({ hasText: 'Test1' }).first()).toBeVisible();
+    await expect(page.getByText(competitionData.name).first()).toBeVisible();
+    await expect(page.getByText(competitionData.description).first()).toBeVisible();
+    await expect(page.locator('span').filter({ hasText: competitionData.venue }).first()).toBeVisible();
 });

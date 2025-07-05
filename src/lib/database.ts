@@ -1,4 +1,5 @@
-import { CompetitionStatus, PrismaClient } from '@prisma/client';
+import { CompetitionStatus, PrismaClient, Prisma} from '@prisma/client';
+import type { Competition, Category } from '@prisma/client';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -221,52 +222,24 @@ export async function rejectRequest(requestId: string, adminId: string, rejectio
 }
 
 // Competition related functions
-export async function createCompetition(
-    name: string,
-    description: string | null,
-    startDate: Date,
-    endDate: Date,
-    leagueId: string | null,
-    categories: {
-        name: string,
-        type: string,
-        startTime: Date,
-        endTime: Date,
-        startDate: Date,
-        endDate: Date,
-        participationFee: number,
-        maxPartySize: number,
-    }[]
-) {
+export async function createCompetition(competition: Prisma.CompetitionCreateInput, categories: Array<Prisma.CategoryCreateInput>) {
     try {
         // Use a transaction to ensure data consistency
         const result = await prisma.$transaction(async (tx) => {
             // Create the competition
-            const competition = await tx.competition.create({
-                data: {
-                    name,
-                    description,
-                    startDate,
-                    endDate,
-                    status: 'UPCOMING',
-                    leagueId: leagueId || null,
-                }
+            const createdCompetition = await tx.competition.create({
+                data: competition
+            });
+
+            categories.forEach(category => {
+                category.competitionId = createdCompetition.id;
             });
 
             // Create categories for the competition
             const createdCategories = await Promise.all(
                 categories.map(async (category) => {
                     return await tx.category.create({
-                        data: {
-                            name: category.name || category.type,
-                            type: category.type as any, // Cast to CategoryType enum
-                            startTime: category.startTime,
-                            endTime: category.endTime,
-                            startDate: category.startDate,
-                            endDate: category.endDate,
-                            competitionId: competition.id,
-                            maxPartySize: category.maxPartySize,
-                        }
+                        data: category
                     });
                 })
             );
@@ -274,7 +247,7 @@ export async function createCompetition(
             console.log("database.ts: createdCategories", createdCategories);
 
             return {
-                competition,
+                competition: createdCompetition,
                 categories: createdCategories
             };
         });

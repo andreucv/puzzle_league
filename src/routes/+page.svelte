@@ -1,5 +1,4 @@
 <script lang="ts">
-    import Footer from '$lib/components/Footer.svelte';
     import { t } from '$lib/translations';
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
 

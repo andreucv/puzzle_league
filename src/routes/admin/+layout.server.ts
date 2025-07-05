@@ -11,9 +11,14 @@ import { Role } from '@prisma/client';
  * If not, it redirects to the login page.
  */
 export const load: LayoutServerLoad = async ({ request }) => {
-    const session = await auth.api.getSession({
-        headers: request.headers,
-    });
+    let session = null;
+    try {
+        session = await auth.api.getSession({
+            headers: request.headers,
+        });
+    } catch (error) {
+        console.error('(admin) Error fetching session:', error);
+    }
 
     /**
      * This is the important part.
@@ -25,6 +30,9 @@ export const load: LayoutServerLoad = async ({ request }) => {
 
     // Get here the user role assignments
     const roleAssignments = await getRoleAssignments(session.user.id);
+    if (!roleAssignments) {
+        throw redirect(302, "/error/no_permission/");
+    }
     // Check if user has admin role
     const hasAdminRole = roleAssignments.some(assignment => assignment.role === Role.ADMIN);
     if (!hasAdminRole) {

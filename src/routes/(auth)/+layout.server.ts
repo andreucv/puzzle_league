@@ -9,15 +9,21 @@ import { getRoleAssignments } from "$lib/database";
  * If not, it redirects to the login page.
  */
 export const load: LayoutServerLoad = async ({ request }) => {
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
+    let session = null;
+    try {
+        session = await auth.api.getSession({
+            headers: request.headers,
+        });
+    } catch (error) {
+        console.error('(auth) Error fetching session:', error);
+    }
 
   /**
    * This is the important part.
    * If the user is not authenticated, redirect to the login page.
    */
   if (!session) {
+    console.error('User not authenticated');
     throw redirect(302, "/login");
   }
 

@@ -1,4 +1,5 @@
-import { CompetitionStatus, PrismaClient } from '@prisma/client';
+import { CompetitionStatus, PrismaClient, Prisma} from '@prisma/client';
+import type { Competition, Category } from '@prisma/client';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -221,52 +222,24 @@ export async function rejectRequest(requestId: string, adminId: string, rejectio
 }
 
 // Competition related functions
-export async function createCompetition(
-    name: string,
-    description: string | null,
-    startDate: Date,
-    endDate: Date,
-    leagueId: string | null,
-    categories: {
-        name: string,
-        type: string,
-        startTime: Date,
-        endTime: Date,
-        startDate: Date,
-        endDate: Date,
-        participationFee: number,
-        maxPartySize: number,
-    }[]
-) {
+export async function createCompetition(competition: Prisma.CompetitionCreateInput, categories: Array<Prisma.CategoryCreateInput>) {
     try {
         // Use a transaction to ensure data consistency
         const result = await prisma.$transaction(async (tx) => {
             // Create the competition
-            const competition = await tx.competition.create({
-                data: {
-                    name,
-                    description,
-                    startDate,
-                    endDate,
-                    status: 'UPCOMING',
-                    leagueId: leagueId || null,
-                }
+            const createdCompetition = await tx.competition.create({
+                data: competition
+            });
+
+            categories.forEach(category => {
+                category.competitionId = createdCompetition.id;
             });
 
             // Create categories for the competition
             const createdCategories = await Promise.all(
                 categories.map(async (category) => {
                     return await tx.category.create({
-                        data: {
-                            name: category.name || category.type,
-                            type: category.type as any, // Cast to CategoryType enum
-                            startTime: category.startTime,
-                            endTime: category.endTime,
-                            startDate: category.startDate,
-                            endDate: category.endDate,
-                            competitionId: competition.id,
-                            maxPartySize: category.maxPartySize,
-                        }
+                        data: category
                     });
                 })
             );
@@ -274,7 +247,7 @@ export async function createCompetition(
             console.log("database.ts: createdCategories", createdCategories);
 
             return {
-                competition,
+                competition: createdCompetition,
                 categories: createdCategories
             };
         });
@@ -306,6 +279,26 @@ export async function getCompetitionWithCategories(competitionId: number) {
         return competition;
     } catch (error) {
         console.error('Error getting competition with categories:', error);
+        throw error;
+    }
+}
+
+export async function getOrganisedCompetitions(creatorId: string) {
+    try {
+        const competitions = await prisma.competition.findMany({
+            where: { creatorId },
+            include: {
+                categories: true,
+                league: true,
+            },
+            orderBy: {
+                startDate: 'desc'
+            }
+        });
+
+        return competitions;
+    } catch (error) {
+        console.error('Error getting organised competitions:', error);
         throw error;
     }
 }
@@ -345,64 +338,6 @@ export async function updateCompetitionStatus(competitionId: number, status: 'UP
         return updatedCompetition;
     } catch (error) {
         console.error('Error updating competition status:', error);
-        throw error;
-    }
-}
-
-// Category related functions
-export async function createCategory(
-    competitionId: number,
-    type: 'INDIVIDUAL' | 'PAIRS' | 'TEAM' | 'JUNIOR_INDIVIDUAL' | 'JUNIOR_PAIRS' | 'PUZZLE_CHESS',
-    startTime: Date,
-    endTime: Date,
-    startDate: Date,
-    endDate: Date
-) {
-    try {
-        const category = await prisma.category.create({
-            data: {
-                type: type as any, // Cast to CategoryType enum
-                startTime,
-                endTime,
-                startDate,
-                endDate,
-                competitionId
-            }
-        });
-
-        return category;
-    } catch (error) {
-        console.error('Error creating category:', error);
-        throw error;
-    }
-}
-
-export async function getCategoriesByCompetition(competitionId: number) {
-    try {
-        const categories = await prisma.category.findMany({
-            where: { competitionId },
-            include: {
-                parties: {
-                    include: {
-                        users: {
-                            select: {
-                                id: true,
-                                name: true,
-                                email: true,
-                                image: true
-                            }
-                        }
-                    }
-                }
-            },
-            orderBy: {
-                startDate: 'asc'
-            }
-        });
-
-        return categories;
-    } catch (error) {
-        console.error('Error getting categories by competition:', error);
         throw error;
     }
 }

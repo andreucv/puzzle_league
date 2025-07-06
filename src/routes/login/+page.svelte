@@ -44,7 +44,6 @@
             return;
         }
         if (data) {
-            console.log(data);
             if (!data.redirect) {
                 goto("/");
             }

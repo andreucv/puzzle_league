@@ -8,7 +8,6 @@
     import {t} from '$lib/translations';
 
     const { user, roleAssignments, account} = $derived($page.data) as PageData;
-    console.log(roleAssignments);
     // Handle logout
     async function signOut() {
         await authClient.signOut({

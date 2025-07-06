@@ -22,6 +22,7 @@ model User {
   roleAssignments RoleAssignment[]
   requests        Request[]
   leaguePoints    LeaguePoints[]
+  competitions    Competition[]
 
   @@unique([email])
   @@map("user")
@@ -119,6 +120,7 @@ model Competition {
   id              Int               @id @default(autoincrement())
   name            String
   description     String?
+  location        String?
   startDate       DateTime
   endDate         DateTime
   status          CompetitionStatus @default(UPCOMING)
@@ -129,6 +131,8 @@ model Competition {
   categories      Category[]
   roleAssignments RoleAssignment[]
   requests        Request[]
+  creatorId       String
+  creator         User              @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
   @@map("competition")
 }
@@ -140,8 +144,7 @@ model Category {
   maxPartySize  Int?
   startTime     DateTime
   endTime       DateTime
-  startDate     DateTime
-  endDate       DateTime
+  maxParties    Int?
   competitionId Int
   competition   Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   parties       Party[]

@@ -1,83 +1,102 @@
 <script lang="ts">
-    import type { CategoryType } from "@prisma/client/wasm";
+    import { type Competition, type Category, type Prisma} from "@prisma/client";
     import { t } from '$lib/translations';
+    import { getPartySizeByCategoryType } from "$lib/utils/category_utils.js";
 
     let {data, form} = $props();
 
-    let selectedLeague = $state('');
-    let sameDay = $state(true);
-
-    // Form data
-    let competitionName = $state('');
-    let description = $state('');
-    let location = $state('');
-    let startDate = $state('');
-    let endDate = $state('');
+    let new_competition = $state<Prisma.CompetitionCreateInput>({
+        name: '',
+        startDate: '',
+        endDate: '',
+        creator: { connect: { id: data.user.id } }
+    });
 
     // Category configurations
-    let categoryConfigs: Array<{
-        id: string;
-        categoryType: string;
-        categoryName: string;
-        date: string;
-        startTime: string;
-        endTime: string;
-        participationFee: number;
-        maxPartySize: number;
-    }> = $state([]);
+    let category_counter = $state(0);
+    let category_map: Map<number, Prisma.CategoryUncheckedCreateInput> = $state(new Map<number, Prisma.CategoryUncheckedCreateInput>());
+
+    // some things clear:
+    // We want to store Date as datetime objects in the database
+    // Preferrably we want to store the UTC time in the database
+    // We want to display the time in the local time of the user
 
     function addCategory() {
-        const newCategory = {
-            id: Math.random().toString(36),
-            categoryType: '',
-            categoryName: '',
-            date: startDate,
-            startTime: '09:00',
-            endTime: '11:00',
-            participationFee: 0,
-            maxPartySize: 0
+        const newCategory: Prisma.CategoryUncheckedCreateInput = {
+            name: '',
+            type: 'INDIVIDUAL',
+            startTime: '',
+            endTime: '',
+            maxParties: 0,
+            maxPartySize: 1,
+            competitionId: -1
         };
-        categoryConfigs.push(newCategory);
+        const id = category_counter++;
+        category_map.set(id, newCategory);
+        category_map = new Map(category_map);
     }
 
-    function getPartySize(categoryType : CategoryType) {
-        if (categoryType === 'INDIVIDUAL' || categoryType === 'JUNIOR_INDIVIDUAL') {
-            return 1;
-        } else if (categoryType === 'PAIRS' || categoryType === 'JUNIOR_PAIRS') {
-            return 2;
-        } else if (categoryType === 'TEAM') {
-            return 4;
-        } else {
-            return 8;
+    function removeCategory(categoryId: number) {
+        category_map.delete(categoryId);
+    }
+
+    function updateCompetition(field: string, value: any) {
+        new_competition = { ...new_competition, [field]: value } as Prisma.CompetitionCreateInput;
+        if (field === 'startDate') {
+            new_competition.startDate = new Date(value);
+            new_competition.endDate   = new Date(value);
+            // Update all category dates when competition start date changes
+            updateCategoryDates(new_competition.startDate);
+        }
+        if (field === 'endDate') {
+            new_competition.endDate   = new Date(value);
         }
     }
-    function removeCategory(categoryId: string) {
-        categoryConfigs = categoryConfigs.filter(config => config.id !== categoryId);
+
+    function updateCategoryDates(dateUTC: Date) {
+        category_map.forEach((category, categoryId) => {
+            if (category.startTime) {
+                const start_hours = (new Date(category.startTime)).getHours();
+                const start_minutes = (new Date(category.startTime)).getMinutes();
+                category.startTime = (new Date(new Date(dateUTC).setHours(start_hours, start_minutes)));
+            }
+            if (category.endTime) {
+                const end_hours = (new Date(category.endTime)).getHours();
+                const end_minutes = (new Date(category.endTime)).getMinutes();
+                category.endTime = (new Date(new Date(dateUTC).setHours(end_hours, end_minutes)));
+            }
+            category_map.set(categoryId, category);
+        });
+        category_map = new Map(category_map); // This triggers reactivity
     }
 
-    function updateCategoryConfig(categoryId: string, field: string, value: any) {
-        categoryConfigs = categoryConfigs.map(config => {
-            if (config.id === categoryId) {
-                let updatedConfig = { ...config, [field]: value };
+    function updateCategory(categoryId: number, field: string, value: any) {
+        if (category_map.has(categoryId)) {
+            let updatedCategory = { ...category_map.get(categoryId), [field]: value } as Prisma.CategoryUncheckedCreateInput;
 
-                // Update maxPartySize when categoryType changes
-                if (field === 'categoryType') {
-                    updatedConfig.maxPartySize = getPartySize(value);
+            // Update maxPartySize when type changes
+            if (field === 'type') {
+                updatedCategory.maxPartySize = getPartySizeByCategoryType(value);
+            }
+
+            try {
+                if (field === 'startTime') {
+                    const categoryStartTime = new Date(new Date(new_competition.startDate as Date).setHours(parseInt(value.split(':')[0]), parseInt(value.split(':')[1])));
+                    updatedCategory.startTime = categoryStartTime
                 }
 
-                return updatedConfig;
+                if (field === 'endTime') {
+                    const categoryEndTime = new Date(new Date(new_competition.startDate as Date).setHours(parseInt(value.split(':')[0]), parseInt(value.split(':')[1])));
+                    updatedCategory.endTime = categoryEndTime
+                }
+            } catch (e) {
+                console.error(e);
             }
-            return config;
-        });
+            category_map.set(categoryId, updatedCategory);
+            category_map = new Map(category_map); // This triggers reactivity
+        }
+        console.log(category_map);
     }
-
-    // Update selectedCategories to reflect current categoryConfigs
-    let selectedCategories = $derived(
-        categoryConfigs
-            .filter(config => config.categoryType)
-            .map(config => config.categoryType)
-    );
-
 </script>
 
 <h4>{$t('create_competition.title')}</h4>
@@ -87,7 +106,7 @@
     </div>
     {/if}
     {#if form?.success === true}
-    <div class="alert preset-filled-success-500 mt-4">
+    <div class="alert preset-filled-success-500 rounded mt-4 p-2">
         <p>{form.message}</p>
         <p>Go to competition <a href={`/competitions/competition_details/${form.competitionId}`}>here</a>.</p>
     </div>
@@ -101,7 +120,7 @@
                 <input
                     type="text"
                     name="competition_name"
-                    bind:value={competitionName}
+                    onchange={(e) => updateCompetition('name', e.currentTarget.value)}
                     placeholder="Enter competition name"
                     required
                 />
@@ -114,7 +133,7 @@
                 <input
                     type="text"
                     name="location"
-                    bind:value={location}
+                    onchange={(e) => updateCompetition('location', e.currentTarget.value)}
                     placeholder="Enter venue location"
                 />
             </label>
@@ -123,7 +142,7 @@
                 <span class="text-sm font-medium">Description</span>
                 <input
                     name="description"
-                    bind:value={description}
+                    onchange={(e) => updateCompetition('description', e.currentTarget.value)}
                     placeholder="Describe your competition..."
                 />
             </label>
@@ -152,7 +171,7 @@
                     <input
                         type="date"
                         name="start_date"
-                        bind:value={startDate}
+                        onchange={(e) => updateCompetition('startDate', e.currentTarget.value)}
                         required
                     />
                 </label>
@@ -162,8 +181,8 @@
                     <input
                         type="date"
                         name="end_date"
-                        bind:value={endDate}
-                        min={startDate}
+                        onchange={(e) => updateCompetition('endDate', e.currentTarget.value)}
+                        min={new_competition.startDate.toString()}
                     />
                 </label>
             </div>
@@ -184,7 +203,7 @@
         </div>
 
         <div class="space-y-4 mt-4">
-            {#each categoryConfigs as category (category.id)}
+            {#each category_map.entries() as [categoryId, category]}
                 <div class="relative group">
                     <div class="absolute inset-0 bg-linear-to-r from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none"></div>
                     <div class="relative p-4 border-2 border-surface-200-700 rounded-lg transition-all duration-200 hover:border-surface-300-600">
@@ -192,7 +211,7 @@
                         <button
                             type="button"
                             class="absolute top-2 right-2 btn btn-sm preset-tonal-error border border-error-500 opacity-60 hover:opacity-100 transition-opacity"
-                            onclick={() => removeCategory(category.id)}
+                            onclick={() => removeCategory(categoryId)}
                         >
                             <span>🗑️</span>
                         </button>
@@ -201,44 +220,27 @@
                             <label class="label">
                                 <span class="text-sm font-medium">Category Type *</span>
                                 <select
-                                    value={category.categoryType}
-                                    onchange={(e) => updateCategoryConfig(category.id, 'categoryType', e.currentTarget.value)}
+                                    value={category.type}
+                                    onchange={(e) => updateCategory(categoryId, 'type', e.currentTarget.value)}
                                     required
                                 >
                                     <option value="">Select a category type</option>
-                                    {#each data.props.categories as categoryType}
-                                        <option
-                                            value={categoryType}
-                                            disabled={selectedCategories.includes(categoryType) && category.categoryType !== categoryType}
-                                        >
-                                            {categoryType.replace(/_/g, ' ')}
+                                    {#each Object.entries(data.props.categoryTypes || {}) as [categoryType, categoryName]}
+                                        <option value={categoryName}>
+                                            {categoryName.replace(/_/g, ' ')}
                                         </option>
                                     {/each}
                                 </select>
                             </label>
                         </div>
 
-                        {#if category.categoryType}
+                        {#if category.type !== null}
                             <div class="grid grid-cols-2 gap-4">
-                                {#if !sameDay}
-                                    <label class="label col-span-2">
-                                        <span class="text-sm">Date</span>
-                                        <input
-                                            type="date"
-                                            value={category.date}
-                                            onchange={(e) => updateCategoryConfig(category.id, 'date', e.currentTarget.value)}
-                                            min={startDate}
-                                            max={endDate || startDate}
-                                        />
-                                    </label>
-                                {/if}
-
                                 <label class="label">
                                     <span class="text-sm">Start Time</span>
                                     <input
                                         type="time"
-                                        value={category.startTime}
-                                        onchange={(e) => updateCategoryConfig(category.id, 'startTime', e.currentTarget.value)}
+                                        onchange={(e) => updateCategory(categoryId, 'startTime', e.currentTarget.value)}
                                     />
                                 </label>
 
@@ -246,19 +248,18 @@
                                     <span class="text-sm">End Time</span>
                                     <input
                                         type="time"
-                                        value={category.endTime}
-                                        onchange={(e) => updateCategoryConfig(category.id, 'endTime', e.currentTarget.value)}
+                                        onchange={(e) => updateCategory(categoryId, 'endTime', e.currentTarget.value)}
                                     />
                                 </label>
 
                                 <label class="label col-span-2">
-                                    <span class="text-sm">Participation Fee (Eur)</span>
+                                    <span class="text-sm">Max Parties</span>
                                     <input
                                         type="number"
-                                        value={category.participationFee}
-                                        onchange={(e) => updateCategoryConfig(category.id, 'participationFee', parseFloat(e.currentTarget.value))}
+                                        value={category.maxParties}
+                                        onchange={(e) => updateCategory(categoryId, 'maxParties', parseInt(e.currentTarget.value))}
                                         min="0"
-                                        step="0.01"
+                                        step="1"
                                     />
                                 </label>
                             </div>
@@ -267,7 +268,7 @@
                 </div>
             {/each}
 
-            {#if categoryConfigs.length === 0}
+            {#if category_map.size === 0}
                 <div class="text-center py-8 px-4 bg-surface-200-700 border-2 border-dashed border-surface-300-600 rounded-lg">
                     <p class="text-surface-600 dark:text-surface-400 mb-4">No categories added yet</p>
                     <button
@@ -284,8 +285,8 @@
     </section>
 
     <!-- Hidden inputs for category data -->
-    <input type="hidden" name="selected_categories" value={JSON.stringify(selectedCategories)} />
-    <input type="hidden" name="category_configs" value={JSON.stringify(categoryConfigs.map(({ categoryType, ...rest }) => ({ ...rest, type: categoryType })))} />
+    <input type="hidden" name="new_competition" value={JSON.stringify(new_competition)} />
+    <input type="hidden" name="new_categories" value={JSON.stringify(Array.from(category_map.values()).map(({ type, ...rest }) => ({ ...rest, type })))} />
 
     <!-- Submit Button -->
     <div class="flex justify-end gap-4 pt-4 border-t-2 border-surface-200-700">
@@ -293,7 +294,7 @@
         <button
             type="submit"
             class="btn preset-filled-primary-500 btn-lg"
-            disabled={!competitionName  || categoryConfigs.length == 0}
+            disabled={!new_competition.name  || category_map.size === 0}
         >
             <span>Create Competition</span>
         </button>

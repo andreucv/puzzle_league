@@ -15,7 +15,7 @@ export const load = async ({ url, cookies, locals, request }) => {
             headers: request.headers,
         });
     } catch (error) {
-        console.error("Error fetching user session:", error);
+        console.error("(routes layout.server.ts) Error fetching user session:", error);
     }
     // Get the locales and translations for the current route
     const { pathname } = url;

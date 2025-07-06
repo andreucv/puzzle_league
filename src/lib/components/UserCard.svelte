@@ -148,10 +148,10 @@
         <div class="grid grid-cols-2 gap-4 items-center">
             <div>
                 <span class="text-sm font-semibold text-surface-500">Profile Visibility</span>
-                <p class="text-sm">Public</p>
+                <p class="text-sm">Disabled</p>
             </div>
             <div class="flex justify-end">
-                <button class="btn btn-sm preset-outlined-surface-500">Change</button>
+                <button class="btn btn-sm preset-outlined-surface-500" disabled>Change</button>
             </div>
         </div>
         <div class="grid grid-cols-2 gap-4 items-center">

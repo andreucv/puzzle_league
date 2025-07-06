@@ -1,6 +1,5 @@
 <script lang="ts">
   import Icon from '@iconify/svelte';
-import { Switch } from '@skeletonlabs/skeleton-svelte';
 
   let checked = $state(false);
 

@@ -43,39 +43,31 @@
     function updateCompetition(field: string, value: any) {
         new_competition = { ...new_competition, [field]: value } as Prisma.CompetitionCreateInput;
         if (field === 'startDate') {
-            console.log("updateCompetition startDate param: ", value)
             new_competition.startDate = new Date(value);
             new_competition.endDate   = new Date(value);
-            console.log("updateCompetition startDate: startDate", new_competition.startDate);
-            console.log("updateCompetition startDate: endDate", new_competition.endDate);
             // Update all category dates when competition start date changes
             updateCategoryDates(new_competition.startDate);
         }
-        console.log("after updateCompetition startDate: new_competition", $state.snapshot(new_competition));
-        console.log("after updateCompetition startDate: category_map", category_map);
+        if (field === 'endDate') {
+            new_competition.endDate   = new Date(value);
+        }
     }
 
     function updateCategoryDates(dateUTC: Date) {
-        console.log("updateCategoryDates: dateUTC", dateUTC);
         category_map.forEach((category, categoryId) => {
             if (category.startTime) {
-                console.log('startTime', category.startTime);
                 const start_hours = (new Date(category.startTime)).getHours();
                 const start_minutes = (new Date(category.startTime)).getMinutes();
                 category.startTime = (new Date(new Date(dateUTC).setHours(start_hours, start_minutes)));
-                console.log('updated startTime', category.startTime);
             }
             if (category.endTime) {
-                console.log('endTime', category.endTime);
                 const end_hours = (new Date(category.endTime)).getHours();
                 const end_minutes = (new Date(category.endTime)).getMinutes();
                 category.endTime = (new Date(new Date(dateUTC).setHours(end_hours, end_minutes)));
-                console.log('updated endTime', category.endTime);
             }
             category_map.set(categoryId, category);
         });
         category_map = new Map(category_map); // This triggers reactivity
-        console.log("after updateCategoryDates: category_map", category_map);
     }
 
     function updateCategory(categoryId: number, field: string, value: any) {
@@ -89,16 +81,12 @@
 
             try {
                 if (field === 'startTime') {
-                    console.log('startTime', value);
                     const categoryStartTime = new Date(new Date(new_competition.startDate as Date).setHours(parseInt(value.split(':')[0]), parseInt(value.split(':')[1])));
-                    console.log('categoryStartTime', categoryStartTime);
                     updatedCategory.startTime = categoryStartTime
                 }
 
                 if (field === 'endTime') {
-                    console.log('startTime', value);
                     const categoryEndTime = new Date(new Date(new_competition.startDate as Date).setHours(parseInt(value.split(':')[0]), parseInt(value.split(':')[1])));
-                    console.log('categoryEndTime', categoryEndTime);
                     updatedCategory.endTime = categoryEndTime
                 }
             } catch (e) {
@@ -188,15 +176,15 @@
                     />
                 </label>
 
-                <!-- <label class="label flex-1">
+                <label class="label flex-1">
                     <span class="text-sm font-medium mb-2">End Date</span>
                     <input
                         type="date"
                         name="end_date"
-                        onchange={(e) => updateCompetition('endDate', new Date(e.currentTarget.value))}
+                        onchange={(e) => updateCompetition('endDate', e.currentTarget.value)}
                         min={new_competition.startDate.toString()}
                     />
-                </label> -->
+                </label>
             </div>
         </div>
     </section>

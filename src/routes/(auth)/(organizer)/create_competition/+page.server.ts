@@ -78,7 +78,12 @@ const create_competition: Action = async ({ locals, request, url }) => {
     try {
         // Create competition with categories
         const result = await createCompetition(competition, categories);
-
+        if (!result.success) {
+            return fail(400, {
+                success: false,
+                message: "An error occurred while creating the competition."
+            });
+        }
         // Return success with competition details
         return {
             success: true,

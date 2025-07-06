@@ -34,4 +34,7 @@ test('GivenCreateCompetitionPage_WhenOrganizerCreatesCompetition_ThenOrganizerIs
     await expect(page.getByText(competitionData.name).first()).toBeVisible();
     await expect(page.getByText(competitionData.description).first()).toBeVisible();
     await expect(page.locator('span').filter({ hasText: competitionData.venue }).first()).toBeVisible();
+
+    await expect(page.getByText('Individual Start: 10:00 End: 12:')).toBeVisible();
+    await expect(page.getByText('Team Start: 15:00 End: 17:')).toBeVisible();
 });

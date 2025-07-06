@@ -36,3 +36,6 @@ dev.*
 
 # Chrome devtools files
 com.chrome.devtools.json
+
+# Github related things
+.github/chatmodes/

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { t } from '$lib/translations';
+    import Icon from '@iconify/svelte';
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
 
     let { data } = $props();
@@ -24,8 +25,8 @@
 
 {#if data.user}
     <h4>Your upcoming competitions</h4>
-    <div class="container mx-auto">
-        <section class="space-y-4 mb-8">
+    <div class="container mx-auto space-y-4">
+        <section class="space-y-4">
             {#if data?.props?.upcomingRegisteredCompetitions != null && data?.props?.upcomingRegisteredCompetitions?.length > 0}
                 <div class="flex overflow-x-auto gap-2 pb-4">
                     {#each data?.props?.upcomingRegisteredCompetitions as competition}
@@ -104,50 +105,56 @@
         </section>
 
         {#if hasOrganizerRole}
+        <section>
+            <h4 class="h4">Organizer Actions</h4>
             <section class="space-y-4">
-                <h2 class="h2 text-center">Organizer Actions</h2>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- <a href="/my-organized-competitions" class="card card-hover preset-tonal-success">
-                        <header class="card-header">
-                            <h3 class="h3">My Organized Competitions</h3>
-                        </header>
-                        <section class="p-2">
-                            <p class="text-sm">Manage competitions you've created and monitor participants</p>
-                        </section>
-                    </a> -->
-
-                    <a href="/create_competition">
-                        <div class="card card-hover">
-                        <header class="card-header">
-                            <h3 class="h3">Create New Competition</h3>
-                        </header>
-                        <section class="p-2">
-                            <p class="text-sm">Set up a new puzzle competition with custom rules and formats</p>
-                        </section>
+                    <a href="/my_organized_competitions" class="card card-hover">
+                        <div class="flex items-center gap-4 p-4">
+                            <div class="flex-shrink-0">
+                                <Icon icon="mdi:trophy" class="w-8 h-8"></Icon>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold">My Organized Competitions</h3>
+                                <p class="text-sm opacity-75">Manage competitions you've created and monitor participants</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/create_competition" class="card card-hover">
+                        <div class="flex items-center gap-4 p-4">
+                            <div class="flex-shrink-0">
+                                <Icon icon="mdi:newspaper-plus" class="w-8 h-8"></Icon>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold">Create New Competition</h3>
+                                <p class="text-sm opacity-75">Set up a new puzzle competition with custom rules and formats</p>
+                            </div>
                         </div>
                     </a>
                 </div>
             </section>
+        </section>
         {/if}
 
         {#if hasAdminRole}
+        <section>
+            <h4 class="h4">Admin Actions</h4>
             <section class="space-y-4">
-                <h2 class="h2 text-center">Admin Actions</h2>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <a href="/admin/requests">
-                    <div class="card card-hover preset-tonal-primary">
-                        <header class="card-header">
-                            <h3 class="h3">Review Permissions Requests</h3>
-                        </header>
-                        <section class="p-2">
-                            <p class="text-sm">Review and approve pending permissions requests</p>
-                        </section>
-                    </div>
+                    <a href="/admin/requests" class="card card-hover">
+                        <div class="flex items-center gap-4 p-4">
+                            <div class="flex-shrink-0">
+                                <Icon icon="mdi:magnify" class="w-8 h-8"></Icon>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold">Review Permissions Requests</h3>
+                                <p class="text-sm opacity-75">Review and approve pending permissions requests</p>
+                            </div>
+                        </div>
                     </a>
                 </div>
             </section>
+        </section>
         {/if}
     </div>
 {:else}

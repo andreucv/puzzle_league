@@ -283,6 +283,26 @@ export async function getCompetitionWithCategories(competitionId: number) {
     }
 }
 
+export async function getOrganisedCompetitions(creatorId: string) {
+    try {
+        const competitions = await prisma.competition.findMany({
+            where: { creatorId },
+            include: {
+                categories: true,
+                league: true,
+            },
+            orderBy: {
+                startDate: 'desc'
+            }
+        });
+
+        return competitions;
+    } catch (error) {
+        console.error('Error getting organised competitions:', error);
+        throw error;
+    }
+}
+
 export async function getAllCompetitions() {
     try {
         const competitions = await prisma.competition.findMany({
@@ -318,64 +338,6 @@ export async function updateCompetitionStatus(competitionId: number, status: 'UP
         return updatedCompetition;
     } catch (error) {
         console.error('Error updating competition status:', error);
-        throw error;
-    }
-}
-
-// Category related functions
-export async function createCategory(
-    competitionId: number,
-    type: 'INDIVIDUAL' | 'PAIRS' | 'TEAM' | 'JUNIOR_INDIVIDUAL' | 'JUNIOR_PAIRS' | 'PUZZLE_CHESS',
-    startTime: Date,
-    endTime: Date,
-    startDate: Date,
-    endDate: Date
-) {
-    try {
-        const category = await prisma.category.create({
-            data: {
-                type: type as any, // Cast to CategoryType enum
-                startTime,
-                endTime,
-                startDate,
-                endDate,
-                competitionId
-            }
-        });
-
-        return category;
-    } catch (error) {
-        console.error('Error creating category:', error);
-        throw error;
-    }
-}
-
-export async function getCategoriesByCompetition(competitionId: number) {
-    try {
-        const categories = await prisma.category.findMany({
-            where: { competitionId },
-            include: {
-                parties: {
-                    include: {
-                        users: {
-                            select: {
-                                id: true,
-                                name: true,
-                                email: true,
-                                image: true
-                            }
-                        }
-                    }
-                }
-            },
-            orderBy: {
-                startDate: 'asc'
-            }
-        });
-
-        return categories;
-    } catch (error) {
-        console.error('Error getting categories by competition:', error);
         throw error;
     }
 }

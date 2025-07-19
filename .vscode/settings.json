@@ -2,5 +2,14 @@
     "i18n-ally.localesPaths": [
         "src/lib/translations"
     ],
-    "i18n-ally.keystyle": "nested"
+    "i18n-ally.keystyle": "nested",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/node_modules": true,
+        "**/.svelte-kit": true,
+        "**/.vercel": true,
+        "**/test-results": true,
+    },
 }

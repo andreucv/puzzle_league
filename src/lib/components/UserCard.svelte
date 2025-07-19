@@ -57,7 +57,7 @@
                 <p class="text-sm">{displayName}</p>
             </div>
             <div class="flex justify-end">
-                <button class="btn btn-sm preset-outlined-surface-500">Change</button>
+                <button class="btn btn-sm preset-outlined-surface-500" disabled>Change</button>
             </div>
         </div>
 
@@ -68,7 +68,7 @@
                 <p class="text-sm">••••••••</p>
             </div>
             <div class="flex justify-end">
-                <button class="btn btn-sm preset-outlined-surface-500">Change</button>
+                <button class="btn btn-sm preset-outlined-surface-500" disabled>Change</button>
             </div>
         </div>
 
@@ -129,7 +129,7 @@
                 <p class="text-sm">English</p>
             </div>
             <div class="flex justify-end">
-                <button class="btn btn-sm preset-outlined-surface-500">Change</button>
+                <button class="btn btn-sm preset-outlined-surface-500" disabled>Change</button>
             </div>
         </div>
 
@@ -160,7 +160,7 @@
                 <p class="text-sm">24-hour</p>
             </div>
             <div class="flex justify-end">
-                <button class="btn btn-sm preset-outlined-surface-500">Change</button>
+                <button class="btn btn-sm preset-outlined-surface-500" disabled>Change</button>
             </div>
         </div>
     </div>

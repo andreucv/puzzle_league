@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.use({ storageState: "playwright/.auth/organizer_user.json" });
 
-test('GivenCreateCompetitionPage_WhenOrganizerCreatesCompetition_ThenOrganizerIsAbleToCheckCompetition', async ({ page }) => {
+test('GivenNoCompetition_WhenOrganizerCreatesCompetition_ThenCompetitionIsCreated', async ({ page }) => {
     const competitionData = {
         name: 'TestName',
         venue: 'TestVenue',
@@ -36,4 +36,11 @@ test('GivenCreateCompetitionPage_WhenOrganizerCreatesCompetition_ThenOrganizerIs
 
     await expect(page.getByText('Individual Start: 10:00 End: 12:')).toBeVisible();
     await expect(page.getByText('Team Start: 15:00 End: 17:')).toBeVisible();
+
+    await expect(page.getByRole('button', { name: 'Edit Inscription' }).first()).toBeVisible();
+    await page.getByRole('button', { name: 'Edit Inscription' }).first().click();
+    await page.getByRole('button', { name: 'Submit Inscriptions' }).first().click();
+    await expect(page.getByText('Registered').first()).toBeVisible();
 });
+
+// TODO: Tests for signup now is done in competition_details

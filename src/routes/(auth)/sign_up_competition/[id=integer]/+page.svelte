@@ -321,25 +321,25 @@ that are available in a competition -->
                     {#if showSearchResultsByCategory[category.id] && searchResultsByCategory[category.id]?.length > 0}
                     <div class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto">
                         {#each searchResultsByCategory[category.id] as user}
-                        <button
-                        type="button"
-                        onclick={() => addTeammate(user, category.id)}
-                        class="w-full p-2 text-left hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 last:border-b-0"
-                        >
-                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span class="text-blue-700 font-semibold text-xs">
-                                {user.name?.charAt(0).toUpperCase()}
-                            </span>
-                        </div>
-                        <div class="text-sm">
-                            <div class="font-medium text-gray-900">{user.name}</div>
-                            {#if user.email}
-                            <div class="text-xs text-gray-500">{user.email}</div>
-                            {/if}
-                        </div>
-                    </button>
-                    {/each}
-                </div>
+                            <button
+                            type="button"
+                            onclick={() => addTeammate(user, category.id)}
+                            class="w-full p-2 text-left hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 last:border-b-0"
+                            >
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <span class="text-blue-700 font-semibold text-xs">
+                                        {user.name?.charAt(0).toUpperCase()}
+                                    </span>
+                                </div>
+                                <div class="text-sm">
+                                    <div class="font-medium text-gray-900">{user.name}</div>
+                                    {#if user.email}
+                                    <div class="text-xs text-gray-500">{user.email}</div>
+                                    {/if}
+                                </div>
+                            </button>
+                        {/each}
+                    </div>
                 {/if}
 
                 {#if showSearchResultsByCategory[category.id] && (searchQueryByCategory[category.id] || '').length >= 2 && searchResultsByCategory[category.id]?.length === 0 && !isSearchingByCategory[category.id]}

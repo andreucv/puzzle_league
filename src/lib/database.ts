@@ -25,7 +25,7 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
     const whereClause: any = {
         categories: {
             some: {
-                parties: {
+                entries: {
                     some: {
                         users: {
                             some: {
@@ -47,7 +47,7 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
         include: {
             categories: {
                 include: {
-                    parties: {
+                    entries: {
                         where: {
                             users: {
                                 some: {
@@ -437,7 +437,7 @@ export async function signUpUsersToCompetition(
         }
 
         const result = await prisma.$transaction(async (tx) => {
-            const createdParties = [];
+            const createdRegisters = [];
 
             // Get all category IDs to fetch in one query
             const categoryIds = categorySignups.map(signup => signup.categoryId);
@@ -447,7 +447,7 @@ export async function signUpUsersToCompetition(
                 where: { id: { in: categoryIds } },
                 include: {
                     competition: true,
-                    parties: {
+                    registers: {
                         where: {
                             users: {
                                 some: { id: currentUserId }
@@ -465,7 +465,7 @@ export async function signUpUsersToCompetition(
             }
 
             // Check for duplicate registrations
-            const alreadyRegistered = categories.filter(cat => cat.parties.length > 0);
+            const alreadyRegistered = categories.filter(cat => cat.registers.length > 0);
             if (alreadyRegistered.length > 0) {
                 const categoryNames = alreadyRegistered.map(c => c.name || c.type);
                 throw new Error(`Already registered for categories: ${categoryNames.join(', ')}`);
@@ -505,7 +505,7 @@ export async function signUpUsersToCompetition(
                 }
 
                 // Create the party
-                const party = await tx.party.create({
+                const register = await tx.register.create({
                     data: {
                         categoryId: signup.categoryId,
                         users: {
@@ -534,10 +534,10 @@ export async function signUpUsersToCompetition(
                     }
                 });
 
-                createdParties.push(party);
+                createdRegisters.push(register);
             }
 
-            return createdParties;
+            return createdRegisters;
         });
 
         return {
@@ -555,9 +555,9 @@ export async function signUpUsersToCompetition(
     }
 }
 
-export async function getPartiesFromCompetition(competitionId: number, userId: string) {
+export async function getCategoryEntriesFromCompetition(competitionId: number, userId: string) {
     try {
-        const parties = await prisma.party.findMany({
+        const entries = await prisma.entry.findMany({
             where: {
                 category: {
                     competitionId
@@ -590,7 +590,7 @@ export async function getPartiesFromCompetition(competitionId: number, userId: s
             }
         });
 
-        return parties;
+        return entries;
     } catch (error) {
         console.error('Error getting parties from competition:', error);
         throw error;
@@ -599,7 +599,7 @@ export async function getPartiesFromCompetition(competitionId: number, userId: s
 
 export async function removeUserFromCategory(categoryId: number, userId: string) {
     try {
-        const result = await prisma.party.deleteMany({
+        const result = await prisma.entry.deleteMany({
             where: {
                 categoryId,
                 users: {
@@ -614,6 +614,120 @@ export async function removeUserFromCategory(categoryId: number, userId: string)
     } catch (error) {
         console.error('Error removing user from category:', error);
         throw error;
+    }
+}
+
+export async function createEntries(entriesData: Prisma.EntryCreateInput[]) {
+    try {
+        if (!entriesData.length) {
+            return { success: false, error: 'No entries to create' };
+        }
+        console.log("database.ts: entriesData", entriesData);
+        const result = await prisma.$transaction(async (tx) => {
+            const createdEntries = [];
+
+            for (const entryData of entriesData) {
+                // Validate the entry data
+                if (!entryData.category?.connect?.id || !entryData.users?.connect || !entryData.creator.id) {
+                    throw new Error('Invalid entry data: missing required fields');
+                }
+
+                const categoryId = entryData.category.connect.id;
+                const userIds = entryData.users.connect.map(u => u.id);
+                const creatorId = entryData.creator.id;
+
+                // Check if category exists and get its constraints
+                const category = await tx.category.findUnique({
+                    where: { id: categoryId },
+                    include: { competition: true }
+                });
+
+                if (!category) {
+                    throw new Error(`Category with id ${categoryId} not found`);
+                }
+
+                // Check if users already registered for this category
+                const existingEntry = await tx.entry.findFirst({
+                    where: {
+                        categoryId: categoryId,
+                        users: {
+                            some: {
+                                id: { in: userIds }
+                            }
+                        }
+                    }
+                });
+
+                if (existingEntry) {
+                    throw new Error(`One or more users are already registered for category ${category.name || category.type}`);
+                }
+
+                // Validate party size
+                if (category.maxPartySize && userIds.length != category.maxPartySize) {
+                    throw new Error(`Party size (${userIds.length}) exceeds maximum for category ${category.name || category.type} (${category.maxPartySize})`);
+                }
+
+                // Check if competition is still accepting registrations
+                if (category.competition.status !== 'UPCOMING') {
+                    throw new Error(`Registration closed for competition: ${category.competition.name}`);
+                }
+
+                // Check if competition registration is not complete
+                // if (category.maxParties && category.entries.length >= category.maxParties) {
+                //     throw new Error(`Maximum number of parties reached for category ${category.name || category.type}`);
+                // }
+
+                // Validate all users exist
+                const existingUsers = await tx.user.findMany({
+                    where: { id: { in: userIds } },
+                    select: { id: true }
+                });
+
+                if (existingUsers.length !== userIds.length) {
+                    const foundUserIds = existingUsers.map(u => u.id);
+                    const missingUserIds = userIds.filter(id => !foundUserIds.includes(id));
+                    throw new Error(`Users not found: ${missingUserIds.join(', ')}`);
+                }
+                // Create the entry
+                const entry = await tx.entry.create({
+                    data: {
+                        categoryId: categoryId,
+                        creatorId: creatorId,
+                        users: {
+                            connect: userIds.map((id: string) => ({ id }))
+                        }
+                    },
+                    include: {
+                        users: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                image: true
+                            }
+                        },
+                        category: true,
+                    }
+                });
+
+                createdEntries.push(entry);
+            }
+
+            return createdEntries;
+        });
+
+        return {
+            success: true,
+            data: result,
+            message: `Successfully created ${result.length} entries`
+        };
+    } catch (error) {
+        console.error('Error creating entries:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error occurred',
+            data: null
+        };
     }
 }
 

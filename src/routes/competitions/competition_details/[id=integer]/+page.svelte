@@ -2,10 +2,29 @@
     import Icon from '@iconify/svelte';
     import { formatTime } from '$lib/utils/datetime_utils';
     import { getCategoryTypeName } from '$lib/utils/category_utils';
-    import { enhance } from '$app/forms';
+    import type { Category, User, Prisma } from '@prisma/client';
+    import SignUpToCategory from '$lib/components/SignUpToCategory.svelte';
+    import ShowRegisteredToCategory from '$lib/components/ShowRegisteredToCategory.svelte';
 
     let { data } = $props();
     console.log("competition_details +page.svelte: data", data);
+    console.log("competition_details +page.svelte: entries", data.props.entries);
+    let categoryUsersDataToCreate = $state<Record<number, User[]>>({});
+    if (data.props.competition_and_categories?.categories.length > 0) {
+        const newCategoryUsersData : Record<number, User[]> = {};
+        const categories = data.props.competition_and_categories.categories;
+        categories.forEach(category => {
+            newCategoryUsersData[category.id] = [];
+        });
+        categoryUsersDataToCreate = newCategoryUsersData;
+    }
+
+    $effect(() => {
+        console.log("competition_details +page.svelte: data changed", $state.snapshot(categoryUsersDataToCreate));
+    });
+
+    const currentUser = data.user;
+    const entries = data.props.entries;
 
     const competition = data.props.competition_and_categories;
     const competitionName = competition?.name;
@@ -22,15 +41,54 @@
     const monthAbbreviation = competition_startDate.toLocaleString('default', { month: 'short' });
     const year = competition_startDate.getFullYear();
 
-    // Helper function to get user registration for a specific category
-    function getUserRegistrationForCategory(categoryId: number) {
-        if (!data.props.registers) return null;
-        return data.props.registers.find(register => register.categoryId === categoryId);
+    function notRegistered(category : Category) {
+        if (data.props.entries === undefined) return true;
+        return !data.props.entries.some(entries => entries.categoryId === category.id);
     }
 
-    // Helper function to check if category is individual
-    function isIndividualCategory(categoryType: string) {
-        return categoryType.includes('INDIVIDUAL');
+    function anyCategoryFilled() {
+        return Object.values(categoryUsersDataToCreate).some(users => users.length > 0);
+    }
+
+    function allCategoriesCompleteOrEmpty() {
+        const bool = Object.entries(categoryUsersDataToCreate).every(([categoryId, users]) => {
+            const category = categories.find(cat => cat.id === parseInt(categoryId));
+            return category && (users.length === category.maxPartySize || users.length === 0);
+        });
+        console.log("competition_details +page.svelte: allCategoriesCompleteOrEmpty", bool);
+        return bool;
+    }
+
+    function handleSubmitInscriptions() {
+        console.log("competition_details +page.svelte: handleSubmitInscriptions", categoryUsersDataToCreate);
+        let entries : Prisma.EntryCreateInput[] = [];
+        Object.entries(categoryUsersDataToCreate).forEach(([categoryId, users]) => {
+            if (users.length > 0) {
+                entries.push({
+                    creator: currentUser,
+                    category: {
+                        connect: { id: parseInt(categoryId) }
+                    },
+                    users: {
+                        connect: users.map(user => ({ id: user.id }))
+                    },
+                });
+            }
+        });
+
+        // Submit the form with the entries data
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `?/save_entries`;
+
+        const entriesInput = document.createElement('input');
+        entriesInput.type = 'hidden';
+        entriesInput.name = 'entries';
+        entriesInput.value = JSON.stringify(entries);
+        form.appendChild(entriesInput);
+
+        document.body.appendChild(form);
+        form.submit();
     }
 </script>
 
@@ -114,64 +172,22 @@
                             </div>
                         </div>
 
-                        <!-- Registration Status Display -->
-                        {#if competitionStatus === 'UPCOMING' && data.props.registers !== undefined}
-                            {@const userRegistration = getUserRegistrationForCategory(category.id)}
-                            {#if userRegistration}
-                                <div class="mt-4 p-3 bg-success-50 border border-success-200 rounded-lg">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <div class="flex items-center gap-2">
-                                            <Icon icon="mdi:check-circle" width="1.2rem" height="1.2rem" class="text-success-600" />
-                                            <span class="text-sm font-medium text-success-800">Registered</span>
-                                        </div>
-                                        <!-- Remove Registration Button -->
-                                        <form method="post" action="?/remove_party" use:enhance>
-                                            <input type="hidden" name="category_id" value={category.id} />
-                                            <input type="hidden" name="user_id" value={data.user?.id} />
-                                            <button
-                                                type="submit"
-                                                class="btn btn-sm preset-filled-error-500 hover:preset-filled-error-600 transition-colors"
-                                                title="Remove registration"
-                                            >
-                                                <Icon icon="mdi:close" width="1rem" height="1rem" />
-                                                Remove
-                                            </button>
-                                        </form>
-                                    </div>
-
-                                    <!-- Display team members -->
-                                    <div class="space-y-2">
-                                        {#if isIndividualCategory(category.type)}
-                                            <div class="badge preset-filled-primary-500">
-                                                You are registered
-                                            </div>
-                                        {:else}
-                                            <div class="text-xs text-success-700 mb-1">Team Members:</div>
-                                            <div class="flex flex-wrap gap-1">
-                                                {#each userRegistration.users as user}
-                                                    <div class="badge preset-filled-primary-500 text-xs flex items-center gap-1">
-                                                        {#if user.image}
-                                                            <img src={user.image} alt={user.name} class="w-4 h-4 rounded-full" />
-                                                        {:else}
-                                                            <Icon icon="mdi:account-circle" width="1rem" height="1rem" />
-                                                        {/if}
-                                                        {user.name}
-                                                    </div>
-                                                {/each}
-                                            </div>
-                                        {/if}
-                                    </div>
-                                </div>
-                            {/if}
+                        <!-- Sign Up Button -->
+                        {#if notRegistered(category) }
+                            <SignUpToCategory {category} {currentUser} bind:choosed_participants={categoryUsersDataToCreate[category.id]}/>
+                        {:else}
+                            <ShowRegisteredToCategory {category} entry={entries?.find(entry => entry.categoryId === category.id)} {currentUser} />
                         {/if}
                     </div>
                 {/each}
             </div>
-        {:else}
-            <div class="card preset-filled-surface-100-900 p-8 text-center">
-                <Icon icon="mdi:alert-circle-outline" width="3rem" height="3rem" class="mx-auto mb-2 text-surface-500" />
-                <p class="text-surface-600-400">No categories have been added to this competition yet.</p>
-            </div>
+            {#if anyCategoryFilled()}
+                <div class="mt-4 flex justify-center">
+                    <button class="btn preset-filled-success-500 preset-outlined-success-500" disabled={!allCategoriesCompleteOrEmpty()} on:click={handleSubmitInscriptions}>
+                        Submit Inscriptions
+                    </button>
+                </div>
+            {/if}
         {/if}
     </div>
 
@@ -180,10 +196,6 @@
         <a href="/competitions" class="btn preset-tonal">
             <Icon icon="mdi:arrow-left" width="1.2rem" height="1.2rem" />
             Back to Competitions
-        </a>
-        <a href="/sign_up_competition/{competition?.id}" class="btn preset-filled-primary-500">
-            <Icon icon="mdi:account-plus" width="1.2rem" height="1.2rem" />
-            Sign Up for Competition
         </a>
     </div>
 </div>

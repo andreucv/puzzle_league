@@ -18,7 +18,8 @@ model User {
   updatedAt       DateTime
   sessions        Session[]
   accounts        Account[]
-  parties         Party[]
+  entries         Entry[] @relation("EntryParticipants")
+  createdEntries  Entry[] @relation("EntryCreator")
   roleAssignments RoleAssignment[]
   requests        Request[]
   leaguePoints    LeaguePoints[]
@@ -147,20 +148,23 @@ model Category {
   maxParties    Int?
   competitionId Int
   competition   Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
-  parties       Party[]
+  entries       Entry[]
 
   @@map("category")
 }
 
-model Party {
+model Entry {
   id         String    @id @default(cuid())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
   finishTime DateTime?
-  points     Int       @default(0)
   categoryId Int
-  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  users      User[]
+  category   Category @relation(fields: [categoryId], references: [id])
+  users      User[]   @relation("EntryParticipants")
+  creatorId  String
+  creator    User     @relation("EntryCreator", fields: [creatorId], references: [id], onDelete:SetDefault )
 
-  @@map("party")
+  @@map("entry")
 }
 
 model RoleAssignment {

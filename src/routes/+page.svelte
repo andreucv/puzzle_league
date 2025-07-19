@@ -16,7 +16,7 @@
 
     console.log("+page.svelte: data", data);
     console.log("+page.svelte: upcomingRegisteredCompetitions", data.props.upcomingRegisteredCompetitions);
-    console.log("+page.svelte: upcomingRegisteredCompetitions.categories", data.props.upcomingRegisteredCompetitions?.at(0)?.categories?.at(0)?.parties.at(0)?.users);
+    console.log("+page.svelte: upcomingRegisteredCompetitions.categories", data.props.upcomingRegisteredCompetitions?.at(0)?.categories?.at(0)?.entries.at(0)?.users);
 </script>
 
 <svelte:head>
@@ -41,21 +41,21 @@
                                 {#if competition.categories && competition.categories.length > 0}
                                     <div class="mt-3">
                                         {#each competition.categories as category}
-                                            {#if category.parties && category.parties.length > 0}
-                                                {#each category.parties as party}
-                                                    {#if party.users && party.users.length > 0}
+                                            {#if category.entries && category.entries.length > 0}
+                                                {#each category.entries as entry}
+                                                    {#if entry.users && entry.users.length > 0}
                                                         <div class="mt-2 mb-2">
                                                             {#if category.type === 'INDIVIDUAL' || category.type === 'JUNIOR_INDIVIDUAL'}
                                                             <p class="text-xs font-semibold mb-1">Individual</p>
                                                             {:else if category.type === 'PAIRS' || category.type === 'JUNIOR_PAIRS' || category.type === 'TEAM'}
-                                                            <p class="text-xs font-semibold mb-1">{category.name} with:</p>
+                                                            <p class="text-xs font-semibold mb-1">{category.name || category.type} with:</p>
                                                             {/if}
                                                             <div class="flex grid grid-cols-6 gap-2">
-                                                            {#each party.users as user}
+                                                            {#each entry.users as user}
                                                                 {#if user.email !== data.user.email}
-                                                                <span class="">
-                                                                    <Avatar name={user.name} src={user?.image ?? undefined} classes="w-7 h-7"></Avatar>
-                                                                </span>
+                                                                    <span class="">
+                                                                        <Avatar name={user.name} src={user?.image ?? undefined} classes="w-7 h-7"></Avatar>
+                                                                    </span>
                                                                 {/if}
                                                             {/each}
                                                             </div>

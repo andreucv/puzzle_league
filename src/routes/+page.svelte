@@ -2,6 +2,7 @@
     import { t } from '$lib/translations';
     import Icon from '@iconify/svelte';
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
+    import UpcomingCompetitionCard from '$lib/components/UpcomingCompetitionCard.svelte';
 
     let { data } = $props();
 
@@ -28,47 +29,9 @@
     <div class="container mx-auto space-y-4">
         <section class="space-y-4">
             {#if data?.props?.upcomingRegisteredCompetitions != null && data?.props?.upcomingRegisteredCompetitions?.length > 0}
-                <div class="flex overflow-x-auto gap-2 pb-4">
+                <div class="space-y-2">
                     {#each data?.props?.upcomingRegisteredCompetitions as competition}
-                    <a href="/competitions/competition_details/{competition.id}" class="card shrink-0 w-32">
-                        <div class="">
-                            <header class="card-header">
-                                <h3 class="h5 p-2">{competition.name}</h3>
-                            </header>
-                            <section class="pl-2">
-                                <p class="text-xs opacity-75">In 2 days</p>
-
-                                {#if competition.categories && competition.categories.length > 0}
-                                    <div class="mt-3">
-                                        {#each competition.categories as category}
-                                            {#if category.entries && category.entries.length > 0}
-                                                {#each category.entries as entry}
-                                                    {#if entry.users && entry.users.length > 0}
-                                                        <div class="mt-2 mb-2">
-                                                            {#if category.type === 'INDIVIDUAL' || category.type === 'JUNIOR_INDIVIDUAL'}
-                                                            <p class="text-xs font-semibold mb-1">Individual</p>
-                                                            {:else if category.type === 'PAIRS' || category.type === 'JUNIOR_PAIRS' || category.type === 'TEAM'}
-                                                            <p class="text-xs font-semibold mb-1">{category.name || category.type} with:</p>
-                                                            {/if}
-                                                            <div class="flex grid grid-cols-6 gap-2">
-                                                            {#each entry.users as user}
-                                                                {#if user.email !== data.user.email}
-                                                                    <span class="">
-                                                                        <Avatar name={user.name} src={user?.image ?? undefined} classes="w-7 h-7"></Avatar>
-                                                                    </span>
-                                                                {/if}
-                                                            {/each}
-                                                            </div>
-                                                        </div>
-                                                    {/if}
-                                                {/each}
-                                            {/if}
-                                        {/each}
-                                    </div>
-                                {/if}
-                            </section>
-                        </div>
-                    </a>
+                        <UpcomingCompetitionCard {competition} />
                     {/each}
                 </div>
             {:else}

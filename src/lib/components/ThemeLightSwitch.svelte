@@ -23,6 +23,6 @@
   </script>
 </svelte:head>
 
-<button class="btn" onclick={() => onCheckedChange({ checked: !checked })}>
+<button class="btn" disabled onclick={() => onCheckedChange({ checked: !checked })}>
   <Icon icon="mdi:theme-light-dark" width="1.5rem" height="1.5rem" />
 </button>

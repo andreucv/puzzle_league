@@ -5,6 +5,7 @@
     import type { Category, User, Prisma } from '@prisma/client';
     import SignUpToCategory from '$lib/components/SignUpToCategory.svelte';
     import ShowRegisteredToCategory from '$lib/components/ShowRegisteredToCategory.svelte';
+    import Avatar from '$lib/components/Avatar.svelte';
 
     let { data } = $props();
     console.log("competition_details +page.svelte: data", data);
@@ -36,6 +37,9 @@
     const bool_more_than_one_day = competition_startDate.toDateString() !== competition_endDate.toDateString();
 
     const categories = competition?.categories || [];
+
+    // Check if current user is the creator of the competition
+    const isCreator = currentUser && competition?.creatorId === currentUser.id;
 
     const monthNumber = competition_startDate.getDate();
     const monthAbbreviation = competition_startDate.toLocaleString('default', { month: 'short' });
@@ -104,6 +108,15 @@
                 <p class="text-2xl mb-2">{competitionName}</p>
                 {#if competitionDescription}
                     <p>{competitionDescription}</p>
+                {/if}
+                <!-- Creator Info -->
+                {#if competition?.creator}
+                    <div class="flex items-center gap-2 mt-3">
+                        <Avatar user={competition?.creator} size={8} />
+                        <span class="text-sm text-surface-600-400">
+                            Organized by {competition.creator.name}
+                        </span>
+                    </div>
                 {/if}
             </div>
         </div>
@@ -174,7 +187,7 @@
 
                         <!-- Sign Up Button -->
                         {#if notRegistered(category) }
-                            <SignUpToCategory {category} {currentUser} bind:choosed_participants={categoryUsersDataToCreate[category.id]}/>
+                            <SignUpToCategory {category} {currentUser} bind:choosed_participants={categoryUsersDataToCreate[category.id]} registrationOpen={competition?.registrationOpen}/>
                         {:else}
                             <ShowRegisteredToCategory {category} entry={entries?.find(entry => entry.categoryId === category.id)} {currentUser} />
                         {/if}
@@ -193,6 +206,12 @@
 
     <!-- Action Buttons -->
     <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+        {#if isCreator}
+            <a href="/competition/edit/{competition?.id}" class="btn preset-filled-primary-500">
+                <Icon icon="mdi:pencil" width="1.2rem" height="1.2rem" />
+                Edit Competition
+            </a>
+        {/if}
         <a href="/competitions" class="btn preset-tonal">
             <Icon icon="mdi:arrow-left" width="1.2rem" height="1.2rem" />
             Back to Competitions

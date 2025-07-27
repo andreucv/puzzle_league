@@ -2,6 +2,7 @@
     import { type Competition, type Category, type Prisma} from "@prisma/client";
     import { t } from '$lib/translations';
     import { getPartySizeByCategoryType } from "$lib/utils/category_utils.js";
+    import CategoryCreatorUpdator from '$lib/components/CategoryCreatorUpdator.svelte';
 
     let {data, form} = $props();
 
@@ -68,34 +69,6 @@
             category_map.set(categoryId, category);
         });
         category_map = new Map(category_map); // This triggers reactivity
-    }
-
-    function updateCategory(categoryId: number, field: string, value: any) {
-        if (category_map.has(categoryId)) {
-            let updatedCategory = { ...category_map.get(categoryId), [field]: value } as Prisma.CategoryUncheckedCreateInput;
-
-            // Update maxPartySize when type changes
-            if (field === 'type') {
-                updatedCategory.maxPartySize = getPartySizeByCategoryType(value);
-            }
-
-            try {
-                if (field === 'startTime') {
-                    const categoryStartTime = new Date(new Date(new_competition.startDate as Date).setHours(parseInt(value.split(':')[0]), parseInt(value.split(':')[1])));
-                    updatedCategory.startTime = categoryStartTime
-                }
-
-                if (field === 'endTime') {
-                    const categoryEndTime = new Date(new Date(new_competition.startDate as Date).setHours(parseInt(value.split(':')[0]), parseInt(value.split(':')[1])));
-                    updatedCategory.endTime = categoryEndTime
-                }
-            } catch (e) {
-                console.error(e);
-            }
-            category_map.set(categoryId, updatedCategory);
-            category_map = new Map(category_map); // This triggers reactivity
-        }
-        console.log(category_map);
     }
 </script>
 
@@ -203,69 +176,19 @@
         </div>
 
         <div class="space-y-4 mt-4">
-            {#each category_map.entries() as [categoryId, category]}
-                <div class="relative group">
-                    <div class="absolute inset-0 bg-linear-to-r from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none"></div>
-                    <div class="relative p-4 border-2 border-surface-200-700 rounded-lg transition-all duration-200 hover:border-surface-300-600">
-                        <!-- Floating remove button -->
-                        <button
-                            type="button"
-                            class="absolute top-2 right-2 btn btn-sm preset-tonal-error border border-error-500 opacity-60 hover:opacity-100 transition-opacity"
-                            onclick={() => removeCategory(categoryId)}
-                        >
-                            <span>🗑️</span>
-                        </button>
-
-                        <div class="mb-4">
-                            <label class="label">
-                                <span class="text-sm font-medium">Category Type *</span>
-                                <select
-                                    value={category.type}
-                                    onchange={(e) => updateCategory(categoryId, 'type', e.currentTarget.value)}
-                                    required
-                                >
-                                    <option value="">Select a category type</option>
-                                    {#each Object.entries(data.props.categoryTypes || {}) as [categoryType, categoryName]}
-                                        <option value={categoryName}>
-                                            {categoryName.replace(/_/g, ' ')}
-                                        </option>
-                                    {/each}
-                                </select>
-                            </label>
-                        </div>
-
-                        {#if category.type !== null}
-                            <div class="grid grid-cols-2 gap-4">
-                                <label class="label">
-                                    <span class="text-sm">Start Time</span>
-                                    <input
-                                        type="time"
-                                        onchange={(e) => updateCategory(categoryId, 'startTime', e.currentTarget.value)}
-                                    />
-                                </label>
-
-                                <label class="label">
-                                    <span class="text-sm">End Time</span>
-                                    <input
-                                        type="time"
-                                        onchange={(e) => updateCategory(categoryId, 'endTime', e.currentTarget.value)}
-                                    />
-                                </label>
-
-                                <label class="label col-span-2">
-                                    <span class="text-sm">Max Parties</span>
-                                    <input
-                                        type="number"
-                                        value={category.maxParties}
-                                        onchange={(e) => updateCategory(categoryId, 'maxParties', parseInt(e.currentTarget.value))}
-                                        min="0"
-                                        step="1"
-                                    />
-                                </label>
-                            </div>
-                        {/if}
-                    </div>
-                </div>
+            {#each Array.from(category_map.entries()) as [categoryId, category]}
+                <CategoryCreatorUpdator
+                    category={category}
+                    {categoryId}
+                    competitionStartDate={new Date(new_competition.startDate as string)}
+                    onRemove={removeCategory}
+                    showRemoveButton={true}
+                    isNew={true}
+                    onUpdate={(updatedCategory) => {
+                        category_map.set(categoryId, updatedCategory);
+                        category_map = new Map(category_map);
+                    }}
+                />
             {/each}
 
             {#if category_map.size === 0}
@@ -304,7 +227,7 @@
 <style lang="postcss">
     @reference "../../../../app.css";
 
-    input, select {
+    input {
         @apply w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 text-black focus:border-indigo-500 focus:bg-white focus:outline-none;
     }
 </style>

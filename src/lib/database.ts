@@ -273,6 +273,7 @@ export async function getCompetitionWithCategories(competitionId: number) {
             include: {
                 categories: true,
                 league: true,
+                creator: true
             }
         });
 
@@ -727,6 +728,79 @@ export async function createEntries(entriesData: Prisma.EntryCreateInput[]) {
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error occurred',
             data: null
+        };
+    }
+}
+
+export async function updateCompetition(
+    competitionId: number,
+    competition: Prisma.CompetitionUpdateInput,
+    categories: Array<Prisma.CategoryUncheckedCreateInput>
+) {
+    try {
+        // Use a transaction to ensure data consistency
+        const result = await prisma.$transaction(async (tx) => {
+            // Update the competition
+            let updatedCompetition: Competition;
+            if (competitionId) {
+                updatedCompetition = await tx.competition.update({
+                    where: { id: competitionId },
+                    data: competition
+                });
+            } else {
+                updatedCompetition = await tx.competition.create({
+                    data: competition
+                });
+            }
+
+            // Delete existing categories and create new ones
+            // Delete entries associated with existing categories to avoid constraint errors
+            let updated_competitionId = updatedCompetition.id;
+            const oldCategories = await tx.category.findMany({
+                where: { competitionId: updated_competitionId },
+                select: { id: true }
+            });
+            if (oldCategories.length) {
+                const categoryIds = oldCategories.map(cat => cat.id);
+                await tx.entry.deleteMany({
+                    where: { categoryId: { in: categoryIds } }
+                });
+            }
+            await tx.category.deleteMany({
+                where: { competitionId: updated_competitionId }
+            });
+
+            categories.forEach(category => {
+                category.competitionId = updated_competitionId;
+            });
+
+            // Create new categories for the competition
+            const createdCategories = await Promise.all(
+                categories.map(async (category) => {
+                    return await tx.category.create({
+                        data: category
+                    });
+                })
+            );
+
+            return {
+                competition: updatedCompetition,
+                categories: createdCategories
+            };
+        });
+
+        console.log("database.ts: result", result);
+        return {
+            success: true,
+            data: result,
+            message: 'Competition and categories updated successfully'
+        };
+    } catch (error) {
+        console.error('Error updating competition:', error);
+        return {
+            success: false,
+            data: null,
+            message: error instanceof Error ? error.message : 'Unknown error occurred'
         };
     }
 }

@@ -2,7 +2,7 @@
     import type { User , Category} from '@prisma/client';
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
     import Icon from '@iconify/svelte';
-    let { category, currentUser, choosed_participants = $bindable([]) }: { category: Category, currentUser: User, choosed_participants: User[]} = $props();
+    let { category, currentUser, choosed_participants = $bindable([]), registrationOpen}: { category: Category, currentUser: User, choosed_participants: User[], registrationOpen: boolean} = $props();
     console.log('SignUpToCategory.svelte: category:', category);
     console.log('SignUpToCategory.svelte: currentUser:', currentUser);
     console.log('SignUpToCategory.svelte: choosed_participants:', choosed_participants);
@@ -81,6 +81,7 @@
         <button type="button" class="btn btn-sm preset-filled-success-500 hover:preset-filled-primary-600 transition-colors"
             title="Register"
             onclick={() => {opened_signup_form = true; addTeammate(currentUser);}}
+            disabled={!registrationOpen}
         >
             <Icon icon="mdi:account-plus" width="1rem" height="1rem" />
             Edit Inscription

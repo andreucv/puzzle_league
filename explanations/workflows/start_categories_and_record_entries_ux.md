@@ -5,7 +5,6 @@ The organizer and judges of a competition need to start the categories running a
 Once the categories are started, the judges will be able to record the results of the competitors in each category.
 
 ## Needed workflows
-
 An Organizer is able to start the categories start time and stop it.
 A Judge is able to record the results of the competitors in each category.
 

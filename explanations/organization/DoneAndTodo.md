@@ -1,3 +1,8 @@
+1 - Acabar organizers page
+2 - Comprar domini i configurar resend email infra
+3 - Reactivity (ensenyar banners, estats, ...)
+
+
 # All possible workflows
 
 ## Already implemented

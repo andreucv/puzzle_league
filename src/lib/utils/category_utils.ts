@@ -25,3 +25,11 @@ export function getPartySizeByCategoryType(type: CategoryType) {
     };
     return partySizes[type] || 1;
 }
+
+export function calculateDuration(startTime: Date, endTime: Date) {
+    if (!startTime || !endTime) return "-";
+    const duration = new Date(endTime).getTime() - new Date(startTime).getTime();
+    const minutes = Math.floor(duration / 60000);
+    const seconds = Math.floor((duration % 60000) / 1000);
+    return `${minutes}m ${seconds}s`;
+}

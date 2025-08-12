@@ -42,8 +42,8 @@
         {#if competition.categories && competition.categories.length > 0}
             <div class="flex gap-4 overflow-x-auto">
                 {#each competition.categories as category}
-                    {#if category.entries && category.entries.length > 0}
-                        {#each category.entries as entry}
+                    {#if category.records && category.records.length > 0}
+                        {#each category.records as entry}
                             {#if entry.users && entry.users.length > 0}
                                 <div class="flex-shrink-0 text-center min-w-fit">
                                     <!-- Category Name -->

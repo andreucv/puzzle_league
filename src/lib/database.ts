@@ -25,7 +25,7 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
     const whereClause: any = {
         categories: {
             some: {
-                entries: {
+                records: {
                     some: {
                         users: {
                             some: {
@@ -47,7 +47,7 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
         include: {
             categories: {
                 include: {
-                    entries: {
+                    records: {
                         where: {
                             users: {
                                 some: {
@@ -264,6 +264,84 @@ export async function createCompetition(competition: Prisma.CompetitionCreateInp
             message: error instanceof Error ? error.message : 'Unknown error occurred'
         };
     }
+}
+
+export async function getCompetition(competitionId: number) {
+    try {
+        const competition = await prisma.competition.findUnique({
+            where: { id: competitionId },
+            include: {
+                creator: true
+            }
+        });
+        return competition;
+    } catch (error) {
+        console.error('Error getting competition:', error);
+        throw error;
+    }
+}
+
+export async function getCompetitionCategories(
+    competitionId: number
+): Promise<Array<Category & { totalRecords: number; finishedRecords: number }>> {
+    try {
+        // Fetch categories with total records count
+        const categories = await prisma.category.findMany({
+            where: { competitionId },
+        });
+
+        // Count total number of records in category
+        const enriched = await Promise.all(
+            categories.map(async (category) => {
+                const categoryId = category.id;
+                const [totalRecords, finishedRecords] = await Promise.all([
+                    prisma.record.count({
+                        where: { categoryId }
+                    }),
+                    prisma.record.count({
+                        where: { categoryId, finishTime: { not: null } }
+                    })
+                ]);
+
+                return {
+                    ...(category as unknown as Category),
+                    totalRecords,
+                    finishedRecords
+                };
+            })
+        );
+
+        return enriched;
+    } catch (error) {
+        console.error('Error getting competition categories:', error);
+        throw error;
+    }
+}
+
+export async function startCategory(categoryId: number) {
+    const [totalRecords, finishedRecords] = await Promise.all([
+        prisma.record.count({
+            where: { categoryId }
+        }),
+        prisma.record.count({
+            where: { categoryId, finishTime: { not: null } }
+        })
+    ]);
+
+    const updatedCategory = await prisma.category.update({
+      where: { id: categoryId },
+      data: {
+        realStartTime: new Date(),
+        status: 'in_progress'
+      }
+    });
+
+    return {
+        ...(updatedCategory as unknown as Category),
+        totalRecords,
+        finishedRecords
+    };
+
 }
 
 export async function getCompetitionWithCategories(competitionId: number) {
@@ -558,7 +636,7 @@ export async function signUpUsersToCompetition(
 
 export async function getCategoryEntriesFromCompetition(competitionId: number, userId: string) {
     try {
-        const entries = await prisma.entry.findMany({
+        const records = await prisma.record.findMany({
             where: {
                 category: {
                     competitionId
@@ -591,7 +669,7 @@ export async function getCategoryEntriesFromCompetition(competitionId: number, u
             }
         });
 
-        return entries;
+        return records;
     } catch (error) {
         console.error('Error getting parties from competition:', error);
         throw error;
@@ -600,7 +678,7 @@ export async function getCategoryEntriesFromCompetition(competitionId: number, u
 
 export async function removeUserFromCategory(categoryId: number, userId: string) {
     try {
-        const result = await prisma.entry.deleteMany({
+        const result = await prisma.record.deleteMany({
             where: {
                 categoryId,
                 users: {
@@ -618,24 +696,24 @@ export async function removeUserFromCategory(categoryId: number, userId: string)
     }
 }
 
-export async function createEntries(entriesData: Prisma.EntryCreateInput[]) {
+export async function createEntries(recordsData: Prisma.EntryCreateInput[]) {
     try {
-        if (!entriesData.length) {
-            return { success: false, error: 'No entries to create' };
+        if (!recordsData.length) {
+            return { success: false, error: 'No records to create' };
         }
-        console.log("database.ts: entriesData", entriesData);
+        console.log("database.ts: recordsData", recordsData);
         const result = await prisma.$transaction(async (tx) => {
             const createdEntries = [];
 
-            for (const entryData of entriesData) {
+            for (const recordData of recordsData) {
                 // Validate the entry data
-                if (!entryData.category?.connect?.id || !entryData.users?.connect || !entryData.creator.id) {
+                if (!recordData.category?.connect?.id || !recordData.users?.connect || !recordData.creator.id) {
                     throw new Error('Invalid entry data: missing required fields');
                 }
 
-                const categoryId = entryData.category.connect.id;
-                const userIds = entryData.users.connect.map(u => u.id);
-                const creatorId = entryData.creator.id;
+                const categoryId = recordData.category.connect.id;
+                const userIds = recordData.users.connect.map(u => u.id);
+                const creatorId = recordData.creator.id;
 
                 // Check if category exists and get its constraints
                 const category = await tx.category.findUnique({
@@ -648,7 +726,7 @@ export async function createEntries(entriesData: Prisma.EntryCreateInput[]) {
                 }
 
                 // Check if users already registered for this category
-                const existingEntry = await tx.entry.findFirst({
+                const existingEntry = await tx.record.findFirst({
                     where: {
                         categoryId: categoryId,
                         users: {
@@ -674,7 +752,7 @@ export async function createEntries(entriesData: Prisma.EntryCreateInput[]) {
                 }
 
                 // Check if competition registration is not complete
-                // if (category.maxParties && category.entries.length >= category.maxParties) {
+                // if (category.maxParties && category.records.length >= category.maxParties) {
                 //     throw new Error(`Maximum number of parties reached for category ${category.name || category.type}`);
                 // }
 
@@ -690,7 +768,7 @@ export async function createEntries(entriesData: Prisma.EntryCreateInput[]) {
                     throw new Error(`Users not found: ${missingUserIds.join(', ')}`);
                 }
                 // Create the entry
-                const entry = await tx.entry.create({
+                const record = await tx.record.create({
                     data: {
                         categoryId: categoryId,
                         creatorId: creatorId,
@@ -711,7 +789,7 @@ export async function createEntries(entriesData: Prisma.EntryCreateInput[]) {
                     }
                 });
 
-                createdEntries.push(entry);
+                createdEntries.push(record);
             }
 
             return createdEntries;
@@ -720,10 +798,10 @@ export async function createEntries(entriesData: Prisma.EntryCreateInput[]) {
         return {
             success: true,
             data: result,
-            message: `Successfully created ${result.length} entries`
+            message: `Successfully created ${result.length} records`
         };
     } catch (error) {
-        console.error('Error creating entries:', error);
+        console.error('Error creating records:', error);
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -754,7 +832,7 @@ export async function updateCompetition(
             }
 
             // Delete existing categories and create new ones
-            // Delete entries associated with existing categories to avoid constraint errors
+            // Delete records associated with existing categories to avoid constraint errors
             let updated_competitionId = updatedCompetition.id;
             const oldCategories = await tx.category.findMany({
                 where: { competitionId: updated_competitionId },
@@ -762,7 +840,7 @@ export async function updateCompetition(
             });
             if (oldCategories.length) {
                 const categoryIds = oldCategories.map(cat => cat.id);
-                await tx.entry.deleteMany({
+                await tx.record.deleteMany({
                     where: { categoryId: { in: categoryIds } }
                 });
             }
@@ -802,6 +880,39 @@ export async function updateCompetition(
             data: null,
             message: error instanceof Error ? error.message : 'Unknown error occurred'
         };
+    }
+}
+
+export async function getCompetitionWithCategoriesAndEntries(competitionId: number) {
+    try {
+        const competition = await prisma.competition.findUnique({
+            where: { id: competitionId },
+            include: {
+                categories: {
+                    include: {
+                        records: {
+                            include: {
+                                users: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        email: true,
+                                        image: true
+                                    }
+                                }
+                            }
+                        },
+                    }
+                },
+                league: true,
+                creator: true
+            }
+        });
+
+        return competition;
+    } catch (error) {
+        console.error('Error getting competition with categories:', error);
+        throw error;
     }
 }
 

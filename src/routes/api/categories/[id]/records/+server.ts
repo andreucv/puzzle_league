@@ -1,0 +1,38 @@
+import { json, type RequestEvent } from '@sveltejs/kit';
+import { prisma } from '$lib/database';
+
+export const GET = async ({ params }: RequestEvent) => {
+  try {
+    const categoryId = parseInt(params.id as string);
+    const limit = parseInt(params.limit as string);
+
+    if (isNaN(categoryId)) {
+      return json({ error: 'Invalid category ID' }, { status: 400 });
+    }
+
+    // Fetch all records ordered by finishTime or tableNumber
+    const records = await prisma.record.findMany({
+      where: { categoryId },
+      include: {
+        users: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      },
+      orderBy: [
+        { finishTime: 'asc' },
+        { tableNumber: 'asc' }
+      ]
+    });
+
+    return json({
+      records: records
+    });
+  } catch (error) {
+    console.error('Error fetching category entries:', error);
+    return json({ error: 'Failed to fetch category entries' }, { status: 500 });
+  }
+};

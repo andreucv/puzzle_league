@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ( event ) => {
     const competition_id = event.url.pathname.split('/')[3];
     const competition_and_categories = await getCompetitionWithCategories(parseInt(competition_id));
 
-    let entries = undefined;
+    let records = undefined;
     let session = undefined;
     try {
         session = await auth.api.getSession(event.request);
@@ -26,17 +26,17 @@ export const load: PageServerLoad = async ( event ) => {
 
     if (session != undefined && session?.user && competition_and_categories) {
         const user_id = session.user.id;
-        entries = await getCategoryEntriesFromCompetition(parseInt(competition_id), user_id);
+        records = await getCategoryEntriesFromCompetition(parseInt(competition_id), user_id);
     }
 
     const competition_image_url = undefined; //await cloudinary.url(competition_and_categories.image);
     console.log(`competitions/competition_details/${competition_id} competition_categories`, competition_and_categories);
-    console.log(`competitions/competition_details/${competition_id} entries`, entries);
+    console.log(`competitions/competition_details/${competition_id} records`, records);
     return {
         props:
         {
             competition_and_categories,
-            entries,
+            records,
             competition_image_url,
         }
     }
@@ -97,7 +97,7 @@ export const actions: Actions = {
             }
 
             const data = await request.formData();
-            const entriesJson = data.get('entries')?.toString();
+            const entriesJson = data.get('records')?.toString();
 
             if (!entriesJson) {
                 return {

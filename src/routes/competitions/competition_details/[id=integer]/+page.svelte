@@ -5,10 +5,11 @@
     import type { Category, User, Prisma } from '@prisma/client';
     import SignUpToCategory from '$lib/components/SignUpToCategory.svelte';
     import ShowRegisteredToCategory from '$lib/components/ShowRegisteredToCategory.svelte';
+    import Avatar from '$lib/components/Avatar.svelte';
 
     let { data } = $props();
     console.log("competition_details +page.svelte: data", data);
-    console.log("competition_details +page.svelte: entries", data.props.entries);
+    console.log("competition_details +page.svelte: records", data.props.records);
     let categoryUsersDataToCreate = $state<Record<number, User[]>>({});
     if (data.props.competition_and_categories?.categories.length > 0) {
         const newCategoryUsersData : Record<number, User[]> = {};
@@ -24,7 +25,7 @@
     });
 
     const currentUser = data.user;
-    const entries = data.props.entries;
+    const records = data.props.records;
 
     const competition = data.props.competition_and_categories;
     const competitionName = competition?.name;
@@ -37,13 +38,16 @@
 
     const categories = competition?.categories || [];
 
+    // Check if current user is the creator of the competition
+    const isCreator = currentUser && competition?.creatorId === currentUser.id;
+
     const monthNumber = competition_startDate.getDate();
     const monthAbbreviation = competition_startDate.toLocaleString('default', { month: 'short' });
     const year = competition_startDate.getFullYear();
 
     function notRegistered(category : Category) {
-        if (data.props.entries === undefined) return true;
-        return !data.props.entries.some(entries => entries.categoryId === category.id);
+        if (data.props.records === undefined) return true;
+        return !data.props.records.some(records => records.categoryId === category.id);
     }
 
     function anyCategoryFilled() {
@@ -61,10 +65,10 @@
 
     function handleSubmitInscriptions() {
         console.log("competition_details +page.svelte: handleSubmitInscriptions", categoryUsersDataToCreate);
-        let entries : Prisma.EntryCreateInput[] = [];
+        let records : Prisma.EntryCreateInput[] = [];
         Object.entries(categoryUsersDataToCreate).forEach(([categoryId, users]) => {
             if (users.length > 0) {
-                entries.push({
+                records.push({
                     creator: currentUser,
                     category: {
                         connect: { id: parseInt(categoryId) }
@@ -83,8 +87,8 @@
 
         const entriesInput = document.createElement('input');
         entriesInput.type = 'hidden';
-        entriesInput.name = 'entries';
-        entriesInput.value = JSON.stringify(entries);
+        entriesInput.name = 'records';
+        entriesInput.value = JSON.stringify(records);
         form.appendChild(entriesInput);
 
         document.body.appendChild(form);
@@ -104,6 +108,15 @@
                 <p class="text-2xl mb-2">{competitionName}</p>
                 {#if competitionDescription}
                     <p>{competitionDescription}</p>
+                {/if}
+                <!-- Creator Info -->
+                {#if competition?.creator}
+                    <div class="flex items-center gap-2 mt-3">
+                        <Avatar user={competition?.creator} size={8} />
+                        <span class="text-sm text-surface-600-400">
+                            Organized by {competition.creator.name}
+                        </span>
+                    </div>
                 {/if}
             </div>
         </div>
@@ -174,9 +187,9 @@
 
                         <!-- Sign Up Button -->
                         {#if notRegistered(category) }
-                            <SignUpToCategory {category} {currentUser} bind:choosed_participants={categoryUsersDataToCreate[category.id]}/>
+                            <SignUpToCategory {category} {currentUser} bind:choosed_participants={categoryUsersDataToCreate[category.id]} registrationOpen={competition?.registrationOpen}/>
                         {:else}
-                            <ShowRegisteredToCategory {category} entry={entries?.find(entry => entry.categoryId === category.id)} {currentUser} />
+                            <ShowRegisteredToCategory {category} entry={records?.find(record => record.categoryId === category.id)} {currentUser} />
                         {/if}
                     </div>
                 {/each}
@@ -193,6 +206,16 @@
 
     <!-- Action Buttons -->
     <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+        {#if isCreator}
+            <a href="/competition/edit/{competition?.id}" class="btn preset-filled-primary-500">
+                <Icon icon="mdi:pencil" width="1.2rem" height="1.2rem" />
+                Edit Competition
+            </a>
+            <a href="/competition/during_competition/{competition?.id}" class="btn preset-filled-primary-500">
+                <Icon icon="mdi:chess-queen" width="1.2rem" height="1.2rem" />
+                During Competition
+            </a>
+        {/if}
         <a href="/competitions" class="btn preset-tonal">
             <Icon icon="mdi:arrow-left" width="1.2rem" height="1.2rem" />
             Back to Competitions

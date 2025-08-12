@@ -17,7 +17,7 @@
 
     console.log("+page.svelte: data", data);
     console.log("+page.svelte: upcomingRegisteredCompetitions", data.props.upcomingRegisteredCompetitions);
-    console.log("+page.svelte: upcomingRegisteredCompetitions.categories", data.props.upcomingRegisteredCompetitions?.at(0)?.categories?.at(0)?.entries.at(0)?.users);
+    console.log("+page.svelte: upcomingRegisteredCompetitions.categories", data.props.upcomingRegisteredCompetitions?.at(0)?.categories?.at(0)?.records.at(0)?.users);
 </script>
 
 <svelte:head>
@@ -83,7 +83,7 @@
                             </div>
                         </div>
                     </a>
-                    <a href="/create_competition" class="card card-hover">
+                    <a href="/competition/edit/" class="card card-hover">
                         <div class="flex items-center gap-4 p-4">
                             <div class="flex-shrink-0">
                                 <Icon icon="mdi:newspaper-plus" class="w-8 h-8"></Icon>

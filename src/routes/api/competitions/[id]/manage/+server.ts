@@ -1,0 +1,47 @@
+import { json, type RequestEvent } from '@sveltejs/kit';
+import { prisma } from '$lib/database';
+
+export const GET = async ({ params }: RequestEvent) => {
+  try {
+    const competitionId = parseInt(params.id as string);
+
+    if (isNaN(competitionId)) {
+      return json({ error: 'Invalid competition ID' }, { status: 400 });
+    }
+
+    const competition = await prisma.competition.findUnique({
+      where: { id: competitionId },
+      include: {
+        categories: {
+          include: {
+            entries: {
+              include: {
+                users: true
+              }
+            }
+          }
+        },
+        roleAssignments: {
+          where: {
+            role: 'JUDGE'
+          },
+          include: {
+            user: true
+          }
+        }
+      }
+    });
+
+    if (!competition) {
+      return json({ error: 'Competition not found' }, { status: 404 });
+    }
+
+    return json({
+      competition,
+      judges: competition.roleAssignments.map(ra => ra.user)
+    });
+  } catch (error) {
+    console.error('Error fetching competition data:', error);
+    return json({ error: 'Failed to fetch competition data' }, { status: 500 });
+  }
+};

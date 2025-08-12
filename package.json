@@ -43,6 +43,7 @@
 		"@prisma/client": "^6.12.0",
 		"firebase": "^11.0.2",
 		"prisma": "^6.12.0",
+		"svelte-qr-scanner": "^1.1.0",
 		"tailwindcss": "^4.1.11"
 	}
 }

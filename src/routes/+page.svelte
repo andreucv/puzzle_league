@@ -17,7 +17,7 @@
 
     console.log("+page.svelte: data", data);
     console.log("+page.svelte: upcomingRegisteredCompetitions", data.props.upcomingRegisteredCompetitions);
-    console.log("+page.svelte: upcomingRegisteredCompetitions.categories", data.props.upcomingRegisteredCompetitions?.at(0)?.categories?.at(0)?.entries.at(0)?.users);
+    console.log("+page.svelte: upcomingRegisteredCompetitions.categories", data.props.upcomingRegisteredCompetitions?.at(0)?.categories?.at(0)?.records.at(0)?.users);
 </script>
 
 <svelte:head>

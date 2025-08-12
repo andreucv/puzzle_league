@@ -17,8 +17,8 @@ model User {
   updatedAt       DateTime
   sessions        Session[]
   accounts        Account[]
-  entries         Entry[]          @relation("EntryParticipants")
-  createdEntries  Entry[]          @relation("EntryCreator")
+  records         Record[]          @relation("RecordParticipants")
+  createdRecords  Record[]          @relation("RecordCreator")
   roleAssignments RoleAssignment[]
   requests        Request[]
   leaguePoints    LeaguePoints[]
@@ -146,26 +146,30 @@ model Category {
   maxPartySize  Int?
   startTime     DateTime
   endTime       DateTime
+  realStartTime DateTime?
+  realEndTime   DateTime?
+  status        String       @default("not_started") // not_started, in_progress, completed
   maxParties    Int?
   competitionId Int
   competition   Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
-  entries       Entry[]
+  records       Record[]
 
   @@map("category")
 }
 
-model Entry {
-  id         String    @id @default(cuid())
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  finishTime DateTime?
-  categoryId Int
-  category   Category  @relation(fields: [categoryId], references: [id])
-  users      User[]    @relation("EntryParticipants")
-  creatorId  String
-  creator    User      @relation("EntryCreator", fields: [creatorId], references: [id], onDelete: SetDefault)
+model Record {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  finishTime  DateTime?
+  tableNumber Int?
+  categoryId  Int
+  category    Category  @relation(fields: [categoryId], references: [id])
+  users       User[]    @relation("RecordParticipants")
+  creatorId   String
+  creator     User      @relation("RecordCreator", fields: [creatorId], references: [id], onDelete: SetDefault)
 
-  @@map("entry")
+  @@map("record")
 }
 
 model RoleAssignment {

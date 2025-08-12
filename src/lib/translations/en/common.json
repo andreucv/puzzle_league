@@ -9,7 +9,8 @@
     "participant_welcome_text": "Participate in thrilling speed puzzle competitions, self-register for any category, and check real-time results once they end.",
     "organizer_welcome": "For Organizers",
     "organizer_welcome_text": "Publish new competitions, manage participants, and monitor performance in real time.",
-    "review_requests": "Review Permissions Requests"
+    "review_requests": "Review Permissions Requests",
+    "explore_competitions": "Explore Competitions"
   },
   "drawer_menu": {
     "explore_competitions": "Explore Competitions",

@@ -1,5 +1,6 @@
 import { CompetitionStatus, PrismaClient, Prisma} from '@prisma/client';
 import type { Competition, Category } from '@prisma/client';
+import type { equal } from 'assert';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -46,6 +47,7 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
         where: whereClause,
         include: {
             categories: {
+                orderBy: { startTime: 'asc' },
                 include: {
                     records: {
                         where: {
@@ -60,7 +62,8 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
                                 select: {
                                     name: true,
                                     email: true,
-                                    image: true
+                                    image: true,
+                                    id: true
                                 }
                             }
                         }
@@ -70,7 +73,7 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
             league: true
         },
         orderBy: {
-            startDate: 'desc'
+            startDate: 'asc'
         }
     });
 }
@@ -288,6 +291,7 @@ export async function getCompetitionCategories(
         // Fetch categories with total records count
         const categories = await prisma.category.findMany({
             where: { competitionId },
+            orderBy: { startTime: 'asc' }
         });
 
         // Count total number of records in category
@@ -349,7 +353,9 @@ export async function getCompetitionWithCategories(competitionId: number) {
         const competition = await prisma.competition.findUnique({
             where: { id: competitionId },
             include: {
-                categories: true,
+                categories: {
+                    orderBy: { startTime: 'asc' }
+                },
                 league: true,
                 creator: true
             }
@@ -367,7 +373,9 @@ export async function getOrganisedCompetitions(creatorId: string) {
         const competitions = await prisma.competition.findMany({
             where: { creatorId },
             include: {
-                categories: true,
+                categories: {
+                    orderBy: { startTime: 'asc' }
+                },
                 league: true,
             },
             orderBy: {
@@ -386,7 +394,9 @@ export async function getAllCompetitions() {
     try {
         const competitions = await prisma.competition.findMany({
             include: {
-                categories: true,
+                categories: {
+                    orderBy: { startTime: 'asc' }
+                },
                 league: true,
                 _count: {
                     select: {
@@ -444,7 +454,9 @@ export async function getAllLeagues() {
             include: {
                 competitions: {
                     include: {
-                        categories: true
+                        categories: {
+                            orderBy: { startTime: 'asc' }
+                        }
                     }
                 },
                 _count: {
@@ -889,6 +901,7 @@ export async function getCompetitionWithCategoriesAndEntries(competitionId: numb
             where: { id: competitionId },
             include: {
                 categories: {
+                    orderBy: { startTime: 'asc' },
                     include: {
                         records: {
                             include: {

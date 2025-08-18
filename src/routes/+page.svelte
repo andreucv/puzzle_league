@@ -1,8 +1,7 @@
 <script lang="ts">
     import { t } from '$lib/translations';
     import Icon from '@iconify/svelte';
-    import { Avatar } from '@skeletonlabs/skeleton-svelte';
-    import UpcomingCompetitionCard from '$lib/components/UpcomingCompetitionCard.svelte';
+    import CompetitionList from '$lib/components/competition/CompetitionList.svelte';
 
     let { data } = $props();
 
@@ -27,45 +26,7 @@
 {#if data.user}
     <h4>Your upcoming competitions</h4>
     <div class="container mx-auto space-y-4">
-        <section class="space-y-4">
-            {#if data?.props?.upcomingRegisteredCompetitions != null && data?.props?.upcomingRegisteredCompetitions?.length > 0}
-                <div class="space-y-2">
-                    {#each data?.props?.upcomingRegisteredCompetitions as competition}
-                        <UpcomingCompetitionCard {competition} />
-                    {/each}
-                </div>
-            {:else}
-                <div class="card">
-                    <section class="p-4 text-center">
-                        <p class="text-sm">You are not registered to any competition soon</p>
-                        <p class="text-sm">Choose a competition to register to</p>
-                        <a href="/competitions" class="btn btn-sm preset-filled-primary-500">Browse Competitions</a>
-                    </section>
-                </div>
-            {/if}
-
-            {#if data?.props?.participatedCompetitions != null && data?.props?.participatedCompetitions?.length > 0}
-                <h3 class="h3 text-center mb-4">Participated Competitions</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {#each data?.props?.participatedCompetitions as competition}
-                        <div class="card">
-                            <header class="card-header">
-                                <h3 class="h3">{competition.name}</h3>
-                            </header>
-                            <section class="p-4">
-                                <p class="text-xs opacity-75">Completed</p>
-                            </section>
-                        </div>
-                    {/each}
-                </div>
-            {:else}
-                <div class="card">
-                    <section class="p-4 text-center">
-                        <p class="text-sm">No completed competitions yet</p>
-                    </section>
-                </div>
-            {/if}
-        </section>
+        <CompetitionList competitions={data.props.upcomingRegisteredCompetitions} n_show=2 currentUsedId={data.user.id} />
 
         {#if hasOrganizerRole}
         <section>

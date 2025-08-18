@@ -12,3 +12,11 @@
         <input class="input-full-width" placeholder={placeholder} bind:value={filter}/>
     </div>
 </div>
+
+<style>
+    .input-full-width {
+        width: 100%;
+        border: none;
+        background-color: transparent;
+    }
+</style>

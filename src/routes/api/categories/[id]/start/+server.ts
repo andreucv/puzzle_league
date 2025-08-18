@@ -1,6 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { prisma, startCategory } from '$lib/database';
-import { start } from 'repl';
+import { startCategory } from '$lib/database';
 
 export const POST = async ({ params }: RequestEvent) => {
   try {

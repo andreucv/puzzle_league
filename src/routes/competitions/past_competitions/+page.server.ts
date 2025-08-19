@@ -1,15 +1,14 @@
 import type { PageServerLoad } from "./$types";
-import { getAllCompetitions } from "$lib/database";
+import { getUpcomingCompetitions, getPastCompetitions } from "$lib/database/db_competition_utils";
 import type { Competition } from "@prisma/client/wasm";
-export const load: PageServerLoad = async (event) => {
 
-    const upcoming_competitions : Competition[] = await getAllCompetitions();
-    const past_competitions: Competition[] = [];
-    console.log("upcoming_competitions", upcoming_competitions);
+export const load: PageServerLoad = async (event) => {
+    const BATCH_SIZE = 10;
+
+    const past_competitions: Competition[]      = await getPastCompetitions(BATCH_SIZE, 0);
     console.log("past_competitions", past_competitions);
     return {
         props: {
-            upcoming_competitions,
             past_competitions
         }
     }

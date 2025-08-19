@@ -31,11 +31,17 @@ triggerBase="btn preset-tonal"
 				<a href="/" onclick={() => drawerState.open = false}>Home</a>
 			</li>
 			<li>
-				<a href="/competitions" onclick={() => drawerState.open = false}>{$t('drawer_menu.explore_competitions')}</a>
+				<a href="/competitions/upcoming_competitions" onclick={() => drawerState.open = false}>{$t('competitions.upcoming_competitions')}</a>
+			</li>
+			<li>
+				<a href="/competitions/past_competitions" onclick={() => drawerState.open = false}>{$t('competitions.past_competitions')}</a>
 			</li>
 			{#if data.roleAssignments?.some((role: any) => role.role === "ORGANIZER")}
             <li>
                 <a href="/competition/edit/" onclick={() => drawerState.open = false}>{$t('drawer_menu.create_competition')}</a>
+            </li>
+			<li>
+                <a href="/my_organized_competitions" onclick={() => drawerState.open = false}>{$t('competitions.my_organized_competitions')}</a>
             </li>
             {/if}
 			{#if data.roleAssignments?.some((role: any) => role.role === "ADMIN")}

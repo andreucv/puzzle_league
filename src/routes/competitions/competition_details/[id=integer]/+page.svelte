@@ -5,7 +5,7 @@
     import type { Category, User, Prisma } from '@prisma/client';
     import SignUpToCategory from '$lib/components/SignUpToCategory.svelte';
     import ShowRegisteredToCategory from '$lib/components/ShowRegisteredToCategory.svelte';
-    import Avatar from '$lib/components/Avatar.svelte';
+    import { Avatar } from '@skeletonlabs/skeleton-svelte';
 
     let { data } = $props();
     console.log("competition_details +page.svelte: data", data);
@@ -102,48 +102,44 @@
 
 <div class="container mx-auto">
     <!-- Header Section -->
-    <div class="space-y-4">
+    <div class="space-y-3">
         <div class="flex justify-between items-start">
             <div>
                 <p class="text-2xl mb-2">{competitionName}</p>
                 {#if competitionDescription}
                     <p>{competitionDescription}</p>
                 {/if}
-                <!-- Creator Info -->
-                {#if competition?.creator}
-                    <div class="flex items-center gap-2 mt-3">
-                        <Avatar user={competition?.creator} size={8} />
-                        <span class="text-sm text-surface-600-400">
-                            Organized by {competition.creator.name}
-                        </span>
-                    </div>
-                {/if}
             </div>
         </div>
-
         <div class="flex items-center gap-2">
             <Icon icon="mdi:location" width="1.5rem" height="1.5rem" class="text-primary-500" />
             <span class="text-lg">
                 {competition?.location}
             </span>
         </div>
-        <!-- Date and Location Info -->
-        <div class="space-y-3">
-            <div class="flex items-center justify-between w-full">
-                <div class="flex items-center gap-2">
-                    <Icon icon="mdi:calendar-clock" width="1.5rem" height="1.5rem" class="text-primary-500" />
-                    <span class="text-lg">
-                        {monthNumber} {monthAbbreviation} {year}
-                        {#if bool_more_than_one_day}
-                            - {competition_endDate.getDate()} {competition_endDate.toLocaleString('default', { month: 'short' })} {competition_endDate.getFullYear()}
-                        {/if}
+        <div class="flex items-center gap-2">
+            <Icon icon="mdi:calendar-clock" width="1.5rem" height="1.5rem" class="text-primary-500" />
+            <span class="text-lg">
+                {monthNumber} {monthAbbreviation} {year}
+                {#if bool_more_than_one_day}
+                    - {competition_endDate.getDate()} {competition_endDate.toLocaleString('default', { month: 'short' })} {competition_endDate.getFullYear()}
+                {/if}
+            </span>
+        </div>
+        <div class="space-x-3 flex items-center justify-between w-full">
+            <!-- Creator Info -->
+            {#if competition?.creator}
+                <div class="flex items-center gap-2 mt-3">
+                    <Avatar name={competition?.creator.name} classes="w-8 h-8" />
+                    <span class="text-sm text-surface-600-400">
+                        Organized by {competition.creator.name}
                     </span>
                 </div>
-                <div class="flex justify-end">
-                    <span class="badge preset-filled-primary-500">
-                        {competitionStatus}
-                    </span>
-                </div>
+            {/if}
+            <div class="flex justify-end">
+                <span class="badge preset-filled-primary-500">
+                    {competitionStatus}
+                </span>
             </div>
         </div>
     </div>

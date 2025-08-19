@@ -100,7 +100,7 @@
 
         <!-- Enhanced Content Section -->
         <section class="px-2 pb-2 space-y-3 relative">
-            {#if competition.categories.length > 0}
+            {#if competition.categories && competition.categories.length > 0}
 
                 <!-- Enhanced categories grid without scroll -->
                 <div class="space-y-2">
@@ -108,6 +108,8 @@
                         <CompetitionCategoryLabel {category} {currentUserId} />
                     {/each}
                 </div>
+            {:else if !competition.categories && competition.status === 'COMPLETED' || competition.status === 'CANCELLED'}
+                <span></span>
             {:else}
                 <!-- Enhanced empty state -->
                 <div class="text-center py-6 space-y-2">

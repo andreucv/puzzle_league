@@ -1,21 +1,30 @@
 <script lang="ts">
+    import CompetitionCard from '$lib/components/competition/CompetitionCard.svelte';
+    import SearchInput from '$lib/components/SearchInput.svelte';
+    import { t } from '$lib/translations';
     let { data } = $props();
+
+    let competitions     = $derived(data.props.organised_competitions);
+    let filter = $state('');
+    let filtered_competitions     = $derived(competitions.filter(competition => competition.name.toLowerCase().includes(filter.toLowerCase())));
+
+    let filtered_count = $derived(filtered_competitions.length);
+    let total_count    = $derived(competitions.length);
 </script>
 
-<h4>Your organised competitions</h4>
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    {#if data.props && data.props.organised_competitions.length > 0}
-        {#each data.props.organised_competitions as competition (competition.id)}
-            <a href="/competitions/competition_details/{competition.id}" class="card card-hover">
-                <header class="card-header">
-                    <h3 class="h3">{competition.name}</h3>
-                </header>
-                <section class="p-2">
-                    <p class="text-sm">{competition.description}</p>
-                </section>
-            </a>
-        {/each}
-    {:else}
-        <p>You have not created any competitions yet.</p>
-    {/if}
+<h4>{$t('competitions.my_organized_competitions')}</h4>
+<div>
+    <SearchInput placeholder={$t('list_competitions.look_for_competition')} bind:filter />
+    <div class="pt-2">
+        <div class="flex items-center justify-end">
+            {#if filter !== ''}
+                <span class="ml-2 text-sm">{filtered_count} / {total_count}</span>
+            {/if}
+        </div>
+        <div class="pt-2 space-y-2">
+            {#each filtered_competitions as competition}
+                <CompetitionCard {competition}/>
+            {/each}
+        </div>
+    </div>
 </div>

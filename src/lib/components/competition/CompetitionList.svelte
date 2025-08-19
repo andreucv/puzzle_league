@@ -22,5 +22,5 @@
     {#each shownCompetitions as competition}
         <CompetitionCard competition={competition} currentUserId={currentUsedId} />
     {/each}
-    <a href="/competitions/all_upcoming_competitions" class="text-blue-500">View all</a>
+    <a href="/competitions/upcoming_competitions" class="text-blue-500">View all</a>
 </div>

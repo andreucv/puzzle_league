@@ -1,6 +1,5 @@
 import { CompetitionStatus, PrismaClient, Prisma} from '@prisma/client';
 import type { Competition, Category } from '@prisma/client';
-import type { equal } from 'assert';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -372,12 +371,6 @@ export async function getOrganisedCompetitions(creatorId: string) {
     try {
         const competitions = await prisma.competition.findMany({
             where: { creatorId },
-            include: {
-                categories: {
-                    orderBy: { startTime: 'asc' }
-                },
-                league: true,
-            },
             orderBy: {
                 startDate: 'desc'
             }

@@ -28,7 +28,8 @@
     "kids_pairs": "Kids Pairs",
     "puzzle_chess": "PuzzleChess",
     "create_competition": "Create Competition",
-    "list_all_competitions": "Competitions"
+    "list_all_competitions": "Competitions",
+    "my_organized_competitions": "My organized competitions"
   },
   "list_competitions": {
     "look_for_competition": "Look for a competition"

@@ -47,5 +47,11 @@
   },
   "create_competition": {
     "title": "Crea una competició"
+  },
+  "competition": {
+    "edit_competition": "Edita Competició",
+    "create_competition": "Crea Competició",
+    "update_competition_details": "Actualitza els detalls i categories de la competició",
+    "create_competition_details": "Introdueix els detalls de la competició i les categories"
   }
 }

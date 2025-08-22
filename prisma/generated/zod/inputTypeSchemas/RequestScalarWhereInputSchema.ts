@@ -1,0 +1,28 @@
+import type { Prisma } from '@prisma/client';
+
+import { z } from 'zod';
+import { StringFilterSchema } from './StringFilterSchema';
+import { EnumRoleFilterSchema } from './EnumRoleFilterSchema';
+import { RoleSchema } from './RoleSchema';
+import { EnumRequestStatusFilterSchema } from './EnumRequestStatusFilterSchema';
+import { RequestStatusSchema } from './RequestStatusSchema';
+import { IntNullableFilterSchema } from './IntNullableFilterSchema';
+import { DateTimeFilterSchema } from './DateTimeFilterSchema';
+import { StringNullableFilterSchema } from './StringNullableFilterSchema';
+
+export const RequestScalarWhereInputSchema: z.ZodType<Prisma.RequestScalarWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => RequestScalarWhereInputSchema),z.lazy(() => RequestScalarWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => RequestScalarWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => RequestScalarWhereInputSchema),z.lazy(() => RequestScalarWhereInputSchema).array() ]).optional(),
+  id: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  role: z.union([ z.lazy(() => EnumRoleFilterSchema),z.lazy(() => RoleSchema) ]).optional(),
+  status: z.union([ z.lazy(() => EnumRequestStatusFilterSchema),z.lazy(() => RequestStatusSchema) ]).optional(),
+  userId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  competitionId: z.union([ z.lazy(() => IntNullableFilterSchema),z.number() ]).optional().nullable(),
+  createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  updatedAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  reason: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+  additionalInfo: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
+}).strict();
+
+export default RequestScalarWhereInputSchema;

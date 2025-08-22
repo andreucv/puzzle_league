@@ -4,6 +4,11 @@ import { updateCompetition, getCompetitionWithCategories, getAllLeagues } from '
 import { type Competition, type Category, type Prisma, CategoryType } from '@prisma/client';
 import { auth } from '$lib/auth';
 
+import { CompetitionCreateInputSchema } from '../../../../../../../prisma/generated/zod';
+
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
+
 export const load: PageServerLoad = async (event) => {
     const competitionId = parseInt(event.params.id);
 
@@ -31,13 +36,13 @@ export const load: PageServerLoad = async (event) => {
             }
         }
 
-        const leagues = await getAllLeagues();
         const categoryTypes = Object.values(CategoryType);
-
+        const form = await superValidate(competition, zod4(CompetitionCreateInputSchema));
+        console.log('form:', form);
         return {
+            form,
             props: {
                 competition,
-                leagues,
                 categoryTypes
             }
         };

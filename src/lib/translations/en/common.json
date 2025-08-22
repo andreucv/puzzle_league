@@ -47,5 +47,11 @@
   },
   "create_competition": {
     "title": "Create competition form"
+  },
+  "competition": {
+    "edit_competition": "Edit Competition",
+    "create_competition": "Create Competition",
+    "update_competition_details": "Update your competition details and categories",
+    "create_competition_details": "Enter your competition details and categories"
   }
 }

@@ -223,51 +223,6 @@ export async function rejectRequest(requestId: string, adminId: string, rejectio
     }
 }
 
-// Competition related functions
-export async function createCompetition(competition: Prisma.CompetitionCreateInput, categories: Array<Prisma.CategoryCreateInput>) {
-    try {
-        // Use a transaction to ensure data consistency
-        const result = await prisma.$transaction(async (tx) => {
-            // Create the competition
-            const createdCompetition = await tx.competition.create({
-                data: competition
-            });
-
-            categories.forEach(category => {
-                category.competitionId = createdCompetition.id;
-            });
-
-            // Create categories for the competition
-            const createdCategories = await Promise.all(
-                categories.map(async (category) => {
-                    return await tx.category.create({
-                        data: category
-                    });
-                })
-            );
-
-            console.log("database.ts: createdCategories", createdCategories);
-
-            return {
-                competition: createdCompetition,
-                categories: createdCategories
-            };
-        });
-        return {
-            success: true,
-            data: result,
-            message: 'Competition and categories created successfully'
-        };
-    } catch (error) {
-        console.error('Error creating competition:', error);
-        return {
-            success: false,
-            data: null,
-            message: error instanceof Error ? error.message : 'Unknown error occurred'
-        };
-    }
-}
-
 export async function getCompetition(competitionId: number) {
     try {
         const competition = await prisma.competition.findUnique({
@@ -355,7 +310,6 @@ export async function getCompetitionWithCategories(competitionId: number) {
                 categories: {
                     orderBy: { startTime: 'asc' }
                 },
-                league: true,
                 creator: true
             }
         });
@@ -815,10 +769,36 @@ export async function createEntries(recordsData: Prisma.EntryCreateInput[]) {
     }
 }
 
+export async function createCompetition(competition: Prisma.CompetitionUpdateInput) {
+    try {
+        const result = await prisma.$transaction(async (tx) => {
+            let updatedCompetition: Competition;
+
+            updatedCompetition = await tx.competition.create({
+                data: competition as Prisma.CompetitionCreateInput
+            });
+
+            return updatedCompetition;
+        });
+
+        return {
+            success: true,
+            data: result,
+            message: 'Competition updated successfully'
+        };
+    } catch (error) {
+        console.error('Error updating competition:', error);
+        return {
+            success: false,
+            data: null,
+            message: error instanceof Error ? error.message : 'Unknown error occurred'
+        };
+    }
+}
+
 export async function updateCompetition(
     competitionId: number,
     competition: Prisma.CompetitionUpdateInput,
-    categories: Array<Prisma.CategoryUncheckedCreateInput>
 ) {
     try {
         // Use a transaction to ensure data consistency
@@ -836,39 +816,8 @@ export async function updateCompetition(
                 });
             }
 
-            // Delete existing categories and create new ones
-            // Delete records associated with existing categories to avoid constraint errors
-            let updated_competitionId = updatedCompetition.id;
-            const oldCategories = await tx.category.findMany({
-                where: { competitionId: updated_competitionId },
-                select: { id: true }
-            });
-            if (oldCategories.length) {
-                const categoryIds = oldCategories.map(cat => cat.id);
-                await tx.record.deleteMany({
-                    where: { categoryId: { in: categoryIds } }
-                });
-            }
-            await tx.category.deleteMany({
-                where: { competitionId: updated_competitionId }
-            });
-
-            categories.forEach(category => {
-                category.competitionId = updated_competitionId;
-            });
-
-            // Create new categories for the competition
-            const createdCategories = await Promise.all(
-                categories.map(async (category) => {
-                    return await tx.category.create({
-                        data: category
-                    });
-                })
-            );
-
             return {
                 competition: updatedCompetition,
-                categories: createdCategories
             };
         });
 

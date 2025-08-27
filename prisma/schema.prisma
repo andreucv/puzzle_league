@@ -170,7 +170,7 @@ model Record {
   finishTime  DateTime?
   tableNumber Int?
   categoryId  Int
-  category    Category  @relation(fields: [categoryId], references: [id])
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   users       User[]    @relation("RecordParticipants")
   creatorId   String
   creator     User      @relation("RecordCreator", fields: [creatorId], references: [id], onDelete: SetDefault)

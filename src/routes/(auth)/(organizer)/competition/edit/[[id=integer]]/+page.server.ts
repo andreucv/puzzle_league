@@ -4,13 +4,18 @@ import { updateCompetition, getCompetitionWithCategories, getAllLeagues } from '
 import { type Competition, type Category, type Prisma, CategoryType } from '@prisma/client';
 import { auth } from '$lib/auth';
 
-import { CompetitionCreateInputSchema } from '../../../../../../../prisma/generated/zod';
+import { CompetitionUpdateInputSchema } from '../../../../../../../prisma/generated/zod';
 
-import { superValidate } from 'sveltekit-superforms';
+import { superValidate, message} from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
+import * as z from 'zod/v4';
 
 export const load: PageServerLoad = async (event) => {
-    const competitionId = parseInt(event.params.id);
+
+    let competitionId = null;
+    if (event.params.id) {
+        competitionId = parseInt(event.params.id);
+    }
 
     try {
         // Get the current session
@@ -19,30 +24,33 @@ export const load: PageServerLoad = async (event) => {
             throw new Error('User not authenticated');
         }
 
-        let competition: Competition;
-        if (competitionId === undefined || isNaN(competitionId)) {
-            // we are creating a new competition
-            competition = {} as Competition;
-        } else {
-            // Load the competition with categories
+        let competition = null;
+        if (competitionId) {
             competition = await getCompetitionWithCategories(competitionId);
-            if (!competition) {
-                throw new Error('Competition not found');
+
+            if (!competition || isNaN(competitionId) || competitionId === undefined) {
+                throw new Error(`Invalid competition id or competition ${competitionId} not found`);
+            }
+
+            if (competition.status !=  'UPCOMING') {
+                throw new Error(`Competition ${competitionId} cannot be edited if it is not in upcoming status`);
             }
 
             // Check if the user is the creator of the competition
             if (competition.creatorId !== session.user.id) {
+                console.error("competition/edit/+page.server.ts creatorId:", competition.creatorId, "!= session.user.id:", session.user.id);
                 throw new Error('Not authorized to edit this competition');
             }
         }
 
         const categoryTypes = Object.values(CategoryType);
-        const form = await superValidate(competition, zod4(CompetitionCreateInputSchema));
-        console.log('form:', form);
+        const form = await superValidate(competition, zod4(CompetitionUpdateInputSchema));
+        console.log('competition/edit: onload form:', form);
+        console.log('competition/edit: onload form categories:', form.data.categories);
+
         return {
             form,
             props: {
-                competition,
                 categoryTypes
             }
         };
@@ -53,7 +61,7 @@ export const load: PageServerLoad = async (event) => {
     }
 }
 
-const update_competition: Action = async ({ locals, request, url, params }) => {
+const create_update_competition: Action = async ({ request, params }) => {
     let user = null;
     try {
         const session = await auth.api.getSession({
@@ -66,62 +74,23 @@ const update_competition: Action = async ({ locals, request, url, params }) => {
     }
 
     const competitionId = parseInt(params.id);
-    const formData = await request.formData();
+    const form = await superValidate(request, zod4(CompetitionUpdateInputSchema));
+    console.log('competition/edit/+page.server.ts: on action form', form);
+    console.log('competition/edit/+page.server.ts: on action form categories', form.data.categories);
 
-    // Extract form data
-    const competitionJson = formData.get('updated_competition')?.toString();
-    let competition: Prisma.CompetitionUpdateInput | undefined = undefined;
-    if (competitionJson) {
-        try {
-            competition = JSON.parse(competitionJson) as Prisma.CompetitionUpdateInput;
-        } catch (error) {
-            return fail(400, { error_message: "Invalid competition data format." });
-        }
+    if (!form.valid) {
+        console.error('competition/edit/+page.server.ts: on action form not valid', JSON.stringify(form.errors, null, 2));
+        return message(form, {success: false, message: "Form is not valid"});
     }
 
-    const categoriesJson = formData.get('updated_categories')?.toString();
-    let categories: Prisma.CategoryUncheckedCreateInput[] = [];
-    if (categoriesJson) {
-        try {
-            categories = JSON.parse(categoriesJson) as Prisma.CategoryUncheckedCreateInput[];
-        } catch (error) {
-            return fail(400, { error_message: "Invalid categories data format." });
-        }
+    const result = await updateCompetition(competitionId, form.data);
+    console.log('competition/edit/+page.server.ts: on action result', result);
+
+    if (!result.success) {
+        return message(form, {success: false, message: "Something went wrong"});
     }
 
-    // Validate required fields
-    if (competition && (!competition.name || !competition.startDate)) {
-        return fail(400, {error_message: "Competition name or start date are missing"});
-    }
-
-    // Validate that we have both competition and categories data
-    if (!competition || !categories || !Array.isArray(categories)) {
-        return fail(400, { error_message: "Missing competition or categories data" });
-    }
-
-    try {
-        // Update competition with categories
-        const result = await updateCompetition(competitionId, competition, categories);
-        if (!result.success) {
-            return fail(400, {
-                success: false,
-                message: "An error occurred while updating the competition."
-            });
-        }
-
-        // Return success with competition details
-        return {
-            success: true,
-            message: "Competition updated successfully!",
-            competitionId: result.data?.competition.id,
-        };
-    } catch (error) {
-        console.error('Error updating competition:', error);
-        return fail(500, {
-            success: false,
-            message: "An error occurred while updating the competition."
-        });
-    }
+    return message(form, {success: result.success, message: "Competition updated successfully", id: competitionId});
 }
 
-export const actions: Actions = { update_competition }
+export const actions: Actions = { create_update_competition }

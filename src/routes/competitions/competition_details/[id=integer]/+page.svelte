@@ -212,7 +212,7 @@
                 During Competition
             </a>
         {/if}
-        <a href="/competitions" class="btn preset-tonal">
+        <a href="/competitions/upcoming_competitions" class="btn preset-tonal">
             <Icon icon="mdi:arrow-left" width="1.2rem" height="1.2rem" />
             Back to Competitions
         </a>

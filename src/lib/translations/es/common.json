@@ -46,12 +46,21 @@
     }
   },
   "create_competition": {
-    "title": "Crea una competición"
+    "title": "Crea una competición",
+    "details": "Introduce los detalles de la competición y las categorías",
+    "submit_button": "Guarda Competición"
   },
   "competition": {
     "edit_competition": "Edita Competición",
     "create_competition": "Crea Competición",
     "update_competition_details": "Actualiza los detalles y categorías de la competición",
     "create_competition_details": "Introduce los detalles de la competición y las categorías"
+  },
+  "edit_competition": {
+    "date": "Día",
+    "submit_button": "Guarda Competición",
+    "details": "Edita los detalles de la competición y las categorías",
+    "title": "Edita competición",
+    "registers_warning": "Editar la competición eliminará los registros presentes en las categorías, y las personas anteriornmente registradas deberán volver a hacerlo."
   }
 }

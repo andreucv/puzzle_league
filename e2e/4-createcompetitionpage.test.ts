@@ -15,7 +15,7 @@ test('GivenCreateCompetitionPage_WhenOrganizerCreatesCompetition_ThenOrganizerIs
     await page.getByLabel('Competition Name *').fill(competitionData.name);
     await page.getByLabel('Location').fill(competitionData.venue);
     await page.getByLabel('Description').fill(competitionData.description);
-    await page.getByLabel('Start Date *').fill(competitionData.startDate);
+    await page.getByLabel('Date *').fill(competitionData.startDate);
     await page.getByRole('button', { name: 'Add Category' }).first().click();
     await page.getByLabel('Category Type *').selectOption({ label: 'Individual' });
     await page.getByLabel('Start Time').fill('10:00');

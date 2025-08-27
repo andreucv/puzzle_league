@@ -1,9 +1,7 @@
 <script lang="ts">
-    import { type Competition, type Category, Prisma } from "@prisma/client";
     import Icon from "@iconify/svelte";
-    import CategoryCreatorUpdator from "$lib/components/CategoryCreatorUpdator.svelte";
     import { t } from "$lib/translations";
-    import SuperDebug, { superForm, dateProxy } from "sveltekit-superforms";
+    import { superForm, dateProxy } from "sveltekit-superforms";
     import { getCategoryTypeName } from "$lib/utils/category_utils.js";
 
     let { data } = $props();

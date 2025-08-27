@@ -3,7 +3,6 @@
     import { t } from "$lib/translations";
     import SuperDebug, { superForm, dateProxy } from "sveltekit-superforms";
     import { getCategoryTypeName } from "$lib/utils/category_utils.js";
-    import { id } from "zod/v4/locales";
 
     let { data } = $props();
     const { form, errors, constraints, message, enhance } = superForm(data.form, {dataType:"json"});

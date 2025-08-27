@@ -8,7 +8,6 @@ import { CompetitionUpdateInputSchema } from '../../../../../../../prisma/genera
 
 import { superValidate, message} from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-import * as z from 'zod/v4';
 
 export const load: PageServerLoad = async (event) => {
 

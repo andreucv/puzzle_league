@@ -14,7 +14,7 @@ export async function getUpcomingCompetitions(n_objects: number, offset: number)
             categories: true
         },
         orderBy: {
-            startDate: 'desc'
+            startDate: 'asc'
         },
     });
 }

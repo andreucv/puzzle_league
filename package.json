@@ -22,7 +22,7 @@
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/adapter-vercel": "^5.7.2",
 		"@sveltejs/enhanced-img": "^0.4.4",
-		"@sveltejs/kit": "^2.9.0",
+		"@sveltejs/kit": "^2.34.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"@tailwindcss/vite": "^4.1.11",
 		"@types/node": "^22.10.1",
@@ -34,9 +34,12 @@
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
 		"sveltekit-i18n": "^2.4.2",
+		"sveltekit-superforms": "^2.27.1",
 		"svelteworld": "^1.0.1",
 		"typescript": "^5.0.0",
-		"vite": "^6.0.0"
+		"vite": "^6.0.0",
+		"zod": "^4.0.17",
+		"zod-prisma-types": "^3.2.4"
 	},
 	"dependencies": {
 		"@iconify/svelte": "^5.0.0",

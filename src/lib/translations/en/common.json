@@ -46,6 +46,21 @@
     }
   },
   "create_competition": {
-    "title": "Create competition form"
+    "title": "Create competition form",
+    "details": "Enter your competition details and categories",
+    "submit_button": "Save Competition"
+  },
+  "competition": {
+    "edit_competition": "Edit Competition",
+    "create_competition": "Create Competition",
+    "update_competition_details": "Update your competition details and categories",
+    "create_competition_details": "Enter your competition details and categories"
+  },
+  "edit_competition": {
+    "date": "Date",
+    "submit_button": "Update Competition",
+    "details": "Update your competition details and categories",
+    "title": "Edit competition",
+    "registers_warning": "Editing the competition will delete all the registers present in the categories, and people must register again."
   }
 }

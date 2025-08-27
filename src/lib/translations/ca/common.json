@@ -46,6 +46,21 @@
     }
   },
   "create_competition": {
-    "title": "Crea una competició"
+    "title": "Crea una competició",
+    "details": "Introdueix els detalls de la competició i les categories",
+    "submit_button": "Guarda Competició"
+  },
+  "competition": {
+    "edit_competition": "Edita Competició",
+    "create_competition": "Crea Competició",
+    "update_competition_details": "Actualitza els detalls i categories de la competició",
+    "create_competition_details": "Introdueix els detalls de la competició i les categories"
+  },
+  "edit_competition": {
+    "date": "Dia",
+    "submit_button": "Guarda Competició",
+    "details": "Edita els detalls de la competició i les categories",
+    "title": "Edita competició",
+    "registers_warning": "Editar la competició eliminará els registres present a les categories, i les persones anteriorment registrades hauràn de tornar-ho a fer."
   }
 }

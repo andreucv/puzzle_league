@@ -44,7 +44,7 @@
                             </div>
                         </div>
                     </a>
-                    <a href="/competition/edit/" class="card card-hover">
+                    <a href="/competition/create/" class="card card-hover">
                         <div class="flex items-center gap-4 p-4">
                             <div class="flex-shrink-0">
                                 <Icon icon="mdi:newspaper-plus" class="w-8 h-8"></Icon>

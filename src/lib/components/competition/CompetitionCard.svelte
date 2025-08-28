@@ -24,7 +24,7 @@
         currentUserId?: string;
     }
 
-    let { competition, currentUserId }: Props = $props();
+    let { competition, currentUserId, noShowCategories = false}: Props = $props();
 
     console.log("components/competition/CompetitionsCard.svelte prop competition", competition);
 
@@ -100,7 +100,7 @@
 
         <!-- Enhanced Content Section -->
         <section class="px-2 pb-2 space-y-3 relative">
-            {#if competition.categories && competition.categories.length > 0}
+            {#if competition.categories && competition.categories.length > 0 && !noShowCategories}
 
                 <!-- Enhanced categories grid without scroll -->
                 <div class="space-y-2">
@@ -108,15 +108,12 @@
                         <CompetitionCategoryLabel {category} {currentUserId} />
                     {/each}
                 </div>
-            {:else if !competition.categories && competition.status === 'COMPLETED' || competition.status === 'CANCELLED'}
+            {:else if !competition.categories && competition.status === 'COMPLETED' || competition.status === 'CANCELLED' || noShowCategories }
                 <span></span>
             {:else}
                 <!-- Enhanced empty state -->
-                <div class="text-center py-6 space-y-2">
-                    <div class="w-12 h-12 mx-auto bg-gradient-to-br from-surface-100 to-surface-200 dark:from-surface-800 dark:to-surface-900 rounded-xl flex items-center justify-center shadow-sm">
-                        <Icon icon="mdi:puzzle-outline" class="w-6 h-6 text-surface-500" />
-                    </div>
-                    <div class="space-y-1">
+                <div class="flex justify-center items-center text-center">
+                    <div class="space-y-1 my-2">
                         <p class="text-sm font-semibold text-surface-700 dark:text-surface-300">No Categories</p>
                         <p class="text-xs text-surface-500">Categories not set up yet</p>
                     </div>

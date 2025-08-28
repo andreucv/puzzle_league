@@ -364,6 +364,41 @@ export async function getAllCompetitions() {
     }
 }
 
+export async function getMonthCompetitions(month: number, year: number) {
+    try {
+        const startOfMonth = new Date(year, month, 1);
+        const endOfMonth = new Date(year, month + 1, 1);
+
+        const competitions = await prisma.competition.findMany({
+            where: {
+                startDate: {
+                    gte: startOfMonth,
+                    lt: endOfMonth
+                }
+            },
+            include: {
+                categories: {
+                    orderBy: { startTime: 'asc' }
+                },
+                _count: {
+                    select: {
+                        categories: true,
+                        roleAssignments: true
+                    }
+                }
+            },
+            orderBy: {
+                startDate: 'asc'
+            }
+        });
+
+        return competitions;
+    } catch (error) {
+        console.error('Error getting current month competitions:', error);
+        throw error;
+    }
+}
+
 export async function updateCompetitionStatus(competitionId: number, status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED') {
     try {
         const updatedCompetition = await prisma.competition.update({
@@ -475,7 +510,7 @@ export async function signUpUsersToCompetition(
         }
 
         const result = await prisma.$transaction(async (tx) => {
-            const createdRegisters = [];
+            const createdRecords = [];
 
             // Get all category IDs to fetch in one query
             const categoryIds = categorySignups.map(signup => signup.categoryId);
@@ -485,7 +520,7 @@ export async function signUpUsersToCompetition(
                 where: { id: { in: categoryIds } },
                 include: {
                     competition: true,
-                    registers: {
+                    records: {
                         where: {
                             users: {
                                 some: { id: currentUserId }
@@ -503,7 +538,7 @@ export async function signUpUsersToCompetition(
             }
 
             // Check for duplicate registrations
-            const alreadyRegistered = categories.filter(cat => cat.registers.length > 0);
+            const alreadyRegistered = categories.filter(cat => cat.records.length > 0);
             if (alreadyRegistered.length > 0) {
                 const categoryNames = alreadyRegistered.map(c => c.name || c.type);
                 throw new Error(`Already registered for categories: ${categoryNames.join(', ')}`);
@@ -543,9 +578,10 @@ export async function signUpUsersToCompetition(
                 }
 
                 // Create the party
-                const register = await tx.register.create({
+                const record = await tx.record.create({
                     data: {
                         categoryId: signup.categoryId,
+                        creatorId: currentUserId,
                         users: {
                             connect: allPartyUserIds.map(id => ({ id }))
                         }
@@ -572,10 +608,10 @@ export async function signUpUsersToCompetition(
                     }
                 });
 
-                createdRegisters.push(register);
+                createdRecords.push(record);
             }
 
-            return createdRegisters;
+            return createdRecords;
         });
 
         return {
@@ -655,7 +691,7 @@ export async function removeUserFromCategory(categoryId: number, userId: string)
     }
 }
 
-export async function createEntries(recordsData: Prisma.EntryCreateInput[]) {
+export async function createEntries(recordsData: Prisma.RecordCreateInput[]) {
     try {
         if (!recordsData.length) {
             return { success: false, error: 'No records to create' };
@@ -666,13 +702,17 @@ export async function createEntries(recordsData: Prisma.EntryCreateInput[]) {
 
             for (const recordData of recordsData) {
                 // Validate the entry data
-                if (!recordData.category?.connect?.id || !recordData.users?.connect || !recordData.creator.id) {
+                if (!recordData.category?.connect?.id || !recordData.users?.connect || !recordData.creator) {
                     throw new Error('Invalid entry data: missing required fields');
                 }
 
                 const categoryId = recordData.category.connect.id;
-                const userIds = recordData.users.connect.map(u => u.id);
-                const creatorId = recordData.creator.id;
+                const userIds = (recordData.users.connect as Prisma.UserWhereUniqueInput[]).map(u => u.id!);
+                const creatorId = (recordData.creator as Prisma.UserCreateNestedOneWithoutCreatedRecordsInput).connect?.id;
+
+                if (!creatorId) {
+                    throw new Error('Creator ID not found');
+                }
 
                 // Check if category exists and get its constraints
                 const category = await tx.category.findUnique({

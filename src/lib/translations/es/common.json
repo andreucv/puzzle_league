@@ -25,7 +25,19 @@
     "puzzle_chess": "PuzzleChess",
     "create_competition": "Crea Competición",
     "list_all_competitions": "Competiciones",
-    "my_organized_competitions": "Mis competiciones"
+    "my_organized_competitions": "Mis competiciones",
+    "calendar_list": {
+      "title": "Vista de Calendario (Lista)"
+    },
+    "calendar": "Próximas Competiciones",
+    "calendar_view": {
+      "monday_friday": "Lunes - Viernes",
+      "saturday": "Sábado",
+      "sunday": "Domingo"
+    },
+    "calendar_table": {
+      "title": "Vista de Calendario (Tabla)"
+    }
   },
   "drawer_menu": {
     "create_competition": "Crear Competición",

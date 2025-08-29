@@ -23,7 +23,7 @@
         </div>
         <div class="pt-2 space-y-2">
             {#each filtered_competitions as competition}
-                <CompetitionCard {competition}/>
+                <CompetitionCard {competition} noShowCategories={true} />
             {/each}
         </div>
     </div>

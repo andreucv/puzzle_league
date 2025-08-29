@@ -265,7 +265,7 @@
                             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <!-- Category Name -->
                                 <label class="label">
-                                    <span class="text-sm font-medium">Category Name *</span>
+                                    <span class="text-sm font-medium">Category Name</span>
                                     <input
                                         type="text"
                                         class="input bg-primary-50-950"

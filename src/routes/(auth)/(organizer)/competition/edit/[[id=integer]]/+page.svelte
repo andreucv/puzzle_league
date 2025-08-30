@@ -5,7 +5,7 @@
     import { type DateValue, CalendarDate, today, getLocalTimeZone, Time, ZonedDateTime, fromDate, parseZonedDateTime, parseTime, parseDate, parseDateTime, parseAbsolute, parseAbsoluteToLocal, CalendarDateTime, toCalendarDateTime} from "@internationalized/date";
     import CustomDatePicker from "$lib/components/bits_ui/CustomDatePicker.svelte";
     import CustomTimeInputField from "$lib/components/bits_ui/CustomTimeInputField.svelte";
-    import { getCategoryTypeName } from "$lib/utils/category_utils.js";
+    import { getCategoryTypeName, getPartySizeByCategoryType } from "$lib/utils/category_utils.js";
 
     let { data } = $props();
     const { form, errors, constraints, message, enhance } = superForm(data.form, {dataType:"json"});
@@ -132,6 +132,10 @@
             const endTime = new Date(toUpdateCategories[i].data.endTime);
             update_categories_times_obj_arr[i].endTime   = new Time(endTime.getHours(), endTime.getMinutes());
         }
+    }
+
+    function autofillCategoryMaxPartySize(index: number, source: string, value: string) {
+        categories[source][index].maxPartySize = getPartySizeByCategoryType(value);
     }
 </script>
 
@@ -294,6 +298,7 @@
                                     <select
                                         class="select bg-primary-50-950"
                                         bind:value={categories.update[i].data.type}
+                                        onchange={(e) => autofillCategoryMaxPartySize(i, 'update', e.target?.value)}
                                         required
                                     >
                                         <option value="">Select a category type</option>
@@ -389,6 +394,7 @@
                                     <select
                                         class="select bg-primary-50-950"
                                         bind:value={categories.create[i].type}
+                                        onchange={(e) => autofillCategoryMaxPartySize(i, 'create', e.target?.value)}
                                         required
                                     >
                                         <option value="">Select a category type</option>

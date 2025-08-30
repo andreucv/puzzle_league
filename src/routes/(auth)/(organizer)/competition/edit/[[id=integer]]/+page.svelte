@@ -334,7 +334,7 @@
                                         bind:value={categories.update[i].data.maxParties}
                                         min="1"
                                         step="1"
-                                        placeholder="0 for unlimited"
+                                        placeholder="Maximum number of parties"
                                         required
                                     />
                                 </label>
@@ -426,7 +426,7 @@
                                         bind:value={categories.create[i].maxParties}
                                         min="1"
                                         step="1"
-                                        placeholder="1"
+                                        placeholder="Maximum number of parties"
                                         required
                                     />
                                 </label>

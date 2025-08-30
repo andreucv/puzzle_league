@@ -532,7 +532,7 @@
                 </a>
             {:else}
                 <a
-                    href="/competitions"
+                    href="/"
                     class="btn preset-tonal rounded-lg"
                 >
                     <Icon icon="mdi:cancel" width="1.2rem" height="1.2rem" />

@@ -60,7 +60,19 @@
   "create_competition": {
     "title": "Create competition form",
     "details": "Enter your competition details and categories",
-    "submit_button": "Save Competition"
+    "submit_button": "Save Competition",
+    "details_title": "Competition details",
+    "competition_name": "Competition Name",
+    "location": "Location",
+    "comments": "Description",
+    "date_title": "Schedule",
+    "categories_title": "Categories",
+    "add_category": "Add Category",
+    "not_categories_yet": "No categories yet",
+    "add_category_comment": "Add your first category to get started",
+    "cancel": "Cancel",
+    "start_time": "Start time",
+    "end_time": "End time"
   },
   "competition": {
     "edit_competition": "Edit Competition",

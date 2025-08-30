@@ -60,7 +60,19 @@
   "create_competition": {
     "title": "Crea una competición",
     "details": "Introduce los detalles de la competición y las categorías",
-    "submit_button": "Guarda Competición"
+    "submit_button": "Guarda Competición",
+    "details_title": "Datos de la Competición",
+    "competition_name": "Nombre de la Competición",
+    "location": "Lugar",
+    "comments": "Comentarios",
+    "date_title": "Fecha",
+    "categories_title": "Categorías",
+    "add_category": "Añade Categoría",
+    "not_categories_yet": "No hay categorías",
+    "add_category_comment": "Añade la primera categoría",
+    "cancel": "Cancelar",
+    "start_time": "Empieza",
+    "end_time": "Termina"
   },
   "competition": {
     "edit_competition": "Edita Competición",

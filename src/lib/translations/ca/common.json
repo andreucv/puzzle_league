@@ -60,7 +60,19 @@
   "create_competition": {
     "title": "Crea una competició",
     "details": "Introdueix els detalls de la competició i les categories",
-    "submit_button": "Guarda Competició"
+    "submit_button": "Guarda Competició",
+    "details_title": "Dades de la Competició",
+    "competition_name": "Nom de la Competició",
+    "location": "Lloc",
+    "comments": "Comentaris",
+    "date_title": "Data",
+    "categories_title": "Categories",
+    "add_category": "Afegeix Categoria",
+    "not_categories_yet": "Encara no hi ha categories",
+    "add_category_comment": "Afegeix la primera categoria",
+    "cancel": "Cancel.la",
+    "start_time": "Comença",
+    "end_time": "Acaba"
   },
   "competition": {
     "edit_competition": "Edita Competició",

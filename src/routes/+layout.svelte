@@ -44,7 +44,7 @@ triggerBase="btn preset-tonal"
             </li>
             {#if data.roleAssignments?.some((role: any) => role.role === "ORGANIZER")}
             <li>
-                <a href="/competition/create/" onclick={() => drawerState.open = false}>{$t('drawer_menu.create_competition')}</a>
+                <a href="/competition/edit/" onclick={() => drawerState.open = false}>{$t('drawer_menu.create_competition')}</a>
             </li>
             <li>
                 <a href="/my_organized_competitions" onclick={() => drawerState.open = false}>{$t('competitions.my_organized_competitions')}</a>

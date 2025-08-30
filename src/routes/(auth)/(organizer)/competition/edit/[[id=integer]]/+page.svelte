@@ -1,17 +1,15 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
-    import { t } from "$lib/translations";
+    import { locale, t } from "$lib/translations";
     import SuperDebug, { superForm, dateProxy } from "sveltekit-superforms";
+    import { type DateValue, CalendarDate, today, getLocalTimeZone, Time, ZonedDateTime, fromDate, parseZonedDateTime, parseTime, parseDate, parseDateTime, parseAbsolute, parseAbsoluteToLocal, CalendarDateTime, toCalendarDateTime} from "@internationalized/date";
+    import CustomDatePicker from "$lib/components/bits_ui/CustomDatePicker.svelte";
+    import CustomTimeInputField from "$lib/components/bits_ui/CustomTimeInputField.svelte";
     import { getCategoryTypeName } from "$lib/utils/category_utils.js";
 
     let { data } = $props();
     const { form, errors, constraints, message, enhance } = superForm(data.form, {dataType:"json"});
-    const startDateProxy = dateProxy(form, 'startDate', { format: 'date' });
-    const endDateProxy   = dateProxy(form, 'endDate',   { format: 'date' });
-
-    // Update form with creator ID when loaded
-    $form.status = "UPCOMING";
-    $form.creator = { connect: { id: data.user.id } };
+    const isEdit = $form.name !== undefined;
 
     let toUpdateCategories = [] as any[];
     for (let i = 0; i < $form.categories?.length; i++) {
@@ -29,23 +27,32 @@
         delete toUpdateCategories[i].data.competitionId;
     }
 
-    let nested_categories_struct = $state({ createMany: { data: [] as any[]},
-                                     update: toUpdateCategories,
-                                     delete: [] as any[]} );
+    // Here inject the data from the current competition in form
+    let update_categories_times_obj_arr = [] as any[];
+    let initialCompetitionStartDate = null;
+
+    let categories = $state({
+        create: [] as any[]
+    });
+    if (isEdit) {
+        categories.create = [];
+        categories.update = toUpdateCategories;
+        categories.delete = [];
+
+        prepopulateCategoryTimes();
+        initialCompetitionStartDate = new CalendarDate(new Date($form.startDate).getFullYear(), new Date($form.startDate).getMonth() + 1, new Date($form.startDate).getDate());
+    }
 
     $effect(() => {
-        $form.categories = nested_categories_struct;
-    });
+        $form.categories = categories;
+    })
 
-    let categories_times = $state({createMany: {data: [] as any[]},
-                                    update: [] as any[],
-                                    delete: [] as any[]});
-    prepopulateCategoryTimes();
-
-    const isEdit = $form.name !== undefined;
+    // Update form with creator ID when loaded
+    $form.status = "UPCOMING";
+    $form.creator = { connect: { id: data.user.id } };
 
     function addCategory() {
-        nested_categories_struct.createMany.data = [...nested_categories_struct.createMany.data, {
+        categories.create = [...categories.create, {
             name: "",
             type: "INDIVIDUAL", // or whatever default CategoryType you want
             startTime: "", // Add this property
@@ -55,64 +62,77 @@
             maxPartySize: 1, // Change from null to 1
             status: "UPCOMING"
         }];
-        categories_times.createMany.data = [...categories_times.createMany.data, {startTime: "", endTime: ""}];
     }
 
     function removeCategory(source: string, index: number) {
         if(source === "create") {
-            nested_categories_struct.createMany.data = nested_categories_struct.createMany.data.filter((_, i) => i !== index);
-            categories_times.createMany.data = categories_times.createMany.data.filter((_, i) => i !== index);
+            categories.create = categories.create.filter((_, i) => i !== index);
         } else if (source === "update") {
-            const categoryToDelete = nested_categories_struct.update[index].where.id;
+            const categoryToDelete = categories.update[index].where.id;
             console.log("categoryToDelete", categoryToDelete);
-            nested_categories_struct.delete = [...nested_categories_struct.delete, {id: categoryToDelete}];
-            nested_categories_struct.update = nested_categories_struct.update.filter((_, i) => i !== index);
-            categories_times.delete = [...categories_times.delete, categories_times.update[index]];
-            categories_times.update = categories_times.update.filter((_, i) => i !== index);
+            categories.delete = [...categories.delete, {id: categoryToDelete}];
+            categories.update = categories.update.filter((_, i) => i !== index);
         }
     }
 
-    function mixCompetitionDateWithCategoryTime(field: string, source: string, index: number, time_value: string) {
-        if ($form.startDate === "" || $form.startDate === undefined || time_value === "") {
+    function mixCompetitionDateWithCategoryTimeNewPicker(field: string, source: string, index: number, time_value: Time) {
+        if ($form.startDate === "" || $form.startDate === undefined || time_value === undefined) {
+            console.log("mixCompetitionDateWithCategoryTime", "startDate is empty or time_value is undefined", $form.startDate, time_value);
             return "";
         }
 
-        console.log("mixCompetitionDateWithCategoryTime", ($form.startDate as string).toString(), time_value);
-        let date = new Date($form.startDate as number);
-        date.setHours(parseInt(time_value.split(":")[0]));
-        date.setMinutes(parseInt(time_value.split(":")[1]));
+        console.log("mixCompetitionDateWithCategoryTime $form.startDate", $form.startDate, "time_value", time_value.toString());
+        console.log("mixCompetitionDateWithCategoryTime $form.startDate", $form.startDate, "time_value", parseInt(time_value.toString().split(':')[0]), parseInt(time_value.toString().split(':')[1]));
+        const date = parseAbsolute($form.startDate, getLocalTimeZone());
+        const js_date = toCalendarDateTime(date, time_value).toDate(getLocalTimeZone());
+        const updated_date = fromDate(js_date, getLocalTimeZone()).toAbsoluteString();
 
-        if (source === "create") {
-            nested_categories_struct.createMany.data[index][field] = date.toISOString();
+        console.log("mixCompetitionDateWithCategoryTime after math", updated_date);
+
+        if(source === "create") {
+            console.log("category_start_time", updated_date);
+            categories.create[index][field] = updated_date;
         } else if (source === "update") {
-            nested_categories_struct.update[index].data[field] = date.toISOString();
+            console.log("category_end_time", updated_date);
+            categories.update[index].data[field] = updated_date;
         }
     }
 
-    function onDateChange(date_value: string) {
+    function onDateChange(date_value: CalendarDate) {
         console.log("onDateChange", date_value);
-        $form.startDate = date_value;
-        $form.endDate = date_value;
+        const localTimeZone = getLocalTimeZone();
+        const date = date_value.toDate(localTimeZone);
+        $form.startDate = fromDate(date, localTimeZone).toAbsoluteString();
+        $form.endDate   = fromDate(date, localTimeZone).toAbsoluteString();
 
-        for (let i = 0; i < categories_times.createMany.data.length; i++) {
-            mixCompetitionDateWithCategoryTime('startTime', 'create', i, categories_times.createMany.data[i].startTime);
-            mixCompetitionDateWithCategoryTime('endTime',   'create', i, categories_times.createMany.data[i].endTime);
+        console.log("onDateChange changing all categories times...");
+
+        if (categories.create) {
+            for (let i = 0; i < categories.create.length; i++) {
+                console.log("onDateChange changing create category time", i, categories.create);
+                mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'create', i, categories.create[i].startTime);
+                mixCompetitionDateWithCategoryTimeNewPicker('endTime',   'create', i, categories.create[i].endTime);
+            }
         }
 
-        for (let i = 0; i < categories_times.update.length; i++) {
-            mixCompetitionDateWithCategoryTime('startTime', 'update', i, categories_times.update[i].startTime);
-            mixCompetitionDateWithCategoryTime('endTime',   'update', i, categories_times.update[i].endTime);
+        if (categories.update) {
+            for (let i = 0; i < categories.update.length; i++) {
+                console.log("onDateChange changing update category time", i, categories.update);
+                mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'update', i, update_categories_times_obj_arr[i].startTime);
+                mixCompetitionDateWithCategoryTimeNewPicker('endTime',   'update', i, update_categories_times_obj_arr[i].endTime);
+            }
         }
     }
 
     function prepopulateCategoryTimes() {
-        for (let i = 0; i < nested_categories_struct.update?.length; i++) {
-            categories_times.update[i] = {startTime: "", endTime: ""};
-            categories_times.update[i].startTime = new Date(nested_categories_struct.update[i].data.startTime).toISOString().split("T")[1].split(".")[0];
-            categories_times.update[i].endTime   = new Date(nested_categories_struct.update[i].data.endTime).toISOString().split("T")[1].split(".")[0];
+        for (let i = 0; i < toUpdateCategories.length; i++) {
+            update_categories_times_obj_arr[i] = {startTime: new Time(0,0), endTime: new Time(0,0)};
+            const startTime = new Date(toUpdateCategories[i].data.startTime);
+            update_categories_times_obj_arr[i].startTime = new Time(startTime.getHours(), startTime.getMinutes());
+            const endTime = new Date(toUpdateCategories[i].data.endTime);
+            update_categories_times_obj_arr[i].endTime   = new Time(endTime.getHours(), endTime.getMinutes());
         }
     }
-
 </script>
 
 <svelte:head>
@@ -148,12 +168,12 @@
                     height="1.5rem"
                     class="text-primary-500"
                 />
-                Competition Details
+                {$t('create_competition.details_title')}
             </h2>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <label class="label">
-                    <span>Competition Name *</span>
+                    <span>{$t('create_competition.competition_name')} *</span>
                     <input
                         type="text"
                         name="competition_name"
@@ -165,26 +185,23 @@
                 {#if $errors.name}<span class="invalid">{$errors.name}</span>{/if}
 
                 <label class="label">
-                    <span>Location *</span>
+                    <span>{$t('create_competition.location')}</span>
                     <input
                         type="text"
                         name="location"
                         bind:value={$form.location}
-                        required
                         class="input rounded-lg bg-primary-50-950"
                     />
                 </label>
                 {#if $errors.location}<span class="invalid">{$errors.location}</span>{/if}
 
                 <label class="label lg:col-span-2">
-                    <span>Description *</span>
+                    <span>{$t('create_competition.comments')}</span>
                     <textarea
                         name="description"
                         bind:value={$form.description}
                         rows="3"
-                        required
                         class="textarea rounded-lg bg-primary-50-950"
-                        placeholder="Enter comments about competition here"
                     ></textarea>
                 </label>
                 {#if $errors.description}<span class="invalid">{$errors.description}</span>{/if}
@@ -200,30 +217,27 @@
                     height="1.5rem"
                     class="text-primary-500"
                 />
-                Schedule
+                {$t('create_competition.date_title')}
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label class="label">
-                    <span>{$t('edit_competition.date')} *</span>
-                    <input
-                        type="date"
-                        name="start_date"
-                        bind:value={$startDateProxy}
-                        aria-invalid={$errors.startDate ? 'true' : undefined}
-                        min={new Date().toISOString().split("T")[0]}
-                        onchange={(e) => onDateChange(e.currentTarget.value)}
-                        required
-                        class="input rounded-lg bg-primary-50-950"
-                    />
-                </label>
-
+                <CustomDatePicker
+                    name="start_date"
+                    labelText="{$t('edit_competition.date')} *"
+                    locale={data.i18n.locale}
+                    value={initialCompetitionStartDate}
+                    minValue={today(getLocalTimeZone())}
+                    required
+                    disableDaysOutsideMonth={false}
+                    weekStartsOn={1}
+                    pagedNavigation={true}
+                    onValueChange={(e) => onDateChange(e)}
+                />
                 <label class="label">
                     <!-- <span>End Date</span> -->
                     <input
                         type="hidden"
                         name="end_date"
-                        bind:value={$startDateProxy}
                         class="input rounded-lg bg-primary-50-950"
                     />
                 </label>
@@ -240,26 +254,26 @@
                         height="1.5rem"
                         class="text-primary-500"
                     />
-                    Categories
+                    {$t('create_competition.categories_title')}
                 </h2>
 
                 <button
                     type="button"
                     class="btn preset-filled-primary-500 rounded-lg"
                     onclick={addCategory}
-                    disabled={$form.startDate === ""}
+                    disabled={$form.startDate === "" || $form.startDate === undefined}
                 >
                     <Icon icon="mdi:plus" width="1.2rem" height="1.2rem" />
-                    Add Category
+                    {$t('create_competition.add_category')}
                 </button>
             </div>
 
             <div class="space-y-4">
-                {#if nested_categories_struct?.update && (nested_categories_struct?.update as []).length > 0}
+                {#if categories?.update && (categories?.update as []).length > 0}
                     <div>
                         <p>Current Categories</p>
                     </div>
-                    {#each nested_categories_struct.update as _, i}
+                    {#each categories.update as _, i}
                         <div class="p-2 rounded-lg bg-warning-50-950">
                             <!-- Category Header -->
                             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -269,7 +283,7 @@
                                     <input
                                         type="text"
                                         class="input bg-primary-50-950"
-                                        bind:value={nested_categories_struct.update[i].data.name}
+                                        bind:value={categories.update[i].data.name}
                                         placeholder="Enter category name"
                                     />
                                 </label>
@@ -279,7 +293,7 @@
                                     <span class="text-sm font-medium">Category Type *</span>
                                     <select
                                         class="select bg-primary-50-950"
-                                        bind:value={nested_categories_struct.update[i].data.type}
+                                        bind:value={categories.update[i].data.type}
                                         required
                                     >
                                         <option value="">Select a category type</option>
@@ -293,46 +307,35 @@
                             </div>
 
                             <!-- Category Details (only show when type is selected) -->
-                            {#if nested_categories_struct.update[i].data.type}
+                            {#if categories.update[i].data.type}
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <!-- Start Time -->
-                                <label class="label">
-                                    <span class="text-sm font-medium">Start Time *</span>
-                                    <input
-                                        type="time"
-                                        class="input bg-primary-50-950"
-                                        bind:value={categories_times.update[i].startTime}
-                                        required
-                                        onchange={(e) => mixCompetitionDateWithCategoryTime('startTime', 'update', i, e.currentTarget.value)}
-                                        min={$startDateProxy}
-                                        max={$endDateProxy}
-                                    />
-                                </label>
-
-                                <!-- End Time -->
-                                <label class="label">
-                                    <span class="text-sm font-medium">End Time *</span>
-                                    <input
-                                        type="time"
-                                        class="input bg-primary-50-950"
-                                        bind:value={categories_times.update[i].endTime}
-                                        required
-                                        onchange={(e) => mixCompetitionDateWithCategoryTime('endTime', 'update', i, e.currentTarget.value)}
-                                        min={$startDateProxy}
-                                        max={$endDateProxy}
-                                    />
-                                </label>
+                                <CustomTimeInputField
+                                    labelText="{$t('create_competition.start_time')} *"
+                                    locale={data.i18n.locale}
+                                    value={update_categories_times_obj_arr[i].startTime}
+                                    required
+                                    onValueChange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'update', i, e)}
+                                />
+                                <CustomTimeInputField
+                                    labelText="{$t('create_competition.end_time')} *"
+                                    locale={data.i18n.locale}
+                                    value={update_categories_times_obj_arr[i].endTime}
+                                    required
+                                    onValueChange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'update', i, e)}
+                                />
 
                                 <!-- Max Parties -->
                                 <label class="label">
-                                    <span class="text-sm font-medium">Max Parties</span>
+                                <span class="text-sm font-medium">Max Parties *</span>
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
-                                        bind:value={nested_categories_struct.update[i].data.maxParties}
-                                        min="0"
+                                        bind:value={categories.update[i].data.maxParties}
+                                        min="1"
                                         step="1"
                                         placeholder="0 for unlimited"
+                                        required
                                     />
                                 </label>
                                 <!-- Participants per Party -->
@@ -341,7 +344,7 @@
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
-                                        bind:value={nested_categories_struct.update[i].data.maxPartySize}
+                                        bind:value={categories.update[i].data.maxPartySize}
                                         min="1"
                                         required
                                     />
@@ -361,11 +364,11 @@
                         </div>
                     {/each}
                 {/if}
-                {#if nested_categories_struct?.createMany?.data && (nested_categories_struct?.createMany?.data as []).length > 0}
+                {#if categories?.create && (categories?.create as []).length > 0}
                     <div>
                         <p>New Categories</p>
                     </div>
-                    {#each nested_categories_struct.createMany.data as _, i}
+                    {#each categories.create as _, i}
                         <div class="p-2 rounded-lg bg-success-50-950">
                             <!-- Category Header -->
                             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -375,7 +378,7 @@
                                     <input
                                         type="text"
                                         class="input bg-primary-50-950"
-                                        bind:value={nested_categories_struct.createMany.data[i].name}
+                                        bind:value={categories.create[i].name}
                                         placeholder="Enter category name"
                                     />
                                 </label>
@@ -385,7 +388,7 @@
                                     <span class="text-sm font-medium">Category Type *</span>
                                     <select
                                         class="select bg-primary-50-950"
-                                        bind:value={nested_categories_struct.createMany.data[i].type}
+                                        bind:value={categories.create[i].type}
                                         required
                                     >
                                         <option value="">Select a category type</option>
@@ -399,46 +402,32 @@
                             </div>
 
                             <!-- Category Details (only show when type is selected) -->
-                            {#if nested_categories_struct.createMany.data[i].type}
+                            {#if categories.create[i].type}
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <!-- Start Time -->
-                                <label class="label">
-                                    <span class="text-sm font-medium">Start Time *</span>
-                                    <input
-                                        type="time"
-                                        class="input bg-primary-50-950"
-                                        bind:value={categories_times.createMany.data[i].startTime}
-                                        required
-                                        onchange={(e) => mixCompetitionDateWithCategoryTime('startTime', 'create', i, e.currentTarget.value)}
-                                        min={$startDateProxy}
-                                        max={$endDateProxy}
-                                    />
-                                </label>
-
-                                <!-- End Time -->
-                                <label class="label">
-                                    <span class="text-sm font-medium">End Time *</span>
-                                    <input
-                                        type="time"
-                                        class="input bg-primary-50-950"
-                                        bind:value={categories_times.createMany.data[i].endTime}
-                                        required
-                                        onchange={(e) => mixCompetitionDateWithCategoryTime('endTime', 'create', i, e.currentTarget.value)}
-                                        min={$startDateProxy}
-                                        max={$endDateProxy}
-                                    />
-                                </label>
+                                <CustomTimeInputField
+                                    labelText="{$t('create_competition.start_time')} *"
+                                    locale={data.i18n.locale}
+                                    required
+                                    onValueChange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'create', i, e)}
+                                />
+                                <CustomTimeInputField
+                                    labelText="{$t('create_competition.end_time')} *"
+                                    locale={data.i18n.locale}
+                                    required
+                                    onValueChange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'create', i, e)}
+                                />
 
                                 <!-- Max Parties -->
                                 <label class="label">
-                                    <span class="text-sm font-medium">Max Parties</span>
+                                    <span class="text-sm font-medium">Max Parties *</span>
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
-                                        bind:value={nested_categories_struct.createMany.data[i].maxParties}
-                                        min="0"
+                                        bind:value={categories.create[i].maxParties}
+                                        min="1"
                                         step="1"
-                                        placeholder="0 for unlimited"
+                                        placeholder="1"
+                                        required
                                     />
                                 </label>
                                 <!-- Participants per Party -->
@@ -447,7 +436,7 @@
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
-                                        bind:value={nested_categories_struct.createMany.data[i].maxPartySize}
+                                        bind:value={categories.create[i].maxPartySize}
                                         min="1"
                                         required
                                     />
@@ -467,19 +456,20 @@
                         </div>
                     {/each}
                 {/if}
-                {#if nested_categories_struct?.createMany?.data && (nested_categories_struct?.createMany?.data as []).length === 0 && (nested_categories_struct?.update as []).length === 0}
+                {#if categories.create && (categories.create as []).length === 0}
                     <div
                         class="text-center py-2 border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg"
                     >
-                        <h3 class="h4 mb-2 text-surface-600 dark:text-surface-300">No categories yet</h3>
-                        <p class="text-surface-500 mb-4">Add your first category to get started</p>
+                    <h3 class="h4 mb-2 text-surface-600 dark:text-surface-300">{$t('create_competition.not_categories_yet')}</h3>
+                    <p class="text-surface-500 mb-4">{$t('create_competition.add_category_comment')}</p>
                         <button
                             type="button"
                             class="btn preset-filled-primary-500 rounded-lg"
                             onclick={addCategory}
-                            disabled={$form.startDate === ""}>
+                            disabled={$form.startDate === "" || $form.startDate === undefined}
+                        >
                             <Icon icon="mdi:plus" width="1.2rem" height="1.2rem" />
-                            Add Category
+                            {$t('create_competition.add_category')}
                         </button>
                     </div>
                 {/if}
@@ -529,6 +519,7 @@
             </div>
         {/if}
 
+        <SuperDebug data={$form} />
         <!-- Submit Buttons -->
         <div class="flex justify-end gap-4 mt-4">
             {#if isEdit}
@@ -545,7 +536,7 @@
                     class="btn preset-tonal rounded-lg"
                 >
                     <Icon icon="mdi:cancel" width="1.2rem" height="1.2rem" />
-                    Cancel
+                {$t('create_competition.cancel')}
                 </a>
             {/if}
             <button
@@ -561,12 +552,4 @@
             </button>
         </div>
     </form>
-
-    <SuperDebug data={$form} />
 </div>
-
-<style>
-  .invalid {
-    color: red;
-  }
-</style>

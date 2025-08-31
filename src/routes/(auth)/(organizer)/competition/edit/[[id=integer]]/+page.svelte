@@ -1,8 +1,8 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
-    import { locale, t } from "$lib/translations";
-    import SuperDebug, { superForm, dateProxy } from "sveltekit-superforms";
-    import { type DateValue, CalendarDate, today, getLocalTimeZone, Time, ZonedDateTime, fromDate, parseZonedDateTime, parseTime, parseDate, parseDateTime, parseAbsolute, parseAbsoluteToLocal, CalendarDateTime, toCalendarDateTime} from "@internationalized/date";
+    import { t } from "$lib/translations";
+    import { superForm } from "sveltekit-superforms";
+    import { CalendarDate, today, getLocalTimeZone, Time, fromDate, parseAbsolute, toCalendarDateTime} from "@internationalized/date";
     import CustomDatePicker from "$lib/components/bits_ui/CustomDatePicker.svelte";
     import CustomTimeInputField from "$lib/components/bits_ui/CustomTimeInputField.svelte";
     import { getCategoryTypeName, getPartySizeByCategoryType } from "$lib/utils/category_utils.js";
@@ -525,7 +525,6 @@
             </div>
         {/if}
 
-        <SuperDebug data={$form} />
         <!-- Submit Buttons -->
         <div class="flex justify-end gap-4 mt-4">
             {#if isEdit}

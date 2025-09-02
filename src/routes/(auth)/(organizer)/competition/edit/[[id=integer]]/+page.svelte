@@ -4,7 +4,6 @@
     import { superForm } from "sveltekit-superforms";
     import { CalendarDate, today, getLocalTimeZone, Time, fromDate, parseAbsolute, toCalendarDateTime} from "@internationalized/date";
     import CustomDatePicker from "$lib/components/bits_ui/CustomDatePicker.svelte";
-    import CustomTimeInputField from "$lib/components/bits_ui/CustomTimeInputField.svelte";
     import { getCategoryTypeName, getPartySizeByCategoryType } from "$lib/utils/category_utils.js";
 
     let { data } = $props();
@@ -12,6 +11,7 @@
     const isEdit = $form.name !== undefined;
 
     let toUpdateCategories = [] as any[];
+    let toUpdateCategoriesTimes = [] as any[];
     for (let i = 0; i < $form.categories?.length; i++) {
         toUpdateCategories.push(
             {
@@ -25,13 +25,20 @@
         );
         delete toUpdateCategories[i].data.id;
         delete toUpdateCategories[i].data.competitionId;
+
+        const start_time = new Date($form.categories[i].startTime);
+        const end_time = new Date($form.categories[i].endTime);
+        toUpdateCategoriesTimes[i] = {startTime: `${start_time.getHours().toString().padStart(2, '0')}:${start_time.getMinutes().toString().padStart(2, '0')}`,
+                                        endTime: `${end_time.getHours().toString().padStart(2, '0')}:${end_time.getMinutes().toString().padStart(2, '0')}`};
     }
 
     // Here inject the data from the current competition in form
-    let update_categories_times_obj_arr = [] as any[];
     let initialCompetitionStartDate = null;
 
     let categories = $state({
+        create: [] as any[]
+    });
+    let categories_times_obj_arr = $state({
         create: [] as any[]
     });
     if (isEdit) {
@@ -39,7 +46,9 @@
         categories.update = toUpdateCategories;
         categories.delete = [];
 
-        prepopulateCategoryTimes();
+        categories_times_obj_arr.create = [];
+        categories_times_obj_arr.update = toUpdateCategoriesTimes;
+
         initialCompetitionStartDate = new CalendarDate(new Date($form.startDate).getFullYear(), new Date($form.startDate).getMonth() + 1, new Date($form.startDate).getDate());
     }
 
@@ -62,6 +71,8 @@
             maxPartySize: 1, // Change from null to 1
             status: "UPCOMING"
         }];
+
+        categories_times_obj_arr.create = [...categories_times_obj_arr.create, {startTime: "", endTime: ""}];
     }
 
     function removeCategory(source: string, index: number) {
@@ -75,7 +86,7 @@
         }
     }
 
-    function mixCompetitionDateWithCategoryTimeNewPicker(field: string, source: string, index: number, time_value: Time) {
+    function mixCompetitionDateWithCategoryTimeNewPicker(field: string, source: string, index: number, time_value: string) {
         if ($form.startDate === "" || $form.startDate === undefined || time_value === undefined) {
             console.log("mixCompetitionDateWithCategoryTime", "startDate is empty or time_value is undefined", $form.startDate, time_value);
             return "";
@@ -83,8 +94,8 @@
 
         console.log("mixCompetitionDateWithCategoryTime $form.startDate", $form.startDate, "time_value", time_value.toString());
         console.log("mixCompetitionDateWithCategoryTime $form.startDate", $form.startDate, "time_value", parseInt(time_value.toString().split(':')[0]), parseInt(time_value.toString().split(':')[1]));
-        const date = parseAbsolute($form.startDate, getLocalTimeZone());
-        const js_date = toCalendarDateTime(date, time_value).toDate(getLocalTimeZone());
+        const date = parseAbsolute((new Date($form.startDate)).toISOString(), getLocalTimeZone());
+        const js_date = toCalendarDateTime(date, new Time(parseInt(time_value.split(':')[0]), parseInt(time_value.split(':')[1]))).toDate(getLocalTimeZone());
         const updated_date = fromDate(js_date, getLocalTimeZone()).toAbsoluteString();
 
         console.log("mixCompetitionDateWithCategoryTime after math", updated_date);
@@ -110,33 +121,46 @@
         if (categories.create) {
             for (let i = 0; i < categories.create.length; i++) {
                 console.log("onDateChange changing create category time", i, categories.create);
-                mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'create', i, categories.create[i].startTime);
-                mixCompetitionDateWithCategoryTimeNewPicker('endTime',   'create', i, categories.create[i].endTime);
+                mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'create', i, categories_times_obj_arr.create[i].startTime);
+                mixCompetitionDateWithCategoryTimeNewPicker('endTime',   'create', i, categories_times_obj_arr.create[i].endTime);
             }
         }
 
         if (categories.update) {
             for (let i = 0; i < categories.update.length; i++) {
                 console.log("onDateChange changing update category time", i, categories.update);
-                mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'update', i, update_categories_times_obj_arr[i].startTime);
-                mixCompetitionDateWithCategoryTimeNewPicker('endTime',   'update', i, update_categories_times_obj_arr[i].endTime);
+                mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'update', i, categories_times_obj_arr.update[i].startTime);
+                mixCompetitionDateWithCategoryTimeNewPicker('endTime',   'update', i, categories_times_obj_arr.update[i].endTime);
             }
-        }
-    }
-
-    function prepopulateCategoryTimes() {
-        for (let i = 0; i < toUpdateCategories.length; i++) {
-            update_categories_times_obj_arr[i] = {startTime: new Time(0,0), endTime: new Time(0,0)};
-            const startTime = new Date(toUpdateCategories[i].data.startTime);
-            update_categories_times_obj_arr[i].startTime = new Time(startTime.getHours(), startTime.getMinutes());
-            const endTime = new Date(toUpdateCategories[i].data.endTime);
-            update_categories_times_obj_arr[i].endTime   = new Time(endTime.getHours(), endTime.getMinutes());
         }
     }
 
     function autofillCategoryMaxPartySize(index: number, source: string, value: string) {
         categories[source][index].maxPartySize = getPartySizeByCategoryType(value);
     }
+
+    function getEndTimeOptions(startTime: string) {
+        const options = [];
+        console.log("getEndTimeOptions", startTime);
+        const [startHour, startMinute] = (startTime || '00:00').split(':').map(Number);
+        console.log("getEndTimeOptions", startHour, startMinute);
+
+        for (let hour = 8; hour <= 22; hour++) {
+            for (const minute of [0, 30]) {
+                if (hour > startHour || (hour === startHour && minute > startMinute)) {
+                    console.log("getEndTimeOptions pushing", hour, minute);
+                    options.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`);
+                }
+            }
+        }
+        return options;
+    }
+
+    const startTimeOptions = Array.from({length: 11}, (_, i) => i + 8).flatMap(hour => {
+        return [0, 30].map(minute => {
+            return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        });
+    });
 </script>
 
 <svelte:head>
@@ -272,6 +296,12 @@
                 </button>
             </div>
 
+            <datalist id="start_time_minutes">
+                {#each startTimeOptions as timeValue}
+                    <option value={timeValue}></option>
+                {/each}
+            </datalist>
+
             <div class="space-y-4">
                 {#if categories?.update && (categories?.update as []).length > 0}
                     <div>
@@ -315,20 +345,29 @@
                             {#if categories.update[i].data.type}
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <!-- Start Time -->
-                                <CustomTimeInputField
-                                    labelText="{$t('create_competition.start_time')} *"
-                                    locale={data.i18n.locale}
-                                    value={update_categories_times_obj_arr[i].startTime}
-                                    required
-                                    onValueChange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'update', i, e)}
-                                />
-                                <CustomTimeInputField
-                                    labelText="{$t('create_competition.end_time')} *"
-                                    locale={data.i18n.locale}
-                                    value={update_categories_times_obj_arr[i].endTime}
-                                    required
-                                    onValueChange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'update', i, e)}
-                                />
+                                <label class="label">
+                                    <span class="text-sm font-medium">Start Time *</span>
+                                    <input
+                                        type="time"
+                                        class="input bg-primary-50-950"
+                                        value={categories_times_obj_arr.update[i].startTime}
+                                        required
+                                        onchange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'update', i, e.target?.value)}
+                                        list="start_time_minutes"
+                                        />
+                                </label>
+                                <label class="label">
+                                    <span class="text-sm font-medium">End Time *</span>
+                                    <input
+                                        type="time"
+                                        class="input bg-primary-50-950"
+                                        value={categories_times_obj_arr.update[i].endTime}
+                                        required
+                                        onchange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'update', i, e.target?.value)}
+                                        list="start_time_minutes"
+                                    />
+                                </label>
+
 
                                 <!-- Max Parties -->
                                 <label class="label">
@@ -410,18 +449,30 @@
                             <!-- Category Details (only show when type is selected) -->
                             {#if categories.create[i].type}
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <CustomTimeInputField
-                                    labelText="{$t('create_competition.start_time')} *"
-                                    locale={data.i18n.locale}
-                                    required
-                                    onValueChange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'create', i, e)}
-                                />
-                                <CustomTimeInputField
-                                    labelText="{$t('create_competition.end_time')} *"
-                                    locale={data.i18n.locale}
-                                    required
-                                    onValueChange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'create', i, e)}
-                                />
+                                <!-- TODO: datetime pickers for more than one day competitions -->
+                                <label class="label">
+                                    <span class="text-sm font-medium">Start Time *</span>
+                                    <input
+                                        type="time"
+                                        class="input bg-primary-50-950"
+                                        value={categories_times_obj_arr.create[i].startTime}
+                                        required
+                                        onchange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'create', i, e.target?.value)}
+                                        list="start_time_minutes"
+                                    />
+                                </label>
+                                <label class="label">
+                                    <span class="text-sm font-medium">End Time *</span>
+                                    <input
+                                        type="time"
+                                        class="input bg-primary-50-950"
+                                        value={categories_times_obj_arr.create[i].endTime}
+                                        required
+                                        onchange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'create', i, e.target?.value)}
+                                        min={categories_times_obj_arr.create[i].startTime}
+                                        list="start_time_minutes"
+                                        />
+                                </label>
 
                                 <!-- Max Parties -->
                                 <label class="label">

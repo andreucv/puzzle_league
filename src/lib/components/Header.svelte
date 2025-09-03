@@ -16,7 +16,7 @@
             </button>
         {/snippet}
         <div class="text-left">
-            <h1 class="text-left h4 font-sans" style="font-weight: 800; font-stretch: 125%;"><a href='/'>Puzzligas</a></h1>
+            <h1 class="text-left h4 font-sans" style="font-weight: 800; font-stretch: 125%;"><a href='/'>PuzzLigas</a></h1>
         </div>
         {#snippet trail()}
             {#if user === undefined}

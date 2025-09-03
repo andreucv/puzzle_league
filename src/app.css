@@ -8,8 +8,8 @@
 
 @source '../node_modules/@skeletonlabs/skeleton-svelte/dist';
 
-#layout-start > h4 {
-    @apply h4 mb-2
+#layout-start > div > h4 {
+    @apply h4 mb-2 font-sans
 }
 
 .card {

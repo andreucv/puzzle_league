@@ -5,7 +5,7 @@
             <a href="/footer/terms_of_service">Terms of Service</a>
         </div>
         <div class="footer-section">
-            <p>© 2025 Puzzle League. All rights reserved.</p>
+            <p>© 2025 Puzzligas. All rights reserved.</p>
         </div>
     </div>
 </footer>

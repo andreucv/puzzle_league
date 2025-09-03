@@ -28,7 +28,7 @@ triggerBase="btn preset-tonal"
                 </button>
             </li>
             <li>
-                <a href="/" onclick={() => drawerState.open = false}>Home</a>
+                <a href="/" onclick={() => drawerState.open = false}>{$t('drawer_menu.home')}</a>
             </li>
             <li>
                 <a href="/competitions/upcoming_competitions" onclick={() => drawerState.open = false}>{$t('competitions.upcoming_competitions')}</a>
@@ -60,7 +60,7 @@ triggerBase="btn preset-tonal"
     {/snippet}
 </Modal>
 <Header/>
-<div class="px-4 pb-4" id="layout-start">
+<div id="layout-start">
 {@render children()}
 </div>
 <!-- {#if !data.user || currentPath.includes("footer")} -->

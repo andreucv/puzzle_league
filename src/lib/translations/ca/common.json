@@ -3,14 +3,31 @@
     "page_title": "Puzzles Hub"
   },
   "landing_page": {
-    "welcome": "Benvingut a Puzzles League",
-    "welcome_text": "Descobreix un món de puzzles! Aquest web està dedicat a proporcionar informació de concursos de puzzles, temps de muntatge i més. Tant si ets un entusiasta o un muntador competitiu, aquí trobaràs informació de valor i recursos útils.",
-    "explore_competitions": "Explorar Concursos",
-    "participant_welcome_text": "Participa en concursos de velocitat emocionants, registra't per a qualsevol categoria i comprova els resultats en temps real.",
+    "welcome": "Benvinguts a Puzzligas",
+    "welcome_text": "La teva comunitat puzzlera",
+    "participant_welcome_text": "Si t'agraden els puzzles i la competició, Puzzligas és casa teva. Connecta amb la comunitat en els concursos de puzzles. Uneix-te.",
     "organizer_welcome": "Per Organitzadors",
     "organizer_welcome_text": "Publica noves competicions, controla els participants i monitoreja els resultats en temps real.",
     "participant_welcome": "Per Participants",
-    "review_requests": "Revisar Peticions de Permisos"
+    "review_requests": "Revisar Peticions de Permisos",
+    "current_calendar": "Calendari 2025 - Pròxims concursos",
+    "sign_in": "Accedeix",
+    "who_we_are": "QUI SOM",
+    "explore_title": "Explora el calendari",
+    "explore_subtitle": "Consulteu els propers concursos a prop vostre",
+    "what_we_do": "QUÈ FEM",
+    "next_features": "Pròximes funcionalitats",
+    "head_title": "Concursos de Puzzles i Events",
+    "get_started": "Comença aquí",
+    "why_choose": "PER QUÈ TRIAR PUZZLIGAS?",
+    "features": {
+      "track_times": "Segueix els teus temps",
+      "track_times_description": "Enregistra i compara els temps de finalització dels puzzles amb els altres",
+      "join_community": "Uneix-te a la comunitat",
+      "join_community_description": "Connecta amb altres aficionats als puzzles",
+      "get_calendar": "Revisa el calendari",
+      "get_calendar_description": "Comprova el calendari per nous concursos"
+    }
   },
   "competitions": {
     "upcoming_competitions": "Pròxims Concursos",
@@ -41,7 +58,8 @@
   },
   "drawer_menu": {
     "create_competition": "Crear Competició",
-    "explore_competitions": "Explorar Competicions"
+    "explore_competitions": "Explorar Competicions",
+    "home": "Inici"
   },
   "list_competitions": {
     "look_for_competition": "Busca una competició"

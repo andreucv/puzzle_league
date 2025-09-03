@@ -3,18 +3,36 @@
     "page_title": "Puzzle League"
   },
   "landing_page": {
-    "welcome": "Welcome to the Puzzles League",
-    "welcome_text": "Discover a world of puzzles! Our website is dedicated to provide with comprehensive data on speed puzzle competitions, puzzle times, and much more. Whether you're a puzzle enthusiast or a competitive solver, you'll find valuable information and resources here.",
+    "welcome": "Welcome to Puzzligas",
+    "welcome_text": "Your puzzling community",
     "participant_welcome": "For participants",
-    "participant_welcome_text": "Participate in thrilling speed puzzle competitions, self-register for any category, and check real-time results once they end.",
+    "participant_welcome_text": "If you like puzzling and competition, Puzzligas is home. Connect with the community on puzzling competitions. Join us.",
     "organizer_welcome": "For Organizers",
     "organizer_welcome_text": "Publish new competitions, manage participants, and monitor performance in real time.",
     "review_requests": "Review Permissions Requests",
-    "explore_competitions": "Explore Competitions"
+    "current_calendar": "2025 Calendar - Upcoming competitions",
+    "sign_in": "Sign in",
+    "who_we_are": "WHO WE ARE",
+    "explore_title": "Explore the calendar",
+    "explore_subtitle": "Check out upcoming competitions near you",
+    "what_we_do": "WHAT WE DO",
+    "next_features": "Next features",
+    "head_title": "Speed Puzzling Competitions & Events",
+    "get_started": "Get Started",
+    "why_choose": "WHY CHOOSE PUZZLIGAS?",
+    "features": {
+      "track_times": "Track Your Times",
+      "track_times_description": "Record and compare your puzzle completion times with others",
+      "join_community": "Join Community",
+      "join_community_description": "Connect with puzzle enthusiasts worldwide",
+      "get_calendar": "Check the calendar",
+      "get_calendar_description": "Get to know upcoming puzzling competitions"
+    }
   },
   "drawer_menu": {
     "explore_competitions": "Explore Competitions",
-    "create_competition": "Create Competition"
+    "create_competition": "Create Competition",
+    "home": "Home"
   },
   "competitions": {
     "upcoming_competitions": "Upcoming Competitions",
@@ -86,5 +104,21 @@
     "details": "Update your competition details and categories",
     "title": "Edit competition",
     "registers_warning": "Editing the competition will delete all the registers present in the categories, and people must register again."
-  }
+  },
+  "participate-in-local-and-international-competitions": "Participate in local and international competitions",
+  "compete-globally": "Compete Globally",
+  "connect-with-puzzle-enthusiasts-worldwide": "Connect with puzzle enthusiasts worldwide",
+  "join-community": "Join Community",
+  "record-and-compare-your-puzzle-completion-times-with-others": "Record and compare your puzzle completion times with others",
+  "track-your-times": "Track Your Times",
+  "speed-puzzling-image": "Speed Puzzling Image",
+  "review-and-approve-pending-permissions-requests": "Review and approve pending permissions requests",
+  "admin-actions": "Admin Actions",
+  "set-up-a-new-puzzle-competition-with-custom-rules-and-formats": "Set up a new puzzle competition with custom rules and formats",
+  "create-new-competition": "Create New Competition",
+  "manage-competitions-youve-created-and-monitor-participants": "Manage competitions you've created and monitor participants",
+  "my-organized-competitions": "My Organized Competitions",
+  "organizer-actions": "Organizer Actions",
+  "your-upcoming-competitions": "Your upcoming competitions",
+  "puzzligas-t-landing_page-head_title": "Puzzligas - {$t('landing_page.head_title')}"
 }

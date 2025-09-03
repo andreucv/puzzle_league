@@ -3,14 +3,31 @@
     "page_title": "Puzzles Hub"
   },
   "landing_page": {
-    "welcome": "Bienvenido a Puzzles League",
-    "welcome_text": "Descubre un mundo de puzzles! Esta web está dedicada a proporcionar información de concursos de puzzles, tiempos de montaje y más. Tanto si eres un entusiasta o un montador competitivo de puzzles, aquí encontrarás información de valor y recursos útiles.",
-    "explore_competitions": "Explorar Concursos",
-    "participant_welcome_text": "Participa en competiciones de puzzles, registrate para cualquier categoría y comprueba los resultados en tiempo real.",
+    "welcome": "Bienvenido a Puzzligas",
+    "welcome_text": "Tu comunidad puzzlera",
+    "participant_welcome_text": "Si te gustan los puzzles y la competición, Puzzligas és tu casa. Conecta con la comunidad en los concursos de puzzles. Únete.",
     "organizer_welcome": "Para Organizadores",
     "organizer_welcome_text": "Publica nuevas competiciones, controla los participantes y monitorea los resultados en tiempo real.",
     "participant_welcome": "Para Participantes",
-    "review_requests": "Revisar Peticiones de Permisos"
+    "review_requests": "Revisar Peticiones de Permisos",
+    "current_calendar": "Calendario 2025 - Próximos concursos",
+    "sign_in": "Entra",
+    "who_we_are": "QUIEN SOMOS",
+    "explore_title": "Explora el calendario",
+    "explore_subtitle": "Mira las próximas competiciones cerca de ti",
+    "what_we_do": "QUÉ HACEMOS",
+    "next_features": "Próximas funcionalidades",
+    "head_title": "Concursos de Puzzles y Eventos",
+    "get_started": "Empieza aquí",
+    "why_choose": "PORQUÉ ESCOGER PUZZLIGAS?",
+    "features": {
+      "track_times": "Sigue tus tiempos",
+      "track_times_description": "Registre y compare sus tiempos de finalización de rompecabezas con otros",
+      "join_community": "Únete a la comunidad",
+      "join_community_description": "Conecta con otros aficionados a los puzzles",
+      "get_calendar": "Revisa el calendario",
+      "get_calendar_description": "Comprueba el calendario para nuevos concursos"
+    }
   },
   "competitions": {
     "upcoming_competitions": "Próximos Concursos",
@@ -41,7 +58,8 @@
   },
   "drawer_menu": {
     "create_competition": "Crear Competición",
-    "explore_competitions": "Explorar Competiciones"
+    "explore_competitions": "Explorar Competiciones",
+    "home": "Inicio"
   },
   "list_competitions": {
     "look_for_competition": "Busca una competición"

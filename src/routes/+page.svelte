@@ -2,6 +2,7 @@
     import { t } from '$lib/translations';
     import Icon from '@iconify/svelte';
     import CompetitionList from '$lib/components/competition/CompetitionList.svelte';
+    import ButtonLink from '$lib/components/landing_page/ButtonLink.svelte';
 
     let { data } = $props();
 
@@ -20,7 +21,14 @@
 </script>
 
 <svelte:head>
-    <title>Puzzle League</title>
+    <title>Puzzligas - {$t('landing_page.head_title')}</title>
+    <meta name="description" content="Join speed puzzling competitions, connect with puzzle enthusiasts, track your times, and participate in local and global puzzle events.">
+    <meta name="keywords" content="speed puzzling, puzzle competitions, jigsaw puzzles, puzzle league, puzzle events, puzzle community">
+    <meta property="og:title" content="Puzzligas - Speed Puzzling Competitions">
+    <meta property="og:description" content="Join the ultimate platform for speed puzzling competitions">
+    <meta property="og:image" content="/og-image.jpg">
+    <meta property="og:type" content="website">
+    <link rel="canonical" href="https://puzzligas.com">
 </svelte:head>
 
 {#if data.user}
@@ -84,43 +92,54 @@
 {:else}
     <div class="landing-page-container">
         <div class="landing-page-container-image">
-            <enhanced:img src="../../static/landing_page.jpg" alt="Speed Puzzling Image" class="cover-image"/>
-            <div class="landing-page-container-text-overlay" style="bottom: 10%;">
-                <h1 class="h1-title card m-4 p-2 text-center">{$t('landing_page.welcome')}</h1>
-                <div class="arrows">
-                    <svg width="40" height="40" viewBox="0 0 40 40">
-                        <path d="M10 15 L20 25 L30 15" stroke="currentColor" stroke-width="3" fill="none"/>
-                        <path d="M10 25 L20 35 L30 25" stroke="currentColor" stroke-width="3" fill="none"/>
-                    </svg>
+            <enhanced:img src="../../static/landing_page_2.jpg" alt="Speed Puzzling Image" class="cover-image"/>
+            <div class="landing-page-container-text-overlay space-y-2" style="bottom: 10%;">
+                <div class="p-2 text-center rounded-lg text-white">
+                    <p class="h4 font-sans">{$t('landing_page.welcome_text')}</p>
+                </div>
+                <!-- <button class="btn preset-outlined-primary-50-950 text-white border-white">{$t('landing_page.sign_in')}</button> -->
+                <p class="text-white">{$t('landing_page.get_started')}</p>
+                <div class="">
+                    <Icon icon="mdi:arrow-down" class="w-8 h-8 text-white"></Icon>
                 </div>
             </div>
         </div>
-        <div class="center-text-inside mt-10">
-            <p>{$t('landing_page.welcome_text')}</p>
+    </div>
+    <div class="space-y-4 mt-2 p-4">
+        <div class="space-y-4">
+            <h2 class="text-center font-sans">{$t('landing_page.who_we_are')}</h2>
+            <p class="text-lg text-center px-6 font-sans">{$t('landing_page.participant_welcome_text')}</p>
+            <ButtonLink href="/competitions/calendar/list"
+                        title={$t('landing_page.explore_title')}
+                        subtitle={$t('landing_page.explore_subtitle')}
+                        icon="mdi:calendar" />
         </div>
-        <div class="center-text-inside mt-10">
-            <h2 class="my-2 h2-title">{$t('landing_page.participant_welcome')}</h2>
-            <ul>
-                <li>{$t('landing_page.participant_welcome_text')}</li>
-            </ul>
-        </div>
-        <div class="center-text-inside mt-10">
-            <h2 class="my-2 h2-title">{$t('landing_page.organizer_welcome')}</h2>
-            <ul>
-                <li>{$t('landing_page.organizer_welcome_text')}</li>
-            </ul>
-        </div>
+        <section class="pt-12 px-4 bg-surface-100-800-token">
+            <div class="container mx-auto">
+                <h2 class="font-sans text-center mb-2">{$t('landing_page.why_choose')}</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="text-center space-y-2">
+                        <Icon icon="mdi:timer" class="w-12 h-12 mx-auto"/>
+                        <h3 class="h4">{$t('landing_page.features.track_times')}</h3>
+                        <p>{$t('landing_page.features.track_times_description')}</p>
+                    </div>
+                    <div class="text-center space-y-2">
+                        <Icon icon="mdi:account-group" class="w-12 h-12 mx-auto"/>
+                        <h3 class="h4">{$t('landing_page.features.join_community')}</h3>
+                        <p>{$t('landing_page.features.join_community_description')}</p>
+                    </div>
+                    <div class="text-center space-y-2">
+                        <Icon icon="mdi:calendar" class="w-12 h-12 mx-auto"/>
+                        <h3 class="h4">{$t('landing_page.features.get_calendar')}</h3>
+                        <p>{$t('landing_page.features.get_calendar_description')}</p>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 {/if}
 
 <style>
-    .arrows {
-        animation: bounce 2s infinite;
-    }
-    @keyframes bounce {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(10px); }
-    }
 
     .landing-page-container {
         display: flex;
@@ -137,14 +156,26 @@
     }
 
     .cover-image {
-        width: 100%;
         height: 100%;
+        width: 100%;
         object-fit: cover;
+        object-position: center;
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
+    }
+
+    .landing-page-container-image::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.8) 80%);
+        pointer-events: none;
     }
 
     .landing-page-container-text-overlay {
@@ -153,6 +184,7 @@
         flex-direction: column;
         width: 100%;
         align-items: center;
+        z-index: 1;
     }
 
     .center-text-inside {

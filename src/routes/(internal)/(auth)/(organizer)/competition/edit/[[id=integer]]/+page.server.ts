@@ -4,7 +4,7 @@ import { updateCompetition, getCompetitionWithCategories, getAllLeagues } from '
 import { type Competition, type Category, type Prisma, CategoryType } from '@prisma/client';
 import { auth } from '$lib/auth';
 
-import { CompetitionUpdateInputSchema } from '../../../../../../../prisma/generated/zod';
+import { CompetitionUpdateInputSchema } from '../../../../../../../../prisma/generated/zod';
 
 import { superValidate, message} from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';

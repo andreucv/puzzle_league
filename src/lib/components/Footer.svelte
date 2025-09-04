@@ -6,6 +6,7 @@
         </div>
         <div class="footer-section">
             <p>© 2025 Puzzligas. All rights reserved.</p>
+            <p class="text-xs text-gray-600">Logo from stockio.com</p>
         </div>
     </div>
 </footer>

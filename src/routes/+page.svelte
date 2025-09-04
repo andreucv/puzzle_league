@@ -21,14 +21,23 @@
 </script>
 
 <svelte:head>
-    <title>Puzzligas - {$t('landing_page.head_title')}</title>
-    <meta name="description" content="Join speed puzzling competitions, connect with puzzle enthusiasts, track your times, and participate in local and global puzzle events.">
-    <meta name="keywords" content="speed puzzling, puzzle competitions, jigsaw puzzles, puzzle league, puzzle events, puzzle community">
-    <meta property="og:title" content="Puzzligas - Speed Puzzling Competitions">
-    <meta property="og:description" content="Join the ultimate platform for speed puzzling competitions">
-    <meta property="og:image" content="/og-image.jpg">
-    <meta property="og:type" content="website">
+   <title>PuzzLigas - Speed Puzzling Competitions | Join Global Puzzle Events</title>
+    <meta name="description" content="Join speed puzzling competitions worldwide. Track your times, compete with other puzzlers, and participate in events. Sign up free today!">
+    <meta name="keywords" content="speed puzzling, puzzle competitions, jigsaw puzzle tournaments, competitive puzzling, puzzle timer, puzzle league, puzzle events, puzzle community, puzzle championships">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="PuzzLigas - The Premier Speed Puzzling Platform">
+    <meta property="og:description" content="Join the fastest-growing speed puzzling community. Compete, track, and improve your puzzle times.">
+    <meta property="og:image" content="https://puzzligas.com/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://puzzligas.com">
+    <meta property="og:site_name" content="PuzzLigas">
+
+    <!-- Additional SEO -->
     <link rel="canonical" href="https://puzzligas.com">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow">
 </svelte:head>
 
 {#if data.user}

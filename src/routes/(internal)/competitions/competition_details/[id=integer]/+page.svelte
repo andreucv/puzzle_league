@@ -8,8 +8,6 @@
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
 
     let { data } = $props();
-    console.log("competition_details +page.svelte: data", data);
-    console.log("competition_details +page.svelte: records", data.props.records);
     let categoryUsersDataToCreate = $state<Record<number, User[]>>({});
     if (data.props.competition_and_categories?.categories.length > 0) {
         const newCategoryUsersData : Record<number, User[]> = {};
@@ -65,11 +63,11 @@
 
     function handleSubmitInscriptions() {
         console.log("competition_details +page.svelte: handleSubmitInscriptions", categoryUsersDataToCreate);
-        let records : Prisma.EntryCreateInput[] = [];
+        let records : Prisma.RecordCreateInput[] = [];
         Object.entries(categoryUsersDataToCreate).forEach(([categoryId, users]) => {
             if (users.length > 0) {
                 records.push({
-                    creator: currentUser,
+                    creator: { connect: { id: currentUser.id } },
                     category: {
                         connect: { id: parseInt(categoryId) }
                     },

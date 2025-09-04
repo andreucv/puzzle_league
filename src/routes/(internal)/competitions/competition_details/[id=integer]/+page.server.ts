@@ -30,8 +30,6 @@ export const load: PageServerLoad = async ( event ) => {
     }
 
     const competition_image_url = undefined; //await cloudinary.url(competition_and_categories.image);
-    console.log(`competitions/competition_details/${competition_id} competition_categories`, competition_and_categories);
-    console.log(`competitions/competition_details/${competition_id} records`, records);
     return {
         props:
         {

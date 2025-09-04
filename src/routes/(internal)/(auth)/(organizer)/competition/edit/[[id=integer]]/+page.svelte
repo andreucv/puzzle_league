@@ -69,7 +69,7 @@
             // Optional fields can be omitted or set to defaults
             maxParties: null, // Add this property
             maxPartySize: 1, // Change from null to 1
-            status: "UPCOMING"
+            status: "not_started"
         }];
 
         categories_times_obj_arr.create = [...categories_times_obj_arr.create, {startTime: "", endTime: ""}];

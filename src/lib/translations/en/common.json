@@ -27,7 +27,10 @@
       "join_community_description": "Connect with puzzle enthusiasts worldwide",
       "get_calendar": "Check the calendar",
       "get_calendar_description": "Get to know upcoming puzzling competitions"
-    }
+    },
+    "your_upcoming_competitions": "Your upcoming competitions",
+    "no_upcoming_competitions": "Not registered to any competition",
+    "no_upcoming_competitions_detail": "Seems you are not registered to any upcoming competition. Look in the calendar and register for any category."
   },
   "drawer_menu": {
     "explore_competitions": "Explore Competitions",

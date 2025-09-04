@@ -32,9 +32,20 @@
 </svelte:head>
 
 {#if data.user}
-    <h4>Your upcoming competitions</h4>
-    <div class="container mx-auto space-y-4">
-        <CompetitionList competitions={data.props.upcomingRegisteredCompetitions} n_show=2 currentUsedId={data.user.id} />
+    <div class="container mx-auto px-4 space-y-4">
+        <section>
+            {#if data.props.upcomingRegisteredCompetitions && data.props.upcomingRegisteredCompetitions.length === 0}
+                <h4 class="font-sans mb-2 h4">{$t('landing_page.no_upcoming_competitions')}</h4>
+                <p class="mb-2">{$t('landing_page.no_upcoming_competitions_detail')}</p>
+                <ButtonLink href="/competitions/calendar/list"
+                            title={$t('landing_page.explore_title')}
+                            subtitle={$t('landing_page.explore_subtitle')}
+                            icon="mdi:calendar" />
+            {:else}
+                <h4 class="font-sans mb-2 h4">{$t('landing_page.your_upcoming_competitions')}</h4>
+                <CompetitionList competitions={data.props.upcomingRegisteredCompetitions} n_show=2 currentUsedId={data.user.id} />
+            {/if}
+        </section>
 
         {#if hasOrganizerRole}
         <section>

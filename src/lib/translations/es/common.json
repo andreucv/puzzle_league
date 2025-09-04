@@ -27,7 +27,10 @@
       "join_community_description": "Conecta con otros aficionados a los puzzles",
       "get_calendar": "Revisa el calendario",
       "get_calendar_description": "Comprueba el calendario para nuevos concursos"
-    }
+    },
+    "your_upcoming_competitions": "Tus próximos concursos",
+    "no_upcoming_competitions": "No estás registrado a ningún concurso",
+    "no_upcoming_competitions_detail": "Parece que no estás registrado a ningun concurso. Mira el calendario y regístrate a cualquier categoría!"
   },
   "competitions": {
     "upcoming_competitions": "Próximos Concursos",

@@ -3,9 +3,6 @@
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
     import Icon from '@iconify/svelte';
     let { category, currentUser, choosed_participants = $bindable([]), registrationOpen}: { category: Category, currentUser: User, choosed_participants: User[], registrationOpen: boolean} = $props();
-    console.log('SignUpToCategory.svelte: category:', category);
-    console.log('SignUpToCategory.svelte: currentUser:', currentUser);
-    console.log('SignUpToCategory.svelte: choosed_participants:', choosed_participants);
     // data will include:
     // - category_id, category_type, max_party_size
     // - binded map to return as: mao {category_id: [user_id, user_id, ...]}

@@ -296,12 +296,6 @@
                 </button>
             </div>
 
-            <datalist id="start_time_minutes">
-                {#each startTimeOptions as timeValue}
-                    <option value={timeValue}></option>
-                {/each}
-            </datalist>
-
             <div class="space-y-4">
                 {#if categories?.update && (categories?.update as []).length > 0}
                     <div>
@@ -353,7 +347,6 @@
                                         value={categories_times_obj_arr.update[i].startTime}
                                         required
                                         onchange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'update', i, e.target?.value)}
-                                        list="start_time_minutes"
                                         />
                                 </label>
                                 <label class="label">
@@ -364,7 +357,6 @@
                                         value={categories_times_obj_arr.update[i].endTime}
                                         required
                                         onchange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'update', i, e.target?.value)}
-                                        list="start_time_minutes"
                                     />
                                 </label>
 
@@ -458,7 +450,6 @@
                                         value={categories_times_obj_arr.create[i].startTime}
                                         required
                                         onchange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'create', i, e.target?.value)}
-                                        list="start_time_minutes"
                                     />
                                 </label>
                                 <label class="label">
@@ -470,7 +461,6 @@
                                         required
                                         onchange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'create', i, e.target?.value)}
                                         min={categories_times_obj_arr.create[i].startTime}
-                                        list="start_time_minutes"
                                         />
                                 </label>
 

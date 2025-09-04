@@ -27,7 +27,10 @@
       "join_community_description": "Connecta amb altres aficionats als puzzles",
       "get_calendar": "Revisa el calendari",
       "get_calendar_description": "Comprova el calendari per nous concursos"
-    }
+    },
+    "your_upcoming_competitions": "Els teus pròxims concursos",
+    "no_upcoming_competitions": "No estàs registrat a cap concurs",
+    "no_upcoming_competitions_detail": "Sembla que no estàs registrat a cap proper concurs. Mira al calendari i registra't a qualsevol categoria!"
   },
   "competitions": {
     "upcoming_competitions": "Pròxims Concursos",

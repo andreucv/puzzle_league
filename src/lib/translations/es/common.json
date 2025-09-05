@@ -107,5 +107,8 @@
     "details": "Edita los detalles de la competición y las categorías",
     "title": "Edita competición",
     "registers_warning": "Editar la competición eliminará los registros presentes en las categorías, y las personas anteriornmente registradas deberán volver a hacerlo."
+  },
+  "competition_details": {
+    "feature_not_available": "Función no dispoible actualmente"
   }
 }

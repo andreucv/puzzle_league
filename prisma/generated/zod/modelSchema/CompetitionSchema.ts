@@ -11,6 +11,7 @@ export const CompetitionSchema = z.object({
   name: z.string(),
   description: z.string().nullable(),
   location: z.string().nullable(),
+  image_cld_id: z.string().nullable(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   createdAt: z.coerce.date(),

@@ -7,6 +7,8 @@
     import ShowRegisteredToCategory from '$lib/components/ShowRegisteredToCategory.svelte';
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
 
+    import { CldImage } from 'svelte-cloudinary';
+
     let { data } = $props();
     let categoryUsersDataToCreate = $state<Record<number, User[]>>({});
     if (data.props.competition_and_categories?.categories.length > 0) {
@@ -115,15 +117,29 @@
                 {competition?.location}
             </span>
         </div>
-        <div class="flex items-center gap-2">
-            <Icon icon="mdi:calendar-clock" width="1.5rem" height="1.5rem" class="text-primary-500" />
-            <span class="text-lg">
-                {monthNumber} {monthAbbreviation} {year}
-                {#if bool_more_than_one_day}
-                    - {competition_endDate.getDate()} {competition_endDate.toLocaleString('default', { month: 'short' })} {competition_endDate.getFullYear()}
-                {/if}
-            </span>
+        <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 justify-start">
+                <Icon icon="mdi:calendar-clock" width="1.5rem" height="1.5rem" class="text-primary-500" />
+                <span class="text-lg">
+                    {monthNumber} {monthAbbreviation} {year}
+                    {#if bool_more_than_one_day}
+                        - {competition_endDate.getDate()} {competition_endDate.toLocaleString('default', { month: 'short' })} {competition_endDate.getFullYear()}
+                    {/if}
+                </span>
+            </div>
+            <div class="justify-end">
+                <span class="badge preset-filled-primary-500">
+                    {competitionStatus}
+                </span>
+            </div>
         </div>
+        {#if competition?.image_cld_id}
+        <div class="w-full">
+            <CldImage
+                src={competition.image_cld_id}
+            />
+        </div>
+        {/if}
         <div class="space-x-3 flex items-center justify-between w-full">
             <!-- Creator Info -->
             {#if competition?.creator}
@@ -134,11 +150,6 @@
                     </span>
                 </div>
             {/if}
-            <div class="flex justify-end">
-                <span class="badge preset-filled-primary-500">
-                    {competitionStatus}
-                </span>
-            </div>
         </div>
     </div>
 

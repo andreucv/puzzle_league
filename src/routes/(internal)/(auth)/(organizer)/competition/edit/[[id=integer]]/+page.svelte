@@ -5,6 +5,8 @@
     import { CalendarDate, today, getLocalTimeZone, Time, fromDate, parseAbsolute, toCalendarDateTime} from "@internationalized/date";
     import CustomDatePicker from "$lib/components/bits_ui/CustomDatePicker.svelte";
     import { getCategoryTypeName, getPartySizeByCategoryType } from "$lib/utils/category_utils.js";
+    import { FileUpload } from '@skeletonlabs/skeleton-svelte';
+    import { CldImage } from 'svelte-cloudinary';
 
     let { data } = $props();
     const { form, errors, constraints, message, enhance } = superForm(data.form, {dataType:"json"});
@@ -34,6 +36,7 @@
 
     // Here inject the data from the current competition in form
     let initialCompetitionStartDate = null;
+    let selected_image_src = $state(undefined);
 
     let categories = $state({
         create: [] as any[]
@@ -50,15 +53,19 @@
         categories_times_obj_arr.update = toUpdateCategoriesTimes;
 
         initialCompetitionStartDate = new CalendarDate(new Date($form.startDate).getFullYear(), new Date($form.startDate).getMonth() + 1, new Date($form.startDate).getDate());
+        selected_image_src = $form.image_cld_id || undefined;
     }
 
-    $effect(() => {
-        $form.categories = categories;
-    })
 
     // Update form with creator ID when loaded
     $form.status = "UPCOMING";
     $form.creator = { connect: { id: data.user.id } };
+    $form.image_cld_id = undefined;
+
+    $effect(() => {
+        $form.categories = categories;
+        $form.image_cld_id = selected_image_src;
+    });
 
     function addCategory() {
         categories.create = [...categories.create, {
@@ -161,6 +168,20 @@
             return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         });
     });
+
+    function handleImageChange(event) {
+        console.log("handleImageChange", event);
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const image = event.target.result;
+            selected_image_src = image;
+        }
+        reader.readAsDataURL(event.acceptedFiles[0]);
+    }
+
+    function handleImageReject() {
+        selected_image_src = undefined;
+    }
 </script>
 
 <svelte:head>
@@ -233,6 +254,31 @@
                     ></textarea>
                 </label>
                 {#if $errors.description}<span class="invalid">{$errors.description}</span>{/if}
+
+                <div class="label">
+                    <span>{$t('create_competition.image')}</span>
+                    {#if selected_image_src === undefined}
+                        <FileUpload accept="image/*" name="competition_image" maxFiles={1} onFileChange={handleImageChange} onFileReject={handleImageReject}>
+                        </FileUpload>
+                    {:else}
+                        <div class="flex flex-col items-center gap-2">
+                            {#if selected_image_src.includes('competitions')}
+                                <CldImage src={selected_image_src} alt="Competition" class="rounded-lg" />
+                            {:else}
+                                <img src={selected_image_src} alt="Competition" class="rounded-lg" />
+                                <input type="hidden" name="competition_image" value={selected_image_src} />
+                            {/if}
+                            <button
+                                type="button"
+                                class="btn preset-filled-error-500 rounded-lg"
+                                onclick={() => selected_image_src = undefined}
+                            >
+                                <Icon icon="mdi:delete" width="1.2rem" height="1.2rem" />
+                                Remove Image
+                            </button>
+                        </div>
+                    {/if}
+                </div>
             </div>
         </div>
 

@@ -128,6 +128,7 @@ model Competition {
   name             String
   description      String?
   location         String?
+  image_cld_id     String?
   startDate        DateTime
   endDate          DateTime
   status           CompetitionStatus @default(UPCOMING)

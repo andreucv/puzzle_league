@@ -9,6 +9,16 @@ import { CompetitionUpdateInputSchema } from '../../../../../../../../prisma/gen
 import { superValidate, message} from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 
+import { v2 as cloudinary } from "cloudinary";
+import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } from '$env/static/private';
+
+cloudinary.config({
+    cloud_name: CLOUDINARY_CLOUD_NAME,
+    api_key: CLOUDINARY_API_KEY,
+    api_secret: CLOUDINARY_API_SECRET,
+    secure: false
+});
+
 export const load: PageServerLoad = async (event) => {
 
     let competitionId = null;
@@ -80,6 +90,47 @@ const create_update_competition: Action = async ({ request, params }) => {
     if (!form.valid) {
         console.error('competition/edit/+page.server.ts: on action form not valid', JSON.stringify(form.errors, null, 2));
         return message(form, {success: false, message: "Form is not valid"});
+    }
+
+    // let's push now the image to the cloudinary server and then store the id in the database
+    if (form.data.image_cld_id) {
+        try {
+            // Extract base64 data from data URL (remove "data:image/jpeg;base64," prefix)
+            const base64Data = form.data.image_cld_id.split(',')[1];
+            if (!base64Data) {
+                throw new Error('Invalid image data format');
+            }
+
+            const buffer = Buffer.from(base64Data, 'base64');
+
+            const upload_image_promise = new Promise((resolve, reject) => {
+                cloudinary.uploader.upload_stream(
+                    {
+                        resource_type: 'image',
+                        folder: 'competitions' // Optional: organize images in folders
+                    },
+                    function (error, result) {
+                        if (error) {
+                            console.error('Cloudinary upload error:', error);
+                            reject(error);
+                            return;
+                        }
+                        console.log('Cloudinary upload result:', result);
+                        resolve(result);
+                    }
+                ).end(buffer);
+            });
+
+            const upload_image_promise_result = await upload_image_promise;
+            console.log('upload_image_promise_result', upload_image_promise_result);
+            form.data.image_cld_id = upload_image_promise_result.public_id;
+        } catch (error) {
+            console.error('Error uploading image to Cloudinary:', error);
+            return message(form, {success: false, message: "Failed to upload image"});
+        }
+    } else {
+        // If no image provided, set to null or remove the field
+        form.data.image_cld_id = null;
     }
 
     const result = await updateCompetition(competitionId, form.data);

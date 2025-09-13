@@ -2,6 +2,7 @@
     import type { User , Category} from '@prisma/client';
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
     import Icon from '@iconify/svelte';
+    import { t } from '$lib/translations';
     let { category, currentUser, choosed_participants = $bindable([]), registrationOpen}: { category: Category, currentUser: User, choosed_participants: User[], registrationOpen: boolean} = $props();
     // data will include:
     // - category_id, category_type, max_party_size
@@ -75,14 +76,20 @@
 
 <div class="container">
     {#if !opened_signup_form}
-        <button type="button" class="btn btn-sm preset-filled-success-500 hover:preset-filled-primary-600 transition-colors"
-            title="Register"
-            onclick={() => {opened_signup_form = true; addTeammate(currentUser);}}
-            disabled={!registrationOpen}
-        >
-            <Icon icon="mdi:account-plus" width="1rem" height="1rem" />
-            Edit Inscription
-        </button>
+        <div class="items-center justify-between">
+
+            <button type="button" class="btn btn-sm preset-filled-success-500 hover:preset-filled-primary-600 transition-colors"
+                title="Register"
+                onclick={() => {opened_signup_form = true; addTeammate(currentUser);}}
+                disabled={true}
+            >
+                <Icon icon="mdi:account-plus" width="1rem" height="1rem" />
+                Edit Inscription
+            </button>
+            <p class="text-sm text-gray-500">
+                {$t('competition_details.feature_not_available')}
+            </p>
+        </div>
     {:else}
         <div class="mt-2 relative p-3 bg-warning-50 border-warning-500 rounded-lg">
             <button

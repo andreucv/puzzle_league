@@ -93,7 +93,8 @@
     "add_category_comment": "Add your first category to get started",
     "cancel": "Cancel",
     "start_time": "Start time",
-    "end_time": "End time"
+    "end_time": "End time",
+    "image": "Image"
   },
   "competition": {
     "edit_competition": "Edit Competition",
@@ -123,5 +124,8 @@
   "my-organized-competitions": "My Organized Competitions",
   "organizer-actions": "Organizer Actions",
   "your-upcoming-competitions": "Your upcoming competitions",
-  "puzzligas-t-landing_page-head_title": "Puzzligas - {$t('landing_page.head_title')}"
+  "puzzligas-t-landing_page-head_title": "Puzzligas - {$t('landing_page.head_title')}",
+  "competition_details": {
+    "feature_not_available": "Feature not available yet"
+  }
 }

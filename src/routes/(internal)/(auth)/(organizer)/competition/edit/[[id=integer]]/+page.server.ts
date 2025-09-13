@@ -89,7 +89,7 @@ const create_update_competition: Action = async ({ request, params }) => {
         return message(form, {success: false, message: "Something went wrong"});
     }
 
-    return message(form, {success: result.success, message: "Competition updated successfully", id: competitionId});
+    return message(form, {success: result.success, message: "Competition updated successfully", id: result.data?.competition.id});
 }
 
 export const actions: Actions = { create_update_competition }

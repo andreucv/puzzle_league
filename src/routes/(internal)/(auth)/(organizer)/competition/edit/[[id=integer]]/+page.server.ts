@@ -10,12 +10,12 @@ import { superValidate, message} from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 
 import { v2 as cloudinary } from "cloudinary";
-import { VITE_CLOUDINARY_CLOUD_NAME, VITE_CLOUDINARY_API_KEY, VITE_CLOUDINARY_API_SECRET } from '$env/static/private';
+import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } from '$env/static/private';
 
 cloudinary.config({
-    cloud_name: VITE_CLOUDINARY_CLOUD_NAME,
-    api_key: VITE_CLOUDINARY_API_KEY,
-    api_secret: VITE_CLOUDINARY_API_SECRET,
+    cloud_name: CLOUDINARY_CLOUD_NAME,
+    api_key: CLOUDINARY_API_KEY,
+    api_secret: CLOUDINARY_API_SECRET,
     secure: false
 });
 

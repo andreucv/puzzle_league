@@ -93,7 +93,8 @@
     "add_category_comment": "Añade la primera categoría",
     "cancel": "Cancelar",
     "start_time": "Empieza",
-    "end_time": "Termina"
+    "end_time": "Termina",
+    "image": "Imagen"
   },
   "competition": {
     "edit_competition": "Edita Competición",

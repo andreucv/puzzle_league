@@ -1,8 +1,9 @@
 import { fail } from '@sveltejs/kit';
 import type { Action, Actions, PageServerLoad } from './$types';
-import { updateCompetition, getCompetitionWithCategories, getAllLeagues } from '$lib/database';
-import { type Competition, type Category, type Prisma, CategoryType } from '@prisma/client';
+import { updateCompetition, getCompetitionWithCategories } from '$lib/database';
+import { CategoryType } from '@prisma/client';
 import { auth } from '$lib/auth';
+import { z } from 'zod';
 
 import { CompetitionUpdateInputSchema } from '../../../../../../../../prisma/generated/zod';
 
@@ -17,6 +18,27 @@ cloudinary.config({
     api_key: CLOUDINARY_API_KEY,
     api_secret: CLOUDINARY_API_SECRET,
     secure: false
+});
+
+// Custom simplified schema - only validates what you need
+const CompetitionEditSchema = z.object({
+    id: z.number().optional(),
+    name: z.string().min(1),
+    description: z.string().nullable().optional(),
+    location: z.string().nullable().optional(),
+    image_cld_id: z.string().nullable().optional(),
+    status: z.string(),
+    registrationOpen: z.boolean().optional(),
+    categories: z.object({
+        create: z.array(z.any()).optional(),
+        update: z.array(z.any()).optional(),
+        delete: z.array(z.any()).optional(),
+    }).optional(),
+    creator: z.object({
+        connect: z.object({
+            id: z.string()
+        })
+    }).optional()
 });
 
 export const load: PageServerLoad = async (event) => {
@@ -53,7 +75,7 @@ export const load: PageServerLoad = async (event) => {
         }
 
         const categoryTypes = Object.values(CategoryType);
-        const form = await superValidate(competition, zod4(CompetitionUpdateInputSchema));
+        const form = await superValidate(competition, zod4(CompetitionEditSchema));
         console.log('competition/edit: onload form:', form);
         console.log('competition/edit: onload form categories:', form.data.categories);
 

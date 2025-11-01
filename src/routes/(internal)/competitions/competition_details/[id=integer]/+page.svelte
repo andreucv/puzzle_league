@@ -96,10 +96,6 @@
     }
 </script>
 
-<svelte:head>
-    <title>{competitionName} - Competition Details</title>
-</svelte:head>
-
 <div class="container mx-auto">
     <!-- Header Section -->
     <div class="space-y-3">
@@ -136,8 +132,14 @@
         {#if competition?.image_cld_id}
         <div class="w-full">
             <CldImage
-                src={competition.image_cld_id}
-            />
+                    src={competition.image_cld_id}
+                    width="800"
+                    height="400"
+                    alt="{competitionName} - Competition Image"
+                    crop="fill"
+                    gravity="auto"
+                    class="rounded-lg shadow-lg w-full object-cover max-h-96"
+                />
         </div>
         {/if}
         <div class="space-x-3 flex items-center justify-between w-full">

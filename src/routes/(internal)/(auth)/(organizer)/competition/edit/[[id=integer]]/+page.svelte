@@ -295,7 +295,7 @@
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <CustomDatePicker
+                <!-- <CustomDatePicker
                     name="start_date"
                     labelText="{$t('edit_competition.date')} *"
                     locale={data.i18n.locale}
@@ -306,7 +306,7 @@
                     weekStartsOn={1}
                     pagedNavigation={true}
                     onValueChange={(e) => onDateChange(e)}
-                />
+                /> -->
                 <label class="label">
                     <!-- <span>End Date</span> -->
                     <input

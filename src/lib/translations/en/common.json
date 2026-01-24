@@ -62,7 +62,8 @@
     },
     "calendar_table": {
       "title": "Calendar View (Table)"
-    }
+    },
+    "no_upcoming_competitions": "There are not more upcoming competitions"
   },
   "list_competitions": {
     "look_for_competition": "Look for a competition"

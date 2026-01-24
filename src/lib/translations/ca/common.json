@@ -57,7 +57,8 @@
     },
     "calendar_table": {
       "title": "Vista de Calendari (Taula)"
-    }
+    },
+    "no_upcoming_competitions": "No hi ha pròximes competicions"
   },
   "drawer_menu": {
     "create_competition": "Crear Competició",

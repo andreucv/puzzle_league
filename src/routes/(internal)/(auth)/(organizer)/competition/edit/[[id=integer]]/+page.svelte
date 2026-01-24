@@ -1,16 +1,75 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
     import { t } from "$lib/translations";
+    import { goto } from "$app/navigation";
+    import { tick } from "svelte";
     import { superForm } from "sveltekit-superforms";
     import { CalendarDate, today, getLocalTimeZone, Time, fromDate, parseAbsolute, toCalendarDateTime} from "@internationalized/date";
-    import CustomDatePicker from "$lib/components/bits_ui/CustomDatePicker.svelte";
     import { getCategoryTypeName, getPartySizeByCategoryType } from "$lib/utils/category_utils.js";
     import { FileUpload } from '@skeletonlabs/skeleton-svelte';
     import { CldImage } from 'svelte-cloudinary';
+    import CustomDateRangePicker from "$lib/components/bits_ui/CustomDateRangePicker.svelte";
+    import CustomDateInputField from "$lib/components/bits_ui/CustomDateInputField.svelte";
 
     let { data } = $props();
-    const { form, errors, constraints, message, enhance } = superForm(data.form, {dataType:"json"});
-    const isEdit = $form.name !== undefined;
+    console.log("competition/edit/+page.svelte: data", data);
+    const { form, errors, constraints, message, enhance } = superForm(data.form, {
+        dataType: "json",
+        async onSubmit({ cancel }) {
+            // Validate date before submission
+            if (!$form.startDate) {
+                dateError = 'Please select a competition date';
+                await focusFirstInvalidField();
+                cancel();
+                return;
+            }
+            dateError = null;
+        },
+        async onResult({ result }) {
+            if (result.type === 'success' && result.data?.form?.message?.success) {
+                const competitionId = result.data.form.message.id;
+                if (competitionId) {
+                    await goto(`/competitions/competition_details/${competitionId}`);
+                }
+            }
+        },
+        async onError() {
+            await focusFirstInvalidField();
+        },
+        async onUpdated({ form }) {
+            // If form has errors, focus on first invalid field
+            if (!form.valid) {
+                await focusFirstInvalidField();
+            }
+        }
+    });
+
+    async function focusFirstInvalidField() {
+        await tick();
+        // First check for date error and focus on date picker
+        if (dateError && datePickerRef) {
+            datePickerRef.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+            // Try to focus the first input inside the date picker
+            const dateInput = datePickerRef.querySelector<HTMLElement>('[data-segment]');
+            dateInput?.focus?.();
+            return;
+        }
+        // Then try to find fields with error messages
+        const firstErrorSpan = document.querySelector<HTMLSpanElement>('span.invalid');
+        if (firstErrorSpan) {
+            const input = firstErrorSpan.previousElementSibling as HTMLInputElement;
+            input?.focus?.();
+            input?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+        // Fallback to HTML5 invalid fields
+        const firstInvalidInput = document.querySelector<HTMLInputElement>('input:invalid, select:invalid, textarea:invalid');
+        if (firstInvalidInput) {
+            firstInvalidInput.focus();
+            firstInvalidInput.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+        }
+    }
+    const isEdit = $form.id !== undefined;
 
     let toUpdateCategories = [] as any[];
     let toUpdateCategoriesTimes = [] as any[];
@@ -44,6 +103,20 @@
     let categories_times_obj_arr = $state({
         create: [] as any[]
     });
+
+    // Client-side validation errors for categories
+    let categoryErrors = $state({
+        create: [] as Array<{ name?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string }>,
+        update: [] as Array<{ name?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string }>
+    });
+
+    // Date validation error
+    let dateError = $state<string | null>(null);
+    let datePickerRef: HTMLDivElement;
+
+    // Confirmation dialog state
+    let showRemoveConfirmation = $state(false);
+    let pendingRemoval = $state<{ source: string; index: number } | null>(null);
     if (isEdit) {
         categories.create = [];
         categories.update = toUpdateCategories;
@@ -53,6 +126,8 @@
         categories_times_obj_arr.update = toUpdateCategoriesTimes;
 
         initialCompetitionStartDate = new CalendarDate(new Date($form.startDate).getFullYear(), new Date($form.startDate).getMonth() + 1, new Date($form.startDate).getDate());
+        console.log("initialCompetitionStartDate", $form.startDate);
+        console.log("initialCompetitionStartDate", initialCompetitionStartDate);
         selected_image_src = $form.image_cld_id || undefined;
     }
 
@@ -82,19 +157,99 @@
         categories_times_obj_arr.create = [...categories_times_obj_arr.create, {startTime: "", endTime: ""}];
     }
 
+    function requestRemoveCategory(source: string, index: number) {
+        // For existing categories (update), show confirmation dialog
+        if (source === "update") {
+            pendingRemoval = { source, index };
+            showRemoveConfirmation = true;
+        } else {
+            // For new categories, remove immediately (no registrations possible)
+            removeCategory(source, index);
+        }
+    }
+
+    function confirmRemoveCategory() {
+        if (pendingRemoval) {
+            removeCategory(pendingRemoval.source, pendingRemoval.index);
+            pendingRemoval = null;
+            showRemoveConfirmation = false;
+        }
+    }
+
+    function cancelRemoveCategory() {
+        pendingRemoval = null;
+        showRemoveConfirmation = false;
+    }
+
     function removeCategory(source: string, index: number) {
         if(source === "create") {
             categories.create = categories.create.filter((_, i) => i !== index);
+            categoryErrors.create = categoryErrors.create.filter((_, i) => i !== index);
         } else if (source === "update") {
             const categoryToDelete = categories.update[index].where.id;
             console.log("categoryToDelete", categoryToDelete);
             categories.delete = [...categories.delete, {id: categoryToDelete}];
             categories.update = categories.update.filter((_, i) => i !== index);
+            categoryErrors.update = categoryErrors.update.filter((_, i) => i !== index);
+        }
+    }
+
+    // Client-side validation for category fields
+    function validateCategoryField(source: string, index: number, field: string, value: any) {
+        if (!categoryErrors[source][index]) {
+            categoryErrors[source][index] = {};
+        }
+
+        switch (field) {
+            case 'name':
+                if (value && value.length > 0 && value.length < 3) {
+                    categoryErrors[source][index].name = 'Category name must be at least 3 characters';
+                } else if (value && value.length > 60) {
+                    categoryErrors[source][index].name = 'Category name must be at most 60 characters';
+                } else {
+                    delete categoryErrors[source][index].name;
+                }
+                break;
+            case 'type':
+                if (!value) {
+                    categoryErrors[source][index].type = 'Please select a category type';
+                } else {
+                    delete categoryErrors[source][index].type;
+                }
+                break;
+            case 'startTime':
+                if (!value) {
+                    categoryErrors[source][index].startTime = 'Start time is required';
+                } else {
+                    delete categoryErrors[source][index].startTime;
+                }
+                break;
+            case 'endTime':
+                if (!value) {
+                    categoryErrors[source][index].endTime = 'End time is required';
+                } else {
+                    delete categoryErrors[source][index].endTime;
+                }
+                break;
+            case 'maxParties':
+                if (value !== null && value < 1) {
+                    categoryErrors[source][index].maxParties = 'Max parties must be at least 1';
+                } else {
+                    delete categoryErrors[source][index].maxParties;
+                }
+                break;
+            case 'maxPartySize':
+                if (value !== null && value < 1) {
+                    categoryErrors[source][index].maxPartySize = 'Party size must be at least 1';
+                } else {
+                    delete categoryErrors[source][index].maxPartySize;
+                }
+                break;
         }
     }
 
     function mixCompetitionDateWithCategoryTimeNewPicker(field: string, source: string, index: number, time_value: string) {
-        if ($form.startDate === "" || $form.startDate === undefined || time_value === undefined) {
+        if (!$form.startDate || $form.startDate === "" || !time_value) {
             console.log("mixCompetitionDateWithCategoryTime", "startDate is empty or time_value is undefined", $form.startDate, time_value);
             return "";
         }
@@ -116,7 +271,15 @@
         }
     }
 
-    function onDateChange(date_value: CalendarDate) {
+    function onDateChange(date_value: CalendarDate | null | undefined) {
+        // Clear any previous date error when user interacts with date picker
+        dateError = null;
+
+        if (!date_value) {
+            console.log("onDateChange: no date value provided");
+            return;
+        }
+
         console.log("onDateChange", date_value);
         const localTimeZone = getLocalTimeZone();
         const date = date_value.toDate(localTimeZone);
@@ -188,7 +351,7 @@
     <title>{isEdit? $t('edit_competition.title') : $t('create_competition.title')}</title>
 </svelte:head>
 
-<h4>{isEdit? $t('edit_competition.title') : $t('create_competition.title')}</h4>
+<h4>{isEdit? $t('competition.edit.title') : $t('competition.create.title')}</h4>
 <div class="container mx-auto">
     <!-- Header Section -->
     <div class="space-y-3 mb-2">
@@ -295,18 +458,23 @@
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- <CustomDatePicker
-                    name="start_date"
-                    labelText="{$t('edit_competition.date')} *"
-                    locale={data.i18n.locale}
-                    value={initialCompetitionStartDate}
-                    minValue={today(getLocalTimeZone())}
-                    required
-                    disableDaysOutsideMonth={false}
-                    weekStartsOn={1}
-                    pagedNavigation={true}
-                    onValueChange={(e) => onDateChange(e)}
-                /> -->
+                <div bind:this={datePickerRef} class="label">
+                    <CustomDateRangePicker
+                        name="start_date"
+                        labelText="{$t('edit_competition.date')} *"
+                        locale={data.i18n.locale}
+                        value={initialCompetitionStartDate}
+                        minValue={today(getLocalTimeZone())}
+                        required
+                        disableDaysOutsideMonth={true}
+                        weekStartsOn={1}
+                        pagedNavigation={true}
+                        onValueChange={(e) => onDateChange(e)}
+                    />
+                    {#if dateError}
+                        <span class="invalid text-error-500 text-sm">{dateError}</span>
+                    {/if}
+                </div>
                 <label class="label">
                     <!-- <span>End Date</span> -->
                     <input
@@ -335,7 +503,7 @@
                     type="button"
                     class="btn preset-filled-primary-500 rounded-lg"
                     onclick={addCategory}
-                    disabled={$form.startDate === "" || $form.startDate === undefined}
+                    disabled={!$form.startDate}
                 >
                     <Icon icon="mdi:plus" width="1.2rem" height="1.2rem" />
                     {$t('create_competition.add_category')}
@@ -352,23 +520,35 @@
                             <!-- Category Header -->
                             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <!-- Category Name -->
-                                <label class="label">
-                                    <span class="text-sm font-medium">Category Name</span>
+                                <div class="label">
+                                    <span class="text-sm font-medium">Category Name *</span>
                                     <input
                                         type="text"
                                         class="input bg-primary-50-950"
+                                        class:input-error={categoryErrors.update[i]?.name}
                                         bind:value={categories.update[i].data.name}
                                         placeholder="Enter category name"
+                                        minlength="3"
+                                        maxlength="60"
+                                        required
+                                        oninput={(e) => validateCategoryField('update', i, 'name', e.target?.value)}
                                     />
-                                </label>
+                                    {#if categoryErrors.update[i]?.name}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].name}</span>
+                                    {/if}
+                                </div>
 
                                 <!-- Category Type -->
-                                <label class="label">
+                                <div class="label">
                                     <span class="text-sm font-medium">Category Type *</span>
                                     <select
                                         class="select bg-primary-50-950"
+                                        class:input-error={categoryErrors.update[i]?.type}
                                         bind:value={categories.update[i].data.type}
-                                        onchange={(e) => autofillCategoryMaxPartySize(i, 'update', e.target?.value)}
+                                        onchange={(e) => {
+                                            autofillCategoryMaxPartySize(i, 'update', e.target?.value);
+                                            validateCategoryField('update', i, 'type', e.target?.value);
+                                        }}
                                         required
                                     >
                                         <option value="">Select a category type</option>
@@ -378,66 +558,92 @@
                                             </option>
                                         {/each}
                                     </select>
-                                </label>
+                                    {#if categoryErrors.update[i]?.type}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].type}</span>
+                                    {/if}
+                                </div>
                             </div>
 
                             <!-- Category Details (only show when type is selected) -->
                             {#if categories.update[i].data.type}
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <!-- Start Time -->
-                                <label class="label">
+                                <div class="label">
                                     <span class="text-sm font-medium">Start Time *</span>
                                     <input
                                         type="time"
                                         class="input bg-primary-50-950"
+                                        class:input-error={categoryErrors.update[i]?.startTime}
                                         value={categories_times_obj_arr.update[i].startTime}
                                         required
-                                        onchange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'update', i, e.target?.value)}
-                                        />
-                                </label>
-                                <label class="label">
+                                        onchange={(e) => {
+                                            mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'update', i, e.target?.value);
+                                            validateCategoryField('update', i, 'startTime', e.target?.value);
+                                        }}
+                                    />
+                                    {#if categoryErrors.update[i]?.startTime}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].startTime}</span>
+                                    {/if}
+                                </div>
+                                <div class="label">
                                     <span class="text-sm font-medium">End Time *</span>
                                     <input
                                         type="time"
                                         class="input bg-primary-50-950"
+                                        class:input-error={categoryErrors.update[i]?.endTime}
                                         value={categories_times_obj_arr.update[i].endTime}
                                         required
-                                        onchange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'update', i, e.target?.value)}
+                                        onchange={(e) => {
+                                            mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'update', i, e.target?.value);
+                                            validateCategoryField('update', i, 'endTime', e.target?.value);
+                                        }}
                                     />
-                                </label>
-
+                                    {#if categoryErrors.update[i]?.endTime}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].endTime}</span>
+                                    {/if}
+                                </div>
 
                                 <!-- Max Parties -->
-                                <label class="label">
-                                <span class="text-sm font-medium">Max Parties *</span>
+                                <div class="label">
+                                    <span class="text-sm font-medium">Max Parties *</span>
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
+                                        class:input-error={categoryErrors.update[i]?.maxParties}
                                         bind:value={categories.update[i].data.maxParties}
                                         min="1"
                                         step="1"
                                         placeholder="Maximum number of parties"
                                         required
+                                        oninput={(e) => validateCategoryField('update', i, 'maxParties', parseInt(e.target?.value))}
                                     />
-                                </label>
+                                    {#if categoryErrors.update[i]?.maxParties}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].maxParties}</span>
+                                    {/if}
+                                </div>
                                 <!-- Participants per Party -->
-                                <label class="label">
+                                <div class="label">
                                     <span class="text-sm font-medium">Participants per Party *</span>
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
+                                        class:input-error={categoryErrors.update[i]?.maxPartySize}
                                         bind:value={categories.update[i].data.maxPartySize}
                                         min="1"
                                         required
+                                        oninput={(e) => validateCategoryField('update', i, 'maxPartySize', parseInt(e.target?.value))}
                                     />
-                                </label>
+                                    {#if categoryErrors.update[i]?.maxPartySize}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].maxPartySize}</span>
+                                    {/if}
+                                </div>
                             </div>
                             {/if}
                             <div class="flex justify-end gap-4 mt-4">
                                 <button
                                     type="button"
                                     class="btn preset-tonal rounded-lg"
-                                    onclick={() => removeCategory('update', i)}
+                                    onclick={() => requestRemoveCategory('update', i)}
                                 >
                                     <Icon icon="mdi:delete" width="1.2rem" height="1.2rem" />
                                     Remove Category
@@ -455,23 +661,35 @@
                             <!-- Category Header -->
                             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <!-- Category Name -->
-                                <label class="label">
-                                    <span class="text-sm font-medium">Category Name</span>
+                                <div class="label">
+                                    <span class="text-sm font-medium">Category Name *</span>
                                     <input
                                         type="text"
                                         class="input bg-primary-50-950"
+                                        class:input-error={categoryErrors.create[i]?.name}
                                         bind:value={categories.create[i].name}
                                         placeholder="Enter category name"
+                                        minlength="3"
+                                        maxlength="60"
+                                        required
+                                        oninput={(e) => validateCategoryField('create', i, 'name', e.target?.value)}
                                     />
-                                </label>
+                                    {#if categoryErrors.create[i]?.name}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].name}</span>
+                                    {/if}
+                                </div>
 
                                 <!-- Category Type -->
-                                <label class="label">
+                                <div class="label">
                                     <span class="text-sm font-medium">Category Type *</span>
                                     <select
                                         class="select bg-primary-50-950"
+                                        class:input-error={categoryErrors.create[i]?.type}
                                         bind:value={categories.create[i].type}
-                                        onchange={(e) => autofillCategoryMaxPartySize(i, 'create', e.target?.value)}
+                                        onchange={(e) => {
+                                            autofillCategoryMaxPartySize(i, 'create', e.target?.value);
+                                            validateCategoryField('create', i, 'type', e.target?.value);
+                                        }}
                                         required
                                     >
                                         <option value="">Select a category type</option>
@@ -481,66 +699,92 @@
                                             </option>
                                         {/each}
                                     </select>
-                                </label>
+                                    {#if categoryErrors.create[i]?.type}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].type}</span>
+                                    {/if}
+                                </div>
                             </div>
 
                             <!-- Category Details (only show when type is selected) -->
                             {#if categories.create[i].type}
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <!-- TODO: datetime pickers for more than one day competitions -->
-                                <label class="label">
+                                <div class="label">
                                     <span class="text-sm font-medium">Start Time *</span>
                                     <input
                                         type="time"
                                         class="input bg-primary-50-950"
+                                        class:input-error={categoryErrors.create[i]?.startTime}
                                         value={categories_times_obj_arr.create[i].startTime}
                                         required
-                                        onchange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'create', i, e.target?.value)}
+                                        onchange={(e) => {
+                                            mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'create', i, e.target?.value);
+                                            validateCategoryField('create', i, 'startTime', e.target?.value);
+                                        }}
                                     />
-                                </label>
-                                <label class="label">
+                                    {#if categoryErrors.create[i]?.startTime}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].startTime}</span>
+                                    {/if}
+                                </div>
+                                <div class="label">
                                     <span class="text-sm font-medium">End Time *</span>
                                     <input
                                         type="time"
                                         class="input bg-primary-50-950"
+                                        class:input-error={categoryErrors.create[i]?.endTime}
                                         value={categories_times_obj_arr.create[i].endTime}
                                         required
-                                        onchange={(e) => mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'create', i, e.target?.value)}
+                                        onchange={(e) => {
+                                            mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'create', i, e.target?.value);
+                                            validateCategoryField('create', i, 'endTime', e.target?.value);
+                                        }}
                                         min={categories_times_obj_arr.create[i].startTime}
-                                        />
-                                </label>
+                                    />
+                                    {#if categoryErrors.create[i]?.endTime}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].endTime}</span>
+                                    {/if}
+                                </div>
 
                                 <!-- Max Parties -->
-                                <label class="label">
+                                <div class="label">
                                     <span class="text-sm font-medium">Max Parties *</span>
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
+                                        class:input-error={categoryErrors.create[i]?.maxParties}
                                         bind:value={categories.create[i].maxParties}
                                         min="1"
                                         step="1"
                                         placeholder="Maximum number of parties"
                                         required
+                                        oninput={(e) => validateCategoryField('create', i, 'maxParties', parseInt(e.target?.value))}
                                     />
-                                </label>
+                                    {#if categoryErrors.create[i]?.maxParties}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].maxParties}</span>
+                                    {/if}
+                                </div>
                                 <!-- Participants per Party -->
-                                <label class="label">
+                                <div class="label">
                                     <span class="text-sm font-medium">Participants per Party *</span>
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
+                                        class:input-error={categoryErrors.create[i]?.maxPartySize}
                                         bind:value={categories.create[i].maxPartySize}
                                         min="1"
                                         required
+                                        oninput={(e) => validateCategoryField('create', i, 'maxPartySize', parseInt(e.target?.value))}
                                     />
-                                </label>
+                                    {#if categoryErrors.create[i]?.maxPartySize}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].maxPartySize}</span>
+                                    {/if}
+                                </div>
                             </div>
                             {/if}
                             <div class="flex justify-end gap-4 mt-4">
                                 <button
                                     type="button"
                                     class="btn preset-tonal rounded-lg"
-                                    onclick={() => removeCategory('create', i)}
+                                    onclick={() => requestRemoveCategory('create', i)}
                                 >
                                     <Icon icon="mdi:delete" width="1.2rem" height="1.2rem" />
                                     Remove Category
@@ -559,7 +803,7 @@
                             type="button"
                             class="btn preset-filled-primary-500 rounded-lg"
                             onclick={addCategory}
-                            disabled={$form.startDate === "" || $form.startDate === undefined}
+                            disabled={!$form.startDate}
                         >
                             <Icon icon="mdi:plus" width="1.2rem" height="1.2rem" />
                             {$t('create_competition.add_category')}
@@ -645,3 +889,35 @@
         </div>
     </form>
 </div>
+
+<!-- Confirmation Dialog for Category Removal -->
+{#if showRemoveConfirmation}
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true">
+        <div class="card preset-filled-surface-100-900 p-6 rounded-lg max-w-md w-full mx-4 shadow-xl">
+            <h3 class="h4 font-semibold mb-4 flex items-center gap-2">
+                <Icon icon="mdi:alert" width="1.5rem" height="1.5rem" class="text-warning-500" />
+                Confirm Removal
+            </h3>
+            <p class="mb-6 text-surface-600-400">
+                Are you sure you want to remove this category? This action cannot be undone.
+            </p>
+            <div class="flex justify-end gap-4">
+                <button
+                    type="button"
+                    class="btn preset-tonal rounded-lg"
+                    onclick={cancelRemoveCategory}
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    class="btn preset-filled-error-500 rounded-lg"
+                    onclick={confirmRemoveCategory}
+                >
+                    <Icon icon="mdi:delete" width="1.2rem" height="1.2rem" />
+                    Remove
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}

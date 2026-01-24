@@ -97,10 +97,15 @@
     "image": "Image"
   },
   "competition": {
-    "edit_competition": "Edit Competition",
-    "create_competition": "Create Competition",
-    "update_competition_details": "Update your competition details and categories",
-    "create_competition_details": "Enter your competition details and categories"
+    "edit": {
+      "title": "Edit Competition",
+      "update_competition_details": "Update your competition details and categories"
+    },
+    "create": {
+      "create_competition": "Create Competition",
+      "create_competition_details": "Enter your competition details and categories",
+      "title": "Create new competition"
+    }
   },
   "edit_competition": {
     "date": "Date",

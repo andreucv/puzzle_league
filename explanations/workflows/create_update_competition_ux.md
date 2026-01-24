@@ -176,6 +176,9 @@ Allow Organizers to create a new Competition and update an existing one, includi
 - Tailwind for layout; Skeleton UI inputs, buttons, cards, alerts
 - Responsive: forms stack on small screens; two-column layout on md+
 
+## Error Handling
+- Client: show field errors inline; summary at top
+
 ---
 
 # Test Plan

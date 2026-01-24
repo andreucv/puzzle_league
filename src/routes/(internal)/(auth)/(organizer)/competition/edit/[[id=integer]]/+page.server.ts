@@ -20,19 +20,37 @@ cloudinary.config({
     secure: false
 });
 
-// Custom simplified schema - only validates what you need
+// Category schema based on UX spec validation requirements
+const CategorySchema = z.object({
+    name: z.string().min(3, "Category name must be at least 3 characters").max(60, "Category name must be at most 60 characters"),
+    type: z.nativeEnum(CategoryType, { errorMap: () => ({ message: "Please select a category type" }) }),
+    startTime: z.string().min(1, "Start time is required"),
+    endTime: z.string().min(1, "End time is required"),
+    maxParties: z.number().int().min(1, "Max parties must be at least 1").nullable().optional(),
+    maxPartySize: z.number().int().min(1, "Party size must be at least 1").nullable().optional(),
+    status: z.string().optional(),
+});
+
+const CategoryUpdateSchema = z.object({
+    where: z.object({ id: z.number() }),
+    data: CategorySchema,
+});
+
+// Competition schema based on UX spec validation requirements
 const CompetitionEditSchema = z.object({
     id: z.number().optional(),
-    name: z.string().min(1),
-    description: z.string().nullable().optional(),
-    location: z.string().nullable().optional(),
+    name: z.string().min(3, "Competition name must be at least 3 characters").max(80, "Competition name must be at most 80 characters"),
+    description: z.string().max(1000, "Description must be at most 1000 characters").nullable().optional(),
+    location: z.string().max(120, "Location must be at most 120 characters").nullable().optional(),
     image_cld_id: z.string().nullable().optional(),
+    startDate: z.string().min(1, "Start date is required"),
+    endDate: z.string().min(1, "End date is required"),
     status: z.string(),
     registrationOpen: z.boolean().optional(),
     categories: z.object({
-        create: z.array(z.any()).optional(),
-        update: z.array(z.any()).optional(),
-        delete: z.array(z.any()).optional(),
+        create: z.array(CategorySchema).optional(),
+        update: z.array(CategoryUpdateSchema).optional(),
+        delete: z.array(z.object({ id: z.number() })).optional(),
     }).optional(),
     creator: z.object({
         connect: z.object({
@@ -56,6 +74,7 @@ export const load: PageServerLoad = async (event) => {
         }
 
         let competition = null;
+        let competitionData = null;
         if (competitionId) {
             competition = await getCompetitionWithCategories(competitionId);
 
@@ -72,10 +91,22 @@ export const load: PageServerLoad = async (event) => {
                 console.error("competition/edit/+page.server.ts creatorId:", competition.creatorId, "!= session.user.id:", session.user.id);
                 throw new Error('Not authorized to edit this competition');
             }
+
+            // Convert Date objects to ISO strings for the form
+            competitionData = {
+                ...competition,
+                startDate: competition.startDate.toISOString(),
+                endDate: competition.endDate.toISOString(),
+                categories: competition.categories.map(cat => ({
+                    ...cat,
+                    startTime: cat.startTime.toISOString(),
+                    endTime: cat.endTime.toISOString(),
+                }))
+            };
         }
 
         const categoryTypes = Object.values(CategoryType);
-        const form = await superValidate(competition, zod4(CompetitionEditSchema));
+        const form = await superValidate(competitionData, zod4(CompetitionEditSchema));
         console.log('competition/edit: onload form:', form);
         console.log('competition/edit: onload form categories:', form.data.categories);
 
@@ -105,7 +136,7 @@ const create_update_competition: Action = async ({ request, params }) => {
     }
 
     const competitionId = parseInt(params.id);
-    const form = await superValidate(request, zod4(CompetitionUpdateInputSchema));
+    const form = await superValidate(request, zod4(CompetitionEditSchema));
     console.log('competition/edit/+page.server.ts: on action form', form);
     console.log('competition/edit/+page.server.ts: on action form categories', form.data.categories);
 
@@ -155,7 +186,10 @@ const create_update_competition: Action = async ({ request, params }) => {
         form.data.image_cld_id = null;
     }
 
-    const result = await updateCompetition(competitionId, form.data);
+    // Remove id from form data as Prisma doesn't allow it in update data
+    const { id, ...competitionData } = form.data;
+
+    const result = await updateCompetition(competitionId, competitionData);
     console.log('competition/edit/+page.server.ts: on action result', result);
 
     if (!result.success) {

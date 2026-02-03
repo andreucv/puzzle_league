@@ -13,18 +13,53 @@
 
     let { data } = $props();
     console.log("competition/edit/+page.svelte: data", data);
+
+    // Loading state for form submission
+    let isSubmitting = $state(false);
+    let loadingMessage = $state('');
+    let submissionStartTime = 0;
+    const MIN_LOADING_TIME = 2000; // Minimum 2 seconds display
+
+    // Helper to ensure minimum loading time
+    async function waitForMinLoadingTime() {
+        const elapsed = Date.now() - submissionStartTime;
+        if (elapsed < MIN_LOADING_TIME) {
+            await new Promise(resolve => setTimeout(resolve, MIN_LOADING_TIME - elapsed));
+        }
+    }
+
+    async function hideLoading() {
+        await waitForMinLoadingTime();
+        isSubmitting = false;
+        loadingMessage = '';
+    }
+
     const { form, errors, constraints, message, enhance } = superForm(data.form, {
         dataType: "json",
         async onSubmit({ cancel }) {
+            // Start loading state
+            submissionStartTime = Date.now();
+            isSubmitting = true;
+            loadingMessage = 'Validating form...';
+
             // Run comprehensive client-side validation
             const isValid = validateFormBeforeSubmit();
             if (!isValid) {
+                await hideLoading();
                 await focusFirstInvalidField();
                 cancel();
                 return;
             }
+
+            // Update message based on whether image needs uploading
+            if ($form.image_cld_id && !$form.image_cld_id.includes('competitions')) {
+                loadingMessage = 'Uploading image...';
+            } else {
+                loadingMessage = 'Saving competition...';
+            }
         },
         async onResult({ result }) {
+            await hideLoading();
             if (result.type === 'success' && result.data?.form?.message?.success) {
                 const competitionId = result.data.form.message.id;
                 if (competitionId) {
@@ -33,9 +68,11 @@
             }
         },
         async onError() {
+            await hideLoading();
             await focusFirstInvalidField();
         },
         async onUpdated({ form }) {
+            await hideLoading();
             // If form has errors, focus on first invalid field
             if (!form.valid) {
                 await focusFirstInvalidField();
@@ -521,7 +558,7 @@
 </svelte:head>
 
 <h4>{isEdit? $t('competition.edit.title') : $t('competition.create.title')}</h4>
-<div class="container mx-auto">
+<div class="container mx-auto relative">
     <!-- Header Section -->
     <div class="space-y-3 mb-2">
         <div>
@@ -1046,6 +1083,8 @@
                 <a
                     href="/competitions/competition_details/{$form.id}"
                     class="btn preset-tonal rounded-lg"
+                    class:pointer-events-none={isSubmitting}
+                    class:opacity-50={isSubmitting}
                 >
                     <Icon icon="mdi:cancel" width="1.2rem" height="1.2rem" />
                     Cancel
@@ -1054,6 +1093,8 @@
                 <a
                     href="/"
                     class="btn preset-tonal rounded-lg"
+                    class:pointer-events-none={isSubmitting}
+                    class:opacity-50={isSubmitting}
                 >
                     <Icon icon="mdi:cancel" width="1.2rem" height="1.2rem" />
                 {$t('create_competition.cancel')}
@@ -1062,16 +1103,31 @@
             <button
                 type="submit"
                 class="btn preset-filled-primary-500 rounded-lg"
-                disabled={$form.isValid === false}
+                disabled={$form.isValid === false || isSubmitting}
             >
-                <Icon icon="mdi:content-save" width="1.2rem" height="1.2rem" />
-                {isEdit
-                    ? $t('edit_competition.submit_button')
-                    : $t('create_competition.submit_button')
-                }
+                {#if isSubmitting}
+                    <Icon icon="mdi:loading" width="1.2rem" height="1.2rem" class="animate-spin" />
+                    {loadingMessage || 'Saving...'}
+                {:else}
+                    <Icon icon="mdi:content-save" width="1.2rem" height="1.2rem" />
+                    {isEdit
+                        ? $t('edit_competition.submit_button')
+                        : $t('create_competition.submit_button')
+                    }
+                {/if}
             </button>
         </div>
     </form>
+
+    <!-- Loading Overlay -->
+    {#if isSubmitting}
+        <div class="absolute inset-0 bg-surface-900/50 dark:bg-surface-50/30 flex items-center justify-center rounded-lg z-10" role="status" aria-live="polite">
+            <div class="bg-surface-50 dark:bg-surface-900 p-6 rounded-lg shadow-xl flex flex-col items-center gap-4">
+                <Icon icon="mdi:loading" width="3rem" height="3rem" class="animate-spin text-primary-500" />
+                <p class="text-lg font-medium">{loadingMessage || 'Processing...'}</p>
+            </div>
+        </div>
+    {/if}
 </div>
 
 <!-- Confirmation Dialog for Category Removal -->

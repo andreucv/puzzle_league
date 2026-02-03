@@ -147,12 +147,20 @@ const create_update_competition: Action = async ({ request, params }) => {
 
     // let's push now the image to the cloudinary server and then store the id in the database
     if (form.data.image_cld_id) {
-        try {
-            // Extract base64 data from data URL (remove "data:image/jpeg;base64," prefix)
-            const base64Data = form.data.image_cld_id.split(',')[1];
-            if (!base64Data) {
-                throw new Error('Invalid image data format');
-            }
+        // Check if it's already a Cloudinary public ID (existing image) - skip upload
+        const isExistingCloudinaryImage = form.data.image_cld_id.startsWith('competitions/') || 
+                                          !form.data.image_cld_id.startsWith('data:');
+        
+        if (isExistingCloudinaryImage) {
+            // Image already exists in Cloudinary, no upload needed
+            console.log('Image already exists in Cloudinary, skipping upload:', form.data.image_cld_id);
+        } else {
+            try {
+                // Extract base64 data from data URL (remove "data:image/jpeg;base64," prefix)
+                const base64Data = form.data.image_cld_id.split(',')[1];
+                if (!base64Data) {
+                    throw new Error('Invalid image data format');
+                }
 
             const buffer = Buffer.from(base64Data, 'base64');
 
@@ -180,6 +188,7 @@ const create_update_competition: Action = async ({ request, params }) => {
         } catch (error) {
             console.error('Error uploading image to Cloudinary:', error);
             return message(form, {success: false, message: "Failed to upload image"});
+        }
         }
     } else {
         // If no image provided, set to null or remove the field

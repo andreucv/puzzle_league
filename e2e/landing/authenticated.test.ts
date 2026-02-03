@@ -5,7 +5,7 @@ test.use({ storageState: "playwright/.auth/participant_user.json" });
 test('GivenHomePage_WhenAccessingLandingPage_ThenUserSeeUpcomingAndRegisteredCompetitions', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Your upcoming competitions' }).first()).toBeVisible();
-    await expect(page.locator('section').filter({ hasText: /^No completed competitions yet$/ }).first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Organizer Actions' }).first()).not.toBeVisible();
 });
 
 test.describe('GivenHomePageOrganizer_WhenAccessingLandingPage_ThenOrganizerActionsAreVisible', () => {

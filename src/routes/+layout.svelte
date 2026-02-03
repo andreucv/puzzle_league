@@ -31,10 +31,10 @@ triggerBase="btn preset-tonal"
                 <a href="/" onclick={() => drawerState.open = false}>{$t('drawer_menu.home')}</a>
             </li>
             <li>
-                <a href="/competitions/upcoming_competitions" onclick={() => drawerState.open = false}>{$t('competitions.upcoming_competitions')}</a>
+                <a href="/competitions/explore_competititons" onclick={() => drawerState.open = false}>{$t('drawer_menu.explore_competitions')}</a>
             </li>
             <li>
-                <a href="/competitions/past_competitions" onclick={() => drawerState.open = false}>{$t('competitions.past_competitions')}</a>
+                <a href="/competitions/explore_results" onclick={() => drawerState.open = false}>{$t('drawer_menu.explore_results')}</a>
             </li>
             <li>
                 <a href="/competitions/calendar/list" onclick={() => drawerState.open = false}>{$t('competitions.calendar_list.title')}</a>

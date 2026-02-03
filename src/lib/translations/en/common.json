@@ -33,9 +33,10 @@
     "no_upcoming_competitions_detail": "Seems you are not registered to any upcoming competition. Look in the calendar and register for any category."
   },
   "drawer_menu": {
-    "explore_competitions": "Explore Competitions",
+    "explore_competitions": "Competitions",
     "create_competition": "Create Competition",
-    "home": "Home"
+    "home": "Home",
+    "explore_results": "Explore results"
   },
   "competitions": {
     "upcoming_competitions": "Upcoming Competitions",

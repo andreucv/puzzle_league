@@ -62,8 +62,9 @@
   },
   "drawer_menu": {
     "create_competition": "Crear Competición",
-    "explore_competitions": "Explorar Competiciones",
-    "home": "Inicio"
+    "explore_competitions": "Competiciones",
+    "home": "Inicio",
+    "explore_results": "Explorar resultados"
   },
   "list_competitions": {
     "look_for_competition": "Busca una competición"

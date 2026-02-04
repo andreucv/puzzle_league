@@ -9,7 +9,7 @@
     import { FileUpload } from '@skeletonlabs/skeleton-svelte';
     import { CldImage } from 'svelte-cloudinary';
     import CustomDateRangePicker from "$lib/components/bits_ui/CustomDateRangePicker.svelte";
-    import CustomDateInputField from "$lib/components/bits_ui/CustomDateInputField.svelte";
+    import LoadingOverlay from "$lib/components/LoadingOverlay.svelte";
 
     let { data } = $props();
     console.log("competition/edit/+page.svelte: data", data);
@@ -21,15 +21,11 @@
     const MIN_LOADING_TIME = 2000; // Minimum 2 seconds display
 
     // Helper to ensure minimum loading time
-    async function waitForMinLoadingTime() {
+    async function hideLoading() {
         const elapsed = Date.now() - submissionStartTime;
         if (elapsed < MIN_LOADING_TIME) {
             await new Promise(resolve => setTimeout(resolve, MIN_LOADING_TIME - elapsed));
         }
-    }
-
-    async function hideLoading() {
-        await waitForMinLoadingTime();
         isSubmitting = false;
         loadingMessage = '';
     }
@@ -45,7 +41,8 @@
             // Run comprehensive client-side validation
             const isValid = validateFormBeforeSubmit();
             if (!isValid) {
-                await hideLoading();
+                isSubmitting = false;
+                loadingMessage = '';
                 await focusFirstInvalidField();
                 cancel();
                 return;
@@ -1120,14 +1117,7 @@
     </form>
 
     <!-- Loading Overlay -->
-    {#if isSubmitting}
-        <div class="absolute inset-0 bg-surface-900/50 dark:bg-surface-50/30 flex items-center justify-center rounded-lg z-10" role="status" aria-live="polite">
-            <div class="bg-surface-50 dark:bg-surface-900 p-6 rounded-lg shadow-xl flex flex-col items-center gap-4">
-                <Icon icon="mdi:loading" width="3rem" height="3rem" class="animate-spin text-primary-500" />
-                <p class="text-lg font-medium">{loadingMessage || 'Processing...'}</p>
-            </div>
-        </div>
-    {/if}
+    <LoadingOverlay show={isSubmitting} message={loadingMessage} />
 </div>
 
 <!-- Confirmation Dialog for Category Removal -->

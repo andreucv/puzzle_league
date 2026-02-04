@@ -148,9 +148,9 @@ const create_update_competition: Action = async ({ request, params }) => {
     // let's push now the image to the cloudinary server and then store the id in the database
     if (form.data.image_cld_id) {
         // Check if it's already a Cloudinary public ID (existing image) - skip upload
-        const isExistingCloudinaryImage = form.data.image_cld_id.startsWith('competitions/') || 
+        const isExistingCloudinaryImage = form.data.image_cld_id.startsWith('competitions/') ||
                                           !form.data.image_cld_id.startsWith('data:');
-        
+
         if (isExistingCloudinaryImage) {
             // Image already exists in Cloudinary, no upload needed
             console.log('Image already exists in Cloudinary, skipping upload:', form.data.image_cld_id);

@@ -1,10 +1,14 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getUsers } from '$lib/database';
+import { requireAuth } from '$lib/utils/api_auth';
 
-export const GET: RequestHandler = async ({ url }) => {
-    const query = url.searchParams.get('q');
+export const GET: RequestHandler = async (event) => {
+    const query = event.url.searchParams.get('q');
     console.log('search users query:', query);
+
+    const auth = await requireAuth(event);
+    if (!auth.authorized) return auth.response;
 
     if (!query || query.length < 2) {
         return json({ users: [] });

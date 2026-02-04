@@ -1,13 +1,18 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { startCategory } from '$lib/database';
+import { requireCategoryJudge } from '$lib/utils/api_auth';
 
-export const POST = async ({ params }: RequestEvent) => {
+export const POST = async (event: RequestEvent) => {
   try {
-    const categoryId = parseInt(params.id as string);
+    const categoryId = parseInt(event.params.id as string);
 
     if (isNaN(categoryId)) {
       return json({ error: 'Invalid category ID' }, { status: 400 });
     }
+
+    // Authorization check
+    const auth = await requireCategoryJudge(event, categoryId);
+    if (!auth.authorized) return auth.response;
 
     const updatedCategory = await startCategory(categoryId);
 

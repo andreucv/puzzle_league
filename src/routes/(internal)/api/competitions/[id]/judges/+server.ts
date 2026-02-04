@@ -1,11 +1,17 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { prisma } from '$lib/database';
+import { requireCompetitionRole } from '$lib/utils/api_auth';
+import { Role } from '@prisma/client';
 
-export const POST: RequestHandler = async ({ params, request }) => {
+export const POST: RequestHandler = async (event) => {
   try {
-    const competitionId = parseInt(params.id as string);
-    const { userIds } = await request.json();
+    const competitionId = parseInt(event.params.id as string);
+    const { userIds } = await event.request.json();
+
+    // Authorization check
+    const auth = await requireCompetitionRole(event, competitionId, [Role.ORGANIZER]);
+    if (!auth.authorized) return auth.response;
 
     if (isNaN(competitionId)) {
       return json({ error: 'Invalid competition ID' }, { status: 400 });

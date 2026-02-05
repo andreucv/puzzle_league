@@ -1,14 +1,164 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
-    import SearchInput from "$lib/components/SearchInput.svelte";
     import { t } from '$lib/translations';
-    import CompetitionCard from "$lib/components/competition/CompetitionCard.svelte";
+    import SearchInput from "$lib/components/SearchInput.svelte";
+    import FilterTabs from "$lib/components/FilterTabs.svelte";
+    import SmartPresetChips from "$lib/components/SmartPresetChips.svelte";
+    import ExploreCompetitionCard from "$lib/components/competition/ExploreCompetitionCard.svelte";
+    import type { RoleAssignment } from "@prisma/client";
+
     let { data } = $props();
 
-    let competitions = $derived(data.props.competitions);
-    let filter = $state('');
-    let filtered_competitions = $derived(competitions.filter(competition => competition.name.toLowerCase().includes(filter.toLowerCase())));
+    const competitions = $derived(data.competitions);
+    const userCountry = $derived(data.userCountry);
+    const userPostalCode = $derived(data.userPostalCode);
+    const roleAssignments = $derived(data.roleAssignments as RoleAssignment[] | undefined);
 
-    let filtered_count = $derived(filtered_competitions.length);
-    let total_count    = $derived(competitions.length);
+    // User has location set if both country and postal code are present
+    const hasUserLocation = $derived(userCountry && userPostalCode);
+
+    // Search filter
+    let filter = $state('');
+
+    // Tab state - default to UPCOMING
+    let activeTab = $state<string>('UPCOMING');
+
+    // Smart preset filters
+    let activePresets = $state<string[]>([]);
+
+    // Tab definitions with counts
+    const tabs = $derived([
+        { id: 'ALL', label: 'All', count: competitions.length },
+        { id: 'UPCOMING', label: 'Soon', count: competitions.filter(c => c.status === 'UPCOMING').length },
+        { id: 'ACTIVE', label: 'Live', count: competitions.filter(c => c.status === 'ACTIVE').length },
+        { id: 'COMPLETED', label: 'Past', count: competitions.filter(c => c.status === 'COMPLETED' || c.status === 'CANCELLED').length },
+    ]);
+
+    // Smart preset definitions
+    const presets = $derived([
+        { id: 'this-week', label: '7 days', icon: 'mdi:calendar-week' },
+        { id: 'near-me', label: 'Near Me', icon: 'mdi:map-marker-radius', disabled: !hasUserLocation },
+        { id: 'open-registration', label: 'Open', icon: 'mdi:door-open' },
+    ]);
+
+    // Filtered competitions based on all filters
+    const filteredCompetitions = $derived.by(() => {
+        let result = [...competitions];
+
+        // Tab filter (status)
+        if (activeTab !== 'ALL') {
+            if (activeTab === 'COMPLETED') {
+                result = result.filter(c => c.status === 'COMPLETED' || c.status === 'CANCELLED');
+            } else {
+                result = result.filter(c => c.status === activeTab);
+            }
+        }
+
+        // Search filter
+        if (filter.trim()) {
+            const searchLower = filter.toLowerCase();
+            result = result.filter(c =>
+                c.name.toLowerCase().includes(searchLower) ||
+                c.location?.toLowerCase().includes(searchLower)
+            );
+        }
+
+        // Smart preset filters
+        if (activePresets.includes('this-week')) {
+            const today = new Date();
+            const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+            result = result.filter(c => {
+                const startDate = new Date(c.startDate);
+                return startDate >= today && startDate <= weekFromNow;
+            });
+        }
+
+        if (activePresets.includes('near-me') && userCountry && userPostalCode) {
+            result = result.filter(c =>
+                c.country === userCountry &&
+                c.postalCode?.substring(0, 2) === userPostalCode.substring(0, 2)
+            );
+        }
+
+        if (activePresets.includes('open-registration')) {
+            result = result.filter(c => c.registrationOpen && c.status === 'UPCOMING');
+        }
+
+        return result;
+    });
+
+    // Computed counts
+    const filteredCount = $derived(filteredCompetitions.length);
+    const totalCount = $derived(competitions.length);
 </script>
+
+<h4>{$t('competitions.explore_competitions')}</h4>
+
+<div class="space-y-4">
+    <!-- Search -->
+    <SearchInput placeholder={$t('list_competitions.look_for_competition')} bind:filter />
+
+    <!-- Status tabs -->
+    <FilterTabs {tabs} bind:activeTab />
+
+    <!-- Smart preset chips -->
+    <SmartPresetChips {presets} bind:activePresets />
+
+    <!-- Results count & Create button -->
+    <div class="flex items-center justify-between">
+        <span class="text-sm text-surface-600 dark:text-surface-400">
+            {filteredCount} {filteredCount === 1 ? 'competition' : 'competitions'}
+            {#if filter || activePresets.length > 0}
+                <span class="text-surface-500"> of {totalCount}</span>
+            {/if}
+        </span>
+        {#if roleAssignments?.some((role: RoleAssignment) => role.role === 'ORGANIZER')}
+            <a class="btn btn-sm preset-filled-primary-500" href="/competition/edit">
+                <Icon icon="mdi:plus" class="mr-1" />
+                {$t('competitions.create_competition')}
+            </a>
+        {/if}
+    </div>
+
+    <!-- User location hint if not set -->
+    {#if !hasUserLocation}
+        <div class="p-3 bg-surface-100 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
+            <div class="flex items-center gap-2 text-sm text-surface-600 dark:text-surface-400">
+                <Icon icon="mdi:information-outline" class="w-4 h-4 text-primary-500" />
+                <span>
+                    Set your location in your <a href="/profile" class="text-primary-600 dark:text-primary-400 hover:underline">profile</a> to enable "Near Me" filtering.
+                </span>
+            </div>
+        </div>
+    {/if}
+
+    <!-- Competition cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {#each filteredCompetitions as competition (competition.id)}
+            <ExploreCompetitionCard {competition} {userCountry} {userPostalCode} />
+        {:else}
+            <div class="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                <Icon icon="mdi:magnify-remove-outline" class="w-16 h-16 text-surface-300 dark:text-surface-600 mb-4" />
+                <h3 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-2">
+                    No competitions found
+                </h3>
+                <p class="text-sm text-surface-500 dark:text-surface-400 max-w-xs">
+                    {#if filter || activePresets.length > 0}
+                        Try adjusting your search or filters to find what you're looking for.
+                    {:else}
+                        No competitions are available at this time.
+                    {/if}
+                </p>
+                {#if filter || activePresets.length > 0}
+                    <button
+                        type="button"
+                        class="btn btn-sm preset-outlined-primary-500 mt-4"
+                        onclick={() => { filter = ''; activePresets = []; activeTab = 'ALL'; }}
+                    >
+                        Clear all filters
+                    </button>
+                {/if}
+            </div>
+        {/each}
+    </div>
+</div>

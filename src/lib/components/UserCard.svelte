@@ -1,11 +1,48 @@
 <script lang="ts">
-    import { Avatar } from "@skeletonlabs/skeleton-svelte";
+    import { Avatar, Combobox } from "@skeletonlabs/skeleton-svelte";
+    import type { RoleAssignment } from "@prisma/client";
     import { t } from '$lib/translations';
+    import { enhance } from '$app/forms';
     import ThemeLightSwitch from './ThemeLightSwitch.svelte';
+    import { countries, getCountryFlag } from '$lib/country_utils';
 
     let { user, roleAssignments, account } = $props();
 
     let displayName = $state(user.name || "Pending name...");
+    let countryValue = $state(user.country ? [user.country] : []);
+    let postalCodeValue = $state(user.postalCode || '');
+    let isEditingLocation = $state(false);
+    let isSavingLocation = $state(false);
+
+    // Prepare country data for Combobox with current country at the top
+    const getCountryData = () => {
+        const allCountries = countries.map(c => ({
+            label: c.name,
+            value: c.code,
+            emoji: getCountryFlag(c.code)
+        }));
+
+        // If user has a country, put it at the top
+        if (user.country) {
+            const currentCountry = allCountries.find(c => c.value === user.country);
+            const otherCountries = allCountries.filter(c => c.value !== user.country);
+            return currentCountry ? [currentCountry, ...otherCountries] : allCountries;
+        }
+        return allCountries;
+    };
+
+    const countryData = getCountryData();
+
+    // Sync local state when user prop changes (after form revalidation)
+    $effect(() => {
+        countryValue = user.country ? [user.country] : [];
+        postalCodeValue = user.postalCode || '';
+    });
+
+    // Get country name from code
+    const getCountryName = (code: string) => {
+        return countries.find(c => c.code === code)?.name || code;
+    };
 
     // Format date for display
     const formatDate = (date: Date | string) => {
@@ -72,6 +109,86 @@
             </div>
         </div>
 
+        <!-- Location Setting (Country + Postal Code) -->
+        <div class="space-y-2">
+            <span class="text-sm font-semibold text-surface-500">Location</span>
+            {#if isEditingLocation}
+                <form
+                    method="POST"
+                    action="?/updateLocation"
+                    use:enhance={() => {
+                        isSavingLocation = true;
+                        return async ({ update }) => {
+                            isSavingLocation = false;
+                            isEditingLocation = false;
+                            await update();
+                        };
+                    }}
+                    class="space-y-2"
+                >
+                    <div class="grid grid-cols-2 md:grid-cols-1 gap-2">
+                        <input type="hidden" name="country" value={countryValue[0] || ''} />
+                        <div class="border border-surface-300 bg-white rounded-lg overflow-hidden">
+                            <Combobox
+                                data={countryData}
+                                value={countryValue}
+                                onValueChange={(e) => (countryValue = e.value)}
+                                placeholder="Select country..."
+                                contentBase="card bg-surface-50 p-2 shadow-xl max-h-48 overflow-y-auto rounded-lg"
+                                inputGroupInput="input text-sm px-3 py-2 bg-transparent border-none w-full"
+                            >
+                                {#snippet item(item)}
+                                    <div class="flex items-center gap-2 p-1">
+                                        <span>{item.emoji}</span>
+                                        <span>{item.label}</span>
+                                    </div>
+                                {/snippet}
+                            </Combobox>
+                        </div>
+                        <input
+                            name="postalCode"
+                            type="text"
+                            class="input text-sm px-3 py-2 border rounded-lg border-surface-300 bg-white"
+                            placeholder="Postal code"
+                            bind:value={postalCodeValue}
+                        />
+                    </div>
+                    <div class="flex gap-2">
+                        <button
+                            type="submit"
+                            class="btn btn-sm preset-filled-primary-500"
+                            disabled={isSavingLocation}
+                        >
+                            {isSavingLocation ? '...' : 'Save'}
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-sm preset-outlined-surface-500"
+                            onclick={() => { isEditingLocation = false; countryValue = user.country ? [user.country] : []; postalCodeValue = user.postalCode || ''; }}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            {:else}
+                <div class="flex items-center justify-between">
+                    <p class="text-sm">
+                        {#if user.country}
+                            {getCountryFlag(user.country)} {getCountryName(user.country)}{user.postalCode ? `, ${user.postalCode}` : ''}
+                        {:else}
+                            Not set
+                        {/if}
+                    </p>
+                    <button
+                        class="btn btn-sm preset-outlined-surface-500"
+                        onclick={() => isEditingLocation = true}
+                    >
+                        Change
+                    </button>
+                </div>
+            {/if}
+        </div>
+
         <!-- Email/Verification Setting -->
         <span class="text-sm font-semibold text-surface-500">Email</span>
         <div class="grid grid-cols-2 md:grid-cols-2 gap-4 items-center">
@@ -92,13 +209,13 @@
     <div class="grid grid-cols-2 gap-2 pb-4">
         <div>{$t('profile.roles')}</div>
         <div class="flex justify-end gap-2">
-        {#if roleAssignments?.some((role) => role.role === "MEMBER")}
-            <span class="badge preset-filled-surface-500">Member</span>
+        {#if roleAssignments?.some((role: RoleAssignment) => role.role === "PARTICIPANT")}
+            <span class="badge preset-filled-surface-500">Participant</span>
         {/if}
-        {#if roleAssignments?.some((role) => role.role === "ORGANIZER")}
+        {#if roleAssignments?.some((role: RoleAssignment) => role.role === "ORGANIZER")}
             <span class="badge preset-filled-primary-500">Organizer</span>
         {/if}
-        {#if roleAssignments?.some((role) => role.role === "ADMIN")}
+        {#if roleAssignments?.some((role: RoleAssignment) => role.role === "ADMIN")}
             <span class="badge preset-filled-secondary-500">Admin</span>
         {/if}
         </div>

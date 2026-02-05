@@ -10,6 +10,8 @@ export const UserSchema = z.object({
   email: z.string(),
   emailVerified: z.boolean(),
   image: z.string().nullable(),
+  country: z.string().nullable(),
+  postalCode: z.string().nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 })

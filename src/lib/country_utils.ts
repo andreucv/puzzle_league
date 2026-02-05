@@ -42,7 +42,7 @@ export function getCountryFlag(countryCode: string): string {
 }
 
 // Static list of countries - can be replaced with API call
-const countries: Country[] = [
+export const countries: Country[] = [
   { name: 'Afghanistan', code: 'AF' },
   { name: 'Albania', code: 'AL' },
   { name: 'Algeria', code: 'DZ' },

@@ -11,6 +11,8 @@ export const CompetitionUncheckedCreateInputSchema: z.ZodType<Prisma.Competition
   name: z.string(),
   description: z.string().optional().nullable(),
   location: z.string().optional().nullable(),
+  country: z.string().optional().nullable(),
+  postalCode: z.string().optional().nullable(),
   image_cld_id: z.string().optional().nullable(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),

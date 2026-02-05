@@ -6,6 +6,20 @@ import type { User, Session } from '@prisma/client';
 declare global {
     namespace App {
         // interface Error {}
+        interface Locals {
+            user?: {
+                id: string;
+                name: string;
+                email: string;
+                emailVerified: boolean;
+                image?: string | null;
+                country?: string | null;
+                postalCode?: string | null;
+                createdAt: Date;
+                updatedAt: Date;
+            };
+            session?: Session;
+        }
         // interface PageData {}
         // interface PageState {}
         // interface Platform {}

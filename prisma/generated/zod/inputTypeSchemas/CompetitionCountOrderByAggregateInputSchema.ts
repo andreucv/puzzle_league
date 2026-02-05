@@ -8,6 +8,8 @@ export const CompetitionCountOrderByAggregateInputSchema: z.ZodType<Prisma.Compe
   name: z.lazy(() => SortOrderSchema).optional(),
   description: z.lazy(() => SortOrderSchema).optional(),
   location: z.lazy(() => SortOrderSchema).optional(),
+  country: z.lazy(() => SortOrderSchema).optional(),
+  postalCode: z.lazy(() => SortOrderSchema).optional(),
   image_cld_id: z.lazy(() => SortOrderSchema).optional(),
   startDate: z.lazy(() => SortOrderSchema).optional(),
   endDate: z.lazy(() => SortOrderSchema).optional(),

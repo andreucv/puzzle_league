@@ -20,6 +20,8 @@ export const CompetitionSelectSchema: z.ZodType<Prisma.CompetitionSelect> = z.ob
   name: z.boolean().optional(),
   description: z.boolean().optional(),
   location: z.boolean().optional(),
+  country: z.boolean().optional(),
+  postalCode: z.boolean().optional(),
   image_cld_id: z.boolean().optional(),
   startDate: z.boolean().optional(),
   endDate: z.boolean().optional(),

@@ -58,7 +58,7 @@
 
         {#if hasOrganizerRole}
         <section>
-            <h4 class="h4">Organizer Actions</h4>
+            <h4 class="h4">{$t('organizer-actions')}</h4>
             <section class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <a href="/my_organized_competitions" class="card card-hover">
@@ -90,7 +90,7 @@
 
         {#if hasAdminRole}
         <section>
-            <h4 class="h4">Admin Actions</h4>
+            <h4 class="h4">{$t('admin-actions')}</h4>
             <section class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <a href="/admin/requests" class="card card-hover">

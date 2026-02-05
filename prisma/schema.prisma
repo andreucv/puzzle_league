@@ -19,6 +19,8 @@ model User {
   email           String
   emailVerified   Boolean
   image           String?
+  country         String?
+  postalCode      String?
   createdAt       DateTime
   updatedAt       DateTime
   sessions        Session[]
@@ -128,6 +130,8 @@ model Competition {
   name             String
   description      String?
   location         String?
+  country          String?
+  postalCode       String?
   image_cld_id     String?
   startDate        DateTime
   endDate          DateTime

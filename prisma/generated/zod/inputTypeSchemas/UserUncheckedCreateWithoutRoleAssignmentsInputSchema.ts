@@ -15,6 +15,8 @@ export const UserUncheckedCreateWithoutRoleAssignmentsInputSchema: z.ZodType<Pri
   email: z.string(),
   emailVerified: z.boolean(),
   image: z.string().optional().nullable(),
+  country: z.string().optional().nullable(),
+  postalCode: z.string().optional().nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   sessions: z.lazy(() => SessionUncheckedCreateNestedManyWithoutUserInputSchema).optional(),

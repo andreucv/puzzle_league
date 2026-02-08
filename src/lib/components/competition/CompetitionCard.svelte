@@ -7,7 +7,7 @@
     interface Props {
         competition: Competition & {
             categories?: Array<{
-                id: string;
+                id: number;
                 type: string;
                 startTime: Date;
                 endTime: Date;
@@ -19,9 +19,10 @@
                     }>;
                 }>;
             }>;
-            location?: string;
+            location?: string | null;
         };
         currentUserId?: string;
+        noShowCategories?: boolean;
     }
 
     let { competition, currentUserId, noShowCategories = false}: Props = $props();
@@ -108,7 +109,7 @@
                         <CompetitionCategoryLabel {category} {currentUserId} />
                     {/each}
                 </div>
-            {:else if !competition.categories && competition.status === 'COMPLETED' || competition.status === 'CANCELLED' || noShowCategories }
+            {:else if !competition.categories && competition.status === 'FINISHED' || competition.status === 'CANCELLED' || noShowCategories }
                 <span></span>
             {:else}
                 <!-- Enhanced empty state -->

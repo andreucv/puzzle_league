@@ -9,7 +9,7 @@ export async function handle({ event, resolve }) {
 	});
 	// Make session and user available on server
 	if (session) {
-		event.locals.session = session.session;
+		event.locals.session = session.session as typeof event.locals.session;
 		event.locals.user = session.user;
 		console.log('Session found:', session);
 	}

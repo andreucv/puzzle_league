@@ -114,7 +114,7 @@
                         {:else if category.status === "in_progress"}
                             <button
                                 class="btn bg-error-300-700 btn-sm gap-2"
-                                onclick={() => onStopCategory(category.id)}
+                                onclick={() => onStopCategory()}
                             >
                                 <Icon icon="mdi:stop" />
                                 End

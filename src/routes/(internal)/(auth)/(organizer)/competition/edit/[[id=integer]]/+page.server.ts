@@ -23,7 +23,7 @@ cloudinary.config({
 // Category schema based on UX spec validation requirements
 const CategorySchema = z.object({
     name: z.string().min(3, "Category name must be at least 3 characters").max(60, "Category name must be at most 60 characters"),
-    type: z.nativeEnum(CategoryType, { errorMap: () => ({ message: "Please select a category type" }) }),
+    type: z.nativeEnum(CategoryType, { error: "Please select a category type" }),
     startTime: z.string().min(1, "Start time is required"),
     endTime: z.string().min(1, "End time is required"),
     maxParties: z.number().int().min(1, "Max parties must be at least 1").nullable().optional(),
@@ -61,6 +61,8 @@ const CompetitionEditSchema = z.object({
     }).optional()
 });
 
+type CompetitionEditData = z.infer<typeof CompetitionEditSchema>;
+
 export const load: PageServerLoad = async (event) => {
 
     let competitionId = null;
@@ -84,8 +86,8 @@ export const load: PageServerLoad = async (event) => {
                 throw new Error(`Invalid competition id or competition ${competitionId} not found`);
             }
 
-            if (competition.status !=  'UPCOMING') {
-                throw new Error(`Competition ${competitionId} cannot be edited if it is not in upcoming status`);
+            if (competition.status !=  'NOT_STARTED') {
+                throw new Error(`Competition ${competitionId} cannot be edited if it is not in NOT_STARTED status`);
             }
 
             // Check if the user is the creator of the competition
@@ -108,9 +110,7 @@ export const load: PageServerLoad = async (event) => {
         }
 
         const categoryTypes = Object.values(CategoryType);
-        const form = await superValidate(competitionData, zod4(CompetitionEditSchema));
-        console.log('competition/edit: onload form:', form);
-        console.log('competition/edit: onload form categories:', form.data.categories);
+        const form = await superValidate(competitionData, zod4(CompetitionEditSchema as any));
 
         return {
             form,
@@ -137,10 +137,9 @@ const create_update_competition: Action = async ({ request, params }) => {
         return fail(401, { error_message: "User not authenticated" });
     }
 
-    const competitionId = parseInt(params.id);
-    const form = await superValidate(request, zod4(CompetitionEditSchema));
-    console.log('competition/edit/+page.server.ts: on action form', form);
-    console.log('competition/edit/+page.server.ts: on action form categories', form.data.categories);
+    const competitionId = parseInt(params.id ?? '0');
+    const form = await superValidate(request, zod4(CompetitionEditSchema as any));
+    const formData = form.data as CompetitionEditData;
 
     if (!form.valid) {
         console.error('competition/edit/+page.server.ts: on action form not valid', JSON.stringify(form.errors, null, 2));
@@ -148,18 +147,19 @@ const create_update_competition: Action = async ({ request, params }) => {
     }
 
     // let's push now the image to the cloudinary server and then store the id in the database
-    if (form.data.image_cld_id) {
+    if (formData.image_cld_id) {
+        const imageCldId = formData.image_cld_id as string;
         // Check if it's already a Cloudinary public ID (existing image) - skip upload
-        const isExistingCloudinaryImage = form.data.image_cld_id.startsWith('competitions/') ||
-                                          !form.data.image_cld_id.startsWith('data:');
+        const isExistingCloudinaryImage = imageCldId.startsWith('competitions/') ||
+                                          !imageCldId.startsWith('data:');
 
         if (isExistingCloudinaryImage) {
             // Image already exists in Cloudinary, no upload needed
-            console.log('Image already exists in Cloudinary, skipping upload:', form.data.image_cld_id);
+            console.log('Image already exists in Cloudinary, skipping upload:', imageCldId);
         } else {
             try {
                 // Extract base64 data from data URL (remove "data:image/jpeg;base64," prefix)
-                const base64Data = form.data.image_cld_id.split(',')[1];
+                const base64Data = imageCldId.split(',')[1];
                 if (!base64Data) {
                     throw new Error('Invalid image data format');
                 }
@@ -184,9 +184,9 @@ const create_update_competition: Action = async ({ request, params }) => {
                 ).end(buffer);
             });
 
-            const upload_image_promise_result = await upload_image_promise;
+            const upload_image_promise_result = await upload_image_promise as { public_id: string };
             console.log('upload_image_promise_result', upload_image_promise_result);
-            form.data.image_cld_id = upload_image_promise_result.public_id;
+            formData.image_cld_id = upload_image_promise_result.public_id;
         } catch (error) {
             console.error('Error uploading image to Cloudinary:', error);
             return message(form, {success: false, message: "Failed to upload image"});
@@ -194,11 +194,11 @@ const create_update_competition: Action = async ({ request, params }) => {
         }
     } else {
         // If no image provided, set to null or remove the field
-        form.data.image_cld_id = null;
+        formData.image_cld_id = null;
     }
 
     // Remove id from form data as Prisma doesn't allow it in update data
-    const { id, ...competitionData } = form.data;
+    const { id, ...competitionData } = formData;
 
     const result = await updateCompetition(competitionId, competitionData);
     console.log('competition/edit/+page.server.ts: on action result', result);

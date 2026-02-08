@@ -4,8 +4,16 @@
     import { onMount } from 'svelte';
     import { calculateDuration } from '$lib/utils/category_utils'
 
+    interface RecordWithUsers {
+        id: number;
+        tableNumber: number | null;
+        finishTime: string | null;
+        users: Array<{ id: string; name: string; email: string }>;
+        [key: string]: any;
+    }
+
     let { category } = $props();
-    let records = $state([]);
+    let records = $state<RecordWithUsers[]>([]);
 
     async function loadRecords() {
         if (!category?.id) return;
@@ -25,8 +33,8 @@
     console.log("CategoryRecordFinishForm initialized with category:", category);
 
     // Watch for table number changes to find and display the entry
-    let tableNumber = $state(null);
-    let selectedRecord = $state(null);
+    let tableNumber = $state<string | null>(null);
+    let selectedRecord = $state<RecordWithUsers | null>(null);
     let isSubmitting = $state(false);
 
     $effect(() => {
@@ -56,7 +64,7 @@
                 const result = await response.json();
                 console.log('Recorded finish time:', result);
                 // Update the local entries array to reflect the change
-                const entryIndex = records.findIndex(e => e.id === selectedRecord.id);
+                const entryIndex = records.findIndex(e => e.id === selectedRecord?.id);
                 if (entryIndex !== -1) {
                     records[entryIndex] = { ...records[entryIndex], finishTime: result.record.finishTime };
                 }

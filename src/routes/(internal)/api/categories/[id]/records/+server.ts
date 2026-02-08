@@ -5,7 +5,7 @@ import { requireCategoryJudge } from '$lib/utils/api_auth';
 export const GET = async (event: RequestEvent) => {
   try {
     const categoryId = parseInt(event.params.id as string);
-    const limit = parseInt(event.params.limit as string);
+    const limit = parseInt(event.url.searchParams.get('limit') ?? '0');
 
     if (isNaN(categoryId)) {
       return json({ error: 'Invalid category ID' }, { status: 400 });

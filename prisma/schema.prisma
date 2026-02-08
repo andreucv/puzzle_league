@@ -92,9 +92,9 @@ enum CategoryType {
 }
 
 enum CompetitionStatus {
-  UPCOMING
-  ACTIVE
-  COMPLETED
+  NOT_STARTED
+  STARTED
+  FINISHED
   CANCELLED
 }
 
@@ -135,7 +135,7 @@ model Competition {
   image_cld_id     String?
   startDate        DateTime
   endDate          DateTime
-  status           CompetitionStatus @default(UPCOMING)
+  status           CompetitionStatus @default(NOT_STARTED)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   leagueId         String?

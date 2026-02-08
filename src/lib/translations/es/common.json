@@ -96,7 +96,11 @@
     "cancel": "Cancelar",
     "start_time": "Empieza",
     "end_time": "Termina",
-    "image": "Imagen"
+    "image": "Imagen",
+    "country": "País",
+    "postal_code": "Código Postal",
+    "postal_code_placeholder": "ej. 08001",
+    "select_country": "Selecciona un país..."
   },
   "competition": {
     "edit_competition": "Edita Competición",
@@ -113,5 +117,6 @@
   },
   "competition_details": {
     "feature_not_available": "Función no dispoible actualmente"
-  }
+  },
+  "admin-actions": "Acciones de administrador"
 }

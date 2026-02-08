@@ -10,6 +10,7 @@
 
     let displayName = $state(user.name || "Pending name...");
     let countryValue = $state(user.country ? [user.country] : []);
+    let countryInputValue = $state(user.country ? (countries.find(c => c.code === user.country)?.name || '') : '');
     let postalCodeValue = $state(user.postalCode || '');
     let isEditingLocation = $state(false);
     let isSavingLocation = $state(false);
@@ -36,6 +37,7 @@
     // Sync local state when user prop changes (after form revalidation)
     $effect(() => {
         countryValue = user.country ? [user.country] : [];
+        countryInputValue = user.country ? (countries.find(c => c.code === user.country)?.name || '') : '';
         postalCodeValue = user.postalCode || '';
     });
 
@@ -132,7 +134,9 @@
                             <Combobox
                                 data={countryData}
                                 value={countryValue}
+                                inputValue={countryInputValue}
                                 onValueChange={(e) => (countryValue = e.value)}
+                                onInputValueChange={(e) => (countryInputValue = e.inputValue)}
                                 placeholder="Select country..."
                                 contentBase="card bg-surface-50 p-2 shadow-xl max-h-48 overflow-y-auto rounded-lg"
                                 inputGroupInput="input text-sm px-3 py-2 bg-transparent border-none w-full"

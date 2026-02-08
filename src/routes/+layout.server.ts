@@ -1,7 +1,8 @@
 import type { LayoutServerLoad } from "./$types";
+import type { RoleAssignment } from "@prisma/client";
 import { loadTranslations, locales, translations } from "$lib/translations";
 import { auth } from "$lib/auth";
-import { getRoleAssignments } from "$lib/database";
+import { getRoleAssignments, prisma } from "$lib/database";
 
 export const load = async ({ url, cookies, locals, request }) => {
     // Get user session
@@ -37,16 +38,27 @@ export const load = async ({ url, cookies, locals, request }) => {
 
     loadTranslations(locale, pathname);
 
-    // Get here the user role assignments
-    let roleAssignments = [];
+    // Get here the user role assignments and full user data
+    let roleAssignments: RoleAssignment[] = [];
+    let fullUser = session?.user ?? null;
     if (session?.user) {
-        roleAssignments = await getRoleAssignments(session.user.id) || [];
+        const [assignments, dbUser] = await Promise.all([
+            getRoleAssignments(session.user.id),
+            prisma.user.findUnique({
+                where: { id: session.user.id },
+                select: { country: true, postalCode: true }
+            })
+        ]);
+        roleAssignments = assignments || [];
+        if (dbUser) {
+            fullUser = { ...session.user, ...dbUser };
+        }
     }
 
     return {
         translations: translations.get(),
         i18n: { locale, route: pathname },
-        user: session?.user,
+        user: fullUser,
         account: account?.[0],
         roleAssignments
     };

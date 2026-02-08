@@ -96,7 +96,11 @@
     "cancel": "Cancel.la",
     "start_time": "Comença",
     "end_time": "Acaba",
-    "image": "Imatge"
+    "image": "Imatge",
+    "country": "País",
+    "postal_code": "Codi Postal",
+    "postal_code_placeholder": "ex. 08001",
+    "select_country": "Selecciona un país..."
   },
   "competition": {
     "edit_competition": "Edita Competició",
@@ -113,5 +117,6 @@
   },
   "competition_details": {
     "feature_not_available": "Funció no disponible actualment"
-  }
+  },
+  "admin-actions": "Accions d'administrador"
 }

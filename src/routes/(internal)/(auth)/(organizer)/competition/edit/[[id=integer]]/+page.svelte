@@ -6,13 +6,27 @@
     import { superForm } from "sveltekit-superforms";
     import { CalendarDate, today, getLocalTimeZone, Time, fromDate, parseAbsolute, toCalendarDateTime} from "@internationalized/date";
     import { getCategoryTypeName, getPartySizeByCategoryType } from "$lib/utils/category_utils.js";
-    import { FileUpload } from '@skeletonlabs/skeleton-svelte';
+    import { FileUpload, Combobox } from '@skeletonlabs/skeleton-svelte';
     import { CldImage } from 'svelte-cloudinary';
+    import { countries, getCountryFlag } from '$lib/country_utils';
     import CustomDateRangePicker from "$lib/components/bits_ui/CustomDateRangePicker.svelte";
     import LoadingOverlay from "$lib/components/LoadingOverlay.svelte";
 
     let { data } = $props();
     console.log("competition/edit/+page.svelte: data", data);
+
+    // Country combobox data
+    const countryData = countries.map(c => ({
+        label: c.name,
+        value: c.code,
+        emoji: getCountryFlag(c.code)
+    }));
+    let countryValue = $state<string[]>(data.form?.data?.country ? [data.form.data.country as string] : []);
+    let countryInputValue = $state(
+        data.form?.data?.country
+            ? (countries.find(c => c.code === data.form.data.country)?.name || '')
+            : ''
+    );
 
     // Loading state for form submission
     let isSubmitting = $state(false);
@@ -306,6 +320,8 @@
         name?: string;
         location?: string;
         description?: string;
+        country?: string;
+        postalCode?: string;
     }>({});
 
     // Confirmation dialog state
@@ -625,6 +641,60 @@
                         <span class="invalid text-error-500 text-sm">{formErrors.location}</span>
                     {:else if $errors.location}
                         <span class="invalid text-error-500 text-sm">{$errors.location}</span>
+                    {/if}
+                </div>
+
+                <div class="label">
+                    <span>{$t('create_competition.country')}</span>
+                    <input type="hidden" name="country" value={countryValue[0] || ''} />
+                    <div class="border border-surface-300 dark:border-surface-600 rounded-lg overflow-hidden bg-primary-50-950">
+                        <Combobox
+                            data={countryData}
+                            value={countryValue}
+                            inputValue={countryInputValue}
+                            onValueChange={(e) => {
+                                countryValue = e.value;
+                                $form.country = e.value[0] || null;
+                                if (formErrors.country) formErrors.country = undefined;
+                            }}
+                            onInputValueChange={(e) => (countryInputValue = e.inputValue)}
+                            placeholder={$t('create_competition.select_country')}
+                            contentBase="card bg-surface-50 dark:bg-surface-900 p-2 shadow-xl max-h-48 overflow-y-auto rounded-lg"
+                            inputGroupInput="input text-sm px-3 py-2 bg-transparent border-none w-full"
+                        >
+                            {#snippet item(item)}
+                                <div class="flex items-center gap-2 p-1">
+                                    <span>{item.emoji}</span>
+                                    <span>{item.label}</span>
+                                </div>
+                            {/snippet}
+                        </Combobox>
+                    </div>
+                    {#if formErrors.country}
+                        <span class="invalid text-error-500 text-sm">{formErrors.country}</span>
+                    {:else if $errors.country}
+                        <span class="invalid text-error-500 text-sm">{$errors.country}</span>
+                    {/if}
+                </div>
+
+                <div class="label">
+                    <span>{$t('create_competition.postal_code')}</span>
+                    <input
+                        type="text"
+                        name="postalCode"
+                        bind:value={$form.postalCode}
+                        maxlength="20"
+                        placeholder={$t('create_competition.postal_code_placeholder')}
+                        class="input rounded-lg bg-primary-50-950"
+                        class:input-error={formErrors.postalCode || $errors.postalCode}
+                        oninput={() => {
+                            if (formErrors.postalCode) formErrors.postalCode = undefined;
+                        }}
+                    />
+                    {#if formErrors.postalCode}
+                        <span class="invalid text-error-500 text-sm">{formErrors.postalCode}</span>
+                    {:else if $errors.postalCode}
+                        <span class="invalid text-error-500 text-sm">{$errors.postalCode}</span>
                     {/if}
                 </div>
 

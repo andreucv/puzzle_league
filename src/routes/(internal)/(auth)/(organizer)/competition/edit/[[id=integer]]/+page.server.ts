@@ -42,6 +42,8 @@ const CompetitionEditSchema = z.object({
     name: z.string().min(3, "Competition name must be at least 3 characters").max(80, "Competition name must be at most 80 characters"),
     description: z.string().max(1000, "Description must be at most 1000 characters").nullable().optional(),
     location: z.string().max(120, "Location must be at most 120 characters").nullable().optional(),
+    country: z.string().max(2, "Country code must be 2 characters").nullable().optional(),
+    postalCode: z.string().max(20, "Postal code must be at most 20 characters").nullable().optional(),
     image_cld_id: z.string().nullable().optional(),
     startDate: z.string().min(1, "Start date is required"),
     endDate: z.string().min(1, "End date is required"),

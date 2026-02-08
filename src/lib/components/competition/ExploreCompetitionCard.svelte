@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { Competition, Category } from "@prisma/client";
+    import { CldImage } from 'svelte-cloudinary';
     import Icon from '@iconify/svelte';
 
     interface Props {
@@ -52,7 +53,7 @@
     };
 
     // Days until text
-    const daysUntilText = $derived(() => {
+    const daysUntilText = $derived.by(() => {
         if (daysUntil < 0) return `${Math.abs(daysUntil)}d ago`;
         if (daysUntil === 0) return 'Today!';
         if (daysUntil === 1) return 'Tomorrow';
@@ -60,7 +61,7 @@
     });
 
     // Days until styling
-    const daysUntilStyle = $derived(() => {
+    const daysUntilStyle = $derived.by(() => {
         if (daysUntil < 0) return 'text-surface-500';
         if (daysUntil === 0) return 'text-warning-600 dark:text-warning-400 font-bold';
         if (daysUntil <= 7) return 'text-success-600 dark:text-success-400';
@@ -74,18 +75,26 @@
 >
     <div class="card card-hover overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
         <div class="flex">
-            <!-- Calendar-style Date Display (left) -->
-            <div class="w-20 flex-shrink-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 p-2 border-r border-surface-200 dark:border-surface-700">
-                <span class="text-3xl font-bold text-primary-700 dark:text-primary-300 leading-none">{dayNumber}</span>
-                <span class="text-sm font-medium text-primary-600 dark:text-primary-400 uppercase">{monthAbbr}</span>
-                <span class="text-xs text-surface-500 dark:text-surface-400">{year}</span>
-                <!-- Days countdown -->
-                <div class="mt-1 text-xs {daysUntilStyle()}">
-                    {daysUntilText()}
-                </div>
+            <!-- Competition Image (left) -->
+            <div class="w-24 sm:w-32 flex-shrink-0 overflow-hidden">
+                {#if competition.image_cld_id}
+                    <CldImage
+                        src={competition.image_cld_id}
+                        width="128"
+                        height="128"
+                        alt={competition.name}
+                        crop="fill"
+                        gravity="auto"
+                        class="w-full h-full object-cover"
+                    />
+                {:else}
+                    <div class="w-full h-full flex items-center justify-center bg-surface-100 dark:bg-surface-800">
+                        <Icon icon="mdi:puzzle" class="w-10 h-10 text-surface-400 dark:text-surface-600" />
+                    </div>
+                {/if}
             </div>
 
-            <!-- Info Section (right) -->
+            <!-- Info Section (center) -->
             <div class="flex-1 p-3 min-w-0">
                 <!-- Name -->
                 <h3 class="font-semibold text-surface-900 dark:text-surface-50 truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors text-sm sm:text-base mb-1">
@@ -108,7 +117,7 @@
                 <!-- Category chips row -->
                 {#if categoryTypes.length > 0}
                     <div class="flex items-center gap-1 flex-wrap mb-1.5">
-                        {#each categoryTypes as catType}
+                        {#each categoryTypes as catType (catType)}
                             <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-surface-100 dark:bg-surface-700 rounded text-xs text-surface-600 dark:text-surface-400">
                                 <Icon icon={categoryLabels[catType]?.icon ?? 'mdi:puzzle'} class="w-3 h-3" />
                                 {categoryLabels[catType]?.label ?? catType}
@@ -137,6 +146,17 @@
                         <span>Completed</span>
                     </div>
                 {/if}
+            </div>
+
+            <!-- Calendar-style Date Display (right) -->
+            <div class="w-20 flex-shrink-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 p-2 border-l border-surface-200 dark:border-surface-700">
+                <span class="text-3xl font-bold text-primary-700 dark:text-primary-300 leading-none">{dayNumber}</span>
+                <span class="text-sm font-medium text-primary-600 dark:text-primary-400 uppercase">{monthAbbr}</span>
+                <span class="text-xs text-surface-500 dark:text-surface-400">{year}</span>
+                <!-- Days countdown -->
+                <div class="mt-1 text-xs {daysUntilStyle}">
+                    {daysUntilText}
+                </div>
             </div>
         </div>
     </div>

@@ -10,13 +10,11 @@
     let { data } = $props();
 
     const competitions = $derived(data.competitions);
-    const userCountry = $derived(data.userCountry);
-    const userPostalCode = $derived(data.userPostalCode);
+    const user = $derived(data.user);
     const roleAssignments = $derived(data.roleAssignments as RoleAssignment[] | undefined);
 
     // User has location set if both country and postal code are present
-    const hasUserLocation = $derived(userCountry && userPostalCode);
-
+    const hasUserLocation = $derived(Boolean(user?.country && user?.postalCode));
     // Search filter
     let filter = $state('');
 
@@ -73,10 +71,10 @@
             });
         }
 
-        if (activePresets.includes('near-me') && userCountry && userPostalCode) {
+        if (activePresets.includes('near-me') && user?.country && user?.postalCode) {
             result = result.filter(c =>
-                c.country === userCountry &&
-                c.postalCode?.substring(0, 2) === userPostalCode.substring(0, 2)
+                c.country === user.country &&
+                c.postalCode?.substring(0, 2) === user.postalCode!.substring(0, 2)
             );
         }
 
@@ -135,7 +133,7 @@
     <!-- Competition cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {#each filteredCompetitions as competition (competition.id)}
-            <ExploreCompetitionCard {competition} {userCountry} {userPostalCode} />
+            <ExploreCompetitionCard {competition} userCountry={user?.country ?? null} userPostalCode={user?.postalCode ?? null} />
         {:else}
             <div class="col-span-full flex flex-col items-center justify-center py-12 text-center">
                 <Icon icon="mdi:magnify-remove-outline" class="w-16 h-16 text-surface-300 dark:text-surface-600 mb-4" />

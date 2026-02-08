@@ -97,7 +97,11 @@
     "cancel": "Cancel",
     "start_time": "Start time",
     "end_time": "End time",
-    "image": "Image"
+    "image": "Image",
+    "country": "Country",
+    "postal_code": "Postal Code",
+    "postal_code_placeholder": "e.g. 08001",
+    "select_country": "Select a country..."
   },
   "competition": {
     "edit": {

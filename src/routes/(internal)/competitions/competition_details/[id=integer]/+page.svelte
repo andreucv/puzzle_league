@@ -11,9 +11,9 @@
 
     let { data } = $props();
     let categoryUsersDataToCreate = $state<Record<number, User[]>>({});
-    if (data.props.competition_and_categories?.categories.length > 0) {
+    if ((data.props?.competition_and_categories?.categories?.length ?? 0) > 0) {
         const newCategoryUsersData : Record<number, User[]> = {};
-        const categories = data.props.competition_and_categories.categories;
+        const categories = data.props!.competition_and_categories!.categories;
         categories.forEach(category => {
             newCategoryUsersData[category.id] = [];
         });
@@ -31,6 +31,12 @@
     const competitionName = competition?.name;
     const competitionDescription = competition?.description;
     const competitionStatus = competition?.status;
+    const competitionStatusLabel: Record<string, string> = {
+        NOT_STARTED: 'Not Started',
+        STARTED: 'Started',
+        FINISHED: 'Finished',
+        CANCELLED: 'Cancelled',
+    };
     const competition_startDate = new Date(competition?.startDate || new Date());
     const competition_endDate = new Date(competition?.endDate || new Date());
 
@@ -125,7 +131,7 @@
             </div>
             <div class="justify-end">
                 <span class="badge preset-filled-primary-500">
-                    {competitionStatus}
+                    {competitionStatusLabel[competitionStatus ?? ''] || competitionStatus}
                 </span>
             </div>
         </div>
@@ -194,7 +200,7 @@
 
                         <!-- Sign Up Button -->
                         {#if notRegistered(category) }
-                            <SignUpToCategory {category} {currentUser} bind:choosed_participants={categoryUsersDataToCreate[category.id]} registrationOpen={competition?.registrationOpen}/>
+                            <SignUpToCategory {category} {currentUser} bind:choosed_participants={categoryUsersDataToCreate[category.id]} registrationOpen={competition?.registrationOpen ?? false}/>
                         {:else}
                             <ShowRegisteredToCategory {category} entry={records?.find(record => record.categoryId === category.id)} {currentUser} />
                         {/if}

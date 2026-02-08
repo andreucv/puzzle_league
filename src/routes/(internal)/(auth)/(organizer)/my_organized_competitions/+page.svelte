@@ -4,7 +4,7 @@
     import { t } from '$lib/translations';
     let { data } = $props();
 
-    let competitions     = $derived(data.props.organised_competitions);
+    let competitions     = $derived(data.props?.organised_competitions ?? []);
     let filter = $state('');
     let filtered_competitions     = $derived(competitions.filter(competition => competition.name.toLowerCase().includes(filter.toLowerCase())));
 

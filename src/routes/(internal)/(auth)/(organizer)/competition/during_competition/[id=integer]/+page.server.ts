@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import type { PageServerLoad } from '../$types';
+import type { PageServerLoad, Actions } from './$types';
 import { getCompetition, getCompetitionCategories } from '$lib/database';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -21,7 +21,7 @@ export const load: PageServerLoad = async ({ params }) => {
 };
 
 
-export const actions: Actions = {
+export const actions = {
     recordFinish: async ({ request, params }) => {
         const formData = await request.formData();
         const tableNumber = formData.get('tableNumber') as string;

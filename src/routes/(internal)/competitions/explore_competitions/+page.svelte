@@ -18,8 +18,8 @@
     // Search filter
     let filter = $state('');
 
-    // Tab state - default to UPCOMING
-    let activeTab = $state<string>('UPCOMING');
+    // Tab state - default to NOT_STARTED
+    let activeTab = $state<string>('NOT_STARTED');
 
     // Smart preset filters
     let activePresets = $state<string[]>([]);
@@ -27,9 +27,9 @@
     // Tab definitions with counts
     const tabs = $derived([
         { id: 'ALL', label: 'All', count: competitions.length },
-        { id: 'UPCOMING', label: 'Soon', count: competitions.filter(c => c.status === 'UPCOMING').length },
-        { id: 'ACTIVE', label: 'Live', count: competitions.filter(c => c.status === 'ACTIVE').length },
-        { id: 'COMPLETED', label: 'Past', count: competitions.filter(c => c.status === 'COMPLETED' || c.status === 'CANCELLED').length },
+        { id: 'NOT_STARTED', label: 'Soon', count: competitions.filter(c => c.status === 'NOT_STARTED').length },
+        { id: 'STARTED', label: 'Live', count: competitions.filter(c => c.status === 'STARTED').length },
+        { id: 'FINISHED', label: 'Past', count: competitions.filter(c => c.status === 'FINISHED' || c.status === 'CANCELLED').length },
     ]);
 
     // Smart preset definitions
@@ -45,8 +45,8 @@
 
         // Tab filter (status)
         if (activeTab !== 'ALL') {
-            if (activeTab === 'COMPLETED') {
-                result = result.filter(c => c.status === 'COMPLETED' || c.status === 'CANCELLED');
+            if (activeTab === 'FINISHED') {
+                result = result.filter(c => c.status === 'FINISHED' || c.status === 'CANCELLED');
             } else {
                 result = result.filter(c => c.status === activeTab);
             }
@@ -79,7 +79,7 @@
         }
 
         if (activePresets.includes('open-registration')) {
-            result = result.filter(c => c.registrationOpen && c.status === 'UPCOMING');
+            result = result.filter(c => c.registrationOpen && c.status === 'NOT_STARTED');
         }
 
         return result;

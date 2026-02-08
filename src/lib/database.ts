@@ -79,7 +79,7 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
 
 export async function getUpcomingRegisteredCompetitions(userId: string) {
     try {
-        const competitions = await getUserRegisteredCompetitions(userId, CompetitionStatus.UPCOMING);
+        const competitions = await getUserRegisteredCompetitions(userId, CompetitionStatus.NOT_STARTED);
         return competitions;
     } catch (error) {
         console.error('Error getting upcoming registered competitions:', error);
@@ -89,7 +89,7 @@ export async function getUpcomingRegisteredCompetitions(userId: string) {
 
 export async function getParticipatedCompetitions(userId: string) {
     try {
-        const competitions = await getUserRegisteredCompetitions(userId, CompetitionStatus.COMPLETED);
+        const competitions = await getUserRegisteredCompetitions(userId, CompetitionStatus.FINISHED);
         return competitions;
     } catch (error) {
         console.error('Error getting participated competitions:', error);
@@ -399,7 +399,7 @@ export async function getMonthCompetitions(month: number, year: number) {
     }
 }
 
-export async function updateCompetitionStatus(competitionId: number, status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED') {
+export async function updateCompetitionStatus(competitionId: number, status: 'NOT_STARTED' | 'STARTED' | 'FINISHED' | 'CANCELLED') {
     try {
         const updatedCompetition = await prisma.competition.update({
             where: { id: competitionId },
@@ -573,7 +573,7 @@ export async function signUpUsersToCompetition(
 
                 // Check if competition registration is still open
                 const now = new Date();
-                if (category.competition.status !== 'UPCOMING') {
+                if (category.competition.status !== 'NOT_STARTED') {
                     throw new Error(`Registration closed for competition: ${category.competition.name}`);
                 }
 
@@ -746,7 +746,7 @@ export async function createEntries(recordsData: Prisma.RecordCreateInput[]) {
                 }
 
                 // Check if competition is still accepting registrations
-                if (category.competition.status !== 'UPCOMING') {
+                if (category.competition.status !== 'NOT_STARTED') {
                     throw new Error(`Registration closed for competition: ${category.competition.name}`);
                 }
 
@@ -851,8 +851,19 @@ export async function updateCompetition(
                     data: competition
                 });
             } else {
+                // For create, strip update/delete from categories and remove undefined values
+                const createData = { ...competition } as any;
+                if (createData.categories) {
+                    createData.categories = { create: createData.categories.create || [] };
+                }
+                // Remove undefined values that Prisma doesn't accept on create
+                Object.keys(createData).forEach(key => {
+                    if (createData[key] === undefined) {
+                        delete createData[key];
+                    }
+                });
                 updatedCompetition = await tx.competition.create({
-                    data: competition
+                    data: createData as Prisma.CompetitionUncheckedCreateInput
                 });
             }
 

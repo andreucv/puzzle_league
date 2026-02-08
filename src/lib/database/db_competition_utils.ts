@@ -7,7 +7,7 @@ export async function getUpcomingCompetitions(n_objects: number, offset: number)
         skip: offset,
         where: {
             status: {
-                in: [CompetitionStatus.UPCOMING, CompetitionStatus.ACTIVE]
+                in: [CompetitionStatus.NOT_STARTED, CompetitionStatus.STARTED]
             },
         },
         include: {
@@ -25,7 +25,7 @@ export async function getPastCompetitions(n_objects: number, offset: number) {
         skip: offset,
         where: {
             status: {
-                in: [CompetitionStatus.COMPLETED, CompetitionStatus.CANCELLED]
+                in: [CompetitionStatus.FINISHED, CompetitionStatus.CANCELLED]
             },
         },
         orderBy: {

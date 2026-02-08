@@ -130,20 +130,20 @@
                 {/if}
 
                 <!-- Registration indicator -->
-                {#if competition.registrationOpen && competition.status === 'UPCOMING'}
+                {#if competition.registrationOpen && competition.status === 'NOT_STARTED'}
                     <div class="flex items-center gap-1 text-xs text-success-600 dark:text-success-400">
                         <Icon icon="mdi:check-circle" class="w-3.5 h-3.5" />
                         <span>Open</span>
                     </div>
-                {:else if competition.status === 'ACTIVE'}
+                {:else if competition.status === 'STARTED'}
                     <div class="flex items-center gap-1 text-xs text-warning-600 dark:text-warning-400">
                         <Icon icon="mdi:play-circle" class="w-3.5 h-3.5" />
-                        <span>In progress</span>
+                        <span>Started</span>
                     </div>
-                {:else if competition.status === 'COMPLETED'}
+                {:else if competition.status === 'FINISHED'}
                     <div class="flex items-center gap-1 text-xs text-surface-500">
                         <Icon icon="mdi:check-all" class="w-3.5 h-3.5" />
-                        <span>Completed</span>
+                        <span>Finished</span>
                     </div>
                 {/if}
             </div>

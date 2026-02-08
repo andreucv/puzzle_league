@@ -20,7 +20,7 @@ export const GET = async (event: RequestEvent) => {
       include: {
         categories: {
           include: {
-            entries: {
+            records: {
               include: {
                 users: true
               }

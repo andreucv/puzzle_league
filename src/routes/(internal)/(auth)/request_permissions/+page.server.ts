@@ -12,6 +12,11 @@ export const load: PageServerLoad = async ({ request }) => {
 
     const rolesAvailable = Object.values(Role);
     const filteredRoles = rolesAvailable.filter(role => role !== Role.ADMIN && role !== Role.PARTICIPANT);
+
+    if (!session?.user) {
+        return fail(401, { error: 'User not authenticated' });
+    }
+
     const requests = await getRequestsByUserId(session.user.id);
 
     console.log('request_permissions/+page.server.ts requests', requests);

@@ -5,8 +5,6 @@ import { CategoryType } from '@prisma/client';
 import { auth } from '$lib/auth';
 import { z } from 'zod';
 
-import { CompetitionUpdateInputSchema } from '../../../../../../../../prisma/generated/zod';
-
 import { superValidate, message} from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 

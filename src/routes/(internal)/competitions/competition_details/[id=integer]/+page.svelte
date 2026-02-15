@@ -224,9 +224,13 @@
                 <Icon icon="mdi:pencil" width="1.2rem" height="1.2rem" />
                 Edit Competition
             </a>
+            <a href="/manage_registration_status/{competition?.id}" class="btn preset-filled-primary-500">
+                <Icon icon="mdi:airplane-takeoff" width="1.2rem" height="1.2rem" />
+                Manage Registration Status
+            </a>
             <a href="/competition/during_competition/{competition?.id}" class="btn preset-filled-primary-500">
-                <Icon icon="mdi:chess-queen" width="1.2rem" height="1.2rem" />
-                During Competition
+                <Icon icon="mdi:play-circle-outline" width="1.2rem" height="1.2rem" />
+                Competition Day
             </a>
         {/if}
         <a href="/competitions/upcoming_competitions" class="btn preset-tonal">

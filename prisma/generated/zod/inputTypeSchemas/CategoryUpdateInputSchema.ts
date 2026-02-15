@@ -9,9 +9,10 @@ import { DateTimeFieldUpdateOperationsInputSchema } from './DateTimeFieldUpdateO
 import { NullableDateTimeFieldUpdateOperationsInputSchema } from './NullableDateTimeFieldUpdateOperationsInputSchema';
 import { CompetitionUpdateOneRequiredWithoutCategoriesNestedInputSchema } from './CompetitionUpdateOneRequiredWithoutCategoriesNestedInputSchema';
 import { RecordUpdateManyWithoutCategoryNestedInputSchema } from './RecordUpdateManyWithoutCategoryNestedInputSchema';
+import { PuzzleUpdateManyWithoutCategoriesNestedInputSchema } from './PuzzleUpdateManyWithoutCategoriesNestedInputSchema';
 
 export const CategoryUpdateInputSchema: z.ZodType<Prisma.CategoryUpdateInput> = z.object({
-  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   type: z.union([ z.lazy(() => CategoryTypeSchema),z.lazy(() => EnumCategoryTypeFieldUpdateOperationsInputSchema) ]).optional(),
   maxPartySize: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   startTime: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -21,7 +22,8 @@ export const CategoryUpdateInputSchema: z.ZodType<Prisma.CategoryUpdateInput> = 
   status: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   maxParties: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   competition: z.lazy(() => CompetitionUpdateOneRequiredWithoutCategoriesNestedInputSchema).optional(),
-  records: z.lazy(() => RecordUpdateManyWithoutCategoryNestedInputSchema).optional()
+  records: z.lazy(() => RecordUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  puzzles: z.lazy(() => PuzzleUpdateManyWithoutCategoriesNestedInputSchema).optional()
 }).strict();
 
 export default CategoryUpdateInputSchema;

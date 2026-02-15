@@ -23,7 +23,7 @@ const competition_data = {
     },
     "categories": [
         {
-            "name": "500 pcs",
+            "description": "500 pcs",
             "type": "Individual",
             "start_time": "10:00",
             "end_time": "12:00",
@@ -31,7 +31,7 @@ const competition_data = {
             "participants_per_party": "1",
         },
         {
-            "name": "500 pcs",
+            "description": "500 pcs",
             "type": "Pairs",
             "start_time": "14:00",
             "end_time": "16:00",
@@ -39,7 +39,7 @@ const competition_data = {
             "participants_per_party": "2",
         },
         {
-            "name": "1000 pcs",
+            "description": "1000 pcs",
             "type": "Team",
             "start_time": "18:00",
             "end_time": "20:00",
@@ -59,7 +59,7 @@ const updated_competition_data = {
     },
     "categories": [
         {
-            "name": "500 pcs Updated",
+            "description": "500 pcs Updated",
             "type": "Individual",
             "start_time": "11:00",
             "end_time": "13:00",
@@ -67,7 +67,7 @@ const updated_competition_data = {
             "participants_per_party": "1",
         },
         {
-            "name": "1000 pcs Updated",
+            "description": "1000 pcs Updated",
             "type": "Team",
             "start_time": "18:00",
             "end_time": "20:00",
@@ -91,7 +91,7 @@ test('GivenCreateCompetitionPage_WhenOrganizerCreatesCompetition_ThenOrganizerIs
     for (let index = 0; index < competition_data.categories.length; index++) {
         const element = competition_data.categories[index];
         await page.getByRole('button', { name: 'Add Category' }).first().click();
-        await page.getByPlaceholder('Enter category name').nth(index).fill(element.name);
+        await page.getByPlaceholder('Enter category description').nth(index).fill(element.description);
         await page.getByRole('combobox').nth(index).selectOption(element.type);
         await page.locator('input[type="time"]').nth(index*2).fill(element.start_time);
         await page.locator('input[type="time"]').nth(index*2+1).fill(element.end_time);
@@ -105,9 +105,9 @@ test('GivenCreateCompetitionPage_WhenOrganizerCreatesCompetition_ThenOrganizerIs
     await expect(page.getByText(competition_data.competition.description).first()).toBeVisible();
     await expect(page.locator('span').filter({ hasText: competition_data.competition.location }).first()).toBeVisible();
 
-    await expect(page.getByText(`${competition_data.categories[0].type} ${competition_data.categories[0].name} Start: ${competition_data.categories[0].start_time.split(':')[0]}`)).toBeVisible();
-    await expect(page.getByText(`${competition_data.categories[1].type} ${competition_data.categories[1].name} Start: ${competition_data.categories[1].start_time.split(':')[0]}`)).toBeVisible();
-    await expect(page.getByText(`${competition_data.categories[2].type} ${competition_data.categories[2].name} Start: ${competition_data.categories[2].start_time.split(':')[0]}`)).toBeVisible();
+    await expect(page.getByText(`${competition_data.categories[0].type} ${competition_data.categories[0].description} Start: ${competition_data.categories[0].start_time.split(':')[0]}`)).toBeVisible();
+    await expect(page.getByText(`${competition_data.categories[1].type} ${competition_data.categories[1].description} Start: ${competition_data.categories[1].start_time.split(':')[0]}`)).toBeVisible();
+    await expect(page.getByText(`${competition_data.categories[2].type} ${competition_data.categories[2].description} Start: ${competition_data.categories[2].start_time.split(':')[0]}`)).toBeVisible();
 });
 
 test('GivenCreateCompetitionPage_WhenOrganizerCreatesAndUpdatesCompetition_ThenOrganizerIsAbleToCheckCompetition', async ({ page }) => {
@@ -124,7 +124,7 @@ test('GivenCreateCompetitionPage_WhenOrganizerCreatesAndUpdatesCompetition_ThenO
     for (let index = 0; index < competition_data.categories.length; index++) {
         const element = competition_data.categories[index];
         await page.getByRole('button', { name: 'Add Category' }).first().click();
-        await page.getByPlaceholder('Enter category name').nth(index).fill(element.name);
+        await page.getByPlaceholder('Enter category description').nth(index).fill(element.description);
         await page.getByRole('combobox').nth(index).selectOption(element.type);
         await page.locator('input[type="time"]').nth(index*2).fill(element.start_time);
         await page.locator('input[type="time"]').nth(index*2+1).fill(element.end_time);
@@ -138,9 +138,9 @@ test('GivenCreateCompetitionPage_WhenOrganizerCreatesAndUpdatesCompetition_ThenO
     await expect(page.getByText(competition_data.competition.description).first()).toBeVisible();
     await expect(page.locator('span').filter({ hasText: competition_data.competition.location }).first()).toBeVisible();
 
-    await expect(page.getByText(`${competition_data.categories[0].type} ${competition_data.categories[0].name} Start: ${competition_data.categories[0].start_time.split(':')[0]}`)).toBeVisible();
-    await expect(page.getByText(`${competition_data.categories[1].type} ${competition_data.categories[1].name} Start: ${competition_data.categories[1].start_time.split(':')[0]}`)).toBeVisible();
-    await expect(page.getByText(`${competition_data.categories[2].type} ${competition_data.categories[2].name} Start: ${competition_data.categories[2].start_time.split(':')[0]}`)).toBeVisible();
+    await expect(page.getByText(`${competition_data.categories[0].type} ${competition_data.categories[0].description} Start: ${competition_data.categories[0].start_time.split(':')[0]}`)).toBeVisible();
+    await expect(page.getByText(`${competition_data.categories[1].type} ${competition_data.categories[1].description} Start: ${competition_data.categories[1].start_time.split(':')[0]}`)).toBeVisible();
+    await expect(page.getByText(`${competition_data.categories[2].type} ${competition_data.categories[2].description} Start: ${competition_data.categories[2].start_time.split(':')[0]}`)).toBeVisible();
 
     // Competition created, lets update it
     await page.getByRole('link', { name: 'Edit Competition' }).click();
@@ -219,8 +219,8 @@ test.describe('Create Competition Form Validation', () => {
 
         await page.getByRole('button', { name: 'Save Competition' }).first().click();
 
-        // Should show validation error for category name
-        await expect(page.getByText('Category name is required')).toBeVisible();
+        // Should show validation error for category description
+        await expect(page.getByText('Category description is required')).toBeVisible();
     });
 
     test('GivenCreateCompetitionPage_WhenCategoryNameIsTooShort_ThenShowsCategoryNameMinLengthError', async ({ page }) => {
@@ -237,7 +237,7 @@ test.describe('Create Competition Form Validation', () => {
 
         // Add a category with short name
         await page.getByRole('button', { name: 'Add Category' }).first().click();
-        await page.getByPlaceholder('Enter category name').first().fill('AB');
+        await page.getByPlaceholder('Enter category description').first().fill('AB');
         await page.getByRole('combobox').first().selectOption('Individual');
 
         await page.locator('input[type="time"]').first().fill('10:00');
@@ -246,8 +246,8 @@ test.describe('Create Competition Form Validation', () => {
 
         await page.getByRole('button', { name: 'Save Competition' }).first().click();
 
-        // Should show validation error for category name length
-        await expect(page.getByText('Category name must be at least 3 characters')).toBeVisible();
+        // Should show validation error for category description length
+        await expect(page.getByText('Category description must be at least 3 characters')).toBeVisible();
     });
 
     test('GivenCreateCompetitionPage_WhenCategoryStartTimeIsMissing_ThenShowsStartTimeRequiredError', async ({ page }) => {
@@ -264,7 +264,7 @@ test.describe('Create Competition Form Validation', () => {
 
         // Add a category
         await page.getByRole('button', { name: 'Add Category' }).first().click();
-        await page.getByPlaceholder('Enter category name').first().fill('Valid Category');
+        await page.getByPlaceholder('Enter category description').first().fill('Valid Category');
         await page.getByRole('combobox').first().selectOption('Individual');
 
         // Fill end time but not start time
@@ -291,7 +291,7 @@ test.describe('Create Competition Form Validation', () => {
 
         // Add a category
         await page.getByRole('button', { name: 'Add Category' }).first().click();
-        await page.getByPlaceholder('Enter category name').first().fill('Valid Category');
+        await page.getByPlaceholder('Enter category description').first().fill('Valid Category');
         await page.getByRole('combobox').first().selectOption('Individual');
 
         // Fill start time but not end time
@@ -318,7 +318,7 @@ test.describe('Create Competition Form Validation', () => {
 
         // Add a category
         await page.getByRole('button', { name: 'Add Category' }).first().click();
-        await page.getByPlaceholder('Enter category name').first().fill('Valid Category');
+        await page.getByPlaceholder('Enter category description').first().fill('Valid Category');
         await page.getByRole('combobox').first().selectOption('Individual');
 
         // Fill times but not max parties

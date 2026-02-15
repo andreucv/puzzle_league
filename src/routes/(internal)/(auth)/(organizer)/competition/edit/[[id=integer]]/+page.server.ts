@@ -20,13 +20,14 @@ cloudinary.config({
 
 // Category schema based on UX spec validation requirements
 const CategorySchema = z.object({
-    name: z.string().min(3, "Category name must be at least 3 characters").max(60, "Category name must be at most 60 characters"),
+    description: z.string().min(3, "Category description must be at least 3 characters").max(60, "Category description must be at most 60 characters"),
     type: z.nativeEnum(CategoryType, { error: "Please select a category type" }),
     startTime: z.string().min(1, "Start time is required"),
     endTime: z.string().min(1, "End time is required"),
     maxParties: z.number().int().min(1, "Max parties must be at least 1").nullable().optional(),
     maxPartySize: z.number().int().min(1, "Party size must be at least 1").nullable().optional(),
     status: z.string().optional(),
+    puzzleIds: z.array(z.string()).optional(),
 });
 
 const CategoryUpdateSchema = z.object({
@@ -103,6 +104,7 @@ export const load: PageServerLoad = async (event) => {
                     ...cat,
                     startTime: cat.startTime.toISOString(),
                     endTime: cat.endTime.toISOString(),
+                    puzzleIds: (cat as any).puzzles?.map((p: any) => p.id) || [],
                 }))
             };
         }
@@ -197,6 +199,31 @@ const create_update_competition: Action = async ({ request, params }) => {
 
     // Remove id from form data as Prisma doesn't allow it in update data
     const { id, ...competitionData } = formData;
+
+    // Transform puzzleIds into Prisma connect operations for each category
+    if (competitionData.categories) {
+        if (competitionData.categories.create) {
+            competitionData.categories.create = competitionData.categories.create.map((cat: any) => {
+                const { puzzleIds, ...catData } = cat;
+                if (puzzleIds && puzzleIds.length > 0) {
+                    catData.puzzles = { connect: puzzleIds.map((pid: string) => ({ id: pid })) };
+                }
+                return catData;
+            });
+        }
+        if (competitionData.categories.update) {
+            competitionData.categories.update = competitionData.categories.update.map((item: any) => {
+                const { puzzleIds, ...catData } = item.data;
+                const updateData: any = { where: item.where, data: catData };
+                if (puzzleIds) {
+                    updateData.data.puzzles = {
+                        set: puzzleIds.map((pid: string) => ({ id: pid }))
+                    };
+                }
+                return updateData;
+            });
+        }
+    }
 
     const result = await updateCompetition(competitionId, competitionData);
     console.log('competition/edit/+page.server.ts: on action result', result);

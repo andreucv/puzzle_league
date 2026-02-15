@@ -8,9 +8,10 @@ import { NullableIntFieldUpdateOperationsInputSchema } from './NullableIntFieldU
 import { DateTimeFieldUpdateOperationsInputSchema } from './DateTimeFieldUpdateOperationsInputSchema';
 import { NullableDateTimeFieldUpdateOperationsInputSchema } from './NullableDateTimeFieldUpdateOperationsInputSchema';
 import { RecordUpdateManyWithoutCategoryNestedInputSchema } from './RecordUpdateManyWithoutCategoryNestedInputSchema';
+import { PuzzleUpdateManyWithoutCategoriesNestedInputSchema } from './PuzzleUpdateManyWithoutCategoriesNestedInputSchema';
 
 export const CategoryUpdateWithoutCompetitionInputSchema: z.ZodType<Prisma.CategoryUpdateWithoutCompetitionInput> = z.object({
-  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   type: z.union([ z.lazy(() => CategoryTypeSchema),z.lazy(() => EnumCategoryTypeFieldUpdateOperationsInputSchema) ]).optional(),
   maxPartySize: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   startTime: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -19,7 +20,8 @@ export const CategoryUpdateWithoutCompetitionInputSchema: z.ZodType<Prisma.Categ
   realEndTime: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   status: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   maxParties: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  records: z.lazy(() => RecordUpdateManyWithoutCategoryNestedInputSchema).optional()
+  records: z.lazy(() => RecordUpdateManyWithoutCategoryNestedInputSchema).optional(),
+  puzzles: z.lazy(() => PuzzleUpdateManyWithoutCategoriesNestedInputSchema).optional()
 }).strict();
 
 export default CategoryUpdateWithoutCompetitionInputSchema;

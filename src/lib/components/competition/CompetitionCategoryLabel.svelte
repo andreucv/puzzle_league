@@ -62,8 +62,16 @@
 
                 </p>
                 <p class="text-xs text-surface-700 dark:text-surface-300">
-                    {category.name}
+                    {category.description}
                 </p>
+                {#if category.puzzles?.length > 0}
+                    <div class="flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400">
+                        <Icon icon="mdi:puzzle-outline" class="w-3 h-3" />
+                        <span class="font-medium">
+                            {category.puzzles.map((p: any) => `${p.pieces} pcs`).join(', ')}
+                        </span>
+                    </div>
+                {/if}
                 <div class="flex items-center gap-1.5 text-surface-600 dark:text-surface-400">
                     <Icon icon="mdi:clock-outline" class="w-3 h-3" />
                     <p class="text-xs font-medium">

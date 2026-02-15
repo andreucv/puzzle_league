@@ -64,7 +64,8 @@
     "create_competition": "Crear Competició",
     "explore_competitions": "Competicions",
     "home": "Inici",
-    "explore_results": "Explorar resultats"
+    "explore_results": "Explorar resultats",
+    "puzzles": "Puzzles"
   },
   "list_competitions": {
     "look_for_competition": "Busca una competició"
@@ -117,6 +118,18 @@
   },
   "competition_details": {
     "feature_not_available": "Funció no disponible actualment"
+  },
+  "puzzles": {
+    "catalog_title": "Catàleg de Puzzles",
+    "add_puzzle": "Afegir Puzzle",
+    "edit_puzzle": "Editar Puzzle",
+    "search_placeholder": "Cerca puzzles per nom, marca, codi de barres...",
+    "pieces": "Peces",
+    "brand": "Marca",
+    "barcode": "Codi de barres",
+    "serial_number": "Número de sèrie",
+    "no_puzzles": "No s'han trobat puzzles",
+    "add_first_puzzle": "Afegeix el teu primer puzzle al catàleg"
   },
   "admin-actions": "Accions d'administrador"
 }

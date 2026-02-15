@@ -4,6 +4,7 @@ export * from './AccountSchema';
 export * from './VerificationSchema';
 export * from './LeagueSchema';
 export * from './CompetitionSchema';
+export * from './PuzzleSchema';
 export * from './CategorySchema';
 export * from './RecordSchema';
 export * from './RoleAssignmentSchema';

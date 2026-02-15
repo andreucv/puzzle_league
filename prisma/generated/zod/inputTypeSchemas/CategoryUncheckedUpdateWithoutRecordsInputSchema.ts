@@ -8,10 +8,11 @@ import { EnumCategoryTypeFieldUpdateOperationsInputSchema } from './EnumCategory
 import { NullableIntFieldUpdateOperationsInputSchema } from './NullableIntFieldUpdateOperationsInputSchema';
 import { DateTimeFieldUpdateOperationsInputSchema } from './DateTimeFieldUpdateOperationsInputSchema';
 import { NullableDateTimeFieldUpdateOperationsInputSchema } from './NullableDateTimeFieldUpdateOperationsInputSchema';
+import { PuzzleUncheckedUpdateManyWithoutCategoriesNestedInputSchema } from './PuzzleUncheckedUpdateManyWithoutCategoriesNestedInputSchema';
 
 export const CategoryUncheckedUpdateWithoutRecordsInputSchema: z.ZodType<Prisma.CategoryUncheckedUpdateWithoutRecordsInput> = z.object({
   id: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  description: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   type: z.union([ z.lazy(() => CategoryTypeSchema),z.lazy(() => EnumCategoryTypeFieldUpdateOperationsInputSchema) ]).optional(),
   maxPartySize: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   startTime: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -21,6 +22,7 @@ export const CategoryUncheckedUpdateWithoutRecordsInputSchema: z.ZodType<Prisma.
   status: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   maxParties: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   competitionId: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  puzzles: z.lazy(() => PuzzleUncheckedUpdateManyWithoutCategoriesNestedInputSchema).optional()
 }).strict();
 
 export default CategoryUncheckedUpdateWithoutRecordsInputSchema;

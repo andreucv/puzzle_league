@@ -12,6 +12,7 @@ import { IntFilterSchema } from './IntFilterSchema';
 import { CompetitionScalarRelationFilterSchema } from './CompetitionScalarRelationFilterSchema';
 import { CompetitionWhereInputSchema } from './CompetitionWhereInputSchema';
 import { RecordListRelationFilterSchema } from './RecordListRelationFilterSchema';
+import { PuzzleListRelationFilterSchema } from './PuzzleListRelationFilterSchema';
 
 export const CategoryWhereUniqueInputSchema: z.ZodType<Prisma.CategoryWhereUniqueInput> = z.object({
   id: z.number().int()
@@ -21,7 +22,7 @@ export const CategoryWhereUniqueInputSchema: z.ZodType<Prisma.CategoryWhereUniqu
   AND: z.union([ z.lazy(() => CategoryWhereInputSchema),z.lazy(() => CategoryWhereInputSchema).array() ]).optional(),
   OR: z.lazy(() => CategoryWhereInputSchema).array().optional(),
   NOT: z.union([ z.lazy(() => CategoryWhereInputSchema),z.lazy(() => CategoryWhereInputSchema).array() ]).optional(),
-  name: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  description: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   type: z.union([ z.lazy(() => EnumCategoryTypeFilterSchema),z.lazy(() => CategoryTypeSchema) ]).optional(),
   maxPartySize: z.union([ z.lazy(() => IntNullableFilterSchema),z.number().int() ]).optional().nullable(),
   startTime: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
@@ -32,7 +33,8 @@ export const CategoryWhereUniqueInputSchema: z.ZodType<Prisma.CategoryWhereUniqu
   maxParties: z.union([ z.lazy(() => IntNullableFilterSchema),z.number().int() ]).optional().nullable(),
   competitionId: z.union([ z.lazy(() => IntFilterSchema),z.number().int() ]).optional(),
   competition: z.union([ z.lazy(() => CompetitionScalarRelationFilterSchema),z.lazy(() => CompetitionWhereInputSchema) ]).optional(),
-  records: z.lazy(() => RecordListRelationFilterSchema).optional()
+  records: z.lazy(() => RecordListRelationFilterSchema).optional(),
+  puzzles: z.lazy(() => PuzzleListRelationFilterSchema).optional()
 }).strict());
 
 export default CategoryWhereUniqueInputSchema;

@@ -36,7 +36,8 @@
     "explore_competitions": "Competitions",
     "create_competition": "Create Competition",
     "home": "Home",
-    "explore_results": "Explore results"
+    "explore_results": "Explore results",
+    "puzzles": "Puzzles"
   },
   "competitions": {
     "explore_competitions": "Explore Competitions",
@@ -139,5 +140,17 @@
   "puzzligas-t-landing_page-head_title": "Puzzligas - {$t('landing_page.head_title')}",
   "competition_details": {
     "feature_not_available": "Feature not available yet"
+  },
+  "puzzles": {
+    "catalog_title": "Puzzle Catalog",
+    "add_puzzle": "Add Puzzle",
+    "edit_puzzle": "Edit Puzzle",
+    "search_placeholder": "Search puzzles by name, brand, barcode...",
+    "pieces": "Pieces",
+    "brand": "Brand",
+    "barcode": "Barcode",
+    "serial_number": "Serial Number",
+    "no_puzzles": "No puzzles found",
+    "add_first_puzzle": "Add your first puzzle to the catalog"
   }
 }

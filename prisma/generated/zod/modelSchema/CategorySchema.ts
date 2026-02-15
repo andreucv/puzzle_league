@@ -8,7 +8,7 @@ import { CategoryTypeSchema } from '../inputTypeSchemas/CategoryTypeSchema'
 export const CategorySchema = z.object({
   type: CategoryTypeSchema,
   id: z.number().int(),
-  name: z.string(),
+  description: z.string(),
   maxPartySize: z.number().int().nullable(),
   startTime: z.coerce.date(),
   endTime: z.coerce.date(),

@@ -12,6 +12,7 @@
     import { countries, getCountryFlag } from '$lib/country_utils';
     import CustomDateRangePicker from "$lib/components/bits_ui/CustomDateRangePicker.svelte";
     import LoadingOverlay from "$lib/components/LoadingOverlay.svelte";
+    import PuzzleLinkSection from "$lib/components/PuzzleLinkSection.svelte";
 
     let { data } = $props();
     console.log("competition/edit/+page.svelte: data", data);
@@ -143,14 +144,14 @@
             const cat = createCategories[i];
             categoryErrors.create[i] = {};
 
-            if (!cat.name || cat.name.trim() === '') {
-                categoryErrors.create[i].name = 'Category name is required';
+            if (!cat.description || cat.description.trim() === '') {
+                categoryErrors.create[i].description = 'Category description is required';
                 isValid = false;
-            } else if (cat.name.length < 3) {
-                categoryErrors.create[i].name = 'Category name must be at least 3 characters';
+            } else if (cat.description.length < 3) {
+                categoryErrors.create[i].description = 'Category description must be at least 3 characters';
                 isValid = false;
-            } else if (cat.name.length > 60) {
-                categoryErrors.create[i].name = 'Category name must be at most 60 characters';
+            } else if (cat.description.length > 60) {
+                categoryErrors.create[i].description = 'Category description must be at most 60 characters';
                 isValid = false;
             }
 
@@ -187,14 +188,14 @@
             const cat = updateCategories[i].data;
             categoryErrors.update[i] = {};
 
-            if (!cat.name || cat.name.trim() === '') {
-                categoryErrors.update[i].name = 'Category name is required';
+            if (!cat.description || cat.description.trim() === '') {
+                categoryErrors.update[i].description = 'Category description is required';
                 isValid = false;
-            } else if (cat.name.length < 3) {
-                categoryErrors.update[i].name = 'Category name must be at least 3 characters';
+            } else if (cat.description.length < 3) {
+                categoryErrors.update[i].description = 'Category description must be at least 3 characters';
                 isValid = false;
-            } else if (cat.name.length > 60) {
-                categoryErrors.update[i].name = 'Category name must be at most 60 characters';
+            } else if (cat.description.length > 60) {
+                categoryErrors.update[i].description = 'Category description must be at most 60 characters';
                 isValid = false;
             }
 
@@ -318,8 +319,8 @@
 
     // Client-side validation errors for categories
     let categoryErrors = $state({
-        create: [] as Array<{ name?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string }>,
-        update: [] as Array<{ name?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string }>
+        create: [] as Array<{ description?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string }>,
+        update: [] as Array<{ description?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string }>
     });
 
     // Date validation error
@@ -366,14 +367,15 @@
 
     function addCategory() {
         categories.create = [...categories.create, {
-            name: "",
+            description: "",
             type: "INDIVIDUAL", // or whatever default CategoryType you want
             startTime: "", // Add this property
             endTime: "", // Add this property
             // Optional fields can be omitted or set to defaults
             maxParties: null, // Add this property
             maxPartySize: 1, // Change from null to 1
-            status: "not_started"
+            status: "not_started",
+            puzzleIds: [],
         }];
 
         categories_times_obj_arr.create = [...categories_times_obj_arr.create, {startTime: "", endTime: ""}];
@@ -423,13 +425,13 @@
         }
 
         switch (field) {
-            case 'name':
+            case 'description':
                 if (value && value.length > 0 && value.length < 3) {
-                    categoryErrors[source][index].name = 'Category name must be at least 3 characters';
+                    categoryErrors[source][index].description = 'Category description must be at least 3 characters';
                 } else if (value && value.length > 60) {
-                    categoryErrors[source][index].name = 'Category name must be at most 60 characters';
+                    categoryErrors[source][index].description = 'Category description must be at most 60 characters';
                 } else {
-                    delete categoryErrors[source][index].name;
+                    delete categoryErrors[source][index].description;
                 }
                 break;
             case 'type':
@@ -832,21 +834,21 @@
                         <div class="p-2 rounded-lg bg-warning-50-950">
                             <!-- Category Header -->
                             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <!-- Category Name -->
+                                <!-- Category Description -->
                                 <div class="label">
-                                    <span class="text-sm font-medium">Category Name *</span>
+                                    <span class="text-sm font-medium">Category Description *</span>
                                     <input
                                         type="text"
                                         class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.update[i]?.name}
-                                        bind:value={categories.update[i].data.name}
-                                        placeholder="Enter category name"
+                                        class:input-error={categoryErrors.update[i]?.description}
+                                        bind:value={categories.update[i].data.description}
+                                        placeholder="Enter category description"
                                         minlength="3"
                                         maxlength="60"
-                                        oninput={(e) => validateCategoryField('update', i, 'name', (e.target as HTMLInputElement).value)}
+                                        oninput={(e) => validateCategoryField('update', i, 'description', (e.target as HTMLInputElement).value)}
                                     />
-                                    {#if categoryErrors.update[i]?.name}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].name}</span>
+                                    {#if categoryErrors.update[i]?.description}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].description}</span>
                                     {/if}
                                 </div>
 
@@ -947,6 +949,11 @@
                                 </div>
                             </div>
                             {/if}
+                            <!-- Puzzles Section -->
+                            <PuzzleLinkSection
+                                puzzleIds={categories.update[i].data.puzzleIds || []}
+                                onUpdate={(ids) => categories.update[i].data.puzzleIds = ids}
+                            />
                             <div class="flex justify-end gap-4 mt-4">
                                 <button
                                     type="button"
@@ -968,21 +975,21 @@
                         <div class="p-2 rounded-lg bg-success-50-950">
                             <!-- Category Header -->
                             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <!-- Category Name -->
+                                <!-- Category Description -->
                                 <div class="label">
-                                    <span class="text-sm font-medium">Category Name *</span>
+                                    <span class="text-sm font-medium">Category Description *</span>
                                     <input
                                         type="text"
                                         class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.create[i]?.name}
-                                        bind:value={categories.create[i].name}
-                                        placeholder="Enter category name"
+                                        class:input-error={categoryErrors.create[i]?.description}
+                                        bind:value={categories.create[i].description}
+                                        placeholder="Enter category description"
                                         minlength="3"
                                         maxlength="60"
-                                        oninput={(e) => validateCategoryField('create', i, 'name', (e.target as HTMLInputElement).value)}
+                                        oninput={(e) => validateCategoryField('create', i, 'description', (e.target as HTMLInputElement).value)}
                                     />
-                                    {#if categoryErrors.create[i]?.name}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].name}</span>
+                                    {#if categoryErrors.create[i]?.description}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].description}</span>
                                     {/if}
                                 </div>
 
@@ -1082,6 +1089,11 @@
                                 </div>
                             </div>
                             {/if}
+                            <!-- Puzzles Section -->
+                            <PuzzleLinkSection
+                                puzzleIds={categories.create[i].puzzleIds || []}
+                                onUpdate={(ids) => categories.create[i].puzzleIds = ids}
+                            />
                             <div class="flex justify-end gap-4 mt-4">
                                 <button
                                     type="button"

@@ -150,9 +150,24 @@ model Competition {
   @@map("competition")
 }
 
+model Puzzle {
+  id           String     @id @default(cuid())
+  name         String?
+  pieces       Int
+  image_cld_id String?
+  brand        String
+  serialNumber String?
+  barcode      String     @unique
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  categories   Category[]
+
+  @@map("puzzle")
+}
+
 model Category {
   id            Int          @id @default(autoincrement())
-  name          String
+  description   String
   type          CategoryType
   maxPartySize  Int?
   startTime     DateTime
@@ -164,6 +179,7 @@ model Category {
   competitionId Int
   competition   Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   records       Record[]
+  puzzles       Puzzle[]
 
   @@map("category")
 }

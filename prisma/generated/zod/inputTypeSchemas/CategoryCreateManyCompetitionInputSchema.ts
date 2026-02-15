@@ -5,7 +5,7 @@ import { CategoryTypeSchema } from './CategoryTypeSchema';
 
 export const CategoryCreateManyCompetitionInputSchema: z.ZodType<Prisma.CategoryCreateManyCompetitionInput> = z.object({
   id: z.number().int().optional(),
-  name: z.string(),
+  description: z.string(),
   type: z.lazy(() => CategoryTypeSchema),
   maxPartySize: z.number().int().optional().nullable(),
   startTime: z.coerce.date(),

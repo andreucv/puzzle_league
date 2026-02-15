@@ -97,8 +97,8 @@
                 <div class="flex items-center justify-between gap-3">
                     <div class="flex flex-col">
                         <h4 class="h4 font-semibold">{getCategoryTypeName(category.type)}</h4>
-                        {#if category.name}
-                            <p class="text-sm text-base-content/70">{category.name}</p>
+                        {#if category.description}
+                            <p class="text-sm text-base-content/70">{category.description}</p>
                         {/if}
                     </div>
                     <!-- Action Button -->

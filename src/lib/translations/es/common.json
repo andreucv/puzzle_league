@@ -64,7 +64,8 @@
     "create_competition": "Crear Competición",
     "explore_competitions": "Competiciones",
     "home": "Inicio",
-    "explore_results": "Explorar resultados"
+    "explore_results": "Explorar resultados",
+    "puzzles": "Puzzles"
   },
   "list_competitions": {
     "look_for_competition": "Busca una competición"
@@ -117,6 +118,18 @@
   },
   "competition_details": {
     "feature_not_available": "Función no dispoible actualmente"
+  },
+  "puzzles": {
+    "catalog_title": "Catálogo de Puzzles",
+    "add_puzzle": "Añadir Puzzle",
+    "edit_puzzle": "Editar Puzzle",
+    "search_placeholder": "Buscar puzzles por nombre, marca, código de barras...",
+    "pieces": "Piezas",
+    "brand": "Marca",
+    "barcode": "Código de barras",
+    "serial_number": "Número de serie",
+    "no_puzzles": "No se encontraron puzzles",
+    "add_first_puzzle": "Añade tu primer puzzle al catálogo"
   },
   "admin-actions": "Acciones de administrador"
 }

@@ -49,6 +49,9 @@ triggerBase="btn preset-tonal"
             <li>
                 <a href="/my_organized_competitions" onclick={() => drawerState.open = false}>{$t('competitions.my_organized_competitions')}</a>
             </li>
+            <li>
+                <a href="/puzzles" onclick={() => drawerState.open = false}>{$t('drawer_menu.puzzles')}</a>
+            </li>
             {/if}
             {#if data.roleAssignments?.some((role: any) => role.role === "ADMIN")}
             <li>

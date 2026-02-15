@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from "./$types";
-import { getCompetitionWithCategories, getCategoryEntriesFromCompetition, removeUserFromCategory, createEntries} from "$lib/database";
+import { getCompetitionWithCategories, getCategoryEntriesFromCompetition, removeUserFromCategory, createEntries, getCompetitionCategories} from "$lib/database";
 import { auth } from "$lib/auth";
 
 export const load: PageServerLoad = async ( event ) => {
@@ -19,6 +19,12 @@ export const load: PageServerLoad = async ( event ) => {
         records = await getCategoryEntriesFromCompetition(parseInt(competition_id), user_id);
     }
 
+    // Load categories with record counts for the creator (manage registration)
+    let categoriesWithCounts = undefined;
+    if (session?.user && competition_and_categories?.creatorId === session.user.id) {
+        categoriesWithCounts = await getCompetitionCategories(parseInt(competition_id));
+    }
+
     const competition_image_url = undefined; //await cloudinary.url(competition_and_categories.image);
     return {
         props:
@@ -26,6 +32,7 @@ export const load: PageServerLoad = async ( event ) => {
             competition_and_categories,
             records,
             competition_image_url,
+            categoriesWithCounts,
         }
     }
 }

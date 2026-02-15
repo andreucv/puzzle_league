@@ -22,7 +22,7 @@ async function main() {
   competitions.forEach((comp, index) => {
     console.log(`${index + 1}. ${comp.name} (ID: ${comp.id}) - Categories: ${comp.categories.length}`);
     comp.categories.forEach((cat, catIndex) => {
-      console.log(`   ${catIndex + 1}. ${cat.name} (${cat.type}) - Entries: ${cat.records.length}`);
+      console.log(`   ${catIndex + 1}. ${cat.description} (${cat.type}) - Entries: ${cat.records.length}`);
     });
   });
 
@@ -85,7 +85,7 @@ async function main() {
       // Generate random number of entries (between 3 and 15)
       const numberOfEntries = Math.floor(Math.random() * 13) + 3;
 
-      console.log(`  Creating ${numberOfEntries} entries for category: ${category.name} (${category.type})`);
+      console.log(`  Creating ${numberOfEntries} entries for category: ${category.description} (${category.type})`);
 
       for (let i = 0; i < numberOfEntries; i++) {
         try {
@@ -152,7 +152,7 @@ async function main() {
   updatedCompetitions.forEach(comp => {
     console.log(`${comp.name}:`);
     comp.categories.forEach(cat => {
-      console.log(`  - ${cat.name} (${cat.type}): ${cat._count.records} entries`);
+      console.log(`  - ${cat.description} (${cat.type}): ${cat._count.records} entries`);
     });
   });
 }

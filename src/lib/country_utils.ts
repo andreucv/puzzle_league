@@ -26,6 +26,11 @@ export function formatCountryName(name: string): string {
   return name;
 }
 
+export function getCountryNameFromCode(code: string): string {
+  const country = countries.find(c => c.code === code);
+  return country ? country.name : code;
+}
+
 /**
  * Get flag emoji for a country code
  */

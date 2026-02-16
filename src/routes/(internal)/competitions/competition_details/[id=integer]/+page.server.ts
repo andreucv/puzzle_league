@@ -19,9 +19,9 @@ export const load: PageServerLoad = async ( event ) => {
         records = await getCategoryEntriesFromCompetition(parseInt(competition_id), user_id);
     }
 
-    // Load categories with record counts for the creator (manage registration)
+    // Load categories with record counts for all authenticated users
     let categoriesWithCounts = undefined;
-    if (session?.user && competition_and_categories?.creatorId === session.user.id) {
+    if (competition_and_categories) {
         categoriesWithCounts = await getCompetitionCategories(parseInt(competition_id));
     }
 

@@ -117,7 +117,28 @@
     "registers_warning": "Editar la competición eliminará los registros presentes en las categorías, y las personas anteriornmente registradas deberán volver a hacerlo."
   },
   "competition_details": {
-    "feature_not_available": "Función no dispoible actualmente"
+    "feature_not_available": "Función no dispoible actualmente",
+    "registered_teams": "inscritos",
+    "seats_available": "plazas disponibles"
+  },
+  "inscription": {
+    "title": "Inscripción a categorías",
+    "submitting": "Enviando inscripciones...",
+    "registration_closed": "Las inscripciones están cerradas para esta competición.",
+    "competition_not_open": "Esta competición ya no acepta inscripciones.",
+    "registered": "Inscrito",
+    "unregister": "Desinscribirse",
+    "sign_up": "Inscribirse",
+    "build_team": "Formar equipo",
+    "cancel": "Cancelar",
+    "team_progress": "Equipo",
+    "you": "tú",
+    "participant": "participante",
+    "participants": "participantes",
+    "search_placeholder": "Buscar compañeros por nombre...",
+    "submit_all": "Enviar todas las inscripciones",
+    "incomplete_parties": "algunos equipos están incompletos",
+    "registration_not_available": "Las inscripciones no están disponibles para esta categoría."
   },
   "puzzles": {
     "catalog_title": "Catálogo de Puzzles",

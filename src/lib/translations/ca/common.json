@@ -117,7 +117,28 @@
     "registers_warning": "Editar la competició eliminará els registres present a les categories, i les persones anteriorment registrades hauràn de tornar-ho a fer."
   },
   "competition_details": {
-    "feature_not_available": "Funció no disponible actualment"
+    "feature_not_available": "Funció no disponible actualment",
+    "registered_teams": "inscrits",
+    "seats_available": "places disponibles"
+  },
+  "inscription": {
+    "title": "Inscripció a categories",
+    "submitting": "Enviant inscripcions...",
+    "registration_closed": "Les inscripcions estan tancades per aquesta competició.",
+    "competition_not_open": "Aquesta competició ja no accepta inscripcions.",
+    "registered": "Inscrit",
+    "unregister": "Desinscriure's",
+    "sign_up": "Inscriure's",
+    "build_team": "Formar equip",
+    "cancel": "Cancel·lar",
+    "team_progress": "Equip",
+    "you": "tu",
+    "participant": "participant",
+    "participants": "participants",
+    "search_placeholder": "Cerca companys per nom...",
+    "submit_all": "Enviar totes les inscripcions",
+    "incomplete_parties": "alguns equips estan incomplets",
+    "registration_not_available": "Les inscripcions no estan disponibles per aquesta categoria."
   },
   "puzzles": {
     "catalog_title": "Catàleg de Puzzles",

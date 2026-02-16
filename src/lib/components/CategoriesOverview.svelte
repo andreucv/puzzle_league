@@ -2,11 +2,29 @@
     import Icon from '@iconify/svelte';
     import { formatTime } from '$lib/utils/datetime_utils';
     import { getCategoryTypeName } from '$lib/utils/category_utils';
+    import { t } from '$lib/translations';
     import type { Category, Puzzle } from '@prisma/client';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
+    type CategoryWithCounts = Category & { totalRecords: number; finishedRecords: number };
 
-    let { categories, isCreator = false }: { categories: CategoryWithPuzzles[], isCreator: boolean } = $props();
+    let {
+        categories,
+        isCreator = false,
+        categoriesWithCounts = undefined,
+        userRegisteredCategoryIds = new Set<number>()
+    }: {
+        categories: CategoryWithPuzzles[],
+        isCreator: boolean,
+        categoriesWithCounts?: CategoryWithCounts[],
+        userRegisteredCategoryIds?: Set<number>
+    } = $props();
+
+    function getSeatsAvailable(category: CategoryWithPuzzles): number | undefined {
+        if (category.maxParties == null) return undefined;
+        const registered = categoriesWithCounts?.find(c => c.id === category.id)?.totalRecords ?? 0;
+        return category.maxParties - registered;
+    }
 </script>
 
 {#if categories.length > 0}
@@ -62,6 +80,22 @@
                         <Icon icon="mdi:clock-end" width="1.2rem" height="1.2rem" />
                         <span>End: {formatTime(new Date(category.endTime))}</span>
                     </div>
+                </div>
+
+                <!-- Registration info -->
+                <div class="flex items-center justify-between mt-3 pt-3 border-t border-surface-200 dark:border-surface-700">
+                    {#if getSeatsAvailable(category) !== undefined}
+                        <div class="flex items-center gap-1 text-sm text-surface-500">
+                            <Icon icon="mdi:account-box-plus-outline" width="1rem" height="1rem" />
+                            <span>{getSeatsAvailable(category)} {$t('competition_details.seats_available')}</span>
+                        </div>
+                    {/if}
+                    {#if userRegisteredCategoryIds.has(category.id)}
+                        <span class="badge preset-filled-success-500 text-xs flex items-center gap-1">
+                            <Icon icon="mdi:check-circle" width="0.8rem" height="0.8rem" />
+                            {$t('inscription.registered')}
+                        </span>
+                    {/if}
                 </div>
             </div>
         {/each}

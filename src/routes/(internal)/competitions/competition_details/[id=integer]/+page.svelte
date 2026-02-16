@@ -1,7 +1,7 @@
 <script lang="ts">
     import Icon from '@iconify/svelte';
     import { getCompetitionStatusLabel } from '$lib/utils/competition_utils';
-    import { getCountryFlag } from '$lib/country_utils.js';
+    import { getCountryFlag, getCountryNameFromCode } from '$lib/country_utils.js';
     import CategoriesOverview from '$lib/components/CategoriesOverview.svelte';
     import ManageRegistrationStatus from '$lib/components/ManageRegistrationStatus.svelte';
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
@@ -12,6 +12,12 @@
 
     const currentUser = data.user;
     const categoriesWithCounts = data.props.categoriesWithCounts;
+    const userRecords = data.props.records;
+
+    // Build a set of category IDs the user is registered for
+    const userRegisteredCategoryIds = $derived(
+        new Set((userRecords || []).map((r: any) => r.categoryId))
+    );
 
     let competition = $state(data.props.competition_and_categories);
     const competitionName = $derived(competition?.name);
@@ -48,7 +54,7 @@
                 {#if competition.country}
                     <div class="flex items-center gap-2">
                         <Icon icon="mdi:earth" width="1.2rem" height="1.2rem" class="text-primary-500" />
-                        <span>{competition.country} {getCountryFlag(competition.country)}{competition.postalCode ? ` - ${competition.postalCode}` : ''}</span>
+                        <span>{getCountryNameFromCode(competition.country)} {getCountryFlag(competition.country)} {competition.postalCode ? ` - ${competition.postalCode}` : ''}</span>
                     </div>
                 {/if}
                 <div class="flex items-center justify-between gap-2">
@@ -95,7 +101,7 @@
 
         <!-- Categories Section -->
         <div>
-            <CategoriesOverview {categories} {isCreator} />
+            <CategoriesOverview {categories} {isCreator} {categoriesWithCounts} {userRegisteredCategoryIds} />
         </div>
 
         <!-- Manage Registration (creator only) -->

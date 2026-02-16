@@ -139,7 +139,28 @@
   "your-upcoming-competitions": "Your upcoming competitions",
   "puzzligas-t-landing_page-head_title": "Puzzligas - {$t('landing_page.head_title')}",
   "competition_details": {
-    "feature_not_available": "Feature not available yet"
+    "feature_not_available": "Feature not available yet",
+    "registered_teams": "registered",
+    "seats_available": "seats available"
+  },
+  "inscription": {
+    "title": "Category Registration",
+    "submitting": "Submitting registrations...",
+    "registration_closed": "Registration is currently closed for this competition.",
+    "competition_not_open": "This competition is no longer accepting registrations.",
+    "registered": "Registered",
+    "unregister": "Unregister",
+    "sign_up": "Sign Up",
+    "build_team": "Build Team",
+    "cancel": "Cancel",
+    "team_progress": "Team",
+    "you": "you",
+    "participant": "participant",
+    "participants": "participants",
+    "search_placeholder": "Search for teammates by name...",
+    "submit_all": "Submit All Registrations",
+    "incomplete_parties": "some teams are incomplete",
+    "registration_not_available": "Registration is not available for this category."
   },
   "puzzles": {
     "catalog_title": "Puzzle Catalog",

@@ -129,7 +129,7 @@
         <div class="space-y-4">
             <h2 class="text-center font-sans">{$t('landing_page.who_we_are')}</h2>
             <p class="text-lg text-center px-6 font-sans">{$t('landing_page.participant_welcome_text')}</p>
-            <ButtonLink href="/competitions/calendar/list"
+            <ButtonLink href="/competitions/explore_competitions"
                         title={$t('landing_page.explore_title')}
                         subtitle={$t('landing_page.explore_subtitle')}
                         icon="mdi:calendar" />

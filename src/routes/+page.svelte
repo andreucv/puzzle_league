@@ -55,59 +55,6 @@
                 <CompetitionList competitions={data.props.upcomingRegisteredCompetitions} n_show=2 currentUsedId={data.user.id} />
             {/if}
         </section>
-
-        {#if hasOrganizerRole}
-        <section>
-            <h4 class="h4">{$t('organizer-actions')}</h4>
-            <section class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <a href="/my_organized_competitions" class="card card-hover">
-                        <div class="flex items-center gap-4 p-4">
-                            <div class="flex-shrink-0 w-8 h-8">
-                                <Icon icon="mdi:trophy" class="w-8 h-8"></Icon>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-semibold">My Organized Competitions</h3>
-                                <p class="text-sm opacity-75">Manage competitions you've created and monitor participants</p>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="/competition/edit/" class="card card-hover">
-                        <div class="flex items-center gap-4 p-4">
-                            <div class="flex-shrink-0 w-8 h-8">
-                                <Icon icon="mdi:newspaper-plus" class="w-8 h-8"></Icon>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-semibold">Create New Competition</h3>
-                                <p class="text-sm opacity-75">Set up a new puzzle competition with custom rules and formats</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </section>
-        </section>
-        {/if}
-
-        {#if hasAdminRole}
-        <section>
-            <h4 class="h4">{$t('admin-actions')}</h4>
-            <section class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <a href="/admin/requests" class="card card-hover">
-                        <div class="flex items-center gap-4 p-4">
-                            <div class="flex-shrink-0 w-8 h-8">
-                                <Icon icon="mdi:magnify" class="w-8 h-8"></Icon>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-semibold">Review Permissions Requests</h3>
-                                <p class="text-sm opacity-75">Review and approve pending permissions requests</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </section>
-        </section>
-        {/if}
     </div>
 {:else}
     <div class="landing-page-container">

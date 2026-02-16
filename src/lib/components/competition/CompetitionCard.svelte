@@ -1,8 +1,8 @@
 <script lang="ts">
     import type { Competition } from "@prisma/client";
-    import { defaultLocale } from '$lib/translations';
+    import { CldImage } from 'svelte-cloudinary';
     import Icon from '@iconify/svelte';
-    import CompetitionCategoryLabel from "./CompetitionCategoryLabel.svelte";
+    import { getCategoryTypeName } from "$lib/utils/category_utils";
 
     interface Props {
         competition: Competition & {
@@ -25,105 +25,142 @@
         noShowCategories?: boolean;
     }
 
-    let { competition, currentUserId, noShowCategories = false}: Props = $props();
-
-    console.log("components/competition/CompetitionsCard.svelte prop competition", competition);
+    let { competition, currentUserId, noShowCategories = false }: Props = $props();
 
     // Calculate days until competition
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const competitionDate = new Date(competition.startDate);
+    competitionDate.setHours(0, 0, 0, 0);
     const timeDiff = competitionDate.getTime() - today.getTime();
-    const daysUntil = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    const daysUntil = Math.round(timeDiff / (1000 * 3600 * 24));
+
+    // Date parts for calendar-style display
+    const dayNumber = competitionDate.getDate();
+    const monthAbbr = competitionDate.toLocaleString('default', { month: 'short' });
+    const year = competitionDate.getFullYear();
+
+    // Check if current user is registered in a category
+    function isUserInCategory(category: any): boolean {
+        if (!currentUserId || !category.records) return false;
+        return category.records.some((record: any) =>
+            record.users?.some((user: any) => user.id === currentUserId)
+        );
+    }
+
+    // Category type icons
+    const categoryIcons: Record<string, string> = {
+        INDIVIDUAL: 'mdi:account',
+        PAIRS: 'mdi:account-multiple',
+        TEAM: 'mdi:account-group',
+        JUNIOR_INDIVIDUAL: 'mdi:account-child',
+        JUNIOR_PAIRS: 'mdi:account-child-circle',
+        PUZZLE_CHESS: 'mdi:chess-knight',
+        OTHER: 'mdi:puzzle',
+    };
+
+    // Days until text
+    const daysUntilText = $derived.by(() => {
+        if (daysUntil < 0) return `${Math.abs(daysUntil)}d ago`;
+        if (daysUntil === 0) return 'Today!';
+        if (daysUntil === 1) return 'Tomorrow';
+        return `In ${daysUntil}d`;
+    });
+
+    // Days until chip style
+    const daysUntilChipStyle = $derived.by(() => {
+        if (daysUntil < 0) return 'bg-surface-200 text-surface-500 dark:bg-surface-700 dark:text-surface-400';
+        if (daysUntil === 0) return 'bg-warning-100 text-warning-700 dark:bg-warning-900/50 dark:text-warning-300 font-bold';
+        if (daysUntil <= 7) return 'bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300';
+        if (daysUntil <= 30) return 'bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300';
+        return 'bg-surface-100 text-surface-600 dark:bg-surface-700 dark:text-surface-400';
+    });
 </script>
 
-<div class="group card card-hover overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative">
-    <!-- Subtle background gradient overlay -->
-    <div class="absolute inset-0 bg-gradient-to-br from-primary-50/20 via-transparent to-secondary-50/15 dark:from-primary-950/15 dark:via-transparent dark:to-secondary-950/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<a href="/competitions/competition_details/{competition.id}" class="block group">
+    <div class="card card-hover overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300">
+        <div class="flex">
+            <!-- Competition Image (left) -->
+            <div class="w-28 sm:w-36 flex-shrink-0 overflow-hidden">
+                {#if competition.image_cld_id}
+                    <CldImage
+                        src={competition.image_cld_id}
+                        width="144"
+                        height="180"
+                        alt={competition.name}
+                        crop="fill"
+                        gravity="auto"
+                        class="w-full h-full object-cover"
+                    />
+                {:else}
+                    <div class="w-full h-full flex items-center justify-center bg-surface-100 dark:bg-surface-800">
+                        <Icon icon="mdi:puzzle" class="w-12 h-12 text-surface-400 dark:text-surface-600" />
+                    </div>
+                {/if}
+            </div>
 
-    <a href="/competitions/competition_details/{competition.id}" class="block relative z-10">
-        <!-- Enhanced Header -->
-        <header class="card-header relative overflow-hidden">
-            <!-- Animated background pattern -->
-            <div class="absolute inset-0 bg-gradient-to-r from-primary-500/3 via-secondary-500/2 to-tertiary-500/3 opacity-60"></div>
-            <div class="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,_var(--color-primary-500)_0%,_transparent_25%)] opacity-3"></div>
+            <!-- Info Section (center) -->
+            <div class="flex-1 p-3 min-w-0 flex flex-col justify-between">
+                <!-- Name -->
+                <h3 class="font-bold text-surface-900 dark:text-surface-50 break-words group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors text-base sm:text-lg leading-tight mb-2">
+                    {competition.name}
+                </h3>
 
-            <div class="relative flex items-start justify-between p-2">
-                <div class="flex-1 space-y-2 p-2">
-                    <h3 class="text-lg font-bold text-surface-900 dark:text-surface-50 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-300 leading-tight">
-                        {competition.name}
-                    </h3>
-
-                    {#if competition.location}
-                        <div class="flex items-center gap-2">
-                            <div class="flex items-center justify-center w-5 h-5 flex-shrink-0 bg-surface-200/50 dark:bg-surface-700/50 rounded-full backdrop-blur-sm">
-                                <Icon icon="mdi:map-marker" class="w-3 h-3 text-primary-600 dark:text-primary-400" />
-                            </div>
-                            <p class="text-ls text-surface-700 dark:text-surface-300 font-medium">{competition.location}</p>
-                        </div>
+                <!-- Status badge -->
+                <div class="flex items-center gap-1.5 flex-wrap mb-2">
+                    {#if competition.registrationOpen && competition.status === 'NOT_STARTED'}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300 rounded-full text-xs font-semibold animate-pulse">
+                            <Icon icon="mdi:door-open" class="w-3.5 h-3.5" />
+                            Registration Open
+                        </span>
+                    {:else if !competition.registrationOpen && competition.status === 'NOT_STARTED'}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-error-100 text-error-700 dark:bg-error-900/50 dark:text-error-300 rounded-full text-xs font-medium">
+                            <Icon icon="mdi:door-closed-lock" class="w-3.5 h-3.5" />
+                            Closed
+                        </span>
+                    {:else if competition.status === 'STARTED'}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-warning-100 text-warning-700 dark:bg-warning-900/50 dark:text-warning-300 rounded-full text-xs font-medium">
+                            <Icon icon="mdi:play-circle" class="w-3.5 h-3.5" />
+                            Live
+                        </span>
+                    {:else if competition.status === 'FINISHED'}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-200 text-surface-500 dark:bg-surface-700 dark:text-surface-400 rounded-full text-xs font-medium">
+                            <Icon icon="mdi:check-all" class="w-3.5 h-3.5" />
+                            Finished
+                        </span>
                     {/if}
                 </div>
 
-                <!-- Enhanced date display -->
-                <div class="text-right">
-                    <div class="relative p-2 bg-white/60 dark:bg-black/25 rounded-lg backdrop-blur-md border border-surface-200/40 dark:border-surface-700/40 shadow-sm">
-                        <!-- Date -->
-                        <p class="text-xs font-bold text-surface-900 dark:text-surface-50 mb-1 leading-tight">
-                            {competitionDate.toLocaleDateString(defaultLocale, {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                            })}
-                        </p>
-
-                        <!-- Days countdown with enhanced styling -->
-                        <div class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
-                            {daysUntil > 0
-                                ? 'bg-gradient-to-r from-success-100 to-success-200 text-success-800 dark:from-success-900/50 dark:to-success-800/50 dark:text-success-200'
-                                : daysUntil === 0
-                                    ? 'bg-gradient-to-r from-warning-100 to-warning-200 text-warning-800 dark:from-warning-900/50 dark:to-warning-800/50 dark:text-warning-200'
-                                    : 'bg-gradient-to-r from-surface-100 to-surface-200 text-surface-700 dark:from-surface-800/50 dark:to-surface-700/50 dark:text-surface-300'
-                            }">
-                            {#if daysUntil > 0}
-                                <span class="inline-block w-2.5 h-2.5 mr-1"><Icon icon="mdi:clock-outline" class="w-2.5 h-2.5" /></span>
-                                In {daysUntil}d
-                            {:else if daysUntil === 0}
-                                <span class="inline-block w-2.5 h-2.5 mr-1"><Icon icon="mdi:calendar-today" class="w-2.5 h-2.5" /></span>
-                                Today!
-                            {:else}
-                                <span class="inline-block w-2.5 h-2.5 mr-1"><Icon icon="mdi:calendar-check" class="w-2.5 h-2.5" /></span>
-                                {Math.abs(daysUntil)}d ago
-                            {/if}
-                        </div>
+                <!-- Category chips showing user registration -->
+                {#if competition.categories && competition.categories.length > 0 && !noShowCategories}
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        {#each competition.categories as category (category.id)}
+                            {@const registered = isUserInCategory(category)}
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs
+                                {registered
+                                    ? 'bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 font-semibold'
+                                    : 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'}">
+                                <Icon icon={categoryIcons[category.type] ?? 'mdi:puzzle'} class="w-3.5 h-3.5" />
+                                {getCategoryTypeName(category.type as any)}
+                                {#if registered}
+                                    <Icon icon="mdi:check-circle" class="w-3.5 h-3.5 text-success-600 dark:text-success-400" />
+                                {/if}
+                            </span>
+                        {/each}
                     </div>
-                </div>
+                {/if}
             </div>
-        </header>
 
-        <!-- Enhanced Content Section -->
-        <section class="px-2 pb-2 space-y-3 relative">
-            {#if competition.categories && competition.categories.length > 0 && !noShowCategories}
-
-                <!-- Enhanced categories grid without scroll -->
-                <div class="space-y-2">
-                    {#each competition.categories as category}
-                        <CompetitionCategoryLabel {category} {currentUserId} />
-                    {/each}
-                </div>
-            {:else if !competition.categories && competition.status === 'FINISHED' || competition.status === 'CANCELLED' || noShowCategories }
-                <span></span>
-            {:else}
-                <!-- Enhanced empty state -->
-                <div class="flex justify-center items-center text-center">
-                    <div class="space-y-1 my-2">
-                        <p class="text-sm font-semibold text-surface-700 dark:text-surface-300">No Categories</p>
-                        <p class="text-xs text-surface-500">Categories not set up yet</p>
-                    </div>
-                </div>
-            {/if}
-        </section>
-
-        <!-- Enhanced bottom accent with animation -->
-        <div class="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-primary-500/20 via-secondary-500/30 to-tertiary-500/20 opacity-0 group-hover:opacity-100 transition-all duration-500 transform scale-x-0 group-hover:scale-x-100"></div>
-    </a>
-</div>
+            <!-- Calendar-style Date Display (right) -->
+            <div class="w-22 sm:w-24 flex-shrink-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 p-2 border-l border-surface-200 dark:border-surface-700">
+                <span class="text-3xl sm:text-4xl font-bold text-primary-700 dark:text-primary-300 leading-none">{dayNumber}</span>
+                <span class="text-sm font-semibold text-primary-600 dark:text-primary-400 uppercase">{monthAbbr}</span>
+                <span class="text-xs text-surface-500 dark:text-surface-400">{year}</span>
+                <span class="mt-1.5 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold {daysUntilChipStyle}">
+                    {daysUntilText}
+                </span>
+            </div>
+        </div>
+    </div>
+</a>
 

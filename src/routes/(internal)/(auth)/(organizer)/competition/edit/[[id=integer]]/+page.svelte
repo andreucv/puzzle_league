@@ -144,13 +144,7 @@
             const cat = createCategories[i];
             categoryErrors.create[i] = {};
 
-            if (!cat.description || cat.description.trim() === '') {
-                categoryErrors.create[i].description = 'Category description is required';
-                isValid = false;
-            } else if (cat.description.length < 3) {
-                categoryErrors.create[i].description = 'Category description must be at least 3 characters';
-                isValid = false;
-            } else if (cat.description.length > 60) {
+            if (cat.description.length > 60) {
                 categoryErrors.create[i].description = 'Category description must be at most 60 characters';
                 isValid = false;
             }
@@ -188,13 +182,7 @@
             const cat = updateCategories[i].data;
             categoryErrors.update[i] = {};
 
-            if (!cat.description || cat.description.trim() === '') {
-                categoryErrors.update[i].description = 'Category description is required';
-                isValid = false;
-            } else if (cat.description.length < 3) {
-                categoryErrors.update[i].description = 'Category description must be at least 3 characters';
-                isValid = false;
-            } else if (cat.description.length > 60) {
+            if (cat.description.length > 60) {
                 categoryErrors.update[i].description = 'Category description must be at most 60 characters';
                 isValid = false;
             }
@@ -426,9 +414,7 @@
 
         switch (field) {
             case 'description':
-                if (value && value.length > 0 && value.length < 3) {
-                    categoryErrors[source][index].description = 'Category description must be at least 3 characters';
-                } else if (value && value.length > 60) {
+                if (value && value.length > 60) {
                     categoryErrors[source][index].description = 'Category description must be at most 60 characters';
                 } else {
                     delete categoryErrors[source][index].description;
@@ -834,24 +820,6 @@
                         <div class="p-2 rounded-lg bg-warning-50-950">
                             <!-- Category Header -->
                             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <!-- Category Description -->
-                                <div class="label">
-                                    <span class="text-sm font-medium">Category Description *</span>
-                                    <input
-                                        type="text"
-                                        class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.update[i]?.description}
-                                        bind:value={categories.update[i].data.description}
-                                        placeholder="Enter category description"
-                                        minlength="3"
-                                        maxlength="60"
-                                        oninput={(e) => validateCategoryField('update', i, 'description', (e.target as HTMLInputElement).value)}
-                                    />
-                                    {#if categoryErrors.update[i]?.description}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].description}</span>
-                                    {/if}
-                                </div>
-
                                 <!-- Category Type -->
                                 <div class="label">
                                     <span class="text-sm font-medium">Category Type *</span>
@@ -947,11 +915,30 @@
                                         <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].maxPartySize}</span>
                                     {/if}
                                 </div>
+                                <!-- Category Description -->
+                                <div class="label">
+                                    <span class="text-sm font-medium">Category Description</span>
+                                    <input
+                                        type="text"
+                                        class="input bg-primary-50-950"
+                                        class:input-error={categoryErrors.update[i]?.description}
+                                        bind:value={categories.update[i].data.description}
+                                        placeholder="Enter category description"
+                                        minlength="3"
+                                        maxlength="60"
+                                        oninput={(e) => validateCategoryField('update', i, 'description', (e.target as HTMLInputElement).value)}
+                                    />
+                                    {#if categoryErrors.update[i]?.description}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].description}</span>
+                                    {/if}
+                                </div>
                             </div>
+
                             {/if}
                             <!-- Puzzles Section -->
                             <PuzzleLinkSection
                                 puzzleIds={categories.update[i].data.puzzleIds || []}
+                                initialPuzzles={categories.update[i].data.puzzles || []}
                                 onUpdate={(ids) => categories.update[i].data.puzzleIds = ids}
                             />
                             <div class="flex justify-end gap-4 mt-4">

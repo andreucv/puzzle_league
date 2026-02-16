@@ -145,7 +145,7 @@ model Competition {
   requests         Request[]
   creatorId        String
   creator          User              @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  registrationOpen Boolean           @default(true)
+  registrationOpen Boolean           @default(false)
 
   @@map("competition")
 }

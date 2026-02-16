@@ -7,6 +7,7 @@
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
 
     import { CldImage } from 'svelte-cloudinary';
+    import { t } from '$lib/translations';
 
     let { data } = $props();
 
@@ -101,24 +102,29 @@
 
         <!-- Categories Section -->
         <div>
-            <CategoriesOverview {categories} {isCreator} {categoriesWithCounts} {userRegisteredCategoryIds} />
+            <CategoriesOverview {categories} {isCreator} {categoriesWithCounts} {userRegisteredCategoryIds} userRecords={userRecords ?? []} />
         </div>
 
         <!-- Manage Registration (creator only) -->
         {#if isCreator && categoriesWithCounts && competition}
             <div>
-                <ManageRegistrationStatus bind:competition={competition} categories={categoriesWithCounts} />
+                <ManageRegistrationStatus competition_id={competition.id} competition_registration_status={competition.registrationOpen} hasCategories={categories.length > 0} onStatusChange={(status) => competition.registrationOpen = status} />
             </div>
         {/if}
 
 
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            {#if currentUser}
+            {#if currentUser && competition?.registrationOpen}
                 <a href="/competitions/competition_details/{competition?.id}/inscription" class="btn preset-filled-success-500">
                     <Icon icon="mdi:account-plus" width="1.2rem" height="1.2rem" />
-                    Sign Up
+                    {$t('competition_details.manage_inscription')}
                 </a>
+            {:else}
+                <button class="btn preset-filled-success-500" disabled>
+                    <Icon icon="mdi:account-plus" width="1.2rem" height="1.2rem" />
+                    {$t('competition_details.manage_inscription')}
+                </button>
             {/if}
             {#if isCreator}
                 <a href="/competition/edit/{competition?.id}" class="btn preset-filled-primary-500">

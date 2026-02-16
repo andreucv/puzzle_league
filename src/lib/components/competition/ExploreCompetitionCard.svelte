@@ -9,9 +9,10 @@
         };
         userCountry?: string | null;
         userPostalCode?: string | null;
+        registeredCategoryIds?: number[];
     }
 
-    let { competition, userCountry, userPostalCode }: Props = $props();
+    let { competition, userCountry, userPostalCode, registeredCategoryIds = [] }: Props = $props();
 
     // Calculate days until competition
     const today = new Date();
@@ -34,10 +35,18 @@
             : false
     );
 
-    // Get unique category types for display
-    const categoryTypes = $derived(
+    // Set of registered category IDs for fast lookup
+    const registeredSet = $derived(new Set(registeredCategoryIds));
+
+    // Get unique category types with registration status
+    const categoryChips = $derived(
         competition.categories
-            ? [...new Set(competition.categories.map(c => c.type))].slice(0, 3)
+            ? [...new Map(competition.categories.map(c => [c.type, {
+                type: c.type,
+                registered: competition.categories!.some(
+                    cat => cat.type === c.type && registeredSet.has(cat.id)
+                )
+            }])).values()].slice(0, 3)
             : []
     );
 
@@ -57,15 +66,16 @@
         if (daysUntil < 0) return `${Math.abs(daysUntil)}d ago`;
         if (daysUntil === 0) return 'Today!';
         if (daysUntil === 1) return 'Tomorrow';
-        return `In ${daysUntil} days`;
+        return `${daysUntil}d`;
     });
 
-    // Days until styling
-    const daysUntilStyle = $derived.by(() => {
-        if (daysUntil < 0) return 'text-surface-500';
-        if (daysUntil === 0) return 'text-warning-600 dark:text-warning-400 font-bold';
-        if (daysUntil <= 7) return 'text-success-600 dark:text-success-400';
-        return 'text-surface-600 dark:text-surface-400';
+    // Days until chip style
+    const daysUntilChipStyle = $derived.by(() => {
+        if (daysUntil < 0) return 'bg-surface-200 text-surface-500 dark:bg-surface-700 dark:text-surface-400';
+        if (daysUntil === 0) return 'bg-warning-100 text-warning-700 dark:bg-warning-900/50 dark:text-warning-300 font-bold';
+        if (daysUntil <= 7) return 'bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300';
+        if (daysUntil <= 30) return 'bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300';
+        return 'bg-surface-100 text-surface-600 dark:bg-surface-700 dark:text-surface-400';
     });
 </script>
 
@@ -97,53 +107,56 @@
             <!-- Info Section (center) -->
             <div class="flex-1 p-3 min-w-0">
                 <!-- Name -->
-                <h3 class="font-semibold text-surface-900 dark:text-surface-50 truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors text-sm sm:text-base mb-1">
+                <h3 class="font-semibold text-surface-900 dark:text-surface-50 break-words group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors text-sm sm:text-base mb-1.5">
                     {competition.name}
                 </h3>
 
-                <!-- Location row -->
-                {#if competition.location}
-                    <div class="flex items-center gap-1.5 text-xs text-surface-600 dark:text-surface-400 mb-2">
-                        <Icon icon="mdi:map-marker" class="w-3.5 h-3.5 flex-shrink-0 text-primary-500" />
-                        <span class="truncate">{competition.location}</span>
-                        {#if isNearMe}
-                            <span class="px-1.5 py-0.5 bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 rounded text-xs font-medium">
-                                Near you
-                            </span>
-                        {/if}
-                    </div>
-                {/if}
+                <!-- Badges row: Near You + Registration + Days countdown -->
+                <div class="flex items-center gap-1.5 flex-wrap mb-2">
+                    {#if isNearMe}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 rounded-full text-xs font-medium">
+                            <Icon icon="mdi:map-marker-radius" class="w-3.5 h-3.5" />
+                            Near you
+                        </span>
+                    {/if}
+                    {#if competition.registrationOpen && competition.status === 'NOT_STARTED'}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300 rounded-full text-xs font-semibold animate-pulse">
+                            <Icon icon="mdi:door-open" class="w-3.5 h-3.5" />
+                            Registration Open
+                        </span>
+                    {:else if !competition.registrationOpen && competition.status === 'NOT_STARTED'}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-error-100 text-error-700 dark:bg-error-900/50 dark:text-error-300 rounded-full text-xs font-medium">
+                            <Icon icon="mdi:door-closed-lock" class="w-3.5 h-3.5" />
+                            Registration Closed
+                        </span>
+                    {:else if competition.status === 'STARTED'}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-warning-100 text-warning-700 dark:bg-warning-900/50 dark:text-warning-300 rounded-full text-xs font-medium">
+                            <Icon icon="mdi:play-circle" class="w-3.5 h-3.5" />
+                            Live
+                        </span>
+                    {:else if competition.status === 'FINISHED'}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-200 text-surface-500 dark:bg-surface-700 dark:text-surface-400 rounded-full text-xs font-medium">
+                            <Icon icon="mdi:check-all" class="w-3.5 h-3.5" />
+                            Finished
+                        </span>
+                    {/if}
+                </div>
 
                 <!-- Category chips row -->
-                {#if categoryTypes.length > 0}
-                    <div class="flex items-center gap-1 flex-wrap mb-1.5">
-                        {#each categoryTypes as catType (catType)}
-                            <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-surface-100 dark:bg-surface-700 rounded text-xs text-surface-600 dark:text-surface-400">
-                                <Icon icon={categoryLabels[catType]?.icon ?? 'mdi:puzzle'} class="w-3 h-3" />
-                                {categoryLabels[catType]?.label ?? catType}
+                {#if categoryChips.length > 0}
+                    <div class="flex items-center gap-1 flex-wrap">
+                        {#each categoryChips as chip (chip.type)}
+                            <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs {chip.registered ? 'bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 font-medium' : 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'}">
+                                <Icon icon={categoryLabels[chip.type]?.icon ?? 'mdi:puzzle'} class="w-3 h-3" />
+                                {categoryLabels[chip.type]?.label ?? chip.type}
+                                {#if chip.registered}
+                                    <Icon icon="mdi:check-circle" class="w-3 h-3 ml-0.5" />
+                                {/if}
                             </span>
                         {/each}
                         {#if competition.categories && competition.categories.length > 3}
                             <span class="text-xs text-surface-500">+{competition.categories.length - 3}</span>
                         {/if}
-                    </div>
-                {/if}
-
-                <!-- Registration indicator -->
-                {#if competition.registrationOpen && competition.status === 'NOT_STARTED'}
-                    <div class="flex items-center gap-1 text-xs text-success-600 dark:text-success-400">
-                        <Icon icon="mdi:check-circle" class="w-3.5 h-3.5" />
-                        <span>Open</span>
-                    </div>
-                {:else if competition.status === 'STARTED'}
-                    <div class="flex items-center gap-1 text-xs text-warning-600 dark:text-warning-400">
-                        <Icon icon="mdi:play-circle" class="w-3.5 h-3.5" />
-                        <span>Started</span>
-                    </div>
-                {:else if competition.status === 'FINISHED'}
-                    <div class="flex items-center gap-1 text-xs text-surface-500">
-                        <Icon icon="mdi:check-all" class="w-3.5 h-3.5" />
-                        <span>Finished</span>
                     </div>
                 {/if}
             </div>
@@ -153,10 +166,9 @@
                 <span class="text-3xl font-bold text-primary-700 dark:text-primary-300 leading-none">{dayNumber}</span>
                 <span class="text-sm font-medium text-primary-600 dark:text-primary-400 uppercase">{monthAbbr}</span>
                 <span class="text-xs text-surface-500 dark:text-surface-400">{year}</span>
-                <!-- Days countdown -->
-                <div class="mt-1 text-xs {daysUntilStyle}">
+                <span class="mt-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium {daysUntilChipStyle}">
                     {daysUntilText}
-                </div>
+                </span>
             </div>
         </div>
     </div>

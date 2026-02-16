@@ -12,9 +12,13 @@
     const competitions = $derived(data.competitions);
     const user = $derived(data.user);
     const roleAssignments = $derived(data.roleAssignments as RoleAssignment[] | undefined);
+    const registeredCategoryIds = $derived(data.registeredCategoryIds as number[]);
 
     // User has location set if both country and postal code are present
     const hasUserLocation = $derived(Boolean(user?.country && user?.postalCode));
+    // Set of registered category IDs for quick lookup
+    const registeredCategorySet = $derived(new Set(registeredCategoryIds));
+    const hasRegistrations = $derived(registeredCategoryIds.length > 0);
     // Search filter
     let filter = $state('');
 
@@ -35,6 +39,8 @@
     // Smart preset definitions
     const presets = $derived([
         { id: 'this-week', label: '7 days', icon: 'mdi:calendar-week' },
+        { id: 'this-month', label: '30 days', icon: 'mdi:calendar-week' },
+        { id: 'registered', label: 'Registered', icon: 'mdi:account-check', disabled: !hasRegistrations },
         { id: 'near-me', label: 'Near Me', icon: 'mdi:map-marker-radius', disabled: !hasUserLocation },
         { id: 'open-registration', label: 'Open', icon: 'mdi:door-open' },
     ]);
@@ -71,10 +77,26 @@
             });
         }
 
+        if (activePresets.includes('this-month')) {
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+            result = result.filter(c => {
+                const startDate = new Date(c.startDate);
+                return startDate.getMonth() === currentMonth && startDate.getFullYear() === currentYear;
+            });
+        }
+
         if (activePresets.includes('near-me') && user?.country && user?.postalCode) {
             result = result.filter(c =>
                 c.country === user.country &&
                 c.postalCode?.substring(0, 2) === user.postalCode!.substring(0, 2)
+            );
+        }
+
+        if (activePresets.includes('registered')) {
+            result = result.filter(c =>
+                c.categories?.some(cat => registeredCategorySet.has(cat.id))
             );
         }
 
@@ -133,7 +155,7 @@
     <!-- Competition cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {#each filteredCompetitions as competition (competition.id)}
-            <ExploreCompetitionCard {competition} userCountry={user?.country ?? null} userPostalCode={user?.postalCode ?? null} />
+            <ExploreCompetitionCard {competition} userCountry={user?.country ?? null} userPostalCode={user?.postalCode ?? null} {registeredCategoryIds} />
         {:else}
             <div class="col-span-full flex flex-col items-center justify-center py-12 text-center">
                 <Icon icon="mdi:magnify-remove-outline" class="w-16 h-16 text-surface-300 dark:text-surface-600 mb-4" />

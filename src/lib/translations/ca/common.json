@@ -114,12 +114,14 @@
     "submit_button": "Guarda Competició",
     "details": "Edita els detalls de la competició i les categories",
     "title": "Edita competició",
-    "registers_warning": "Editar la competició eliminará els registres present a les categories, i les persones anteriorment registrades hauràn de tornar-ho a fer."
+    "registers_warning": "Eliminar una categoria eliminará els registres presents. Les persones anteriorment registrades hauràn de tornar-ho a fer."
   },
   "competition_details": {
     "feature_not_available": "Funció no disponible actualment",
     "registered_teams": "inscrits",
-    "seats_available": "places disponibles"
+    "seats_available": "places disponibles",
+    "manage_inscription": "Gestiona inscripció",
+    "no_categories": "Encara no s'han afegit categories a aquesta competició."
   },
   "inscription": {
     "title": "Inscripció a categories",

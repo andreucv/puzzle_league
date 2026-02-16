@@ -114,12 +114,14 @@
     "submit_button": "Guarda Competición",
     "details": "Edita los detalles de la competición y las categorías",
     "title": "Edita competición",
-    "registers_warning": "Editar la competición eliminará los registros presentes en las categorías, y las personas anteriornmente registradas deberán volver a hacerlo."
+    "registers_warning": "Eliminar una categoría eliminará los registros presentes. Las personas anteriornmente registradas deberán volver a hacerlo."
   },
   "competition_details": {
     "feature_not_available": "Función no dispoible actualmente",
     "registered_teams": "inscritos",
-    "seats_available": "plazas disponibles"
+    "seats_available": "plazas disponibles",
+    "manage_inscription": "Gestiona inscripción",
+    "no_categories": "Aún no se han añadido categorías a esta competición."
   },
   "inscription": {
     "title": "Inscripción a categorías",

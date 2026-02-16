@@ -1,17 +1,14 @@
 <script lang="ts">
-	import Icon from '@iconify/svelte';
-	import { formatTime } from '$lib/utils/datetime_utils';
-	import { getCategoryTypeName } from '$lib/utils/category_utils';
-	import type { Category, Competition } from '@prisma/client';
-
-	type CategoryWithCounts = Category & { totalRecords: number };
-
 	let {
-		competition = $bindable(),
-		categories
+		competition_id,
+		competition_registration_status,
+		hasCategories = true,
+		onStatusChange
 	}: {
-		competition: Competition;
-		categories: CategoryWithCounts[];
+		competition_id: number;
+		competition_registration_status: boolean;
+		hasCategories?: boolean;
+		onStatusChange: (registrationOpen: boolean) => void;
 	} = $props();
 
 	let loading = $state(false);
@@ -23,7 +20,7 @@
 		feedbackMessage = '';
 
 		try {
-			const response = await fetch(`/api/competitions/${competition.id}/toggle_registration`, {
+			const response = await fetch(`/api/competitions/${competition_id}/toggle_registration`, {
 				method: 'POST'
 			});
 
@@ -31,7 +28,7 @@
 
 			if (response.ok) {
 				const result = await response.json();
-				competition = result.competition;
+				onStatusChange(result.registrationOpen);
 				feedbackSuccess = true;
 				feedbackMessage = '';
 			} else {
@@ -55,25 +52,30 @@
 			<h6 class="text-md font-semibold">Registration Status</h6>
 			<p class="text-sm text-surface-600 dark:text-surface-400">
 				Registration is currently
-				<span class="font-semibold" class:text-success-500={competition.registrationOpen} class:text-error-500={!competition.registrationOpen}>
-					{competition.registrationOpen ? 'open' : 'closed'}
+				<span class="font-semibold" class:text-success-500={competition_registration_status} class:text-error-500={!competition_registration_status}>
+					{competition_registration_status ? 'open' : 'closed'}
 				</span>
 			</p>
 		</div>
 	</div>
 
 	<button
-		class="btn {competition.registrationOpen ? 'preset-filled-error-500' : 'preset-filled-success-500'}"
+		class="btn {competition_registration_status ? 'preset-filled-error-500' : 'preset-filled-success-500'}"
 		onclick={toggleRegistration}
-		disabled={loading}
+		disabled={loading || !hasCategories}
 	>
 		{#if loading}
 			<span class="loading loading-spinner loading-sm"></span>
 			Updating...
 		{:else}
-			{competition.registrationOpen ? 'Close Registration' : 'Open Registration'}
+			{competition_registration_status ? 'Close Registration' : 'Open Registration'}
 		{/if}
 	</button>
+	{#if !hasCategories}
+		<p class="text-xs text-surface-500 dark:text-surface-400">
+			Add categories before opening registration.
+		</p>
+	{/if}
 
 	{#if feedbackMessage}
 		<aside class="alert {feedbackSuccess ? 'preset-filled-success-500' : 'preset-filled-error-500'}">

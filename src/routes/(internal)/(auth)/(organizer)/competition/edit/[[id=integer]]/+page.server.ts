@@ -20,7 +20,7 @@ cloudinary.config({
 
 // Category schema based on UX spec validation requirements
 const CategorySchema = z.object({
-    description: z.string().min(3, "Category description must be at least 3 characters").max(60, "Category description must be at most 60 characters"),
+    description: z.string().max(60, "Category description must be at most 60 characters"),
     type: z.nativeEnum(CategoryType, { error: "Please select a category type" }),
     startTime: z.string().min(1, "Start time is required"),
     endTime: z.string().min(1, "End time is required"),

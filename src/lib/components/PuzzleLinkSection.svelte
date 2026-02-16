@@ -3,25 +3,20 @@
 
     let {
         puzzleIds = $bindable([]),
-        onUpdate
+        onUpdate,
+        initialPuzzles = []
     }: {
         puzzleIds: string[];
         onUpdate: (ids: string[]) => void;
+        initialPuzzles?: any[];
     } = $props();
 
     let searchQuery = $state('');
     let searchResults = $state<any[]>([]);
-    let linkedPuzzles = $state<any[]>([]);
+    let linkedPuzzles = $state<any[]>(initialPuzzles);
     let showSearch = $state(false);
     let searching = $state(false);
     let searchTimeout: ReturnType<typeof setTimeout>;
-
-    // Load linked puzzle details on mount
-    $effect(() => {
-        if (puzzleIds.length > 0 && linkedPuzzles.length === 0) {
-            loadLinkedPuzzles();
-        }
-    });
 
     async function loadLinkedPuzzles() {
         if (puzzleIds.length === 0) return;

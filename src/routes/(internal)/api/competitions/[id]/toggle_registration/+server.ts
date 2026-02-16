@@ -27,7 +27,7 @@ export const POST = async (event: RequestEvent) => {
 			return json({ error: result.message }, { status: 500 });
 		}
 
-		return json({ competition: result.data?.competition });
+		return json({ id: competitionId, registrationOpen: result.data?.competition?.registrationOpen });
 	} catch (error) {
 		console.error('Error toggling registration:', error);
 		return json({ error: 'Failed to toggle registration status' }, { status: 500 });

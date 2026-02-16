@@ -11,7 +11,6 @@ export async function handle({ event, resolve }) {
 	if (session) {
 		event.locals.session = session.session as typeof event.locals.session;
 		event.locals.user = session.user;
-		console.log('Session found:', session);
 	}
 
 	return svelteKitHandler({ auth, event, resolve });

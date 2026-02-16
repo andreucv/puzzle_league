@@ -55,7 +55,7 @@
 
                     {#if competition.location}
                         <div class="flex items-center gap-2">
-                            <div class="flex items-center justify-center w-5 h-5 bg-surface-200/50 dark:bg-surface-700/50 rounded-full backdrop-blur-sm">
+                            <div class="flex items-center justify-center w-5 h-5 flex-shrink-0 bg-surface-200/50 dark:bg-surface-700/50 rounded-full backdrop-blur-sm">
                                 <Icon icon="mdi:map-marker" class="w-3 h-3 text-primary-600 dark:text-primary-400" />
                             </div>
                             <p class="text-ls text-surface-700 dark:text-surface-300 font-medium">{competition.location}</p>
@@ -84,13 +84,13 @@
                                     : 'bg-gradient-to-r from-surface-100 to-surface-200 text-surface-700 dark:from-surface-800/50 dark:to-surface-700/50 dark:text-surface-300'
                             }">
                             {#if daysUntil > 0}
-                                <Icon icon="mdi:clock-outline" class="w-2.5 h-2.5 mr-1" />
+                                <span class="inline-block w-2.5 h-2.5 mr-1"><Icon icon="mdi:clock-outline" class="w-2.5 h-2.5" /></span>
                                 In {daysUntil}d
                             {:else if daysUntil === 0}
-                                <Icon icon="mdi:calendar-today" class="w-2.5 h-2.5 mr-1" />
+                                <span class="inline-block w-2.5 h-2.5 mr-1"><Icon icon="mdi:calendar-today" class="w-2.5 h-2.5" /></span>
                                 Today!
                             {:else}
-                                <Icon icon="mdi:calendar-check" class="w-2.5 h-2.5 mr-1" />
+                                <span class="inline-block w-2.5 h-2.5 mr-1"><Icon icon="mdi:calendar-check" class="w-2.5 h-2.5" /></span>
                                 {Math.abs(daysUntil)}d ago
                             {/if}
                         </div>

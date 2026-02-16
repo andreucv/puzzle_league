@@ -7,7 +7,7 @@
 <a href={href}>
     <div class="card preset-filled-200-800 w-full card-hover shadow-lg">
         <div class="flex items-center gap-4 p-4">
-            <div class="">
+            <div class="w-8 h-8 flex-shrink-0">
                 <Icon icon={icon} class="w-8 h-8"></Icon>
             </div>
             <div class="">

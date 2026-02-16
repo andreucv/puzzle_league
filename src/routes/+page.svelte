@@ -63,7 +63,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <a href="/my_organized_competitions" class="card card-hover">
                         <div class="flex items-center gap-4 p-4">
-                            <div class="flex-shrink-0">
+                            <div class="flex-shrink-0 w-8 h-8">
                                 <Icon icon="mdi:trophy" class="w-8 h-8"></Icon>
                             </div>
                             <div class="flex-1">
@@ -74,7 +74,7 @@
                     </a>
                     <a href="/competition/edit/" class="card card-hover">
                         <div class="flex items-center gap-4 p-4">
-                            <div class="flex-shrink-0">
+                            <div class="flex-shrink-0 w-8 h-8">
                                 <Icon icon="mdi:newspaper-plus" class="w-8 h-8"></Icon>
                             </div>
                             <div class="flex-1">
@@ -95,7 +95,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <a href="/admin/requests" class="card card-hover">
                         <div class="flex items-center gap-4 p-4">
-                            <div class="flex-shrink-0">
+                            <div class="flex-shrink-0 w-8 h-8">
                                 <Icon icon="mdi:magnify" class="w-8 h-8"></Icon>
                             </div>
                             <div class="flex-1">
@@ -119,7 +119,7 @@
                 </div>
                 <!-- <button class="btn preset-outlined-primary-50-950 text-white border-white">{$t('landing_page.sign_in')}</button> -->
                 <p class="text-white">{$t('landing_page.get_started')}</p>
-                <div class="">
+                <div class="w-8 h-8">
                     <Icon icon="mdi:arrow-down" class="w-8 h-8 text-white"></Icon>
                 </div>
             </div>
@@ -139,17 +139,17 @@
                 <h2 class="font-sans text-center mb-2">{$t('landing_page.why_choose')}</h2>
                 <div class="grid md:grid-cols-3 gap-8">
                     <div class="text-center space-y-2">
-                        <Icon icon="mdi:timer" class="w-12 h-12 mx-auto"/>
+                        <div class="w-12 h-12 mx-auto"><Icon icon="mdi:timer" class="w-12 h-12"/></div>
                         <h3 class="h4">{$t('landing_page.features.track_times')}</h3>
                         <p>{$t('landing_page.features.track_times_description')}</p>
                     </div>
                     <div class="text-center space-y-2">
-                        <Icon icon="mdi:account-group" class="w-12 h-12 mx-auto"/>
+                        <div class="w-12 h-12 mx-auto"><Icon icon="mdi:account-group" class="w-12 h-12"/></div>
                         <h3 class="h4">{$t('landing_page.features.join_community')}</h3>
                         <p>{$t('landing_page.features.join_community_description')}</p>
                     </div>
                     <div class="text-center space-y-2">
-                        <Icon icon="mdi:calendar" class="w-12 h-12 mx-auto"/>
+                        <div class="w-12 h-12 mx-auto"><Icon icon="mdi:calendar" class="w-12 h-12"/></div>
                         <h3 class="h4">{$t('landing_page.features.get_calendar')}</h3>
                         <p>{$t('landing_page.features.get_calendar_description')}</p>
                     </div>

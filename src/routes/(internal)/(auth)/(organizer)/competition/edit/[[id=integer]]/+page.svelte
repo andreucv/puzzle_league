@@ -46,6 +46,9 @@
         loadingMessage = '';
     }
 
+    // Timeout error state (shown separately since $message is controlled by superForm)
+    let timeoutError = $state<string | null>(null);
+
     const { form, errors, constraints, message, enhance } = superForm(data.form, {
         dataType: "json",
         async onSubmit({ cancel }) {
@@ -53,6 +56,7 @@
             submissionStartTime = Date.now();
             isSubmitting = true;
             loadingMessage = 'Validating form...';
+            timeoutError = null;
 
             // Run comprehensive client-side validation
             const isValid = validateFormBeforeSubmit();
@@ -66,7 +70,7 @@
 
             // Update message based on whether image needs uploading
             if ($form.image_cld_id && !$form.image_cld_id.includes('competitions')) {
-                loadingMessage = 'Uploading image...';
+                loadingMessage = 'Uploading image... This may take a moment.';
             } else {
                 loadingMessage = 'Saving competition...';
             }
@@ -78,11 +82,13 @@
                 if (competitionId) {
                     await goto(`/competitions/competition_details/${competitionId}`);
                 }
+            } else if (result.type === 'error') {
+                timeoutError = 'The server took too long to respond. If you uploaded an image, try using a smaller file or removing the image and try again.';
             }
         },
-        async onError() {
+        async onError({ result }) {
             await hideLoading();
-            await focusFirstInvalidField();
+            timeoutError = result.error?.message || 'The request failed. If you uploaded an image, try using a smaller file or removing the image and try again.';
         },
         async onUpdated({ form }) {
             await hideLoading();
@@ -1134,6 +1140,15 @@
         {/if}
 
         <!-- Alert Messages -->
+        {#if timeoutError}
+            <div class="alert preset-filled-error-500 rounded-lg mt-4 p-2 flex items-center gap-2">
+                <Icon icon="mdi:cloud-off-outline" width="1.5rem" height="1.5rem" />
+                <div>
+                    <h4 class="font-semibold">{$t('create_competition.image_upload_error_title') ?? 'Upload Error'}</h4>
+                    <p>{timeoutError}</p>
+                </div>
+            </div>
+        {/if}
         {#if $message && $message.success === true}
             <div class="alert preset-filled-success-500 rounded-lg mt-4 p-2 flex items-center">
                 <Icon icon="mdi:alert-circle" width="1.5rem" height="1.5rem" />

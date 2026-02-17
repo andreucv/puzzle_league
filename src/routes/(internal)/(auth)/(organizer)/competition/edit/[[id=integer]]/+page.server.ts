@@ -62,6 +62,13 @@ const CompetitionEditSchema = z.object({
 
 type CompetitionEditData = z.infer<typeof CompetitionEditSchema>;
 
+// Vercel serverless function config — allow enough time for image uploads
+export const config = {
+    maxDuration: 60
+};
+
+const CLOUDINARY_UPLOAD_TIMEOUT_MS = 25_000; // 25 seconds
+
 export const load: PageServerLoad = async (event) => {
 
     let competitionId = null;
@@ -170,7 +177,7 @@ const create_update_competition: Action = async ({ request, params }) => {
                 cloudinary.uploader.upload_stream(
                     {
                         resource_type: 'image',
-                        folder: 'competitions' // Optional: organize images in folders
+                        folder: 'competitions'
                     },
                     function (error, result) {
                         if (error) {
@@ -184,12 +191,19 @@ const create_update_competition: Action = async ({ request, params }) => {
                 ).end(buffer);
             });
 
-            const upload_image_promise_result = await upload_image_promise as { public_id: string };
+            const timeout_promise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Image upload timed out. Please try with a smaller image or try again later.')), CLOUDINARY_UPLOAD_TIMEOUT_MS);
+            });
+
+            const upload_image_promise_result = await Promise.race([upload_image_promise, timeout_promise]) as { public_id: string };
             console.log('upload_image_promise_result', upload_image_promise_result);
             formData.image_cld_id = upload_image_promise_result.public_id;
         } catch (error) {
             console.error('Error uploading image to Cloudinary:', error);
-            return message(form, {success: false, message: "Failed to upload image"});
+            const errorMessage = error instanceof Error && error.message.includes('timed out')
+                ? error.message
+                : "Failed to upload image. Please try with a smaller image or try again later.";
+            return message(form, {success: false, message: errorMessage});
         }
         }
     } else {

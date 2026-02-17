@@ -557,20 +557,65 @@
         });
     });
 
-    function handleImageChange(event: { acceptedFiles: File[] }) {
-        console.log("handleImageChange", event);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const image = e.target?.result;
-            if (typeof image === 'string') {
-                selected_image_src = image;
-            }
+    // Max base64 payload size we allow (~3MB image → ~4MB base64, under Vercel's 4.5MB limit)
+    const MAX_IMAGE_FILE_SIZE = 10 * 1024 * 1024; // 10MB raw file (will be compressed)
+    const IMAGE_MAX_DIMENSION = 1200; // px
+    const IMAGE_QUALITY = 0.8;
+    let imageError = $state<string | null>(null);
+
+    function compressImage(file: File): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                let { width, height } = img;
+
+                // Scale down if larger than max dimension
+                if (width > IMAGE_MAX_DIMENSION || height > IMAGE_MAX_DIMENSION) {
+                    if (width > height) {
+                        height = Math.round(height * (IMAGE_MAX_DIMENSION / width));
+                        width = IMAGE_MAX_DIMENSION;
+                    } else {
+                        width = Math.round(width * (IMAGE_MAX_DIMENSION / height));
+                        height = IMAGE_MAX_DIMENSION;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) { reject(new Error('Could not create canvas context')); return; }
+
+                ctx.drawImage(img, 0, 0, width, height);
+                const dataUrl = canvas.toDataURL('image/jpeg', IMAGE_QUALITY);
+                resolve(dataUrl);
+            };
+            img.onerror = () => reject(new Error('Failed to load image'));
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
+    async function handleImageChange(event: { acceptedFiles: File[] }) {
+        imageError = null;
+        const file = event.acceptedFiles[0];
+        if (!file) return;
+
+        if (file.size > MAX_IMAGE_FILE_SIZE) {
+            imageError = 'Image is too large. Please select an image under 10 MB.';
+            return;
         }
-        reader.readAsDataURL(event.acceptedFiles[0]);
+
+        try {
+            const compressed = await compressImage(file);
+            selected_image_src = compressed;
+        } catch {
+            imageError = 'Failed to process the image. Please try a different file.';
+        }
     }
 
     function handleImageReject() {
         selected_image_src = undefined;
+        imageError = 'File was rejected. Please select a valid image file.';
     }
 </script>
 
@@ -731,6 +776,9 @@
                     {#if selected_image_src === undefined}
                         <FileUpload accept="image/*" name="competition_image" maxFiles={1} onFileChange={handleImageChange} onFileReject={handleImageReject}>
                         </FileUpload>
+                        {#if imageError}
+                            <span class="text-error-500 text-sm mt-1">{imageError}</span>
+                        {/if}
                     {:else}
                         <div class="flex flex-col items-center gap-2">
                             {#if selected_image_src?.includes('competitions')}

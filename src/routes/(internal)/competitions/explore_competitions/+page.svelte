@@ -175,7 +175,7 @@
                         class="btn btn-sm preset-outlined-primary-500 mt-4"
                         onclick={() => { filter = ''; activePresets = []; activeTab = 'ALL'; }}
                     >
-                        Clear all filters
+                        $t('explore_competitions.clear_all_filters')
                     </button>
                 {/if}
             </div>

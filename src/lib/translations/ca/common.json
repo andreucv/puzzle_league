@@ -1,23 +1,13 @@
 {
-  "page": {
-    "page_title": "Puzzles Hub"
-  },
+  "page": {},
   "landing_page": {
-    "welcome": "Benvinguts a Puzzligas",
     "welcome_text": "La teva comunitat puzzlera",
     "participant_welcome_text": "Si t'agraden els puzzles i la competició, Puzzligas és casa teva. Connecta amb la comunitat en els concursos de puzzles. Uneix-te.",
-    "organizer_welcome": "Per Organitzadors",
-    "organizer_welcome_text": "Publica noves competicions, controla els participants i monitoreja els resultats en temps real.",
-    "participant_welcome": "Per Participants",
     "review_requests": "Revisar Peticions de Permisos",
-    "current_calendar": "Calendari 2025 - Pròxims concursos",
     "sign_in": "Accedeix",
     "who_we_are": "QUI SOM",
     "explore_title": "Explora el calendari",
     "explore_subtitle": "Consulteu els propers concursos a prop vostre",
-    "what_we_do": "QUÈ FEM",
-    "next_features": "Pròximes funcionalitats",
-    "head_title": "Concursos de Puzzles i Events",
     "get_started": "Comença aquí",
     "why_choose": "PER QUÈ TRIAR PUZZLIGAS?",
     "features": {
@@ -30,41 +20,29 @@
     },
     "your_upcoming_competitions": "Els teus pròxims concursos",
     "no_upcoming_competitions": "No estàs registrat a cap concurs",
-    "no_upcoming_competitions_detail": "Sembla que no estàs registrat a cap proper concurs. Mira al calendari i registra't a qualsevol categoria!"
+    "no_upcoming_competitions_detail": "Sembla que no estàs registrat a cap proper concurs. Mira al calendari i registra't a qualsevol categoria!",
+    "image_alt": "Imatge de puzzles"
   },
   "competitions": {
     "upcoming_competitions": "Pròxims Concursos",
     "past_competitions": "Concursos Passats",
-    "categories": "Categories",
-    "pairs": "Parelles",
-    "teams": "Equips",
-    "individual": "Individual",
-    "kids": "Nens",
-    "teams_relays": "Equips per relleus",
-    "kids_pairs": "Parelles nens",
-    "puzzle_chess": "PuzzleChess",
     "create_competition": "Crea Competició",
-    "list_all_competitions": "Competicions",
     "my_organized_competitions": "Les meves competicions",
-    "calendar_list": {
-      "title": "Vista de Calendari (Llista)"
-    },
+    "calendar_list": {},
     "calendar": "Pròximes Competicions",
     "calendar_view": {
       "monday_friday": "Dilluns - Divendres",
       "saturday": "Dissabte",
       "sunday": "Diumenge"
     },
-    "calendar_table": {
-      "title": "Vista de Calendari (Taula)"
-    },
-    "no_upcoming_competitions": "No hi ha pròximes competicions"
+    "calendar_table": {},
+    "no_upcoming_competitions": "No hi ha pròximes competicions",
+    "explore_competitions": "Explora Competicions"
   },
   "drawer_menu": {
     "create_competition": "Crear Competició",
     "explore_competitions": "Competicions",
     "home": "Inici",
-    "explore_results": "Explorar resultats",
     "puzzles": "Puzzles"
   },
   "list_competitions": {
@@ -81,44 +59,17 @@
       "search_placeholder": "Cerca peticions"
     }
   },
-  "create_competition": {
-    "title": "Crea una competició",
-    "details": "Introdueix els detalls de la competició i les categories",
-    "submit_button": "Guarda Competició",
-    "details_title": "Dades de la Competició",
-    "competition_name": "Nom de la Competició",
-    "location": "Lloc",
-    "comments": "Comentaris",
-    "date_title": "Data",
-    "categories_title": "Categories",
-    "add_category": "Afegeix Categoria",
-    "not_categories_yet": "Encara no hi ha categories",
-    "add_category_comment": "Afegeix la primera categoria",
-    "cancel": "Cancel.la",
-    "start_time": "Comença",
-    "end_time": "Acaba",
-    "image": "Imatge",
-    "country": "País",
-    "postal_code": "Codi Postal",
-    "postal_code_placeholder": "ex. 08001",
-    "select_country": "Selecciona un país..."
-  },
-  "competition": {
-    "edit_competition": "Edita Competició",
-    "create_competition": "Crea Competició",
-    "update_competition_details": "Actualitza els detalls i categories de la competició",
-    "create_competition_details": "Introdueix els detalls de la competició i les categories"
-  },
   "edit_competition": {
     "date": "Dia",
     "submit_button": "Guarda Competició",
     "details": "Edita els detalls de la competició i les categories",
     "title": "Edita competició",
-    "registers_warning": "Eliminar una categoria eliminará els registres presents. Les persones anteriorment registrades hauràn de tornar-ho a fer."
+    "registers_warning": "Eliminar una categoria eliminará els registres presents. Les persones anteriorment registrades hauràn de tornar-ho a fer.",
+    "cancel": "Cancel·la",
+    "warning": "Avís"
   },
   "competition_details": {
     "feature_not_available": "Funció no disponible actualment",
-    "registered_teams": "inscrits",
     "seats_available": "places disponibles",
     "manage_inscription": "Gestiona inscripció",
     "no_categories": "Encara no s'han afegit categories a aquesta competició."
@@ -142,17 +93,95 @@
     "incomplete_parties": "alguns equips estan incomplets",
     "registration_not_available": "Les inscripcions no estan disponibles per aquesta categoria."
   },
-  "puzzles": {
-    "catalog_title": "Catàleg de Puzzles",
-    "add_puzzle": "Afegir Puzzle",
-    "edit_puzzle": "Editar Puzzle",
-    "search_placeholder": "Cerca puzzles per nom, marca, codi de barres...",
-    "pieces": "Peces",
-    "brand": "Marca",
-    "barcode": "Codi de barres",
-    "serial_number": "Número de sèrie",
-    "no_puzzles": "No s'han trobat puzzles",
-    "add_first_puzzle": "Afegeix el teu primer puzzle al catàleg"
+  "puzzles": {},
+  "competition": {
+    "create": {
+      "title": "Crea nova competició",
+      "page_title": "Crea una competició",
+      "validating_data": "Validant dades",
+      "details": "Introdueix els detalls de la competició i les categories",
+      "submit_button": "Guarda Competició",
+      "details_title": "Dades de la Competició",
+      "competition_name": "Nom de la Competició",
+      "location": "Lloc",
+      "comments": "Comentaris",
+      "date_title": "Data",
+      "categories_title": "Categories",
+      "add_category": "Afegeix Categoria",
+      "not_categories_yet": "Encara no hi ha categories",
+      "add_category_comment": "Afegeix la primera categoria",
+      "cancel": "Cancel.la",
+      "image": "Imatge",
+      "country": "País",
+      "postal_code": "Codi Postal",
+      "postal_code_placeholder": "ex. 08001",
+      "select_country": "Selecciona un país...",
+      "image_upload_error_title": "Problema d'enviament d'imatge",
+      "category_description": "Comentaris de la categoria",
+      "category_description_placeholder": "Introduïu comentaris de la categoria",
+      "category_type": "Tipus de categoria",
+      "current_categories": "Categories actuals",
+      "end_time": "Temps de finalització",
+      "max_parties": "Màxim participacions *",
+      "max_parties_placeholder": "Màxim nombre de participacions",
+      "new_categories": "Noves categories",
+      "participants_per_party": "Participants per participació",
+      "remove_category": "Elimina la categoria",
+      "remove_image": "Elimina la imatge",
+      "select_category_type": "Seleccioneu un tipus de categoria",
+      "start_time": "Hora d'inici"
+    },
+    "edit": {
+      "title": "Edita Competició",
+      "validating_data": "Validant noves dades"
+    },
+    "upload_image": "S'està penjant la imatge... Això pot trigar un moment",
+    "saving_competition": "S'està guardant la competició...",
+    "timeout_error": "El servidor ha trigat massa a respondre. \nSi heu penjat una imatge, proveu d'utilitzar un fitxer més petit o d'eliminar la imatge i torneu-ho a provar.",
+    "form_error": {
+      "required": {
+        "competition_name": "El nom de la competició és obligatori",
+        "date": "Seleccioneu una data",
+        "category_type": "Seleccioneu un tipus de categoria",
+        "end_time": "Cal l'hora de finalització",
+        "start_time": "Cal l'hora d'inici"
+      },
+      "min_length": {
+        "competition_name": "El nom de la competició ha de tenir almenys 3 caracters"
+      },
+      "max_length": {
+        "competition_name": "El nom de la competició no pot sobrepassar els 80 caracters",
+        "description": "La descripció no pot superar els 1000 caracters",
+        "location": "L'adreça ha de tenir com a màxim 200 caràcters",
+        "category_description": "Els comentaris de la categoria han de tenir com a màxim 60 caràcters"
+      },
+      "image": {
+        "processing_failed": "No s'ha pogut processar la imatge. \nSi us plau, proveu amb un fitxer diferent.",
+        "rejected": "El fitxer s'ha rebutjat. \nSeleccioneu un fitxer d'imatge vàlid.",
+        "too_large": "La imatge és massa gran. \nSeleccioneu una imatge de menys de 10 MB."
+      },
+      "min_value": {
+        "max_parties": "El màxim de participacions ha de ser com a mínim 1",
+        "max_party_size": "Els participants per participació han de ser com a mínim 1"
+      }
+    },
+    "confirm_removal_message": "Esteu segur que voleu eliminar aquesta categoria? \nAquesta acció no es pot desfer.",
+    "confirm_removal_title": "Confirmeu l'eliminació",
+    "created_success": "Concurs creat!",
+    "error": "Error",
+    "remove": "Eliminar",
+    "saving": "S'està desant...",
+    "view_updated": "Veure competició actualitzada →"
   },
-  "admin-actions": "Accions d'administrador"
+  "head": {
+    "title": "PuzzLigas - Competicions de Puzzles | Events de Puzzles"
+  },
+  "explore_competitions": {
+    "clear_all_filters": "Esborra tots els filtres",
+    "no_competitions_found": "No s'han trobat competicions",
+    "near_me_goto_profile_1": "Establiu la vostra ubicació al vostre",
+    "near_me_goto_profile_2": "perfil",
+    "near_me_goto_profile_3": "per activar el filtratge \"A prop meu\".",
+    "no_competitions_found_for_filters": "Proveu d'ajustar la cerca o els filtres per trobar el que busqueu."
+  }
 }

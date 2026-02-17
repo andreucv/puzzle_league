@@ -1,23 +1,13 @@
 {
-  "page": {
-    "page_title": "Puzzle League"
-  },
+  "page": {},
   "landing_page": {
-    "welcome": "Welcome to Puzzligas",
     "welcome_text": "Your puzzling community",
-    "participant_welcome": "For participants",
     "participant_welcome_text": "If you like puzzling and competition, Puzzligas is home. Connect with the community on puzzling competitions. Join us.",
-    "organizer_welcome": "For Organizers",
-    "organizer_welcome_text": "Publish new competitions, manage participants, and monitor performance in real time.",
     "review_requests": "Review Permissions Requests",
-    "current_calendar": "2025 Calendar - Upcoming competitions",
     "sign_in": "Sign in",
     "who_we_are": "WHO WE ARE",
     "explore_title": "Explore the calendar",
     "explore_subtitle": "Check out upcoming competitions near you",
-    "what_we_do": "WHAT WE DO",
-    "next_features": "Next features",
-    "head_title": "Speed Puzzling Competitions & Events",
     "get_started": "Get Started",
     "why_choose": "WHY CHOOSE PUZZLIGAS?",
     "features": {
@@ -30,42 +20,29 @@
     },
     "your_upcoming_competitions": "Your upcoming competitions",
     "no_upcoming_competitions": "Not registered to any competition",
-    "no_upcoming_competitions_detail": "Seems you are not registered to any upcoming competition. Look in the calendar and register for any category."
+    "no_upcoming_competitions_detail": "Seems you are not registered to any upcoming competition. Look in the calendar and register for any category.",
+    "image_alt": "Puzzle image"
   },
   "drawer_menu": {
     "explore_competitions": "Competitions",
     "create_competition": "Create Competition",
     "home": "Home",
-    "explore_results": "Explore results",
     "puzzles": "Puzzles"
   },
   "competitions": {
     "explore_competitions": "Explore Competitions",
     "upcoming_competitions": "Upcoming Competitions",
     "past_competitions": "Past Competitions",
-    "categories": "Categories",
-    "pairs": "Pairs",
-    "teams": "Teams",
-    "individual": "Individual",
-    "kids": "Kids",
-    "teams_relays": "Relay Teams",
-    "kids_pairs": "Kids Pairs",
-    "puzzle_chess": "PuzzleChess",
     "create_competition": "Create Competition",
-    "list_all_competitions": "Competitions",
     "my_organized_competitions": "My organized competitions",
-    "calendar_list": {
-      "title": "Calendar View (List)"
-    },
+    "calendar_list": {},
     "calendar": "Upcoming Competitions",
     "calendar_view": {
       "monday_friday": "Monday - Friday",
       "saturday": "Saturday",
       "sunday": "Sunday"
     },
-    "calendar_table": {
-      "title": "Calendar View (Table)"
-    },
+    "calendar_table": {},
     "no_upcoming_competitions": "There are not more upcoming competitions"
   },
   "list_competitions": {
@@ -82,37 +59,83 @@
       "search_placeholder": "Search requests"
     }
   },
-  "create_competition": {
-    "title": "Create competition form",
-    "details": "Enter your competition details and categories",
-    "submit_button": "Save Competition",
-    "details_title": "Competition details",
-    "competition_name": "Competition Name",
-    "location": "Location",
-    "comments": "Description",
-    "date_title": "Schedule",
-    "categories_title": "Categories",
-    "add_category": "Add Category",
-    "not_categories_yet": "No categories yet",
-    "add_category_comment": "Add your first category to get started",
-    "cancel": "Cancel",
-    "start_time": "Start time",
-    "end_time": "End time",
-    "image": "Image",
-    "country": "Country",
-    "postal_code": "Postal Code",
-    "postal_code_placeholder": "e.g. 08001",
-    "select_country": "Select a country..."
-  },
   "competition": {
     "edit": {
       "title": "Edit Competition",
-      "update_competition_details": "Update your competition details and categories"
+      "validating_data": "Validating new data"
     },
     "create": {
-      "create_competition": "Create Competition",
-      "create_competition_details": "Enter your competition details and categories",
-      "title": "Create new competition"
+      "title": "Create new competition",
+      "page_title": "Create competition form",
+      "validating_data": "Validating data",
+      "details": "Enter your competition details and categories",
+      "submit_button": "Save Competition",
+      "details_title": "Competition details",
+      "competition_name": "Competition Name",
+      "location": "Location",
+      "comments": "Description",
+      "date_title": "Schedule",
+      "categories_title": "Categories",
+      "add_category": "Add Category",
+      "not_categories_yet": "No categories yet",
+      "add_category_comment": "Add your first category to get started",
+      "cancel": "Cancel",
+      "image": "Image",
+      "country": "Country",
+      "postal_code": "Postal Code",
+      "postal_code_placeholder": "e.g. 08001",
+      "select_country": "Select a country...",
+      "image_upload_error_title": "Uploading image error",
+      "current_categories": "Current Categories",
+      "new_categories": "New Categories",
+      "category_type": "Category Type",
+      "select_category_type": "Select a category type",
+      "start_time": "Start Time",
+      "end_time": "End Time",
+      "max_parties": "Max Parties *",
+      "max_parties_placeholder": "Maximum number of parties",
+      "participants_per_party": "Participants per Party",
+      "category_description": "Category Description",
+      "category_description_placeholder": "Enter category description",
+      "remove_image": "Remove Image",
+      "remove_category": "Remove Category"
+    },
+    "upload_image": "Uploading image... This may take a moment",
+    "saving_competition": "Saving competition...",
+    "saving": "Saving...",
+    "timeout_error": "The server took too long to respond. If you uploaded an image, try using a smaller file or removing the image and try again.",
+    "created_success": "Competition Created!",
+    "view_updated": "View updated competition →",
+    "error": "Error",
+    "confirm_removal_title": "Confirm Removal",
+    "confirm_removal_message": "Are you sure you want to remove this category? This action cannot be undone.",
+    "remove": "Remove",
+    "form_error": {
+      "required": {
+        "competition_name": "Competition name is required",
+        "date": "Select a date",
+        "category_type": "Please select a category type",
+        "start_time": "Start time is required",
+        "end_time": "End time is required"
+      },
+      "min_length": {
+        "competition_name": "Competition name must be at least 3 characters"
+      },
+      "max_length": {
+        "competition_name": "Competition name must be at most 80 characters",
+        "description": "Description must be at most 1000 characters",
+        "location": "Location must be at most 200 characters",
+        "category_description": "Category description must be at most 60 characters"
+      },
+      "min_value": {
+        "max_parties": "Max parties must be at least 1",
+        "max_party_size": "Participants per party must be at least 1"
+      },
+      "image": {
+        "too_large": "Image is too large. Please select an image under 10 MB.",
+        "processing_failed": "Failed to process the image. Please try a different file.",
+        "rejected": "File was rejected. Please select a valid image file."
+      }
     }
   },
   "edit_competition": {
@@ -120,27 +143,12 @@
     "submit_button": "Update Competition",
     "details": "Update your competition details and categories",
     "title": "Edit competition",
-    "registers_warning": "Removing a category will remove the insriptions present. Registered people will need to do it again."
+    "registers_warning": "Removing a category will remove the insriptions present. Registered people will need to do it again.",
+    "warning": "Warning",
+    "cancel": "Cancel"
   },
-  "participate-in-local-and-international-competitions": "Participate in local and international competitions",
-  "compete-globally": "Compete Globally",
-  "connect-with-puzzle-enthusiasts-worldwide": "Connect with puzzle enthusiasts worldwide",
-  "join-community": "Join Community",
-  "record-and-compare-your-puzzle-completion-times-with-others": "Record and compare your puzzle completion times with others",
-  "track-your-times": "Track Your Times",
-  "speed-puzzling-image": "Speed Puzzling Image",
-  "review-and-approve-pending-permissions-requests": "Review and approve pending permissions requests",
-  "admin-actions": "Admin Actions",
-  "set-up-a-new-puzzle-competition-with-custom-rules-and-formats": "Set up a new puzzle competition with custom rules and formats",
-  "create-new-competition": "Create New Competition",
-  "manage-competitions-youve-created-and-monitor-participants": "Manage competitions you've created and monitor participants",
-  "my-organized-competitions": "My Organized Competitions",
-  "organizer-actions": "Organizer Actions",
-  "your-upcoming-competitions": "Your upcoming competitions",
-  "puzzligas-t-landing_page-head_title": "Puzzligas - {$t('landing_page.head_title')}",
   "competition_details": {
     "feature_not_available": "Feature not available yet",
-    "registered_teams": "registered",
     "seats_available": "seats available",
     "manage_inscription": "Manage inscription",
     "no_categories": "No categories have been added to this competition yet."
@@ -164,16 +172,29 @@
     "incomplete_parties": "some teams are incomplete",
     "registration_not_available": "Registration is not available for this category."
   },
-  "puzzles": {
-    "catalog_title": "Puzzle Catalog",
-    "add_puzzle": "Add Puzzle",
-    "edit_puzzle": "Edit Puzzle",
-    "search_placeholder": "Search puzzles by name, brand, barcode...",
-    "pieces": "Pieces",
-    "brand": "Brand",
-    "barcode": "Barcode",
-    "serial_number": "Serial Number",
-    "no_puzzles": "No puzzles found",
-    "add_first_puzzle": "Add your first puzzle to the catalog"
-  }
+  "puzzles": {},
+  "head": {
+    "title": "PuzzLigas - Speed Puzzling Competitions | Join Global Puzzle Events"
+  },
+  "explore_competitions": {
+    "clear_all_filters": "Clear all filters",
+    "no_competitions_found": "No competitions found",
+    "near_me_goto_profile_1": "Set your location in your",
+    "near_me_goto_profile_2": "profile",
+    "near_me_goto_profile_3": "to enable \"Near Me\" filtering.",
+    "no_competitions_found_for_filters": "Try adjusting your search or filters to find what you're looking for."
+  },
+  "filter-activepresets-activetab-all-greater-than-t-explore_competitions-clear_all_filters": "{ filter = ''; activePresets = []; activeTab = 'ALL'; }} > $t('explore_competitions.clear_all_filters')",
+  "no-competitions-found": "No competitions found",
+  "to-enable-near-me-filtering": "to enable \"Near Me\" filtering.",
+  "set-your-location-in-your": "Set your location in your",
+  "of-totalcount": "of {totalCount}",
+  "open": "Open",
+  "near-me": "Near Me",
+  "30-days": "30 days",
+  "7-days": "7 days",
+  "past": "Past",
+  "live": "Live",
+  "soon": "Soon",
+  "all": "All"
 }

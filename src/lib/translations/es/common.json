@@ -1,23 +1,13 @@
 {
-  "page": {
-    "page_title": "Puzzles Hub"
-  },
+  "page": {},
   "landing_page": {
-    "welcome": "Bienvenido a Puzzligas",
     "welcome_text": "Tu comunidad puzzlera",
-    "participant_welcome_text": "Si te gustan los puzzles y la competición, Puzzligas és tu casa. Conecta con la comunidad en los concursos de puzzles. Únete.",
-    "organizer_welcome": "Para Organizadores",
-    "organizer_welcome_text": "Publica nuevas competiciones, controla los participantes y monitorea los resultados en tiempo real.",
-    "participant_welcome": "Para Participantes",
+    "participant_welcome_text": "Si te gustan los puzzles y la competición, Puzzligas es tu casa. Conecta con la comunidad en los concursos de puzzles. Únete.",
     "review_requests": "Revisar Peticiones de Permisos",
-    "current_calendar": "Calendario 2025 - Próximos concursos",
     "sign_in": "Entra",
-    "who_we_are": "QUIEN SOMOS",
+    "who_we_are": "QUIENES SOMOS",
     "explore_title": "Explora el calendario",
     "explore_subtitle": "Mira las próximas competiciones cerca de ti",
-    "what_we_do": "QUÉ HACEMOS",
-    "next_features": "Próximas funcionalidades",
-    "head_title": "Concursos de Puzzles y Eventos",
     "get_started": "Empieza aquí",
     "why_choose": "¿POR QUÉ ELEGIR PUZZLIGAS?",
     "features": {
@@ -30,41 +20,29 @@
     },
     "your_upcoming_competitions": "Tus próximos concursos",
     "no_upcoming_competitions": "No estás registrado a ningún concurso",
-    "no_upcoming_competitions_detail": "Parece que no estás registrado a ningun concurso. Mira el calendario y regístrate a cualquier categoría!"
+    "no_upcoming_competitions_detail": "Parece que no estás registrado a ningun concurso. Mira el calendario y regístrate a cualquier categoría!",
+    "image_alt": "Imagen de puzzles"
   },
   "competitions": {
     "upcoming_competitions": "Próximos Concursos",
     "past_competitions": "Concursos Pasados",
-    "categories": "Categorias",
-    "pairs": "Parejas",
-    "teams": "Equipos",
-    "individual": "Individual",
-    "kids": "Niños",
-    "teams_relays": "Equipos por relevos",
-    "kids_pairs": "Parejas niños",
-    "puzzle_chess": "PuzzleChess",
     "create_competition": "Crea Competición",
-    "list_all_competitions": "Competiciones",
     "my_organized_competitions": "Mis competiciones",
-    "calendar_list": {
-      "title": "Vista de Calendario (Lista)"
-    },
+    "calendar_list": {},
     "calendar": "Próximas Competiciones",
     "calendar_view": {
       "monday_friday": "Lunes - Viernes",
       "saturday": "Sábado",
       "sunday": "Domingo"
     },
-    "calendar_table": {
-      "title": "Vista de Calendario (Tabla)"
-    },
-    "no_upcoming_competitions": "No hay próximas competiciones"
+    "calendar_table": {},
+    "no_upcoming_competitions": "No hay próximas competiciones",
+    "explore_competitions": "Explora Competiciones"
   },
   "drawer_menu": {
     "create_competition": "Crear Competición",
     "explore_competitions": "Competiciones",
     "home": "Inicio",
-    "explore_results": "Explorar resultados",
     "puzzles": "Puzzles"
   },
   "list_competitions": {
@@ -81,44 +59,96 @@
       "search_placeholder": "Busca peticiones"
     }
   },
-  "create_competition": {
-    "title": "Crea una competición",
-    "details": "Introduce los detalles de la competición y las categorías",
-    "submit_button": "Guarda Competición",
-    "details_title": "Datos de la Competición",
-    "competition_name": "Nombre de la Competición",
-    "location": "Lugar",
-    "comments": "Comentarios",
-    "date_title": "Fecha",
-    "categories_title": "Categorías",
-    "add_category": "Añade Categoría",
-    "not_categories_yet": "No hay categorías",
-    "add_category_comment": "Añade la primera categoría",
-    "cancel": "Cancelar",
-    "start_time": "Empieza",
-    "end_time": "Termina",
-    "image": "Imagen",
-    "country": "País",
-    "postal_code": "Código Postal",
-    "postal_code_placeholder": "ej. 08001",
-    "select_country": "Selecciona un país..."
-  },
   "competition": {
-    "edit_competition": "Edita Competición",
-    "create_competition": "Crea Competición",
-    "update_competition_details": "Actualiza los detalles y categorías de la competición",
-    "create_competition_details": "Introduce los detalles de la competición y las categorías"
+    "create": {
+      "title": "Crea nueva competición",
+      "page_title": "Crea una competición",
+      "validating_data": "Validando datos",
+      "details": "Introduce los detalles de la competición y las categorías",
+      "submit_button": "Guarda Competición",
+      "details_title": "Datos de la Competición",
+      "competition_name": "Nombre de la Competición",
+      "location": "Lugar",
+      "comments": "Comentarios",
+      "date_title": "Fecha",
+      "categories_title": "Categorías",
+      "add_category": "Añade Categoría",
+      "not_categories_yet": "No hay categorías",
+      "add_category_comment": "Añade la primera categoría",
+      "cancel": "Cancelar",
+      "image": "Imagen",
+      "country": "País",
+      "postal_code": "Código Postal",
+      "postal_code_placeholder": "ej. 08001",
+      "select_country": "Selecciona un país...",
+      "image_upload_error_title": "Problema de envio de imagen",
+      "category_description": "Comentarios de la categoría",
+      "category_description_placeholder": "Introduzca comentarios de la categoría",
+      "category_type": "Tipo de categoría",
+      "current_categories": "Categorías actuales",
+      "end_time": "Hora de finalización",
+      "max_parties": "Máximo participaciones *",
+      "max_parties_placeholder": "Máximo número de participaciones",
+      "new_categories": "Nuevas categorías",
+      "participants_per_party": "Participantes por participación",
+      "remove_category": "Eliminar categoría",
+      "remove_image": "Quitar imagen",
+      "select_category_type": "Seleccione un tipo de categoría",
+      "start_time": "Hora de inicio"
+    },
+    "edit": {
+      "title": "Edita Competición",
+      "validating_data": "Validando nuevos datos"
+    },
+    "upload_image": "Subiendo imagen... Esto puede tardar un momento",
+    "saving_competition": "Guardando competición...",
+    "timeout_error": "El servidor tardó demasiado en responder. \nSi subiste una imagen, intenta usar un archivo más pequeño o elimina la imagen y vuelve a intentarlo.",
+    "form_error": {
+      "required": {
+        "competition_name": "El nombre de la competición es obligatorio",
+        "date": "Selecciona una fecha",
+        "category_type": "Por favor seleccione un tipo de categoría",
+        "end_time": "Se requiere hora de finalización",
+        "start_time": "Se requiere hora de inicio"
+      },
+      "min_length": {
+        "competition_name": "El nombre de la competición debe tener almenos 3 caracteres"
+      },
+      "max_length": {
+        "competition_name": "El nombre de la competición no puede superar los 80 caracteres",
+        "description": "La descripción no puede superar los 1000 caracteres",
+        "location": "La dirección debe tener como máximo 200 caracteres.",
+        "category_description": "Los comentarios de la categoría deben tener como máximo 60 caracteres."
+      },
+      "image": {
+        "processing_failed": "No se pudo procesar la imagen. \nPruebe con un archivo diferente.",
+        "rejected": "El archivo fue rechazado. \nSeleccione un archivo de imagen válido.",
+        "too_large": "La imagen es demasiado grande. \nSeleccione una imagen de menos de 10 MB."
+      },
+      "min_value": {
+        "max_parties": "El máximo de participaciones debe ser de al menos 1",
+        "max_party_size": "Los participantes por participación deben ser al menos 1"
+      }
+    },
+    "confirm_removal_message": "¿Estás seguro de que deseas eliminar esta categoría? \nEsta acción no se puede deshacer.",
+    "confirm_removal_title": "Confirmar eliminación",
+    "created_success": "¡Concurso creado!",
+    "error": "Error",
+    "remove": "Eliminar",
+    "saving": "Guardando...",
+    "view_updated": "Ver concurso actualizado →"
   },
   "edit_competition": {
     "date": "Día",
     "submit_button": "Guarda Competición",
     "details": "Edita los detalles de la competición y las categorías",
     "title": "Edita competición",
-    "registers_warning": "Eliminar una categoría eliminará los registros presentes. Las personas anteriornmente registradas deberán volver a hacerlo."
+    "registers_warning": "Eliminar una categoría eliminará los registros presentes. Las personas anteriornmente registradas deberán volver a hacerlo.",
+    "cancel": "Cancelar",
+    "warning": "Advertencia"
   },
   "competition_details": {
     "feature_not_available": "Función no dispoible actualmente",
-    "registered_teams": "inscritos",
     "seats_available": "plazas disponibles",
     "manage_inscription": "Gestiona inscripción",
     "no_categories": "Aún no se han añadido categorías a esta competición."
@@ -142,17 +172,16 @@
     "incomplete_parties": "algunos equipos están incompletos",
     "registration_not_available": "Las inscripciones no están disponibles para esta categoría."
   },
-  "puzzles": {
-    "catalog_title": "Catálogo de Puzzles",
-    "add_puzzle": "Añadir Puzzle",
-    "edit_puzzle": "Editar Puzzle",
-    "search_placeholder": "Buscar puzzles por nombre, marca, código de barras...",
-    "pieces": "Piezas",
-    "brand": "Marca",
-    "barcode": "Código de barras",
-    "serial_number": "Número de serie",
-    "no_puzzles": "No se encontraron puzzles",
-    "add_first_puzzle": "Añade tu primer puzzle al catálogo"
+  "puzzles": {},
+  "head": {
+    "title": "PuzzLigas - Competiciones de puzzles | \nÚnase a eventos globales de puzzles"
   },
-  "admin-actions": "Acciones de administrador"
+  "explore_competitions": {
+    "clear_all_filters": "Limpiar todos los filtros",
+    "no_competitions_found": "No se encontraron competiciones",
+    "near_me_goto_profile_1": "Establece tu ubicación en tu",
+    "near_me_goto_profile_2": "perfil",
+    "near_me_goto_profile_3": "para habilitar el filtrado \"Cerca de mí\".",
+    "no_competitions_found_for_filters": "Intente ajustar su búsqueda o filtros para encontrar lo que está buscando."
+  }
 }

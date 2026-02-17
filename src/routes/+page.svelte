@@ -21,7 +21,7 @@
 </script>
 
 <svelte:head>
-   <title>PuzzLigas - Speed Puzzling Competitions | Join Global Puzzle Events</title>
+   <title>$t('head.title')</title>
     <meta name="description" content="Join speed puzzling competitions worldwide. Track your times, compete with other puzzlers, and participate in events. Sign up free today!">
     <meta name="keywords" content="speed puzzling, puzzle competitions, jigsaw puzzle tournaments, competitive puzzling, puzzle timer, puzzle league, puzzle events, puzzle community, puzzle championships">
 
@@ -59,7 +59,7 @@
 {:else}
     <div class="landing-page-container">
         <div class="landing-page-container-image">
-            <enhanced:img src="../../static/landing_page_2.jpg" alt="Speed Puzzling Image" class="cover-image"/>
+            <enhanced:img src="../../static/landing_page_2.jpg" alt={$t('landing_page.image_alt')} class="cover-image"/>
             <div class="landing-page-container-text-overlay space-y-2" style="bottom: 10%;">
                 <div class="p-2 text-center rounded-lg text-white">
                     <p class="h4 font-sans">{$t('landing_page.welcome_text')}</p>

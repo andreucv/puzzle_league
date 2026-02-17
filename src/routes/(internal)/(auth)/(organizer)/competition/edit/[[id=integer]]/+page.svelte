@@ -55,7 +55,7 @@
             // Start loading state
             submissionStartTime = Date.now();
             isSubmitting = true;
-            loadingMessage = 'Validating form...';
+            loadingMessage = isEdit ? $t('competition.edit.validating_data') : $t('competition.create.validating_data');
             timeoutError = null;
 
             // Run comprehensive client-side validation
@@ -70,9 +70,9 @@
 
             // Update message based on whether image needs uploading
             if ($form.image_cld_id && !$form.image_cld_id.includes('competitions')) {
-                loadingMessage = 'Uploading image... This may take a moment.';
+                loadingMessage = $t('competition.upload_image');
             } else {
-                loadingMessage = 'Saving competition...';
+                loadingMessage = $t('competition.saving_competition');
             }
         },
         async onResult({ result }) {
@@ -83,12 +83,12 @@
                     await goto(`/competitions/competition_details/${competitionId}`);
                 }
             } else if (result.type === 'error') {
-                timeoutError = 'The server took too long to respond. If you uploaded an image, try using a smaller file or removing the image and try again.';
+                timeoutError = $t('competition.timeout_error');
             }
         },
         async onError({ result }) {
             await hideLoading();
-            timeoutError = result.error?.message || 'The request failed. If you uploaded an image, try using a smaller file or removing the image and try again.';
+            timeoutError = result.error?.message || $t('competition.timeout_error');
         },
         async onUpdated({ form }) {
             await hideLoading();
@@ -109,31 +109,31 @@
 
         // Validate competition name (required, 3-80 chars)
         if (!$form.name || $form.name.trim() === '') {
-            formErrors.name = 'Competition name is required';
+            formErrors.name = $t('competition.form_error.required.competition_name');
             isValid = false;
         } else if ($form.name.length < 3) {
-            formErrors.name = 'Competition name must be at least 3 characters';
+            formErrors.name = $t('competition.form_error.min_length.competition_name');
             isValid = false;
         } else if ($form.name.length > 80) {
-            formErrors.name = 'Competition name must be at most 80 characters';
+            formErrors.name = $t('competition.form_error.max_length.competition_name');
             isValid = false;
         }
 
         // Validate description (max 1000 chars)
         if ($form.description && $form.description.length > 1000) {
-            formErrors.description = 'Description must be at most 1000 characters';
+            formErrors.description = $t('competition.form_error.max_length.description');
             isValid = false;
         }
 
         // Validate location (max 120 chars)
-        if ($form.location && $form.location.length > 120) {
-            formErrors.location = 'Location must be at most 120 characters';
+        if ($form.location && $form.location.length > 200) {
+            formErrors.location = $t('competition.form_error.max_length.location');
             isValid = false;
         }
 
         // Validate date (required)
         if (!$form.startDate) {
-            dateError = 'Please select a competition date';
+            dateError = $t('competition.form_error.required.date');
             isValid = false;
         }
 
@@ -151,33 +151,33 @@
             categoryErrors.create[i] = {};
 
             if (cat.description.length > 60) {
-                categoryErrors.create[i].description = 'Category description must be at most 60 characters';
+                categoryErrors.create[i].description = $t('competition.form_error.max_length.category_description');
                 isValid = false;
             }
 
             if (!cat.type || cat.type === '') {
-                categoryErrors.create[i].type = 'Please select a category type';
+                categoryErrors.create[i].type = $t('competition.form_error.required.category_type');
                 isValid = false;
             }
 
             if (cat.type) { // Only validate times if type is selected
                 if (!categories_times_obj_arr.create[i]?.startTime) {
-                    categoryErrors.create[i].startTime = 'Start time is required';
+                    categoryErrors.create[i].startTime = $t('competition.form_error.required.start_time');
                     isValid = false;
                 }
 
                 if (!categories_times_obj_arr.create[i]?.endTime) {
-                    categoryErrors.create[i].endTime = 'End time is required';
+                    categoryErrors.create[i].endTime = $t('competition.form_error.required.end_time');
                     isValid = false;
                 }
 
                 if (!cat.maxParties || cat.maxParties < 1) {
-                    categoryErrors.create[i].maxParties = 'Max parties must be at least 1';
+                    categoryErrors.create[i].maxParties = $t('competition.form_error.min_value.max_parties');
                     isValid = false;
                 }
 
                 if (!cat.maxPartySize || cat.maxPartySize < 1) {
-                    categoryErrors.create[i].maxPartySize = 'Participants per party must be at least 1';
+                    categoryErrors.create[i].maxPartySize = $t('competition.form_error.min_value.max_party_size');
                     isValid = false;
                 }
             }
@@ -189,33 +189,33 @@
             categoryErrors.update[i] = {};
 
             if (cat.description.length > 60) {
-                categoryErrors.update[i].description = 'Category description must be at most 60 characters';
+                categoryErrors.update[i].description = $t('competition.form_error.max_length.category_description');
                 isValid = false;
             }
 
             if (!cat.type || cat.type === '') {
-                categoryErrors.update[i].type = 'Please select a category type';
+                categoryErrors.update[i].type = $t('competition.form_error.required.category_type');
                 isValid = false;
             }
 
             if (cat.type) { // Only validate times if type is selected
                 if (!categories_times_obj_arr.update[i]?.startTime) {
-                    categoryErrors.update[i].startTime = 'Start time is required';
+                    categoryErrors.update[i].startTime = $t('competition.form_error.required.start_time');
                     isValid = false;
                 }
 
                 if (!categories_times_obj_arr.update[i]?.endTime) {
-                    categoryErrors.update[i].endTime = 'End time is required';
+                    categoryErrors.update[i].endTime = $t('competition.form_error.required.end_time');
                     isValid = false;
                 }
 
                 if (!cat.maxParties || cat.maxParties < 1) {
-                    categoryErrors.update[i].maxParties = 'Max parties must be at least 1';
+                    categoryErrors.update[i].maxParties = $t('competition.form_error.min_value.max_parties');
                     isValid = false;
                 }
 
                 if (!cat.maxPartySize || cat.maxPartySize < 1) {
-                    categoryErrors.update[i].maxPartySize = 'Participants per party must be at least 1';
+                    categoryErrors.update[i].maxPartySize = $t('competition.form_error.min_value.max_party_size');
                     isValid = false;
                 }
             }
@@ -421,42 +421,42 @@
         switch (field) {
             case 'description':
                 if (value && value.length > 60) {
-                    categoryErrors[source][index].description = 'Category description must be at most 60 characters';
+                    categoryErrors[source][index].description = $t('competition.form_error.max_length.category_description');
                 } else {
                     delete categoryErrors[source][index].description;
                 }
                 break;
             case 'type':
                 if (!value) {
-                    categoryErrors[source][index].type = 'Please select a category type';
+                    categoryErrors[source][index].type = $t('competition.form_error.required.category_type');
                 } else {
                     delete categoryErrors[source][index].type;
                 }
                 break;
             case 'startTime':
                 if (!value) {
-                    categoryErrors[source][index].startTime = 'Start time is required';
+                    categoryErrors[source][index].startTime = $t('competition.form_error.required.start_time');
                 } else {
                     delete categoryErrors[source][index].startTime;
                 }
                 break;
             case 'endTime':
                 if (!value) {
-                    categoryErrors[source][index].endTime = 'End time is required';
+                    categoryErrors[source][index].endTime = $t('competition.form_error.required.end_time');
                 } else {
                     delete categoryErrors[source][index].endTime;
                 }
                 break;
             case 'maxParties':
                 if (value !== null && value < 1) {
-                    categoryErrors[source][index].maxParties = 'Max parties must be at least 1';
+                    categoryErrors[source][index].maxParties = $t('competition.form_error.min_value.max_parties');
                 } else {
                     delete categoryErrors[source][index].maxParties;
                 }
                 break;
             case 'maxPartySize':
                 if (value !== null && value < 1) {
-                    categoryErrors[source][index].maxPartySize = 'Party size must be at least 1';
+                    categoryErrors[source][index].maxPartySize = $t('competition.form_error.min_value.max_party_size');
                 } else {
                     delete categoryErrors[source][index].maxPartySize;
                 }
@@ -601,7 +601,7 @@
         if (!file) return;
 
         if (file.size > MAX_IMAGE_FILE_SIZE) {
-            imageError = 'Image is too large. Please select an image under 10 MB.';
+            imageError = $t('competition.form_error.image.too_large');
             return;
         }
 
@@ -609,18 +609,18 @@
             const compressed = await compressImage(file);
             selected_image_src = compressed;
         } catch {
-            imageError = 'Failed to process the image. Please try a different file.';
+            imageError = $t('competition.form_error.image.processing_failed');
         }
     }
 
     function handleImageReject() {
         selected_image_src = undefined;
-        imageError = 'File was rejected. Please select a valid image file.';
+        imageError = $t('competition.form_error.image.rejected');
     }
 </script>
 
 <svelte:head>
-    <title>{isEdit? $t('edit_competition.title') : $t('create_competition.title')}</title>
+    <title>{isEdit? $t('edit_competition.title') : $t('competition.create.page_title')}</title>
 </svelte:head>
 
 <h4>{isEdit? $t('competition.edit.title') : $t('competition.create.title')}</h4>
@@ -631,7 +631,7 @@
             <p class="text-surface-600-400">
                 {isEdit
                     ? $t("edit_competition.details")
-                    : $t("create_competition.details")}
+                    : $t("competition.create.details")}
             </p>
         </div>
     </div>
@@ -653,12 +653,12 @@
                     height="1.5rem"
                     class="text-primary-500"
                 />
-                {$t('create_competition.details_title')}
+                {$t('competition.create.details_title')}
             </h2>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div class="label">
-                    <span>{$t('create_competition.competition_name')} *</span>
+                    <span>{$t('competition.create.competition_name')} *</span>
                     <input
                         type="text"
                         name="competition_name"
@@ -678,7 +678,7 @@
                 </div>
 
                 <div class="label">
-                    <span>{$t('create_competition.location')}</span>
+                    <span>{$t('competition.create.location')}</span>
                     <input
                         type="text"
                         name="location"
@@ -698,7 +698,7 @@
                 </div>
 
                 <div class="label">
-                    <span>{$t('create_competition.country')}</span>
+                    <span>{$t('competition.create.country')}</span>
                     <input type="hidden" name="country" value={countryValue[0] || ''} />
                     <div class="border border-surface-300 dark:border-surface-600 rounded-lg overflow-hidden bg-primary-50-950">
                         <Combobox
@@ -711,7 +711,7 @@
                                 if (formErrors.country) formErrors.country = undefined;
                             }}
                             onInputValueChange={(e) => (countryInputValue = e.inputValue)}
-                            placeholder={$t('create_competition.select_country')}
+                            placeholder={$t('competition.create.select_country')}
                             contentBase="card bg-surface-50 dark:bg-surface-900 p-2 shadow-xl max-h-48 overflow-y-auto rounded-lg"
                             inputGroupInput="input text-sm px-3 py-2 bg-transparent border-none w-full"
                         >
@@ -731,13 +731,13 @@
                 </div>
 
                 <div class="label">
-                    <span>{$t('create_competition.postal_code')}</span>
+                    <span>{$t('competition.create.postal_code')}</span>
                     <input
                         type="text"
                         name="postalCode"
                         bind:value={$form.postalCode}
                         maxlength="20"
-                        placeholder={$t('create_competition.postal_code_placeholder')}
+                        placeholder={$t('competition.create.postal_code_placeholder')}
                         class="input rounded-lg bg-primary-50-950"
                         class:input-error={formErrors.postalCode || $errors.postalCode}
                         oninput={() => {
@@ -752,7 +752,7 @@
                 </div>
 
                 <div class="label lg:col-span-2">
-                    <span>{$t('create_competition.comments')}</span>
+                    <span>{$t('competition.create.comments')}</span>
                     <textarea
                         name="description"
                         bind:value={$form.description}
@@ -772,7 +772,7 @@
                 </div>
 
                 <div class="label">
-                    <span>{$t('create_competition.image')}</span>
+                    <span>{$t('competition.create.image')}</span>
                     {#if selected_image_src === undefined}
                         <FileUpload accept="image/*" name="competition_image" maxFiles={1} onFileChange={handleImageChange} onFileReject={handleImageReject}>
                         </FileUpload>
@@ -793,7 +793,7 @@
                                 onclick={() => selected_image_src = undefined}
                             >
                                 <Icon icon="mdi:delete" width="1.2rem" height="1.2rem" />
-                                Remove Image
+                                {$t('competition.create.remove_image')}
                             </button>
                         </div>
                     {/if}
@@ -810,7 +810,7 @@
                     height="1.5rem"
                     class="text-primary-500"
                 />
-                {$t('create_competition.date_title')}
+                {$t('competition.create.date_title')}
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -851,7 +851,7 @@
                         height="1.5rem"
                         class="text-primary-500"
                     />
-                    {$t('create_competition.categories_title')}
+                    {$t('competition.create.categories_title')}
                 </h2>
 
                 <button
@@ -861,14 +861,14 @@
                     disabled={!$form.startDate}
                 >
                     <Icon icon="mdi:plus" width="1.2rem" height="1.2rem" />
-                    {$t('create_competition.add_category')}
+                    {$t('competition.create.add_category')}
                 </button>
             </div>
 
             <div class="space-y-4">
                 {#if categories?.update && (categories?.update as []).length > 0}
                     <div>
-                        <p>Current Categories</p>
+                        <p>{$t('competition.create.current_categories')}</p>
                     </div>
                     {#each categories.update as _, i}
                         <div class="p-2 rounded-lg bg-warning-50-950">
@@ -876,7 +876,7 @@
                             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <!-- Category Type -->
                                 <div class="label">
-                                    <span class="text-sm font-medium">Category Type *</span>
+                                    <span class="text-sm font-medium">{$t('competition.create.category_type')}</span>
                                     <select
                                         class="select bg-primary-50-950"
                                         class:input-error={categoryErrors.update[i]?.type}
@@ -886,7 +886,7 @@
                                             validateCategoryField('update', i, 'type', (e.target as HTMLInputElement).value);
                                         }}
                                     >
-                                        <option value="">Select a category type</option>
+                                        <option value="">{$t('competition.create.select_category_type')}</option>
                                         {#each data.props?.categoryTypes ?? [] as categoryType}
                                             <option value={categoryType}>
                                                 {getCategoryTypeName(categoryType as CategoryType)}
@@ -904,8 +904,8 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <!-- Start Time -->
                                 <div class="label">
-                                    <span class="text-sm font-medium">Start Time *</span>
-                                    <label for="start-time-{i}" class="sr-only">Start Time</label>
+                                    <span class="text-sm font-medium">{$t('competition.create.start_time')}</span>
+                                    <label for="start-time-{i}" class="sr-only">{$t('competition.create.start_time')}</label>
                                     <input
                                         type="time"
                                         class="input bg-primary-50-950"
@@ -921,7 +921,7 @@
                                     {/if}
                                 </div>
                                 <div class="label">
-                                    <span class="text-sm font-medium">End Time *</span>
+                                    <span class="text-sm font-medium">{$t('competition.create.end_time')}</span>
                                     <input
                                         type="time"
                                         class="input bg-primary-50-950"
@@ -939,7 +939,7 @@
 
                                 <!-- Max Parties -->
                                 <div class="label">
-                                    <span class="text-sm font-medium">Max Parties *</span>
+                                    <span class="text-sm font-medium">{$t('competition.create.max_parties')}</span>
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
@@ -947,7 +947,7 @@
                                         bind:value={categories.update[i].data.maxParties}
                                         min="1"
                                         step="1"
-                                        placeholder="Maximum number of parties"
+                                        placeholder={$t('competition.create.max_parties_placeholder')}
                                         oninput={(e) => validateCategoryField('update', i, 'maxParties', parseInt((e.target as HTMLInputElement).value))}
                                     />
                                     {#if categoryErrors.update[i]?.maxParties}
@@ -956,7 +956,7 @@
                                 </div>
                                 <!-- Participants per Party -->
                                 <div class="label">
-                                    <span class="text-sm font-medium">Participants per Party *</span>
+                                    <span class="text-sm font-medium">{$t('competition.create.participants_per_party')}</span>
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
@@ -971,13 +971,13 @@
                                 </div>
                                 <!-- Category Description -->
                                 <div class="label">
-                                    <span class="text-sm font-medium">Category Description</span>
+                                    <span class="text-sm font-medium">{$t('competition.create.category_description')}</span>
                                     <input
                                         type="text"
                                         class="input bg-primary-50-950"
                                         class:input-error={categoryErrors.update[i]?.description}
                                         bind:value={categories.update[i].data.description}
-                                        placeholder="Enter category description"
+                                        placeholder={$t('competition.create.category_description_placeholder')}
                                         minlength="3"
                                         maxlength="60"
                                         oninput={(e) => validateCategoryField('update', i, 'description', (e.target as HTMLInputElement).value)}
@@ -1002,7 +1002,7 @@
                                     onclick={() => requestRemoveCategory('update', i)}
                                 >
                                     <Icon icon="mdi:delete" width="1.2rem" height="1.2rem" />
-                                    Remove Category
+                                    {$t('competition.create.remove_category')}
                                 </button>
                             </div>
                         </div>
@@ -1010,33 +1010,15 @@
                 {/if}
                 {#if categories?.create && (categories?.create as []).length > 0}
                     <div>
-                        <p>New Categories</p>
+                        <p>{$t('competition.create.new_categories')}</p>
                     </div>
                     {#each categories.create as _, i}
                         <div class="p-2 rounded-lg bg-success-50-950">
                             <!-- Category Header -->
                             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <!-- Category Description -->
-                                <div class="label">
-                                    <span class="text-sm font-medium">Category Description *</span>
-                                    <input
-                                        type="text"
-                                        class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.create[i]?.description}
-                                        bind:value={categories.create[i].description}
-                                        placeholder="Enter category description"
-                                        minlength="3"
-                                        maxlength="60"
-                                        oninput={(e) => validateCategoryField('create', i, 'description', (e.target as HTMLInputElement).value)}
-                                    />
-                                    {#if categoryErrors.create[i]?.description}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].description}</span>
-                                    {/if}
-                                </div>
-
                                 <!-- Category Type -->
                                 <div class="label">
-                                    <span class="text-sm font-medium">Category Type *</span>
+                                    <span class="text-sm font-medium">{$t('competition.create.category_type')}</span>
                                     <select
                                         class="select bg-primary-50-950"
                                         class:input-error={categoryErrors.create[i]?.type}
@@ -1046,7 +1028,7 @@
                                             validateCategoryField('create', i, 'type', (e.target as HTMLInputElement).value);
                                         }}
                                     >
-                                        <option value="">Select a category type</option>
+                                        <option value="">{$t('competition.create.select_category_type')}</option>
                                         {#each data.props?.categoryTypes ?? [] as categoryType}
                                             <option value={categoryType}>
                                                 {getCategoryTypeName(categoryType as CategoryType)}
@@ -1063,7 +1045,7 @@
                             {#if categories.create[i].type}
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div class="label">
-                                    <span class="text-sm font-medium">Start Time *</span>
+                                    <span class="text-sm font-medium">{$t('competition.create.start_time')}</span>
                                     <input
                                         type="time"
                                         class="input bg-primary-50-950"
@@ -1079,7 +1061,7 @@
                                     {/if}
                                 </div>
                                 <div class="label">
-                                    <span class="text-sm font-medium">End Time *</span>
+                                    <span class="text-sm font-medium">{$t('competition.create.end_time')}</span>
                                     <input
                                         type="time"
                                         class="input bg-primary-50-950"
@@ -1098,7 +1080,7 @@
 
                                 <!-- Max Parties -->
                                 <div class="label">
-                                    <span class="text-sm font-medium">Max Parties *</span>
+                                    <span class="text-sm font-medium">{$t('competition.create.max_parties')}</span>
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
@@ -1106,7 +1088,7 @@
                                         bind:value={categories.create[i].maxParties}
                                         min="1"
                                         step="1"
-                                        placeholder="Maximum number of parties"
+                                        placeholder={$t('competition.create.max_parties_placeholder')}
                                         oninput={(e) => validateCategoryField('create', i, 'maxParties', parseInt((e.target as HTMLInputElement).value))}
                                     />
                                     {#if categoryErrors.create[i]?.maxParties}
@@ -1115,7 +1097,7 @@
                                 </div>
                                 <!-- Participants per Party -->
                                 <div class="label">
-                                    <span class="text-sm font-medium">Participants per Party *</span>
+                                    <span class="text-sm font-medium">{$t('competition.create.participants_per_party')}</span>
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
@@ -1126,6 +1108,23 @@
                                     />
                                     {#if categoryErrors.create[i]?.maxPartySize}
                                         <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].maxPartySize}</span>
+                                    {/if}
+                                </div>
+                                <!-- Category Description -->
+                                <div class="label">
+                                    <span class="text-sm font-medium">{$t('competition.create.category_description')}</span>
+                                    <input
+                                        type="text"
+                                        class="input bg-primary-50-950"
+                                        class:input-error={categoryErrors.create[i]?.description}
+                                        bind:value={categories.create[i].description}
+                                        placeholder={$t('competition.create.category_description_placeholder')}
+                                        minlength="3"
+                                        maxlength="60"
+                                        oninput={(e) => validateCategoryField('create', i, 'description', (e.target as HTMLInputElement).value)}
+                                    />
+                                    {#if categoryErrors.create[i]?.description}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].description}</span>
                                     {/if}
                                 </div>
                             </div>
@@ -1142,7 +1141,7 @@
                                     onclick={() => requestRemoveCategory('create', i)}
                                 >
                                     <Icon icon="mdi:delete" width="1.2rem" height="1.2rem" />
-                                    Remove Category
+                                    {$t('competition.create.remove_category')}
                                 </button>
                             </div>
                         </div>
@@ -1152,8 +1151,8 @@
                     <div
                         class="text-center py-2 border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg"
                     >
-                    <h3 class="h4 mb-2 text-surface-600 dark:text-surface-300">{$t('create_competition.not_categories_yet')}</h3>
-                    <p class="text-surface-500 mb-4">{$t('create_competition.add_category_comment')}</p>
+                    <h3 class="h4 mb-2 text-surface-600 dark:text-surface-300">{$t('competition.create.not_categories_yet')}</h3>
+                    <p class="text-surface-500 mb-4">{$t('competition.create.add_category_comment')}</p>
                         <button
                             type="button"
                             class="btn preset-filled-primary-500 rounded-lg"
@@ -1161,7 +1160,7 @@
                             disabled={!$form.startDate}
                         >
                             <Icon icon="mdi:plus" width="1.2rem" height="1.2rem" />
-                            {$t('create_competition.add_category')}
+                            {$t('competition.create.add_category')}
                         </button>
                     </div>
                 {/if}
@@ -1179,7 +1178,7 @@
                         height="1.5rem"
                         class="text-warning-500"
                     />
-                    Warning
+                    {$t('edit_competition.warning')}
                 </h2>
                 <p class="text-warning-700-300">
                     {$t('edit_competition.registers_warning')}
@@ -1192,7 +1191,7 @@
             <div class="alert preset-filled-error-500 rounded-lg mt-4 p-2 flex items-center gap-2">
                 <Icon icon="mdi:cloud-off-outline" width="1.5rem" height="1.5rem" />
                 <div>
-                    <h4 class="font-semibold">{$t('create_competition.image_upload_error_title') ?? 'Upload Error'}</h4>
+                    <h4 class="font-semibold">{$t('competition.create.image_upload_error_title') ?? 'Upload Error'}</h4>
                     <p>{timeoutError}</p>
                 </div>
             </div>
@@ -1201,13 +1200,13 @@
             <div class="alert preset-filled-success-500 rounded-lg mt-4 p-2 flex items-center">
                 <Icon icon="mdi:alert-circle" width="1.5rem" height="1.5rem" />
                 <div class="p-2">
-                    <h4 class="font-semibold">Competition Created!</h4>
+                    <h4 class="font-semibold">{$t('competition.created_success')}</h4>
                     <p class="mt-1">
                         <a
                             href={`/competitions/competition_details/${$message.id}`}
                             class="anchor"
                         >
-                            View updated competition →
+                            {$t('competition.view_updated')}
                         </a>
                     </p>
                 </div>
@@ -1215,7 +1214,7 @@
         {:else if $message && $message.success === false }
             <div class="alert preset-filled-error-500 rounded-lg mt-4 p-2 flex items-center gap-2">
                 <Icon icon="mdi:alert-circle" width="1.5rem" height="1.5rem" />
-                <h4 class="font-semibold">Error</h4>
+                <h4 class="font-semibold">{$t('competition.error')}</h4>
                 <p>{$message.message}</p>
             </div>
         {/if}
@@ -1230,7 +1229,7 @@
                     class:opacity-50={isSubmitting}
                 >
                     <Icon icon="mdi:cancel" width="1.2rem" height="1.2rem" />
-                    Cancel
+                    {$t('edit_competition.cancel')}
                 </a>
             {:else}
                 <a
@@ -1240,7 +1239,7 @@
                     class:opacity-50={isSubmitting}
                 >
                     <Icon icon="mdi:cancel" width="1.2rem" height="1.2rem" />
-                {$t('create_competition.cancel')}
+                {$t('competition.create.cancel')}
                 </a>
             {/if}
             <button
@@ -1250,12 +1249,12 @@
             >
                 {#if isSubmitting}
                     <Icon icon="mdi:loading" width="1.2rem" height="1.2rem" class="animate-spin" />
-                    {loadingMessage || 'Saving...'}
+                    {loadingMessage || $t('competition.saving')}
                 {:else}
                     <Icon icon="mdi:content-save" width="1.2rem" height="1.2rem" />
                     {isEdit
                         ? $t('edit_competition.submit_button')
-                        : $t('create_competition.submit_button')
+                        : $t('competition.create.submit_button')
                     }
                 {/if}
             </button>
@@ -1272,10 +1271,10 @@
         <div class="card preset-filled-surface-100-900 p-6 rounded-lg max-w-md w-full mx-4 shadow-xl">
             <h3 class="h4 font-semibold mb-4 flex items-center gap-2">
                 <Icon icon="mdi:alert" width="1.5rem" height="1.5rem" class="text-warning-500" />
-                Confirm Removal
+                {$t('competition.confirm_removal_title')}
             </h3>
             <p class="mb-6 text-surface-600-400">
-                Are you sure you want to remove this category? This action cannot be undone.
+                {$t('competition.confirm_removal_message')}
             </p>
             <div class="flex justify-end gap-4">
                 <button
@@ -1283,7 +1282,7 @@
                     class="btn preset-tonal rounded-lg"
                     onclick={cancelRemoveCategory}
                 >
-                    Cancel
+                    {$t('competition.create.cancel')}
                 </button>
                 <button
                     type="button"
@@ -1291,7 +1290,7 @@
                     onclick={confirmRemoveCategory}
                 >
                     <Icon icon="mdi:delete" width="1.2rem" height="1.2rem" />
-                    Remove
+                    {$t('competition.remove')}
                 </button>
             </div>
         </div>

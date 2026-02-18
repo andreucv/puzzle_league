@@ -17,6 +17,7 @@ export const RecordSelectSchema: z.ZodType<Prisma.RecordSelect> = z.object({
   updatedAt: z.boolean().optional(),
   finishTime: z.boolean().optional(),
   tableNumber: z.boolean().optional(),
+  status: z.boolean().optional(),
   categoryId: z.boolean().optional(),
   creatorId: z.boolean().optional(),
   category: z.union([z.boolean(),z.lazy(() => CategoryArgsSchema)]).optional(),

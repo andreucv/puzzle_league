@@ -84,6 +84,8 @@
       "image_upload_error_title": "Problema de envio de imagen",
       "category_description": "Comentarios de la categoría",
       "category_description_placeholder": "Introduzca comentarios de la categoría",
+      "category_subname": "Subnombre de la categoría",
+      "category_subname_placeholder": "Introduzca subnombre de la categoría",
       "category_type": "Tipo de categoría",
       "current_categories": "Categorías actuales",
       "end_time": "Hora de finalización",
@@ -150,8 +152,12 @@
   "competition_details": {
     "feature_not_available": "Función no dispoible actualmente",
     "seats_available": "plazas disponibles",
-    "manage_inscription": "Gestiona inscripción",
-    "no_categories": "Aún no se han añadido categorías a esta competición."
+    "manage_inscription": "Inscríbete",
+    "no_categories": "Aún no se han añadido categorías a esta competición.",
+    "organized_by": "Organizado por",
+    "edit_button": "Edita la competición",
+    "start_competition_button": "Empieza la competición",
+    "back_to_competitions_button": "Volver a competiciones"
   },
   "inscription": {
     "title": "Inscripción a categorías",
@@ -170,7 +176,12 @@
     "search_placeholder": "Buscar compañeros por nombre...",
     "submit_all": "Enviar todas las inscripciones",
     "incomplete_parties": "algunos equipos están incompletos",
-    "registration_not_available": "Las inscripciones no están disponibles para esta categoría."
+    "registration_not_available": "Las inscripciones no están disponibles para esta categoría.",
+    "status_accepted": "Aceptado",
+    "status_pending": "Pendiente",
+    "status_refused": "Rechazado",
+    "previously_refused": "Su registro anterior fue rechazado. \nPuedes registrarte nuevamente.",
+    "sign_up_again": "Regístrese nuevamente"
   },
   "puzzles": {},
   "head": {
@@ -183,5 +194,31 @@
     "near_me_goto_profile_2": "perfil",
     "near_me_goto_profile_3": "para habilitar el filtrado \"Cerca de mí\".",
     "no_competitions_found_for_filters": "Intente ajustar su búsqueda o filtros para encontrar lo que está buscando."
+  },
+  "manage_inscriptions": {
+    "accept_error": "Error al aceptar la inscripción",
+    "accepted": "Aceptada",
+    "accepted_success": "Inscripción aceptada con éxito.",
+    "no_categories": "No hay categorías en esta competición.",
+    "max_slots": "Sitios",
+    "no_inscriptions": "No hay inscripciones para esta categoría.",
+    "no_inscriptions_for_filter": "Ninguna inscripción coincide con el filtro seleccionado.",
+    "refuse_error": "No se pudo rechazar la inscripción.",
+    "refused": "Rechazada",
+    "pending": "Pendiente",
+    "refused_success": "Inscripción rechazada con éxito.",
+    "status_pending": "Pendent",
+    "status_accepted": "Aceptada",
+    "status_refused": "Rechazada",
+    "title": "Gestiona Inscripciones",
+    "30-days": "30 días",
+    "7-days": "7 días",
+    "all": "Todas",
+    "live": "En proceso",
+    "near-me": "Cerca de mí",
+    "no-competitions-found": "No se encontraron competiciones",
+    "open": "Abiertas",
+    "past": "Pasadas",
+    "soon": "Pronto"
   }
 }

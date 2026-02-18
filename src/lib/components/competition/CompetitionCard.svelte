@@ -1,8 +1,8 @@
 <script lang="ts">
-    import type { Competition } from "@prisma/client";
+    import type { Competition, CategoryType } from "@prisma/client";
     import { CldImage } from 'svelte-cloudinary';
     import Icon from '@iconify/svelte';
-    import { getCategoryTypeName } from "$lib/utils/category_utils";
+    import { getCategoryTypeName, getCategoryTypeIcon } from "$lib/utils/category_utils";
 
     interface Props {
         competition: Competition & {
@@ -48,16 +48,7 @@
         );
     }
 
-    // Category type icons
-    const categoryIcons: Record<string, string> = {
-        INDIVIDUAL: 'mdi:account',
-        PAIRS: 'mdi:account-multiple',
-        TEAM: 'mdi:account-group',
-        JUNIOR_INDIVIDUAL: 'mdi:account-child',
-        JUNIOR_PAIRS: 'mdi:account-child-circle',
-        PUZZLE_CHESS: 'mdi:chess-knight',
-        OTHER: 'mdi:puzzle',
-    };
+
 
     // Days until text
     const daysUntilText = $derived.by(() => {
@@ -140,7 +131,7 @@
                                 {registered
                                     ? 'bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 font-semibold'
                                     : 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'}">
-                                <Icon icon={categoryIcons[category.type] ?? 'mdi:puzzle'} class="w-3.5 h-3.5" />
+                                <Icon icon={getCategoryTypeIcon(category.type as CategoryType)} class="w-3.5 h-3.5" />
                                 {getCategoryTypeName(category.type as any)}
                                 {#if registered}
                                     <Icon icon="mdi:check-circle" class="w-3.5 h-3.5 text-success-600 dark:text-success-400" />

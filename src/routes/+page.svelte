@@ -21,7 +21,7 @@
 </script>
 
 <svelte:head>
-   <title>$t('head.title')</title>
+   <title>{$t('head.title')}</title>
     <meta name="description" content="Join speed puzzling competitions worldwide. Track your times, compete with other puzzlers, and participate in events. Sign up free today!">
     <meta name="keywords" content="speed puzzling, puzzle competitions, jigsaw puzzle tournaments, competitive puzzling, puzzle timer, puzzle league, puzzle events, puzzle community, puzzle championships">
 
@@ -152,26 +152,6 @@
         width: 100%;
         align-items: center;
         z-index: 1;
-    }
-
-    .center-text-inside {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        padding-inline: 3rem;
-        text-align: center;
-    }
-
-    .h1-title {
-        font-size: 2rem;
-        font-weight: 800;
-    }
-
-    .h2-title {
-        font-size: 1.5rem;
-        font-weight: 800;
     }
 
     /* Remove the custom dashboard styles since we're using Skeleton UI classes */

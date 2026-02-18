@@ -71,8 +71,12 @@
   "competition_details": {
     "feature_not_available": "Funció no disponible actualment",
     "seats_available": "places disponibles",
-    "manage_inscription": "Gestiona inscripció",
-    "no_categories": "Encara no s'han afegit categories a aquesta competició."
+    "manage_inscription": "Inscriu-te",
+    "no_categories": "Encara no s'han afegit categories a aquesta competició.",
+    "organized_by": "Organitzat per",
+    "edit_button": "Edita la competició",
+    "start_competition_button": "Comença la competició",
+    "back_to_competitions_button": "Torna a competicions"
   },
   "inscription": {
     "title": "Inscripció a categories",
@@ -91,7 +95,12 @@
     "search_placeholder": "Cerca companys per nom...",
     "submit_all": "Enviar totes les inscripcions",
     "incomplete_parties": "alguns equips estan incomplets",
-    "registration_not_available": "Les inscripcions no estan disponibles per aquesta categoria."
+    "registration_not_available": "Les inscripcions no estan disponibles per aquesta categoria.",
+    "status_accepted": "Aceptat",
+    "status_pending": "Pendent",
+    "status_refused": "Refusat",
+    "previously_refused": "S'ha rebutjat el vostre registre anterior. \nUs podeu inscriure de nou.",
+    "sign_up_again": "Registra't de nou"
   },
   "puzzles": {},
   "competition": {
@@ -119,6 +128,8 @@
       "image_upload_error_title": "Problema d'enviament d'imatge",
       "category_description": "Comentaris de la categoria",
       "category_description_placeholder": "Introduïu comentaris de la categoria",
+      "category_subname": "Subnom de la categoria",
+      "category_subname_placeholder": "Introduïu subnom de la categoria",
       "category_type": "Tipus de categoria",
       "current_categories": "Categories actuals",
       "end_time": "Temps de finalització",
@@ -183,5 +194,31 @@
     "near_me_goto_profile_2": "perfil",
     "near_me_goto_profile_3": "per activar el filtratge \"A prop meu\".",
     "no_competitions_found_for_filters": "Proveu d'ajustar la cerca o els filtres per trobar el que busqueu."
+  },
+  "manage_inscriptions": {
+    "accept_error": "Error al acceptar la inscripció",
+    "accepted": "Acceptada",
+    "accepted_success": "Inscripció acceptada correctament.",
+    "no_categories": "No hi ha categories en aquesta competició.",
+    "max_slots": "Llocs",
+    "no_inscriptions": "No hi ha inscripcions en aquesta categoria.",
+    "no_inscriptions_for_filter": "No hi ha cap inscripció que coincideixi amb el filtre seleccionat.",
+    "refuse_error": "No s'ha pogut rebutjar la inscripció.",
+    "refused": "Refusat",
+    "pending": "Pendent",
+    "refused_success": "Inscripció rebutjada amb èxit.",
+    "status_pending": "Pendent",
+    "status_accepted": "Acceptada",
+    "status_refused": "Refusat",
+    "title": "Gestiona Inscripcions",
+    "30-days": "30 dies",
+    "7-days": "7 dies",
+    "all": "Totes",
+    "live": "En procés",
+    "near-me": "A prop meu",
+    "no-competitions-found": "No s'han trobat competicions",
+    "open": "Obertes",
+    "past": "Passades",
+    "soon": "Pròximament"
   }
 }

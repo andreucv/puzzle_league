@@ -9,6 +9,7 @@ export const RecordCountOrderByAggregateInputSchema: z.ZodType<Prisma.RecordCoun
   updatedAt: z.lazy(() => SortOrderSchema).optional(),
   finishTime: z.lazy(() => SortOrderSchema).optional(),
   tableNumber: z.lazy(() => SortOrderSchema).optional(),
+  status: z.lazy(() => SortOrderSchema).optional(),
   categoryId: z.lazy(() => SortOrderSchema).optional(),
   creatorId: z.lazy(() => SortOrderSchema).optional()
 }).strict();

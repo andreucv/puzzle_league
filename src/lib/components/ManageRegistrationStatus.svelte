@@ -1,4 +1,7 @@
 <script lang="ts">
+	import Card from '$lib/components/common/card/Card.svelte';
+	import Icon from '@iconify/svelte';
+
 	let {
 		competition_id,
 		competition_registration_status,
@@ -46,40 +49,37 @@
 </script>
 
 <!-- Registration Toggle -->
-<div class="card p-6 space-y-4">
-	<div class="flex items-center justify-between">
-		<div>
-			<h6 class="text-md font-semibold">Registration Status</h6>
-			<p class="text-sm text-surface-600 dark:text-surface-400">
-				Registration is currently
+<Card>
+	<div class="flex items-center justify-between gap-4">
+		<div class="flex items-center gap-3">
+			<Icon icon={competition_registration_status ? 'mdi:lock-open-variant' : 'mdi:lock'} width="1.2rem" height="1.2rem" class={competition_registration_status ? 'text-success-500' : 'text-error-500'} />
+			<p class="text-sm">
+				Registration is
 				<span class="font-semibold" class:text-success-500={competition_registration_status} class:text-error-500={!competition_registration_status}>
 					{competition_registration_status ? 'open' : 'closed'}
 				</span>
 			</p>
 		</div>
+		<button
+			class="btn btn-sm {competition_registration_status ? 'preset-filled-error-500' : 'preset-filled-success-500'}"
+			onclick={toggleRegistration}
+			disabled={loading || !hasCategories}
+		>
+			{#if loading}
+				Updating...
+			{:else}
+				{competition_registration_status ? 'Close' : 'Open'}
+			{/if}
+		</button>
 	</div>
-
-	<button
-		class="btn {competition_registration_status ? 'preset-filled-error-500' : 'preset-filled-success-500'}"
-		onclick={toggleRegistration}
-		disabled={loading || !hasCategories}
-	>
-		{#if loading}
-			<span class="loading loading-spinner loading-sm"></span>
-			Updating...
-		{:else}
-			{competition_registration_status ? 'Close Registration' : 'Open Registration'}
-		{/if}
-	</button>
 	{#if !hasCategories}
-		<p class="text-xs text-surface-500 dark:text-surface-400">
+		<p class="text-xs text-surface-500 dark:text-surface-400 mt-1">
 			Add categories before opening registration.
 		</p>
 	{/if}
-
 	{#if feedbackMessage}
-		<aside class="alert {feedbackSuccess ? 'preset-filled-success-500' : 'preset-filled-error-500'}">
+		<aside class="alert {feedbackSuccess ? 'preset-filled-success-500' : 'preset-filled-error-500'} mt-2">
 			<p>{feedbackMessage}</p>
 		</aside>
 	{/if}
-</div>
+</Card>

@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 
 import { z } from 'zod';
+import { InscriptionStatusSchema } from './InscriptionStatusSchema';
 
 export const RecordUncheckedCreateWithoutUsersInputSchema: z.ZodType<Prisma.RecordUncheckedCreateWithoutUsersInput> = z.object({
   id: z.string().cuid().optional(),
@@ -8,6 +9,7 @@ export const RecordUncheckedCreateWithoutUsersInputSchema: z.ZodType<Prisma.Reco
   updatedAt: z.coerce.date().optional(),
   finishTime: z.coerce.date().optional().nullable(),
   tableNumber: z.number().int().optional().nullable(),
+  status: z.lazy(() => InscriptionStatusSchema).optional(),
   categoryId: z.number().int(),
   creatorId: z.string()
 }).strict();

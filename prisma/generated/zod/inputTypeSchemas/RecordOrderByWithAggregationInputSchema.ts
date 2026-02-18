@@ -15,6 +15,7 @@ export const RecordOrderByWithAggregationInputSchema: z.ZodType<Prisma.RecordOrd
   updatedAt: z.lazy(() => SortOrderSchema).optional(),
   finishTime: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
   tableNumber: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  status: z.lazy(() => SortOrderSchema).optional(),
   categoryId: z.lazy(() => SortOrderSchema).optional(),
   creatorId: z.lazy(() => SortOrderSchema).optional(),
   _count: z.lazy(() => RecordCountOrderByAggregateInputSchema).optional(),

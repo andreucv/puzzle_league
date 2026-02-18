@@ -5,6 +5,8 @@ import { StringFieldUpdateOperationsInputSchema } from './StringFieldUpdateOpera
 import { DateTimeFieldUpdateOperationsInputSchema } from './DateTimeFieldUpdateOperationsInputSchema';
 import { NullableDateTimeFieldUpdateOperationsInputSchema } from './NullableDateTimeFieldUpdateOperationsInputSchema';
 import { NullableIntFieldUpdateOperationsInputSchema } from './NullableIntFieldUpdateOperationsInputSchema';
+import { InscriptionStatusSchema } from './InscriptionStatusSchema';
+import { EnumInscriptionStatusFieldUpdateOperationsInputSchema } from './EnumInscriptionStatusFieldUpdateOperationsInputSchema';
 import { IntFieldUpdateOperationsInputSchema } from './IntFieldUpdateOperationsInputSchema';
 
 export const RecordUncheckedUpdateManyWithoutUsersInputSchema: z.ZodType<Prisma.RecordUncheckedUpdateManyWithoutUsersInput> = z.object({
@@ -13,6 +15,7 @@ export const RecordUncheckedUpdateManyWithoutUsersInputSchema: z.ZodType<Prisma.
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   finishTime: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   tableNumber: z.union([ z.number().int(),z.lazy(() => NullableIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  status: z.union([ z.lazy(() => InscriptionStatusSchema),z.lazy(() => EnumInscriptionStatusFieldUpdateOperationsInputSchema) ]).optional(),
   categoryId: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   creatorId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();

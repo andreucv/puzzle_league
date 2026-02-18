@@ -212,6 +212,7 @@ export { CategoryMinOrderByAggregateInputSchema } from './CategoryMinOrderByAggr
 export { CategorySumOrderByAggregateInputSchema } from './CategorySumOrderByAggregateInputSchema';
 export { EnumCategoryTypeWithAggregatesFilterSchema } from './EnumCategoryTypeWithAggregatesFilterSchema';
 export { IntNullableWithAggregatesFilterSchema } from './IntNullableWithAggregatesFilterSchema';
+export { EnumInscriptionStatusFilterSchema } from './EnumInscriptionStatusFilterSchema';
 export { CategoryScalarRelationFilterSchema } from './CategoryScalarRelationFilterSchema';
 export { UserListRelationFilterSchema } from './UserListRelationFilterSchema';
 export { UserOrderByRelationAggregateInputSchema } from './UserOrderByRelationAggregateInputSchema';
@@ -220,6 +221,7 @@ export { RecordAvgOrderByAggregateInputSchema } from './RecordAvgOrderByAggregat
 export { RecordMaxOrderByAggregateInputSchema } from './RecordMaxOrderByAggregateInputSchema';
 export { RecordMinOrderByAggregateInputSchema } from './RecordMinOrderByAggregateInputSchema';
 export { RecordSumOrderByAggregateInputSchema } from './RecordSumOrderByAggregateInputSchema';
+export { EnumInscriptionStatusWithAggregatesFilterSchema } from './EnumInscriptionStatusWithAggregatesFilterSchema';
 export { EnumRoleFilterSchema } from './EnumRoleFilterSchema';
 export { CompetitionNullableScalarRelationFilterSchema } from './CompetitionNullableScalarRelationFilterSchema';
 export { RoleAssignmentUserIdRoleCompoundUniqueInputSchema } from './RoleAssignmentUserIdRoleCompoundUniqueInputSchema';
@@ -330,6 +332,7 @@ export { CategoryCreateNestedOneWithoutRecordsInputSchema } from './CategoryCrea
 export { UserCreateNestedManyWithoutRecordsInputSchema } from './UserCreateNestedManyWithoutRecordsInputSchema';
 export { UserCreateNestedOneWithoutCreatedRecordsInputSchema } from './UserCreateNestedOneWithoutCreatedRecordsInputSchema';
 export { UserUncheckedCreateNestedManyWithoutRecordsInputSchema } from './UserUncheckedCreateNestedManyWithoutRecordsInputSchema';
+export { EnumInscriptionStatusFieldUpdateOperationsInputSchema } from './EnumInscriptionStatusFieldUpdateOperationsInputSchema';
 export { CategoryUpdateOneRequiredWithoutRecordsNestedInputSchema } from './CategoryUpdateOneRequiredWithoutRecordsNestedInputSchema';
 export { UserUpdateManyWithoutRecordsNestedInputSchema } from './UserUpdateManyWithoutRecordsNestedInputSchema';
 export { UserUpdateOneRequiredWithoutCreatedRecordsNestedInputSchema } from './UserUpdateOneRequiredWithoutCreatedRecordsNestedInputSchema';
@@ -368,6 +371,8 @@ export { NestedEnumCategoryTypeFilterSchema } from './NestedEnumCategoryTypeFilt
 export { NestedEnumCategoryTypeWithAggregatesFilterSchema } from './NestedEnumCategoryTypeWithAggregatesFilterSchema';
 export { NestedIntNullableWithAggregatesFilterSchema } from './NestedIntNullableWithAggregatesFilterSchema';
 export { NestedFloatNullableFilterSchema } from './NestedFloatNullableFilterSchema';
+export { NestedEnumInscriptionStatusFilterSchema } from './NestedEnumInscriptionStatusFilterSchema';
+export { NestedEnumInscriptionStatusWithAggregatesFilterSchema } from './NestedEnumInscriptionStatusWithAggregatesFilterSchema';
 export { NestedEnumRoleFilterSchema } from './NestedEnumRoleFilterSchema';
 export { NestedEnumRoleWithAggregatesFilterSchema } from './NestedEnumRoleWithAggregatesFilterSchema';
 export { NestedEnumRequestStatusFilterSchema } from './NestedEnumRequestStatusFilterSchema';
@@ -672,3 +677,4 @@ export { CategoryTypeSchema } from './CategoryTypeSchema';
 export { CompetitionStatusSchema } from './CompetitionStatusSchema';
 export { RoleSchema } from './RoleSchema';
 export { RequestStatusSchema } from './RequestStatusSchema';
+export { InscriptionStatusSchema } from './InscriptionStatusSchema';

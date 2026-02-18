@@ -6,6 +6,7 @@ import { CategoryTypeSchema } from './CategoryTypeSchema';
 export const CategoryCreateManyInputSchema: z.ZodType<Prisma.CategoryCreateManyInput> = z.object({
   id: z.number().int().optional(),
   description: z.string(),
+  subname: z.string().optional().nullable(),
   type: z.lazy(() => CategoryTypeSchema),
   maxPartySize: z.number().int().optional().nullable(),
   startTime: z.coerce.date(),

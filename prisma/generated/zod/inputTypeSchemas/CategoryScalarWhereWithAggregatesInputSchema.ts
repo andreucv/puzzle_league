@@ -3,6 +3,7 @@ import type { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { IntWithAggregatesFilterSchema } from './IntWithAggregatesFilterSchema';
 import { StringWithAggregatesFilterSchema } from './StringWithAggregatesFilterSchema';
+import { StringNullableWithAggregatesFilterSchema } from './StringNullableWithAggregatesFilterSchema';
 import { EnumCategoryTypeWithAggregatesFilterSchema } from './EnumCategoryTypeWithAggregatesFilterSchema';
 import { CategoryTypeSchema } from './CategoryTypeSchema';
 import { IntNullableWithAggregatesFilterSchema } from './IntNullableWithAggregatesFilterSchema';
@@ -15,6 +16,7 @@ export const CategoryScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.Cate
   NOT: z.union([ z.lazy(() => CategoryScalarWhereWithAggregatesInputSchema),z.lazy(() => CategoryScalarWhereWithAggregatesInputSchema).array() ]).optional(),
   id: z.union([ z.lazy(() => IntWithAggregatesFilterSchema),z.number() ]).optional(),
   description: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  subname: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
   type: z.union([ z.lazy(() => EnumCategoryTypeWithAggregatesFilterSchema),z.lazy(() => CategoryTypeSchema) ]).optional(),
   maxPartySize: z.union([ z.lazy(() => IntNullableWithAggregatesFilterSchema),z.number() ]).optional().nullable(),
   startTime: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),

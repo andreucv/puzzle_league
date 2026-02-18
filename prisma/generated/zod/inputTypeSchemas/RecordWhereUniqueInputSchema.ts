@@ -5,6 +5,8 @@ import { RecordWhereInputSchema } from './RecordWhereInputSchema';
 import { DateTimeFilterSchema } from './DateTimeFilterSchema';
 import { DateTimeNullableFilterSchema } from './DateTimeNullableFilterSchema';
 import { IntNullableFilterSchema } from './IntNullableFilterSchema';
+import { EnumInscriptionStatusFilterSchema } from './EnumInscriptionStatusFilterSchema';
+import { InscriptionStatusSchema } from './InscriptionStatusSchema';
 import { IntFilterSchema } from './IntFilterSchema';
 import { StringFilterSchema } from './StringFilterSchema';
 import { CategoryScalarRelationFilterSchema } from './CategoryScalarRelationFilterSchema';
@@ -25,6 +27,7 @@ export const RecordWhereUniqueInputSchema: z.ZodType<Prisma.RecordWhereUniqueInp
   updatedAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
   finishTime: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
   tableNumber: z.union([ z.lazy(() => IntNullableFilterSchema),z.number().int() ]).optional().nullable(),
+  status: z.union([ z.lazy(() => EnumInscriptionStatusFilterSchema),z.lazy(() => InscriptionStatusSchema) ]).optional(),
   categoryId: z.union([ z.lazy(() => IntFilterSchema),z.number().int() ]).optional(),
   creatorId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   category: z.union([ z.lazy(() => CategoryScalarRelationFilterSchema),z.lazy(() => CategoryWhereInputSchema) ]).optional(),

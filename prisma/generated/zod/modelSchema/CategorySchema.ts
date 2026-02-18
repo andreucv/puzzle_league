@@ -9,6 +9,7 @@ export const CategorySchema = z.object({
   type: CategoryTypeSchema,
   id: z.number().int(),
   description: z.string(),
+  subname: z.string().nullable(),
   maxPartySize: z.number().int().nullable(),
   startTime: z.coerce.date(),
   endTime: z.coerce.date(),

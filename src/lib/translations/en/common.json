@@ -97,6 +97,8 @@
       "participants_per_party": "Participants per Party",
       "category_description": "Category Description",
       "category_description_placeholder": "Enter category description",
+      "category_subname": "Category Subname",
+      "category_subname_placeholder": "Enter category subname",
       "remove_image": "Remove Image",
       "remove_category": "Remove Category"
     },
@@ -150,8 +152,12 @@
   "competition_details": {
     "feature_not_available": "Feature not available yet",
     "seats_available": "seats available",
-    "manage_inscription": "Manage inscription",
-    "no_categories": "No categories have been added to this competition yet."
+    "manage_inscription": "Sign Up",
+    "no_categories": "No categories have been added to this competition yet.",
+    "organized_by": "Organized by",
+    "edit_button": "Edit Competition",
+    "start_competition_button": "Start Competition",
+    "back_to_competitions_button": "Back to Competitions"
   },
   "inscription": {
     "title": "Category Registration",
@@ -161,6 +167,7 @@
     "registered": "Registered",
     "unregister": "Unregister",
     "sign_up": "Sign Up",
+    "sign_up_again": "Sign Up Again",
     "build_team": "Build Team",
     "cancel": "Cancel",
     "team_progress": "Team",
@@ -170,7 +177,36 @@
     "search_placeholder": "Search for teammates by name...",
     "submit_all": "Submit All Registrations",
     "incomplete_parties": "some teams are incomplete",
-    "registration_not_available": "Registration is not available for this category."
+    "registration_not_available": "Registration is not available for this category.",
+    "status_pending": "Pending",
+    "status_accepted": "Accepted",
+    "status_refused": "Refused",
+    "previously_refused": "Your previous registration was refused. You can sign up again."
+  },
+  "manage_inscriptions": {
+    "title": "Manage Inscriptions",
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "refused": "Refused",
+    "max_slots": "Slots",
+    "no_inscriptions": "No inscriptions for this category.",
+    "no_inscriptions_for_filter": "No inscriptions match the selected filter.",
+    "no_categories": "No categories in this competition.",
+    "accepted_success": "Inscription accepted successfully.",
+    "refused_success": "Inscription refused successfully.",
+    "accept_error": "Failed to accept inscription.",
+    "refuse_error": "Failed to refuse inscription.",
+    "status_pending": "Pending",
+    "status_accepted": "Accepted",
+    "status_refused": "Refused",
+    "all": "All",
+    "open": "Open",
+    "near-me": "Near Me",
+    "30-days": "30 days",
+    "7-days": "7 days",
+    "past": "Past",
+    "live": "Live",
+    "soon": "Soon"
   },
   "puzzles": {},
   "head": {
@@ -182,19 +218,7 @@
     "near_me_goto_profile_1": "Set your location in your",
     "near_me_goto_profile_2": "profile",
     "near_me_goto_profile_3": "to enable \"Near Me\" filtering.",
-    "no_competitions_found_for_filters": "Try adjusting your search or filters to find what you're looking for."
-  },
-  "filter-activepresets-activetab-all-greater-than-t-explore_competitions-clear_all_filters": "{ filter = ''; activePresets = []; activeTab = 'ALL'; }} > $t('explore_competitions.clear_all_filters')",
-  "no-competitions-found": "No competitions found",
-  "to-enable-near-me-filtering": "to enable \"Near Me\" filtering.",
-  "set-your-location-in-your": "Set your location in your",
-  "of-totalcount": "of {totalCount}",
-  "open": "Open",
-  "near-me": "Near Me",
-  "30-days": "30 days",
-  "7-days": "7 days",
-  "past": "Past",
-  "live": "Live",
-  "soon": "Soon",
-  "all": "All"
+    "no_competitions_found_for_filters": "Try adjusting your search or filters to find what you're looking for.",
+    "no-competitions-found": "No competitions found"
+  }
 }

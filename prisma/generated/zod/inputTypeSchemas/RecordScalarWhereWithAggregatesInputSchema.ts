@@ -5,6 +5,8 @@ import { StringWithAggregatesFilterSchema } from './StringWithAggregatesFilterSc
 import { DateTimeWithAggregatesFilterSchema } from './DateTimeWithAggregatesFilterSchema';
 import { DateTimeNullableWithAggregatesFilterSchema } from './DateTimeNullableWithAggregatesFilterSchema';
 import { IntNullableWithAggregatesFilterSchema } from './IntNullableWithAggregatesFilterSchema';
+import { EnumInscriptionStatusWithAggregatesFilterSchema } from './EnumInscriptionStatusWithAggregatesFilterSchema';
+import { InscriptionStatusSchema } from './InscriptionStatusSchema';
 import { IntWithAggregatesFilterSchema } from './IntWithAggregatesFilterSchema';
 
 export const RecordScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.RecordScalarWhereWithAggregatesInput> = z.object({
@@ -16,6 +18,7 @@ export const RecordScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.Record
   updatedAt: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
   finishTime: z.union([ z.lazy(() => DateTimeNullableWithAggregatesFilterSchema),z.coerce.date() ]).optional().nullable(),
   tableNumber: z.union([ z.lazy(() => IntNullableWithAggregatesFilterSchema),z.number() ]).optional().nullable(),
+  status: z.union([ z.lazy(() => EnumInscriptionStatusWithAggregatesFilterSchema),z.lazy(() => InscriptionStatusSchema) ]).optional(),
   categoryId: z.union([ z.lazy(() => IntWithAggregatesFilterSchema),z.number() ]).optional(),
   creatorId: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
 }).strict();

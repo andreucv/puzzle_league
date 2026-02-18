@@ -16,6 +16,7 @@ import { CategoryCountOutputTypeArgsSchema } from "../outputTypeSchemas/Category
 export const CategorySelectSchema: z.ZodType<Prisma.CategorySelect> = z.object({
   id: z.boolean().optional(),
   description: z.boolean().optional(),
+  subname: z.boolean().optional(),
   type: z.boolean().optional(),
   maxPartySize: z.boolean().optional(),
   startTime: z.boolean().optional(),

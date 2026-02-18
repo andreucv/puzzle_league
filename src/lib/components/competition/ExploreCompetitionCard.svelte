@@ -2,6 +2,7 @@
     import type { Competition, Category } from "@prisma/client";
     import { CldImage } from 'svelte-cloudinary';
     import Icon from '@iconify/svelte';
+    import { getCategoryTypeIcon } from '$lib/utils/category_utils';
 
     interface Props {
         competition: Competition & {
@@ -50,15 +51,15 @@
             : []
     );
 
-    // Category type display labels
-    const categoryLabels: Record<string, { label: string; icon: string }> = {
-        INDIVIDUAL: { label: 'Individual', icon: 'mdi:account' },
-        PAIRS: { label: 'Pairs', icon: 'mdi:account-multiple' },
-        TEAM: { label: 'Team', icon: 'mdi:account-group' },
-        JUNIOR_INDIVIDUAL: { label: 'Jr', icon: 'mdi:account-child' },
-        JUNIOR_PAIRS: { label: 'Jr. Pairs', icon: 'mdi:account-child-circle' },
-        PUZZLE_CHESS: { label: 'Chess', icon: 'mdi:chess-knight' },
-        OTHER: { label: 'Other', icon: 'mdi:puzzle' },
+    // Category type display labels (abbreviated for chips)
+    const categoryLabels: Record<string, string> = {
+        INDIVIDUAL: 'Individual',
+        PAIRS: 'Pairs',
+        TEAM: 'Team',
+        JUNIOR_INDIVIDUAL: 'Jr',
+        JUNIOR_PAIRS: 'Jr. Pairs',
+        PUZZLE_CHESS: 'Chess',
+        OTHER: 'Other',
     };
 
     // Days until text
@@ -147,8 +148,8 @@
                     <div class="flex items-center gap-1 flex-wrap">
                         {#each categoryChips as chip (chip.type)}
                             <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs {chip.registered ? 'bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 font-medium' : 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'}">
-                                <Icon icon={categoryLabels[chip.type]?.icon ?? 'mdi:puzzle'} class="w-3 h-3" />
-                                {categoryLabels[chip.type]?.label ?? chip.type}
+                                <Icon icon={getCategoryTypeIcon(chip.type)} class="w-3 h-3" />
+                                {categoryLabels[chip.type] ?? chip.type}
                                 {#if chip.registered}
                                     <Icon icon="mdi:check-circle" class="w-3 h-3 ml-0.5" />
                                 {/if}

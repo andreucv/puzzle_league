@@ -1,4 +1,4 @@
-import { CompetitionStatus, PrismaClient, Prisma} from '@prisma/client';
+import { CompetitionStatus, InscriptionStatus, PrismaClient, Prisma} from '@prisma/client';
 import type { Competition, Category } from '@prisma/client';
 
 // Initialize Prisma client
@@ -240,7 +240,7 @@ export async function getCompetition(competitionId: number) {
 
 export async function getCompetitionCategories(
     competitionId: number
-): Promise<Array<Category & { totalRecords: number; finishedRecords: number }>> {
+): Promise<Array<Category & { totalRecords: number; finishedRecords: number; pendingRecords: number; acceptedRecords: number }>> {
     try {
         // Fetch categories with total records count
         const categories = await prisma.category.findMany({
@@ -248,23 +248,31 @@ export async function getCompetitionCategories(
             orderBy: { startTime: 'asc' }
         });
 
-        // Count total number of records in category
+        // Count records in category by status
         const enriched = await Promise.all(
             categories.map(async (category) => {
                 const categoryId = category.id;
-                const [totalRecords, finishedRecords] = await Promise.all([
+                const [totalRecords, finishedRecords, pendingRecords, acceptedRecords] = await Promise.all([
                     prisma.record.count({
-                        where: { categoryId }
+                        where: { categoryId, status: InscriptionStatus.ACCEPTED }
                     }),
                     prisma.record.count({
-                        where: { categoryId, finishTime: { not: null } }
+                        where: { categoryId, finishTime: { not: null }, status: InscriptionStatus.ACCEPTED }
+                    }),
+                    prisma.record.count({
+                        where: { categoryId, status: InscriptionStatus.PENDING }
+                    }),
+                    prisma.record.count({
+                        where: { categoryId, status: InscriptionStatus.ACCEPTED }
                     })
                 ]);
 
                 return {
                     ...(category as unknown as Category),
                     totalRecords,
-                    finishedRecords
+                    finishedRecords,
+                    pendingRecords,
+                    acceptedRecords
                 };
             })
         );
@@ -279,10 +287,10 @@ export async function getCompetitionCategories(
 export async function startCategory(categoryId: number) {
     const [totalRecords, finishedRecords] = await Promise.all([
         prisma.record.count({
-            where: { categoryId }
+            where: { categoryId, status: InscriptionStatus.ACCEPTED }
         }),
         prisma.record.count({
-            where: { categoryId, finishTime: { not: null } }
+            where: { categoryId, finishTime: { not: null }, status: InscriptionStatus.ACCEPTED }
         })
     ]);
 
@@ -540,8 +548,10 @@ export async function signUpUsersToCompetition(
                 throw new Error(`Categories not found: ${missingIds.join(', ')}`);
             }
 
-            // Check for duplicate registrations
-            const alreadyRegistered = categories.filter(cat => cat.records.length > 0);
+            // Check for duplicate registrations (only block if PENDING or ACCEPTED exists)
+            const alreadyRegistered = categories.filter(cat =>
+                cat.records.some(r => r.status === InscriptionStatus.PENDING || r.status === InscriptionStatus.ACCEPTED)
+            );
             if (alreadyRegistered.length > 0) {
                 const categoryNames = alreadyRegistered.map(c => c.description || c.type);
                 throw new Error(`Already registered for categories: ${categoryNames.join(', ')}`);
@@ -676,9 +686,11 @@ export async function getCategoryEntriesFromCompetition(competitionId: number, u
 
 export async function removeUserFromCategory(categoryId: number, userId: string) {
     try {
+        // Only allow unregistering from PENDING or ACCEPTED inscriptions
         const result = await prisma.record.deleteMany({
             where: {
                 categoryId,
+                status: { in: [InscriptionStatus.PENDING, InscriptionStatus.ACCEPTED] },
                 users: {
                     some: {
                         id: userId
@@ -1012,6 +1024,131 @@ export async function searchPuzzles(query: string) {
     } catch (error) {
         console.error('Error searching puzzles:', error);
         throw error;
+    }
+}
+
+// Inscription management functions
+
+export async function getInscriptionsForCompetition(competitionId: number) {
+    try {
+        const categories = await prisma.category.findMany({
+            where: { competitionId },
+            orderBy: { startTime: 'asc' },
+            include: {
+                records: {
+                    orderBy: [
+                        { status: 'asc' },  // PENDING first (alphabetically before ACCEPTED/REFUSED)
+                        { createdAt: 'asc' }
+                    ],
+                    include: {
+                        users: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                image: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        return categories;
+    } catch (error) {
+        console.error('Error getting inscriptions for competition:', error);
+        throw error;
+    }
+}
+
+export async function acceptInscription(recordId: string) {
+    try {
+        const result = await prisma.$transaction(async (tx) => {
+            const record = await tx.record.findUnique({
+                where: { id: recordId },
+                include: {
+                    category: {
+                        include: { competition: true }
+                    }
+                }
+            });
+
+            if (!record) {
+                throw new Error('Record not found');
+            }
+
+            if (record.status !== InscriptionStatus.PENDING) {
+                throw new Error('Only pending inscriptions can be accepted');
+            }
+
+            // Check maxParties limit against ACCEPTED records count
+            if (record.category.maxParties) {
+                const acceptedCount = await tx.record.count({
+                    where: {
+                        categoryId: record.categoryId,
+                        status: InscriptionStatus.ACCEPTED
+                    }
+                });
+
+                if (acceptedCount >= record.category.maxParties) {
+                    throw new Error('Category is full — maximum number of accepted inscriptions reached');
+                }
+            }
+
+            const updatedRecord = await tx.record.update({
+                where: { id: recordId },
+                data: { status: InscriptionStatus.ACCEPTED },
+                include: {
+                    users: {
+                        select: { id: true, name: true, email: true, image: true }
+                    }
+                }
+            });
+
+            return updatedRecord;
+        });
+
+        return { success: true, data: result };
+    } catch (error) {
+        console.error('Error accepting inscription:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error occurred'
+        };
+    }
+}
+
+export async function refuseInscription(recordId: string) {
+    try {
+        const record = await prisma.record.findUnique({
+            where: { id: recordId }
+        });
+
+        if (!record) {
+            throw new Error('Record not found');
+        }
+
+        if (record.status !== InscriptionStatus.PENDING) {
+            throw new Error('Only pending inscriptions can be refused');
+        }
+
+        const updatedRecord = await prisma.record.update({
+            where: { id: recordId },
+            data: { status: InscriptionStatus.REFUSED },
+            include: {
+                users: {
+                    select: { id: true, name: true, email: true, image: true }
+                }
+            }
+        });
+
+        return { success: true, data: updatedRecord };
+    } catch (error) {
+        console.error('Error refusing inscription:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error occurred'
+        };
     }
 }
 

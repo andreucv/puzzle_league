@@ -30,19 +30,19 @@
 
     // Tab definitions with counts
     const tabs = $derived([
-        { id: 'ALL', label: 'All', count: competitions.length },
-        { id: 'NOT_STARTED', label: 'Soon', count: competitions.filter(c => c.status === 'NOT_STARTED').length },
-        { id: 'STARTED', label: 'Live', count: competitions.filter(c => c.status === 'STARTED').length },
-        { id: 'FINISHED', label: 'Past', count: competitions.filter(c => c.status === 'FINISHED' || c.status === 'CANCELLED').length },
+        { id: 'ALL', label: $t('manage_inscriptions.all'), count: competitions.length },
+        { id: 'NOT_STARTED', label: $t('manage_inscriptions.soon'), count: competitions.filter(c => c.status === 'NOT_STARTED').length },
+        { id: 'STARTED', label: $t('manage_inscriptions.live'), count: competitions.filter(c => c.status === 'STARTED').length },
+        { id: 'FINISHED', label: $t('manage_inscriptions.past'), count: competitions.filter(c => c.status === 'FINISHED' || c.status === 'CANCELLED').length },
     ]);
 
     // Smart preset definitions
     const presets = $derived([
-        { id: 'this-week', label: '7 days', icon: 'mdi:calendar-week' },
-        { id: 'this-month', label: '30 days', icon: 'mdi:calendar-week' },
-        { id: 'registered', label: 'Registered', icon: 'mdi:account-check', disabled: !hasRegistrations },
-        { id: 'near-me', label: 'Near Me', icon: 'mdi:map-marker-radius', disabled: !hasUserLocation },
-        { id: 'open-registration', label: 'Open', icon: 'mdi:door-open' },
+        { id: 'this-week', label: $t('manage_inscriptions.7-days'), icon: 'mdi:calendar-week' },
+        { id: 'this-month', label: $t('manage_inscriptions.30-days'), icon: 'mdi:calendar-week' },
+        { id: 'registered', label: $t('inscription.registered'), icon: 'mdi:account-check', disabled: !hasRegistrations },
+        { id: 'near-me', label: $t('manage_inscriptions.near-me'), icon: 'mdi:map-marker-radius', disabled: !hasUserLocation },
+        { id: 'open-registration', label: $t('manage_inscriptions.open'), icon: 'mdi:door-open' },
     ]);
 
     // Filtered competitions based on all filters
@@ -146,7 +146,7 @@
             <div class="flex items-center gap-2 text-sm text-surface-600 dark:text-surface-400">
                 <Icon icon="mdi:information-outline" class="w-4 h-4 text-primary-500" />
                 <span>
-                    Set your location in your <a href="/profile" class="text-primary-600 dark:text-primary-400 hover:underline">profile</a> to enable "Near Me" filtering.
+                    $t('explore_competitions.near_me_goto_profile_1') <a href="/profile" class="text-primary-600 dark:text-primary-400 hover:underline">$t('explore_competitions.near_me_goto_profile_2')</a> $t('explore_competitions.near_me_goto_profile_3').
                 </span>
             </div>
         </div>
@@ -160,13 +160,13 @@
             <div class="col-span-full flex flex-col items-center justify-center py-12 text-center">
                 <Icon icon="mdi:magnify-remove-outline" class="w-16 h-16 text-surface-300 dark:text-surface-600 mb-4" />
                 <h3 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-2">
-                    No competitions found
+                    $t('explore_competitions.no_competitions_found')
                 </h3>
                 <p class="text-sm text-surface-500 dark:text-surface-400 max-w-xs">
                     {#if filter || activePresets.length > 0}
-                        Try adjusting your search or filters to find what you're looking for.
+                        $t('explore_competitions.no_competitions_found_for_filters')
                     {:else}
-                        No competitions are available at this time.
+                        $t('explore_competitions.no_competitions_found')
                     {/if}
                 </p>
                 {#if filter || activePresets.length > 0}

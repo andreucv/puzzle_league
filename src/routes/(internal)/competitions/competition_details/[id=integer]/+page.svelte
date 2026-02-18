@@ -3,11 +3,12 @@
     import { getCompetitionStatusLabel } from '$lib/utils/competition_utils';
     import { getCountryFlag, getCountryNameFromCode } from '$lib/country_utils.js';
     import CategoriesOverview from '$lib/components/CategoriesOverview.svelte';
-    import ManageRegistrationStatus from '$lib/components/ManageRegistrationStatus.svelte';
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
 
     import { CldImage } from 'svelte-cloudinary';
     import { t } from '$lib/translations';
+    import EndPageActionButton from '$lib/components/common/buttons/EndPageActionButton.svelte';
+    import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
 
     let { data } = $props();
 
@@ -38,7 +39,7 @@
     <div class="space-y-3">
         <div class="space-y-4 mb-6">
             <div class="flex justify-between items-start gap-2">
-                <h5 class="text-lg font-semibold break-words min-w-0">{competition.name}</h5>
+                <CompetitionTitle title={competition.name} />
             </div>
 
             {#if competition.description}
@@ -79,7 +80,7 @@
                     <div class="flex items-center gap-2">
                         <Avatar name={competition?.creator.name} classes="w-6 h-6" />
                         <span class="text-sm text-surface-600-400">
-                            Organized by {competition.creator.name}
+                            {$t('competition_details.organized_by')} {competition.creator.name}
                         </span>
                     </div>
                 {/if}
@@ -91,7 +92,7 @@
                     src={competition.image_cld_id}
                     width="800"
                     height="400"
-                    alt="{competitionName} - Competition Image"
+                    alt={competitionName}
                     crop="fill"
                     gravity="auto"
                     class="rounded-lg shadow-lg w-full object-cover max-h-96"
@@ -105,42 +106,15 @@
             <CategoriesOverview {categories} {isCreator} {categoriesWithCounts} {userRegisteredCategoryIds} userRecords={userRecords ?? []} />
         </div>
 
-        <!-- Manage Registration (creator only) -->
-        {#if isCreator && categoriesWithCounts && competition}
-            <div>
-                <ManageRegistrationStatus competition_id={competition.id} competition_registration_status={competition.registrationOpen} hasCategories={categories.length > 0} onStatusChange={(status) => competition.registrationOpen = status} />
-            </div>
-        {/if}
-
-
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            {#if currentUser && competition?.registrationOpen}
-                <a href="/competitions/competition_details/{competition?.id}/inscription" class="btn preset-filled-success-500">
-                    <Icon icon="mdi:account-plus" width="1.2rem" height="1.2rem" />
-                    {$t('competition_details.manage_inscription')}
-                </a>
-            {:else}
-                <button class="btn preset-filled-success-500" disabled>
-                    <Icon icon="mdi:account-plus" width="1.2rem" height="1.2rem" />
-                    {$t('competition_details.manage_inscription')}
-                </button>
-            {/if}
+            <EndPageActionButton icon="mdi:account-plus" href="/competitions/competition_details/{competition?.id}/inscription" colorClass="preset-filled-success-500" disabled={!(currentUser && competition?.registrationOpen)} text={$t('competition_details.manage_inscription')} />
             {#if isCreator}
-                <a href="/competition/edit/{competition?.id}" class="btn preset-filled-primary-500">
-                    <Icon icon="mdi:pencil" width="1.2rem" height="1.2rem" />
-                    Edit Competition
-                </a>
-
-                <a href="/competition/during_competition/{competition?.id}" class="btn preset-filled-primary-500">
-                    <Icon icon="mdi:play-circle-outline" width="1.2rem" height="1.2rem" />
-                    Competition Day
-                </a>
+                <EndPageActionButton icon="mdi:pencil" href="/competition/edit/{competition?.id}" text={$t('competition_details.edit_button')} />
+                <EndPageActionButton icon="mdi:play-circle-outline" href="/competition/{competition?.id}/during_competition" text={$t('competition_details.start_competition_button')} />
+                <EndPageActionButton icon="mdi:clipboard-check-outline" href="/competition/{competition?.id}/manage_inscriptions" text={$t('manage_inscriptions.title')} />
             {/if}
-            <a href="/competitions/explore_competitions/" class="btn preset-tonal">
-                <Icon icon="mdi:arrow-left" width="1.2rem" height="1.2rem" />
-                Back to Competitions
-            </a>
+            <EndPageActionButton icon="mdi:arrow-left" href="/competitions/explore_competitions/" colorClass="preset-tonal" text={$t('competition_details.back_to_competitions_button')} />
         </div>
     </div>
 </div>

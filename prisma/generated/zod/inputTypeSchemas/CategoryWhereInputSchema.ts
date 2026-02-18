@@ -3,6 +3,7 @@ import type { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { IntFilterSchema } from './IntFilterSchema';
 import { StringFilterSchema } from './StringFilterSchema';
+import { StringNullableFilterSchema } from './StringNullableFilterSchema';
 import { EnumCategoryTypeFilterSchema } from './EnumCategoryTypeFilterSchema';
 import { CategoryTypeSchema } from './CategoryTypeSchema';
 import { IntNullableFilterSchema } from './IntNullableFilterSchema';
@@ -19,6 +20,7 @@ export const CategoryWhereInputSchema: z.ZodType<Prisma.CategoryWhereInput> = z.
   NOT: z.union([ z.lazy(() => CategoryWhereInputSchema),z.lazy(() => CategoryWhereInputSchema).array() ]).optional(),
   id: z.union([ z.lazy(() => IntFilterSchema),z.number() ]).optional(),
   description: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  subname: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
   type: z.union([ z.lazy(() => EnumCategoryTypeFilterSchema),z.lazy(() => CategoryTypeSchema) ]).optional(),
   maxPartySize: z.union([ z.lazy(() => IntNullableFilterSchema),z.number() ]).optional().nullable(),
   startTime: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),

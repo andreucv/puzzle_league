@@ -362,6 +362,7 @@
     function addCategory() {
         categories.create = [...categories.create, {
             description: "",
+            subname: "",
             type: "INDIVIDUAL", // or whatever default CategoryType you want
             startTime: "", // Add this property
             endTime: "", // Add this property
@@ -902,6 +903,17 @@
                             <!-- Category Details (only show when type is selected) -->
                             {#if categories.update[i].data.type}
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <!-- Category Subname -->
+                                <div class="label">
+                                    <span class="text-sm font-medium">{$t('competition.create.category_subname')}</span>
+                                    <input
+                                        type="text"
+                                        class="input bg-primary-50-950"
+                                        bind:value={categories.update[i].data.subname}
+                                        placeholder={$t('competition.create.category_subname_placeholder')}
+                                        maxlength="60"
+                                    />
+                                </div>
                                 <!-- Start Time -->
                                 <div class="label">
                                     <span class="text-sm font-medium">{$t('competition.create.start_time')}</span>
@@ -1126,6 +1138,17 @@
                                     {#if categoryErrors.create[i]?.description}
                                         <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].description}</span>
                                     {/if}
+                                </div>
+                                <!-- Category Subname -->
+                                <div class="label">
+                                    <span class="text-sm font-medium">{$t('competition.create.category_subname')}</span>
+                                    <input
+                                        type="text"
+                                        class="input bg-primary-50-950"
+                                        bind:value={categories.create[i].subname}
+                                        placeholder={$t('competition.create.category_subname_placeholder')}
+                                        maxlength="60"
+                                    />
                                 </div>
                             </div>
                             {/if}

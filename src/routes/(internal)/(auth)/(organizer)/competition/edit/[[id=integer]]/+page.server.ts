@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit';
-import type { Action, Actions, PageServerLoad } from './$types';
+import type { Action, Actions, PageServerLoad } from '../$types';
 import { updateCompetition, getCompetitionWithCategories } from '$lib/database';
 import { CategoryType } from '@prisma/client';
 import { auth } from '$lib/auth';
@@ -21,6 +21,7 @@ cloudinary.config({
 // Category schema based on UX spec validation requirements
 const CategorySchema = z.object({
     description: z.string().max(60, "Category description must be at most 60 characters"),
+    subname: z.string().max(60, "Category subname must be at most 60 characters").nullable().optional(),
     type: z.nativeEnum(CategoryType, { error: "Please select a category type" }),
     startTime: z.string().min(1, "Start time is required"),
     endTime: z.string().min(1, "End time is required"),

@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 
 import { z } from 'zod';
+import { InscriptionStatusSchema } from './InscriptionStatusSchema';
 import { UserUncheckedCreateNestedManyWithoutRecordsInputSchema } from './UserUncheckedCreateNestedManyWithoutRecordsInputSchema';
 
 export const RecordUncheckedCreateWithoutCreatorInputSchema: z.ZodType<Prisma.RecordUncheckedCreateWithoutCreatorInput> = z.object({
@@ -9,6 +10,7 @@ export const RecordUncheckedCreateWithoutCreatorInputSchema: z.ZodType<Prisma.Re
   updatedAt: z.coerce.date().optional(),
   finishTime: z.coerce.date().optional().nullable(),
   tableNumber: z.number().int().optional().nullable(),
+  status: z.lazy(() => InscriptionStatusSchema).optional(),
   categoryId: z.number().int(),
   users: z.lazy(() => UserUncheckedCreateNestedManyWithoutRecordsInputSchema).optional()
 }).strict();

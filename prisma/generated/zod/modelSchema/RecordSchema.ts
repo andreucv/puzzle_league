@@ -1,10 +1,12 @@
 import { z } from 'zod';
+import { InscriptionStatusSchema } from '../inputTypeSchemas/InscriptionStatusSchema'
 
 /////////////////////////////////////////
 // RECORD SCHEMA
 /////////////////////////////////////////
 
 export const RecordSchema = z.object({
+  status: InscriptionStatusSchema,
   id: z.string().cuid(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),

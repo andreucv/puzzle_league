@@ -7,6 +7,7 @@ import { PuzzleUncheckedCreateNestedManyWithoutCategoriesInputSchema } from './P
 export const CategoryUncheckedCreateWithoutRecordsInputSchema: z.ZodType<Prisma.CategoryUncheckedCreateWithoutRecordsInput> = z.object({
   id: z.number().int().optional(),
   description: z.string(),
+  subname: z.string().optional().nullable(),
   type: z.lazy(() => CategoryTypeSchema),
   maxPartySize: z.number().int().optional().nullable(),
   startTime: z.coerce.date(),

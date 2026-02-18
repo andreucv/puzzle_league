@@ -5,9 +5,11 @@
     import { enhance } from '$app/forms';
     import { invalidateAll } from '$app/navigation';
     import { t } from '$lib/translations';
-    import { getCategoryTypeName } from '$lib/utils/category_utils';
+    import { getCategoryTypeName, getCategoryTypeIcon } from '$lib/utils/category_utils';
     import { formatTime } from '$lib/utils/datetime_utils';
     import LoadingOverlay from '$lib/components/LoadingOverlay.svelte';
+    import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
+    import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
 
     let { data } = $props();
 
@@ -44,9 +46,33 @@
     // Debounce timers
     let searchTimers: Map<number, ReturnType<typeof setTimeout>> = new Map();
 
-    // Check if user is already registered for a category
+    // Check if user is already registered for a category (PENDING or ACCEPTED)
     function getExistingRecord(categoryId: number) {
-        return existingRecords.find((r: any) => r.categoryId === categoryId);
+        return existingRecords.find((r: any) => r.categoryId === categoryId && (r.status === 'PENDING' || r.status === 'ACCEPTED'));
+    }
+
+    // Check if user has a REFUSED record (can re-register)
+    function getRefusedRecord(categoryId: number) {
+        return existingRecords.find((r: any) => r.categoryId === categoryId && r.status === 'REFUSED');
+    }
+
+    // Get status badge classes
+    function getStatusBadgeClasses(status: string): string {
+        switch (status) {
+            case 'ACCEPTED': return 'preset-filled-success-500';
+            case 'PENDING': return 'preset-filled-warning-500';
+            case 'REFUSED': return 'preset-filled-error-500';
+            default: return 'preset-tonal';
+        }
+    }
+
+    function getStatusIcon(status: string): string {
+        switch (status) {
+            case 'ACCEPTED': return 'mdi:check-circle';
+            case 'PENDING': return 'mdi:clock-outline';
+            case 'REFUSED': return 'mdi:close-circle';
+            default: return 'mdi:help-circle';
+        }
     }
 
     // Check if a signup has been started for a category
@@ -187,13 +213,7 @@
         return payload;
     }
 
-    // Get category icon
-    function getCategoryIcon(type: CategoryType): string {
-        if (type.includes('TEAM')) return 'mdi:account-group';
-        if (type.includes('PAIRS')) return 'mdi:account-multiple';
-        if (type.includes('CHESS')) return 'mdi:chess-pawn';
-        return 'mdi:account';
-    }
+
 
     // Is individual category (maxPartySize === 1)?
     function isIndividual(category: Category): boolean {
@@ -206,13 +226,8 @@
 
     <!-- Header -->
     <div class="space-y-4 mb-6">
-        <div class="flex items-center gap-2">
-            <a href="/competitions/competition_details/{competition?.id}" class="btn btn-sm preset-tonal">
-                <Icon icon="mdi:arrow-left" width="1.2rem" height="1.2rem" />
-            </a>
-            <h4 class="h4">{$t('inscription.title')}</h4>
-        </div>
-        <p class="text-surface-600 dark:text-surface-400">{competition?.name}</p>
+        <TitleBackButton href="/competitions/competition_details/{competition?.id}" text={$t('inscription.title')}/>
+        <CompetitionTitle title={competition.name} />
 
         {#if !canRegister}
             <div class="alert preset-filled-warning-500 p-4 rounded-lg">
@@ -252,6 +267,7 @@
     <div class="space-y-4 pb-20">
         {#each categories as category (category.id)}
             {@const existingRecord = getExistingRecord(category.id)}
+            {@const refusedRecord = getRefusedRecord(category.id)}
             {@const signup = getSignup(category.id)}
             {@const signupActive = isSignupStarted(category.id)}
             {@const maxSize = category.maxPartySize || 1}
@@ -264,7 +280,7 @@
                 <div class="flex justify-between items-start mb-3">
                     <div>
                         <h3 class="h4 font-semibold flex items-center gap-2">
-                            <Icon icon={getCategoryIcon(category.type)} width="1.5rem" height="1.5rem" class="text-primary-800" />
+                            <Icon icon={getCategoryTypeIcon(category.type)} width="1.5rem" height="1.5rem" class="text-primary-800" />
                             {getCategoryTypeName(category.type)}
                         </h3>
                         {#if category.description && category.description !== getCategoryTypeName(category.type).toUpperCase()}
@@ -301,13 +317,18 @@
                     </div>
                 {/if}
 
-                <!-- Already registered -->
+                <!-- Already registered (PENDING or ACCEPTED) -->
                 {#if existingRecord}
-                    <div class="p-3 bg-success-50 dark:bg-success-900/20 border border-success-300 dark:border-success-700 rounded-lg">
+                    <div class="p-3 {existingRecord.status === 'ACCEPTED' ? 'bg-success-50 dark:bg-success-900/20 border-success-300 dark:border-success-700' : 'bg-warning-50 dark:bg-warning-900/20 border-warning-300 dark:border-warning-700'} border rounded-lg">
                         <div class="flex items-center justify-between mb-2">
                             <div class="flex items-center gap-2">
-                                <Icon icon="mdi:check-circle" width="1.2rem" height="1.2rem" class="text-success-600" />
-                                <span class="font-semibold text-success-700 dark:text-success-400">{$t('inscription.registered')}</span>
+                                <Icon icon={getStatusIcon(existingRecord.status)} width="1.2rem" height="1.2rem" class={existingRecord.status === 'ACCEPTED' ? 'text-success-600' : 'text-warning-600'} />
+                                <span class="font-semibold {existingRecord.status === 'ACCEPTED' ? 'text-success-700 dark:text-success-400' : 'text-warning-700 dark:text-warning-400'}">
+                                    {$t('inscription.registered')}
+                                </span>
+                                <span class="badge {getStatusBadgeClasses(existingRecord.status)} text-xs">
+                                    {$t(`inscription.status_${existingRecord.status.toLowerCase()}`)}
+                                </span>
                             </div>
                             {#if canRegister}
                                 <form method="POST" action="?/unregister" use:enhance={() => {
@@ -334,6 +355,36 @@
                             {/each}
                         </div>
                     </div>
+
+                <!-- Previously refused — allow re-registration -->
+                {:else if refusedRecord && canRegister}
+                    <div class="p-3 bg-error-50 dark:bg-error-900/20 border border-error-300 dark:border-error-700 rounded-lg mb-3">
+                        <div class="flex items-center gap-2">
+                            <Icon icon="mdi:close-circle" width="1.2rem" height="1.2rem" class="text-error-600" />
+                            <span class="text-sm text-error-700 dark:text-error-400">{$t('inscription.previously_refused')}</span>
+                        </div>
+                    </div>
+                    {#if !signupActive}
+                        {#if individual}
+                            <button
+                                type="button"
+                                class="btn preset-filled-success-500 w-full sm:w-auto"
+                                onclick={() => toggleIndividualSignup(category.id)}
+                            >
+                                <Icon icon="mdi:account-plus" width="1.2rem" height="1.2rem" />
+                                {$t('inscription.sign_up_again')}
+                            </button>
+                        {:else}
+                            <button
+                                type="button"
+                                class="btn preset-filled-success-500 w-full sm:w-auto"
+                                onclick={() => startGroupSignup(category.id)}
+                            >
+                                <Icon icon="mdi:account-group" width="1.2rem" height="1.2rem" />
+                                {$t('inscription.sign_up_again')}
+                            </button>
+                        {/if}
+                    {/if}
 
                 <!-- Signup form -->
                 {:else if canRegister}

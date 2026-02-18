@@ -13,6 +13,19 @@ export function getCategoryTypeName(type: CategoryType) {
     return typeNames[type] || type;
 }
 
+export function getCategoryTypeIcon(type: CategoryType) {
+    const typeIcons: Record<CategoryType, string> = {
+        INDIVIDUAL: 'mdi:account',
+        PAIRS: 'mdi:account-multiple',
+        TEAM: 'mdi:account-group',
+        JUNIOR_INDIVIDUAL: 'mdi:account-child',
+        JUNIOR_PAIRS: 'mdi:account-child',
+        PUZZLE_CHESS: 'mdi:chess-knight',
+        OTHER: 'mdi:shape'
+    };
+    return typeIcons[type] || 'mdi:shape';
+}
+
 export function getPartySizeByCategoryType(type: CategoryType) {
     const partySizes: Record<CategoryType, number> = {
         INDIVIDUAL: 1,

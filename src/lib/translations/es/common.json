@@ -193,7 +193,8 @@
     "near_me_goto_profile_1": "Establece tu ubicación en tu",
     "near_me_goto_profile_2": "perfil",
     "near_me_goto_profile_3": "para habilitar el filtrado \"Cerca de mí\".",
-    "no_competitions_found_for_filters": "Intente ajustar su búsqueda o filtros para encontrar lo que está buscando."
+    "no_competitions_found_for_filters": "Intente ajustar su búsqueda o filtros para encontrar lo que está buscando.",
+    "no-competitions-found": "No se han encontrado competiciones"
   },
   "manage_inscriptions": {
     "accept_error": "Error al aceptar la inscripción",

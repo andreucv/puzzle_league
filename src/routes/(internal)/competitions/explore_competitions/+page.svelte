@@ -146,7 +146,7 @@
             <div class="flex items-center gap-2 text-sm text-surface-600 dark:text-surface-400">
                 <Icon icon="mdi:information-outline" class="w-4 h-4 text-primary-500" />
                 <span>
-                    $t('explore_competitions.near_me_goto_profile_1') <a href="/profile" class="text-primary-600 dark:text-primary-400 hover:underline">$t('explore_competitions.near_me_goto_profile_2')</a> $t('explore_competitions.near_me_goto_profile_3').
+                    {$t('explore_competitions.near_me_goto_profile_1')} <a href="/profile" class="text-primary-600 dark:text-primary-400 hover:underline">{$t('explore_competitions.near_me_goto_profile_2')}</a> {$t('explore_competitions.near_me_goto_profile_3')}.
                 </span>
             </div>
         </div>

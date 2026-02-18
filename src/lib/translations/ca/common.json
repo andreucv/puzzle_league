@@ -193,7 +193,8 @@
     "near_me_goto_profile_1": "Establiu la vostra ubicació al vostre",
     "near_me_goto_profile_2": "perfil",
     "near_me_goto_profile_3": "per activar el filtratge \"A prop meu\".",
-    "no_competitions_found_for_filters": "Proveu d'ajustar la cerca o els filtres per trobar el que busqueu."
+    "no_competitions_found_for_filters": "Proveu d'ajustar la cerca o els filtres per trobar el que busqueu.",
+    "no-competitions-found": "No s'han trobat competicions"
   },
   "manage_inscriptions": {
     "accept_error": "Error al acceptar la inscripció",

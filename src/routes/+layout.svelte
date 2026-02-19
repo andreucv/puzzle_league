@@ -20,11 +20,13 @@
         return currentPath.startsWith(href);
     }
 
+    const DRAWER_TRANSITION_MS = 200;
+
     function navigate(event: MouseEvent) {
         event.preventDefault();
-        drawerState.open = false;
         const href = (event.currentTarget as HTMLAnchorElement)?.getAttribute('href');
-        if (href) goto(href);
+        drawerState.open = false;
+        if (href) setTimeout(() => goto(href), DRAWER_TRANSITION_MS);
     }
 </script>
 

@@ -20,8 +20,11 @@
         return currentPath.startsWith(href);
     }
 
-    function navigate() {
+    function navigate(event: MouseEvent) {
+        event.preventDefault();
         drawerState.open = false;
+        const href = (event.currentTarget as HTMLAnchorElement)?.getAttribute('href');
+        if (href) goto(href);
     }
 </script>
 
@@ -115,7 +118,7 @@ triggerBase="btn preset-tonal"
         {#if data.user}
         <div class="px-3 pb-5 pt-2">
             <hr class="mb-3 border-surface-300-700" />
-            <button onclick={async () => { navigate(); await authClient.signOut({ fetchOptions: { onSuccess: () => goto('/login') } }); }} class="nav-item w-full text-error-500 hover:bg-error-500/10">
+            <button onclick={async () => { drawerState.open = false; await authClient.signOut({ fetchOptions: { onSuccess: () => goto('/login') } }); }} class="nav-item w-full text-error-500 hover:bg-error-500/10">
                 <Icon icon="mdi:logout" width="1.25rem" height="1.25rem" />
                 <span>Sign out</span>
             </button>

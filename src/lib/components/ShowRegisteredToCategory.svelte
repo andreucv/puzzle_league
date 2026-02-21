@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { User , Category, Entry, Prisma} from '@prisma/client';
-    import { Avatar } from '@skeletonlabs/skeleton-svelte';
+
     import Icon from '@iconify/svelte';
     let { category, entry, currentUser }: { category: Category, entry: Prisma.EntryUpdateWithoutCategoryInput , currentUser: User } = $props();
     // data will include:

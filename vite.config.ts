@@ -13,6 +13,9 @@ export default defineConfig({
 	server: {
 		watch: {
 			usePolling: true,
+		},
+		fs: {
+			allow: ['prisma/generated'] // Allow access to parent directory for better-auth and prisma client
 		}
 	}
 });

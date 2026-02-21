@@ -237,7 +237,11 @@
                 <div class="label">
                     <span>Image</span>
                     {#if selected_image_src === undefined}
-                        <FileUpload accept="image/*" name="puzzle_image" maxFiles={1} onFileChange={handleImageChange}>
+                        <FileUpload accept="image/*" maxFiles={1} onFileChange={handleImageChange}>
+                            <FileUpload.Dropzone>
+                                <FileUpload.Trigger class="btn preset-tonal">Choose Image</FileUpload.Trigger>
+                            </FileUpload.Dropzone>
+                            <FileUpload.HiddenInput name="puzzle_image" />
                         </FileUpload>
                     {:else}
                         <div class="flex flex-col items-center gap-2">

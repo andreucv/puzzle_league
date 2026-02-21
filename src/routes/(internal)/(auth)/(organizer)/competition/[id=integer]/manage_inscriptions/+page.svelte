@@ -231,7 +231,10 @@
                                 <div class="space-y-2 mb-3">
                                     {#each record.users as user}
                                         <div class="flex items-center gap-2">
-                                            <Avatar name={user.name?.substring(0, 2) || 'U'} src={user.image ?? undefined} classes="w-8 h-8 shrink-0" />
+                                            <Avatar class="w-8 h-8 shrink-0">
+                                                <Avatar.Image src={user.image ?? undefined} alt={user.name ?? 'User'} />
+                                                <Avatar.Fallback>{user.name?.substring(0, 2) || 'U'}</Avatar.Fallback>
+                                            </Avatar>
                                             <span class="text-sm font-medium">{user.name}</span>
                                         </div>
                                     {/each}

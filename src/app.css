@@ -1,11 +1,10 @@
 @import 'tailwindcss';
 
 @import '@skeletonlabs/skeleton';
-@import '@skeletonlabs/skeleton/optional/presets';
 @import '@skeletonlabs/skeleton/themes/hamlindigo';
 @custom-variant dark (&:where([data-mode="dark"], [data-mode="dark"] *));
 
-@source '../node_modules/@skeletonlabs/skeleton-svelte/dist';
+@import '@skeletonlabs/skeleton-svelte';
 
 #layout-start > div > h4 {
     @apply h4 mb-2 font-sans

@@ -78,7 +78,9 @@
                 <!-- Creator Info -->
                 {#if competition?.creator}
                     <div class="flex items-center gap-2">
-                        <Avatar name={competition?.creator.name} classes="w-6 h-6" />
+                        <Avatar class="w-6 h-6">
+                            <Avatar.Fallback>{competition?.creator.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
+                        </Avatar>
                         <span class="text-sm text-surface-600-400">
                             {$t('competition_details.organized_by')} {competition.creator.name}
                         </span>

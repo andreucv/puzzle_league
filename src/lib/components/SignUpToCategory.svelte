@@ -103,11 +103,10 @@
                 {#each choosed_participants as participant, index}
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2">
-                    <Avatar
-                        name={participant.name ? participant.name.substring(0,2) : 'U'}
-                        src={participant.image}
-                        classes="w-8 h-8">
-                        </Avatar>
+                    <Avatar class="w-8 h-8">
+                        <Avatar.Image src={participant.image} alt={participant.name ?? 'User'} />
+                        <Avatar.Fallback>{participant.name ? participant.name.substring(0,2) : 'U'}</Avatar.Fallback>
+                    </Avatar>
                     <span>{participant.name}</span>
                     </div>
                     {#if participant.id != currentUser.id}

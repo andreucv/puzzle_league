@@ -1,6 +1,6 @@
 <script lang="ts">
     import '../app.css';
-    import { Modal, Avatar } from '@skeletonlabs/skeleton-svelte';
+    import { Dialog, Avatar, Portal } from '@skeletonlabs/skeleton-svelte';
     import Header from '$lib/components/Header.svelte';
     import Footer from '$lib/components/Footer.svelte';
     import Icon from '@iconify/svelte';
@@ -20,37 +20,37 @@
         return currentPath.startsWith(href);
     }
 
-    function navigate(event: MouseEvent) {
-        event.preventDefault();
-        const href = (event.currentTarget as HTMLAnchorElement)?.getAttribute('href');
+    function navigate() {
         drawerState.open = false;
-        if (href) goto(href);
     }
+
+    // CSS transition classes for backdrop and drawer panel
+    const animBackdrop = 'transition transition-discrete opacity-0 starting:data-[state=open]:opacity-0 data-[state=open]:opacity-100';
+    const animDrawer = 'transition transition-discrete opacity-0 -translate-x-full starting:data-[state=open]:opacity-0 starting:data-[state=open]:-translate-x-full data-[state=open]:opacity-100 data-[state=open]:translate-x-0';
 </script>
 
-<Modal open={drawerState.open}
-triggerBase="btn preset-tonal"
-  contentBase="bg-surface-100-900 shadow-xl w-[320px] h-screen overflow-y-auto"
-  positionerJustify="justify-start"
-  positionerAlign=""
-  positionerPadding=""
-  transitionsPositionerIn={{ x: -320, duration: 200 }}
-  transitionsPositionerOut={{ x: -320, duration: 200 }}>
-      {#snippet content()}
+<Dialog open={drawerState.open} onOpenChange={(e) => { drawerState.open = e.open; }}>
+    <Portal>
+        <Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-50/75 dark:bg-surface-950/75 {animBackdrop}" />
+        <Dialog.Positioner class="fixed inset-0 z-50 flex justify-start">
+            <Dialog.Content class="h-screen bg-surface-100-900 shadow-xl w-[320px] overflow-y-auto {animDrawer}">
     <nav class="drawer-nav flex flex-col h-full">
         <!-- Header -->
         <div class="flex items-center justify-between px-5 pt-5 pb-3">
             <h2 class="h4 font-sans" style="font-weight: 800; font-stretch: 125%;"><a href="/" onclick={navigate}>PuzzLigas</a></h2>
-            <button onclick={() => drawerState.open = false} class="p-1.5 rounded-full hover:bg-surface-200-800 transition-colors">
+            <Dialog.CloseTrigger class="p-1.5 rounded-full hover:bg-surface-200-800 transition-colors">
                 <Icon icon="mdi:close" width="1.25rem" height="1.25rem" />
-            </button>
+            </Dialog.CloseTrigger>
         </div>
 
         <!-- User greeting -->
         {#if data.user}
         <a href="/profile" onclick={navigate} class="flex items-center gap-3 px-5 py-3 mx-3 mb-2 rounded-xl bg-surface-200-800 hover:bg-surface-300-700 transition-colors no-underline text-inherit">
             {#if data.user.image}
-                <Avatar name={data.user.name ? data.user.name.substring(0,2) : 'U'} src={data.user.image} classes="w-9 h-9" />
+                <Avatar class="w-9 h-9">
+                    <Avatar.Image src={data.user.image} alt={data.user.name ?? 'User'} />
+                    <Avatar.Fallback>{data.user.name ? data.user.name.substring(0,2) : 'U'}</Avatar.Fallback>
+                </Avatar>
             {:else}
                 <div class="w-9 h-9 rounded-full bg-primary-500/20 flex items-center justify-center">
                     <Icon icon="mdi:account" width="1.25rem" height="1.25rem" class="text-primary-500" />
@@ -125,8 +125,10 @@ triggerBase="btn preset-tonal"
         </div>
         {/if}
     </nav>
-    {/snippet}
-</Modal>
+            </Dialog.Content>
+        </Dialog.Positioner>
+    </Portal>
+</Dialog>
 <Header/>
 <div id="layout-start">
 {@render children()}

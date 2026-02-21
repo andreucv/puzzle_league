@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Avatar, Combobox } from "@skeletonlabs/skeleton-svelte";
+    import { Avatar, Combobox, Portal, useListCollection } from "@skeletonlabs/skeleton-svelte";
     import type { RoleAssignment } from "@prisma/client";
     import { t } from '$lib/translations';
     import { enhance } from '$app/forms';
@@ -33,6 +33,14 @@
     };
 
     const countryData = getCountryData();
+
+    let filteredItems = $state(countryData);
+
+    const collection = $derived(useListCollection({
+        items: filteredItems,
+        itemToString: (item) => item.label,
+        itemToValue: (item) => item.value,
+    }));
 
     // Sync local state when user prop changes (after form revalidation)
     $effect(() => {
@@ -70,11 +78,10 @@
     <h3 class="text-lg font-semibold text-surface-700-300">{$t('profile.data')}</h3>
     <div class="flex justify-center pb-6">
         {#if user.image}
-            <Avatar
-                name={user.name}
-                src={user.image}
-                classes="w-20 h-20 rounded-full border-2 border-surface-300"
-            ></Avatar>
+            <Avatar class="w-20 h-20 rounded-full border-2 border-surface-300">
+                <Avatar.Image src={user.image} alt={user.name ?? 'User'} />
+                <Avatar.Fallback>{user.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
+            </Avatar>
             {#if account.provider === "credential"}
                 <button class="btn btn-sm preset-outlined-surface-500">Change</button>
             {/if}
@@ -132,21 +139,40 @@
                         <input type="hidden" name="country" value={countryValue[0] || ''} />
                         <div class="border border-surface-300 bg-white rounded-lg overflow-hidden">
                             <Combobox
-                                data={countryData}
+                                {collection}
                                 value={countryValue}
                                 inputValue={countryInputValue}
                                 onValueChange={(e) => (countryValue = e.value)}
-                                onInputValueChange={(e) => (countryInputValue = e.inputValue)}
+                                onInputValueChange={(e) => {
+                                    countryInputValue = e.inputValue;
+                                    filteredItems = countryData.filter((item) =>
+                                        item.label.toLowerCase().includes(e.inputValue.toLowerCase())
+                                    );
+                                }}
+                                onOpenChange={() => { filteredItems = countryData; }}
                                 placeholder="Select country..."
-                                contentBase="card bg-surface-50 p-2 shadow-xl max-h-48 overflow-y-auto rounded-lg"
-                                inputGroupInput="input text-sm px-3 py-2 bg-transparent border-none w-full"
                             >
-                                {#snippet item(item)}
-                                    <div class="flex items-center gap-2 p-1">
-                                        <span>{item.emoji}</span>
-                                        <span>{item.label}</span>
-                                    </div>
-                                {/snippet}
+                                <Combobox.Control>
+                                    <Combobox.Input class="input text-sm px-3 py-2 bg-transparent border-none w-full" />
+                                    <Combobox.Trigger />
+                                </Combobox.Control>
+                                <Portal>
+                                    <Combobox.Positioner>
+                                        <Combobox.Content class="card bg-surface-50 p-2 shadow-xl max-h-48 overflow-y-auto rounded-lg">
+                                            {#each collection.items as item}
+                                                <Combobox.Item item={item}>
+                                                    <Combobox.ItemText>
+                                                        <div class="flex items-center gap-2 p-1">
+                                                            <span>{item.emoji}</span>
+                                                            <span>{item.label}</span>
+                                                        </div>
+                                                    </Combobox.ItemText>
+                                                    <Combobox.ItemIndicator>✓</Combobox.ItemIndicator>
+                                                </Combobox.Item>
+                                            {/each}
+                                        </Combobox.Content>
+                                    </Combobox.Positioner>
+                                </Portal>
                             </Combobox>
                         </div>
                         <input

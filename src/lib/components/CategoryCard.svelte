@@ -7,6 +7,7 @@
     import type { Category, Puzzle } from '@prisma/client';
     import Card from '$lib/components/common/card/Card.svelte';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
+    import { start } from 'repl';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
     type PartyUser = { id: string; name: string; email: string; image: string | null };
@@ -74,11 +75,10 @@
                 <div class="flex items-center gap-2">
                     <div class="flex -space-x-1.5">
                         {#each party as user}
-                            <Avatar
-                                name={user.name}
-                                src={user?.image ?? undefined}
-                                classes="w-7 h-7 ring-2 ring-white dark:ring-surface-900 shadow-sm"
-                            />
+                            <Avatar class="w-7 h-7 ring-2 ring-white dark:ring-surface-900 shadow-sm">
+                                <Avatar.Image src={user?.image ?? undefined} alt={user.name ?? 'User'} />
+                                <Avatar.Fallback>{user.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
+                            </Avatar>
                         {/each}
                     </div>
                     <span class="text-xs text-surface-600 dark:text-surface-400">

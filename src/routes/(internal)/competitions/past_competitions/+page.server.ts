@@ -1,6 +1,5 @@
 import type { PageServerLoad } from "./$types";
 import { getUpcomingCompetitions, getPastCompetitions } from "$lib/database/db_competition_utils";
-import type { Competition } from "@prisma/client/wasm";
 
 export const load: PageServerLoad = async (event) => {
     const BATCH_SIZE = 10;

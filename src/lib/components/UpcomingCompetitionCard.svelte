@@ -54,11 +54,10 @@
                                     <!-- Team Members -->
                                     <div class="flex -space-x-2 justify-center">
                                         {#each entry.users as user}
-                                            <Avatar
-                                                name={user.name}
-                                                src={user?.image ?? undefined}
-                                                classes="w-8 h-8 ring-2 ring-surface-50-950 hover:scale-110 transition-transform duration-200"
-                                            />
+                                            <Avatar class="w-8 h-8 ring-2 ring-surface-50-950 hover:scale-110 transition-transform duration-200">
+                                                <Avatar.Image src={user?.image ?? undefined} alt={user.name ?? 'User'} />
+                                                <Avatar.Fallback>{user.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
+                                            </Avatar>
                                         {/each}
                                     </div>
                                 </div>

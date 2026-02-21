@@ -7,7 +7,8 @@ export const load = async ({ data }) => {
 
   addTranslations(translations);
 
-  await Promise.all([setRoute(route), setLocale(locale)]);
+  await setRoute(route);
+  await setLocale(locale);
 
   return data;
 };

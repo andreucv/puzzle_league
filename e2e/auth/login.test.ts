@@ -40,7 +40,7 @@ test('WhenAccessingLoginPage_Login_AfterSubmitCorrectUserPassword_RedirectsToHom
     // Sometimes login flow sets cookies in the process of several redirects.
     // Wait for the final URL to ensure that the cookies are actually set.
     await page.waitForURL('/');
-    await expect(page.locator('a').filter({ hasText: 'TE' }).first()).toBeVisible();
+    await expect(page.locator('a').filter({ hasText: 'Us' }).first()).toBeVisible();
 });
 
 test('WhenAccessingProfilePage_WhenNotLoggedIn_ThenRedirectsToLoginPage', async ({ page }) => {
@@ -65,7 +65,7 @@ test('WhenAccessingAdminPage_WhenLoggedInUserWithoutPermission_ThenAdminPageIsNo
     // Sometimes login flow sets cookies in the process of several redirects.
     // Wait for the final URL to ensure that the cookies are actually set.
     await page.waitForURL('/');
-    await expect(page.locator('a').filter({ hasText: 'TE' }).first()).toBeVisible();
+    await expect(page.locator('a').filter({ hasText: 'Us' }).first()).toBeVisible();
 
     await page.goto('/admin/review_requests/');
     await expect(page.getByRole('heading', { name: 'Access Denied' })).toBeVisible();

@@ -7,7 +7,7 @@
     import { CalendarDate, today, getLocalTimeZone, Time, fromDate, parseAbsolute, toCalendarDateTime} from "@internationalized/date";
     import { getCategoryTypeName, getPartySizeByCategoryType } from "$lib/utils/category_utils.js";
     import type { CategoryType } from '@prisma/client';
-    import { FileUpload, Combobox } from '@skeletonlabs/skeleton-svelte';
+    import { FileUpload, Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
     import { CldImage } from 'svelte-cloudinary';
     import { countries, getCountryFlag } from '$lib/country_utils';
     import CustomDateRangePicker from "$lib/components/bits_ui/CustomDateRangePicker.svelte";
@@ -23,12 +23,19 @@
         value: c.code,
         emoji: getCountryFlag(c.code)
     }));
+    let filteredCountries = $state(countryData);
     let countryValue = $state<string[]>(data.form?.data?.country ? [data.form.data.country as string] : []);
     let countryInputValue = $state(
         data.form?.data?.country
             ? (countries.find(c => c.code === data.form.data.country)?.name || '')
             : ''
     );
+
+    const countryCollection = $derived(useListCollection({
+        items: filteredCountries,
+        itemToString: (item) => item.label,
+        itemToValue: (item) => item.value,
+    }));
 
     // Loading state for form submission
     let isSubmitting = $state(false);
@@ -703,7 +710,7 @@
                     <input type="hidden" name="country" value={countryValue[0] || ''} />
                     <div class="border border-surface-300 dark:border-surface-600 rounded-lg overflow-hidden bg-primary-50-950">
                         <Combobox
-                            data={countryData}
+                            collection={countryCollection}
                             value={countryValue}
                             inputValue={countryInputValue}
                             onValueChange={(e) => {
@@ -711,17 +718,36 @@
                                 $form.country = e.value[0] || null;
                                 if (formErrors.country) formErrors.country = undefined;
                             }}
-                            onInputValueChange={(e) => (countryInputValue = e.inputValue)}
+                            onInputValueChange={(e) => {
+                                countryInputValue = e.inputValue;
+                                filteredCountries = countryData.filter((item) =>
+                                    item.label.toLowerCase().includes(e.inputValue.toLowerCase())
+                                );
+                            }}
+                            onOpenChange={() => { filteredCountries = countryData; }}
                             placeholder={$t('competition.create.select_country')}
-                            contentBase="card bg-surface-50 dark:bg-surface-900 p-2 shadow-xl max-h-48 overflow-y-auto rounded-lg"
-                            inputGroupInput="input text-sm px-3 py-2 bg-transparent border-none w-full"
                         >
-                            {#snippet item(item)}
-                                <div class="flex items-center gap-2 p-1">
-                                    <span>{item.emoji}</span>
-                                    <span>{item.label}</span>
-                                </div>
-                            {/snippet}
+                            <Combobox.Control>
+                                <Combobox.Input class="input text-sm px-3 py-2 bg-transparent border-none w-full" />
+                                <Combobox.Trigger />
+                            </Combobox.Control>
+                            <Portal>
+                                <Combobox.Positioner>
+                                    <Combobox.Content class="card bg-surface-50 dark:bg-surface-900 p-2 shadow-xl max-h-48 overflow-y-auto rounded-lg">
+                                        {#each countryCollection.items as item}
+                                            <Combobox.Item {item}>
+                                                <Combobox.ItemText>
+                                                    <div class="flex items-center gap-2 p-1">
+                                                        <span>{item.emoji}</span>
+                                                        <span>{item.label}</span>
+                                                    </div>
+                                                </Combobox.ItemText>
+                                                <Combobox.ItemIndicator>✓</Combobox.ItemIndicator>
+                                            </Combobox.Item>
+                                        {/each}
+                                    </Combobox.Content>
+                                </Combobox.Positioner>
+                            </Portal>
                         </Combobox>
                     </div>
                     {#if formErrors.country}
@@ -775,7 +801,11 @@
                 <div class="label">
                     <span>{$t('competition.create.image')}</span>
                     {#if selected_image_src === undefined}
-                        <FileUpload accept="image/*" name="competition_image" maxFiles={1} onFileChange={handleImageChange} onFileReject={handleImageReject}>
+                        <FileUpload accept="image/*" maxFiles={1} onFileChange={handleImageChange} onFileReject={handleImageReject}>
+                            <FileUpload.Dropzone>
+                                <FileUpload.Trigger class="btn preset-tonal">Choose Image</FileUpload.Trigger>
+                            </FileUpload.Dropzone>
+                            <FileUpload.HiddenInput name="competition_image" />
                         </FileUpload>
                         {#if imageError}
                             <span class="text-error-500 text-sm mt-1">{imageError}</span>
@@ -815,7 +845,7 @@
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div bind:this={datePickerRef} class="label">
+                <div bind:this={datePickerRef} class="label" data-testid="date-picker">
                     <CustomDateRangePicker
                         name="start_date"
                         labelText="{$t('edit_competition.date')} *"
@@ -872,13 +902,14 @@
                         <p>{$t('competition.create.current_categories')}</p>
                     </div>
                     {#each categories.update as _, i}
-                        <div class="p-2 rounded-lg bg-warning-50-950">
+                        <div class="p-2 rounded-lg bg-warning-50-950" data-testid="category-update-{i}">
                             <!-- Category Header -->
                             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <!-- Category Type -->
                                 <div class="label">
                                     <span class="text-sm font-medium">{$t('competition.create.category_type')}</span>
                                     <select
+                                        id="category-type-update-{i}"
                                         class="select bg-primary-50-950"
                                         class:input-error={categoryErrors.update[i]?.type}
                                         bind:value={categories.update[i].data.type}
@@ -922,6 +953,7 @@
                                         type="time"
                                         class="input bg-primary-50-950"
                                         class:input-error={categoryErrors.update[i]?.startTime}
+                                        data-testid="start-time-update-{i}"
                                         value={categories_times_obj_arr.update[i].startTime}
                                         onchange={(e) => {
                                             mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'update', i, (e.target as HTMLInputElement).value);
@@ -938,6 +970,7 @@
                                         type="time"
                                         class="input bg-primary-50-950"
                                         class:input-error={categoryErrors.update[i]?.endTime}
+                                        data-testid="end-time-update-{i}"
                                         value={categories_times_obj_arr.update[i].endTime}
                                         onchange={(e) => {
                                             mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'update', i, (e.target as HTMLInputElement).value);
@@ -956,6 +989,7 @@
                                         type="number"
                                         class="input bg-primary-50-950"
                                         class:input-error={categoryErrors.update[i]?.maxParties}
+                                        data-testid="max-parties-update-{i}"
                                         bind:value={categories.update[i].data.maxParties}
                                         min="1"
                                         step="1"
@@ -973,6 +1007,7 @@
                                         type="number"
                                         class="input bg-primary-50-950"
                                         class:input-error={categoryErrors.update[i]?.maxPartySize}
+                                        data-testid="max-party-size-update-{i}"
                                         bind:value={categories.update[i].data.maxPartySize}
                                         min="1"
                                         oninput={(e) => validateCategoryField('update', i, 'maxPartySize', parseInt((e.target as HTMLInputElement).value))}
@@ -988,6 +1023,7 @@
                                         type="text"
                                         class="input bg-primary-50-950"
                                         class:input-error={categoryErrors.update[i]?.description}
+                                        data-testid="description-update-{i}"
                                         bind:value={categories.update[i].data.description}
                                         placeholder={$t('competition.create.category_description_placeholder')}
                                         minlength="3"
@@ -1025,13 +1061,14 @@
                         <p>{$t('competition.create.new_categories')}</p>
                     </div>
                     {#each categories.create as _, i}
-                        <div class="p-2 rounded-lg bg-success-50-950">
+                        <div class="p-2 rounded-lg bg-success-50-950" data-testid="category-create-{i}">
                             <!-- Category Header -->
                             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <!-- Category Type -->
                                 <div class="label">
                                     <span class="text-sm font-medium">{$t('competition.create.category_type')}</span>
                                     <select
+                                        id="category-type-create-{i}"
                                         class="select bg-primary-50-950"
                                         class:input-error={categoryErrors.create[i]?.type}
                                         bind:value={categories.create[i].type}
@@ -1062,6 +1099,7 @@
                                         type="time"
                                         class="input bg-primary-50-950"
                                         class:input-error={categoryErrors.create[i]?.startTime}
+                                        data-testid="start-time-create-{i}"
                                         value={categories_times_obj_arr.create[i].startTime}
                                         onchange={(e) => {
                                             mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'create', i, (e.target as HTMLInputElement).value);
@@ -1078,6 +1116,7 @@
                                         type="time"
                                         class="input bg-primary-50-950"
                                         class:input-error={categoryErrors.create[i]?.endTime}
+                                        data-testid="end-time-create-{i}"
                                         value={categories_times_obj_arr.create[i].endTime}
                                         onchange={(e) => {
                                             mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'create', i, (e.target as HTMLInputElement).value);
@@ -1097,6 +1136,7 @@
                                         type="number"
                                         class="input bg-primary-50-950"
                                         class:input-error={categoryErrors.create[i]?.maxParties}
+                                        data-testid="max-parties-create-{i}"
                                         bind:value={categories.create[i].maxParties}
                                         min="1"
                                         step="1"
@@ -1114,6 +1154,7 @@
                                         type="number"
                                         class="input bg-primary-50-950"
                                         class:input-error={categoryErrors.create[i]?.maxPartySize}
+                                        data-testid="max-party-size-create-{i}"
                                         bind:value={categories.create[i].maxPartySize}
                                         min="1"
                                         oninput={(e) => validateCategoryField('create', i, 'maxPartySize', parseInt((e.target as HTMLInputElement).value))}
@@ -1129,6 +1170,7 @@
                                         type="text"
                                         class="input bg-primary-50-950"
                                         class:input-error={categoryErrors.create[i]?.description}
+                                        data-testid="description-create-{i}"
                                         bind:value={categories.create[i].description}
                                         placeholder={$t('competition.create.category_description_placeholder')}
                                         minlength="3"
@@ -1268,6 +1310,7 @@
             <button
                 type="submit"
                 class="btn preset-filled-primary-500 rounded-lg"
+                data-testid="submit-competition"
                 disabled={$form.isValid === false || isSubmitting}
             >
                 {#if isSubmitting}

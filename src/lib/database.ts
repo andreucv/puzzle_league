@@ -1,8 +1,12 @@
-import { CompetitionStatus, InscriptionStatus, PrismaClient, Prisma} from '@prisma/client';
+import { CompetitionStatus, InscriptionStatus, PrismaClient, Prisma} from '../../prisma/generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 import type { Competition, Category } from '@prisma/client';
+import { DATABASE_URL } from '$env/static/private';
 
 // Initialize Prisma client
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
+console.log('[DEBUG] DATABASE_URL:', DATABASE_URL?.replace(/\/\/.*@/, '//***@'));
 
 // User related functions
 export async function getRoleAssignments(userId: string) {

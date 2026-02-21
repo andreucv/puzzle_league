@@ -349,7 +349,10 @@
                         <div class="flex flex-wrap gap-2">
                             {#each existingRecord.users as member}
                                 <div class="flex items-center gap-1 badge preset-tonal-primary p-2">
-                                    <Avatar name={member.name?.substring(0, 2) || 'U'} src={member.image ?? undefined} classes="w-6 h-6" />
+                                    <Avatar class="w-6 h-6">
+                                        <Avatar.Image src={member.image ?? undefined} alt={member.name ?? 'User'} />
+                                        <Avatar.Fallback>{member.name?.substring(0, 2) || 'U'}</Avatar.Fallback>
+                                    </Avatar>
                                     <span class="text-sm">{member.name}</span>
                                 </div>
                             {/each}
@@ -437,7 +440,10 @@
                                 {#each signup as participant, index}
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-2">
-                                            <Avatar name={participant.name?.substring(0, 2) || 'U'} src={participant.image ?? undefined} classes="w-8 h-8" />
+                                            <Avatar class="w-8 h-8">
+                                                <Avatar.Image src={participant.image ?? undefined} alt={participant.name ?? 'User'} />
+                                                <Avatar.Fallback>{participant.name?.substring(0, 2) || 'U'}</Avatar.Fallback>
+                                            </Avatar>
                                             <span class="text-sm">
                                                 {participant.name}
                                                 {#if participant.id === currentUser?.id}
@@ -477,7 +483,10 @@
                                                     onclick={() => addTeammate(category.id, user)}
                                                     class="w-full p-2 text-left hover:bg-surface-100 dark:hover:bg-surface-800 flex items-center gap-2 border-b border-surface-200 dark:border-surface-700 last:border-b-0"
                                                 >
-                                                    <Avatar name={user.name?.substring(0, 2) || 'U'} src={user.image ?? undefined} classes="w-6 h-6" />
+                                                    <Avatar class="w-6 h-6">
+                                                        <Avatar.Image src={user.image ?? undefined} alt={user.name ?? 'User'} />
+                                                        <Avatar.Fallback>{user.name?.substring(0, 2) || 'U'}</Avatar.Fallback>
+                                                    </Avatar>
                                                     <div class="text-sm">
                                                         <div class="font-medium">{user.name}</div>
                                                     </div>

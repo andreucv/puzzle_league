@@ -23,7 +23,7 @@ test.describe('Anonymous user mobile navigation', () => {
         await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
 
         // Click the close button (icon-park:close)
-        await page.locator('nav button').first().click();
+        await page.getByRole('navigation').locator('div').filter({ hasText: 'PuzzLigas' }).getByRole('button').first().click();
         await expect(page.getByRole('link', { name: 'Home' })).not.toBeVisible();
     });
 
@@ -131,7 +131,7 @@ test.describe('Mobile touch interactions', () => {
         await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
 
         // Click outside the drawer (on the backdrop)
-        await page.getByRole('button').click();
+        await page.getByRole('button').nth(2).click();
 
         // Drawer should close
         await expect(page.getByRole('link', { name: 'Home' })).not.toBeVisible({ timeout: 5000 });

@@ -88,12 +88,10 @@
                 <div class="flex -space-x-1.5">
                     {#each userTeam as user, index}
                         <div class="relative group">
-                            <Avatar
-                                name={user.name}
-                                src={user?.image ?? undefined}
-                                classes="w-6 h-6 ring-2 ring-white dark:ring-surface-900 shadow-sm hover:scale-110 hover:z-10 transition-all duration-200"
-                                title={user.name}
-                            />
+                            <Avatar class="w-6 h-6 ring-2 ring-white dark:ring-surface-900 shadow-sm hover:scale-110 hover:z-10 transition-all duration-200">
+                                <Avatar.Image src={user?.image ?? undefined} alt={user.name ?? 'User'} />
+                                <Avatar.Fallback>{user.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
+                            </Avatar>
                             <!-- Subtle glow effect -->
                             <div class="absolute inset-0 rounded-full bg-primary-400/15 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -z-10 blur-sm"></div>
                         </div>

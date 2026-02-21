@@ -1,6 +1,9 @@
 import { PrismaClient, Role } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
 import { auth } from "../../src/lib/auth";
-const prisma = new PrismaClient()
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   const users = [

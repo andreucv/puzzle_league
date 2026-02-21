@@ -13,7 +13,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test:e2e": "playwright test",
 		"test": "npm run test:e2e",
-		"postinstall": "prisma generate"
+		"postinstall": "svelte-kit sync && prisma generate"
 	},
 	"devDependencies": {
 		"@internationalized/date": "^3.9.0",

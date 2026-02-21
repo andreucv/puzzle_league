@@ -41,9 +41,7 @@
 		"sveltekit-superforms": "^2.27.1",
 		"svelteworld": "^1.0.1",
 		"typescript": "^5.0.0",
-		"vite": "^6.0.0",
-		"zod": "^4.0.17",
-		"zod-prisma-types": "^3.2.4"
+		"vite": "^6.0.0"
 	},
 	"dependencies": {
 		"@iconify/svelte": "^5.0.0",
@@ -52,6 +50,8 @@
 		"firebase": "^11.0.2",
 		"prisma": "^7.4.1",
 		"svelte-qr-scanner": "^1.1.0",
-		"tailwindcss": "^4.1.11"
+		"tailwindcss": "^4.1.11",
+		"zod": "^4.0.17",
+		"zod-prisma-types": "^3.2.4"
 	}
 }

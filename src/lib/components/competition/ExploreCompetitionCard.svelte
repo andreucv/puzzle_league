@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Competition, Category } from "../../../../prisma/generated/prisma/client";
+    import type { Competition, Category } from "@prisma/client";
     import { CldImage } from 'svelte-cloudinary';
     import Icon from '@iconify/svelte';
     import { getCategoryTypeIcon } from '$lib/utils/category_utils';

@@ -1,4 +1,4 @@
-import type { CategoryType } from "../../../prisma/generated/prisma/client";
+import type { CategoryType } from "@prisma/client";
 
 export function getCategoryTypeName(type: CategoryType) {
     const typeNames: Record<CategoryType, string> = {

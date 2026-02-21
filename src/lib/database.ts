@@ -1,4 +1,4 @@
-import { CompetitionStatus, InscriptionStatus, PrismaClient, Prisma} from '../../prisma/generated/prisma/client';
+import { CompetitionStatus, InscriptionStatus, PrismaClient, Prisma} from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import type { Competition, Category } from '@prisma/client';
 import { DATABASE_URL } from '$env/static/private';

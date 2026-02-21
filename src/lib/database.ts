@@ -1,12 +1,11 @@
+import "dotenv/config";
 import { CompetitionStatus, InscriptionStatus, PrismaClient, Prisma} from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import type { Competition, Category } from '@prisma/client';
-import { DATABASE_URL } from '$env/static/private';
 
 // Initialize Prisma client
-const adapter = new PrismaPg({ connectionString: DATABASE_URL });
+const adapter = new PrismaPg({ connectionString: `${process.env.DATABASE_URL}`});
 const prisma = new PrismaClient({ adapter });
-console.log('[DEBUG] DATABASE_URL:', DATABASE_URL?.replace(/\/\/.*@/, '//***@'));
 
 // User related functions
 export async function getRoleAssignments(userId: string) {

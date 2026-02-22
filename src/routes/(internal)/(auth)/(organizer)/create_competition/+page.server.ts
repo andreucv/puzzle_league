@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import type { Action, Actions, PageServerLoad } from './$types';
 import { createCompetition, getAllLeagues } from '$lib/database/database';
-import { type Competition, type Category, type Prisma, CategoryType } from '@prisma/client';
+import { type Competition, type Category, type Prisma, CategoryType } from '$lib/.prisma/generated/prisma/client';
 import { auth } from '$lib/auth';
 
 export const load: PageServerLoad = async (event) => {

@@ -1,7 +1,7 @@
 import type { PageServerLoad } from "./$types";
 import { getCompetition, getInscriptionsForCompetition, prisma } from "$lib/database/database";
 import { redirect } from "@sveltejs/kit";
-import { Role } from "@prisma/client";
+import { Role } from "$lib/.prisma/generated/prisma/client";
 
 export const load: PageServerLoad = async (event) => {
     const competitionId = parseInt(event.params.id);
@@ -28,7 +28,7 @@ export const load: PageServerLoad = async (event) => {
             where: {
                 userId,
                 OR: [
-                    { role: Role.ADMIN },
+                    { role: Role.ADMIN},
                     { role: Role.ORGANIZER, competitionId }
                 ]
             }

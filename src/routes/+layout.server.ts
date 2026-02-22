@@ -1,5 +1,5 @@
 import type { LayoutServerLoad } from "./$types";
-import type { RoleAssignment } from "@prisma/client";
+import type { RoleAssignment } from '$lib/.prisma/generated/prisma/client';
 import { loadTranslations, locales, translations } from "$lib/translations";
 import { auth } from "$lib/auth";
 import { getRoleAssignments, prisma } from "$lib/database/database";

@@ -1,6 +1,6 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { acceptInscription, prisma } from '$lib/database/database';
-import { Role } from '@prisma/client';
+import { Role } from '$lib/.prisma/generated/prisma/client';
 import { requireCompetitionRole } from '$lib/utils/api_auth';
 
 export const POST = async (event: RequestEvent) => {

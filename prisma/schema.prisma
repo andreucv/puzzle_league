@@ -1,10 +1,11 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/lib/.prisma/generated/prisma"
 }
 
 generator zod {
   provider          = "zod-prisma-types"
-  output            = "./generated/zod"
+  output            = "../src/lib/.prisma/generated/zod"
   useMultipleFiles  = true
 }
 

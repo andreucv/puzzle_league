@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { CompetitionStatus, InscriptionStatus, PrismaClient, Prisma} from "../../prisma/generated/prisma/client";
+import { CompetitionStatus, InscriptionStatus, PrismaClient, Prisma} from "$lib/.prisma/generated/prisma/client";
 
 import { PrismaPg } from '@prisma/adapter-pg';
 import type { Competition, Category } from '@prisma/client';

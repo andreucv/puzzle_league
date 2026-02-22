@@ -9,6 +9,7 @@ package-lock.json
 .wrangler
 /.svelte-kit
 /build
+.prisma
 
 # OS
 .DS_Store

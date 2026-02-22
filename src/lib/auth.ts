@@ -1,11 +1,7 @@
 import "dotenv/config";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { PrismaClient } from "$lib/.prisma/generated/prisma/client";
-import { PrismaPg } from '@prisma/adapter-pg';
-
-const adapter = new PrismaPg({ connectionString: `${process.env.DATABASE_URL}`});
-const prisma = new PrismaClient({ adapter });
+import { prisma } from '$lib/prismaClient';
 
 export const auth = betterAuth({
     secret: `${process.env.BETTER_AUTH_SECRET}`,

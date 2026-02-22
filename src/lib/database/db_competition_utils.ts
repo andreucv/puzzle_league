@@ -1,5 +1,5 @@
 import { type Competition, type Category, CompetitionStatus } from '@prisma/client';
-import { prisma } from '$lib/database';
+import { prisma } from '$lib/database/database';
 
 export async function getUpcomingCompetitions(n_objects: number, offset: number) {
     return prisma.competition.findMany({

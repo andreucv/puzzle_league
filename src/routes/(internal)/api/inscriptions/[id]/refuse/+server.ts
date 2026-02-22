@@ -1,5 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { refuseInscription, prisma } from '$lib/database';
+import { refuseInscription, prisma } from '$lib/database/database';
 import { Role } from '@prisma/client';
 import { requireCompetitionRole } from '$lib/utils/api_auth';
 

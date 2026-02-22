@@ -1,15 +1,5 @@
-import { PrismaClient, CategoryType } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-
-function createPrismaClient() {
-    const url = process.env.DATABASE_URL!;
-    if (url.startsWith('prisma+postgres://')) {
-        return new PrismaClient({ accelerateUrl: url });
-    }
-    const adapter = new PrismaPg({ connectionString: url });
-    return new PrismaClient({ adapter });
-}
-const prisma = createPrismaClient();
+import { CategoryType } from '@prisma/client';
+import { prisma } from './create_prisma_client';
 
 async function main() {
   // First, let's check what competitions and categories exist

@@ -1,6 +1,6 @@
 import { auth } from "$lib/auth";
 import type { PageServerLoad } from "./$types";
-import { getRoleAssignments, getUpcomingRegisteredCompetitions, getParticipatedCompetitions } from "$lib/database";
+import { getRoleAssignments, getUpcomingRegisteredCompetitions, getParticipatedCompetitions } from "$lib/database/database";
 
 export const load: PageServerLoad = async ({ request }) => {
 	let session = null;

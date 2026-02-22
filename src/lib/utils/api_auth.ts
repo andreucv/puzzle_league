@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
-import { prisma } from '$lib/database';
+import { prisma } from '$lib/database/database';
 import { Role } from '@prisma/client';
 
 export type AuthResult =

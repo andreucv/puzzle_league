@@ -1,16 +1,6 @@
-import { PrismaClient, Role } from '../../src/lib/.prisma/generated/prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { Role } from '../../src/lib/.prisma/generated/prisma/client';
+import { prisma } from './create_prisma_client';
 import { auth } from "../../src/lib/auth";
-
-function createPrismaClient() {
-    const url = process.env.DATABASE_URL!;
-    if (url.startsWith('prisma+postgres://')) {
-        return new PrismaClient({ accelerateUrl: url });
-    }
-    const adapter = new PrismaPg({ connectionString: url });
-    return new PrismaClient({ adapter });
-}
-const prisma = createPrismaClient()
 
 async function main() {
   const users = [

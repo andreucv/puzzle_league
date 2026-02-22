@@ -2,7 +2,7 @@ import "dotenv/config";
 import { CompetitionStatus, InscriptionStatus, Prisma} from "$lib/.prisma/generated/prisma/client";
 
 import type { Competition, Category } from '@prisma/client';
-import { prisma } from '$lib/prismaClient';
+import { prisma } from '$lib/database/create_prisma_client';
 
 // User related functions
 export async function getRoleAssignments(userId: string) {

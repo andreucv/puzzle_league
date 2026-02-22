@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from "./$types";
-import { getCompetitionWithCategories, getCategoryEntriesFromCompetition, signUpUsersToCompetition, removeUserFromCategory } from "$lib/database";
+import { getCompetitionWithCategories, getCategoryEntriesFromCompetition, signUpUsersToCompetition, removeUserFromCategory } from "$lib/database/database";
 import { auth } from "$lib/auth";
 import { redirect } from "@sveltejs/kit";
 

@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { getCompetition, getCompetitionCategories } from '$lib/database';
+import { getCompetition, getCompetitionCategories } from '$lib/database/database';
 
 export const load: PageServerLoad = async ({ params }) => {
     const competitionId = parseInt(params.id as string);

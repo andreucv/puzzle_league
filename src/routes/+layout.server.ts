@@ -2,7 +2,7 @@ import type { LayoutServerLoad } from "./$types";
 import type { RoleAssignment } from "@prisma/client";
 import { loadTranslations, locales, translations } from "$lib/translations";
 import { auth } from "$lib/auth";
-import { getRoleAssignments, prisma } from "$lib/database";
+import { getRoleAssignments, prisma } from "$lib/database/database";
 
 export const load = async ({ url, cookies, locals, request }) => {
     // Get user session

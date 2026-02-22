@@ -1,6 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { getPuzzleById, createPuzzle, updatePuzzle, deletePuzzle } from '$lib/database';
+import { getPuzzleById, createPuzzle, updatePuzzle, deletePuzzle } from '$lib/database/database';
 import { auth } from '$lib/auth';
 import { z } from 'zod';
 import { superValidate, message } from 'sveltekit-superforms';

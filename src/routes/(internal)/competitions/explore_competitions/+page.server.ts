@@ -1,5 +1,5 @@
 import type { PageServerLoad } from "./$types";
-import { prisma } from "$lib/database";
+import { prisma } from "$lib/database/database";
 
 export const load: PageServerLoad = async ({ locals }) => {
     const userId = locals.user?.id;

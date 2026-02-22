@@ -1,7 +1,7 @@
 import type { LayoutServerLoad } from "./$types";
 import { redirect } from "@sveltejs/kit";
 import { auth } from "$lib/auth";
-import { getRoleAssignments } from "$lib/database";
+import { getRoleAssignments } from "$lib/database/database";
 /**
  * Layout server load function
  *

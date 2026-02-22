@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
-import { getPendingRequests, acceptRequest, rejectRequest, getRoleAssignments } from '$lib/database';
+import { getPendingRequests, acceptRequest, rejectRequest, getRoleAssignments } from '$lib/database/database';
 import { auth } from '$lib/auth';
 
 export const load: PageServerLoad = async ({ request }) => {

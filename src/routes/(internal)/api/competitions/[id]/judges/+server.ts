@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { prisma } from '$lib/database';
+import { prisma } from '$lib/database/database';
 import { requireCompetitionRole } from '$lib/utils/api_auth';
 import { Role } from '@prisma/client';
 

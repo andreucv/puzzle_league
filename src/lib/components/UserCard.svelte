@@ -4,7 +4,7 @@
     import { t } from '$lib/translations';
     import { enhance } from '$app/forms';
     import ThemeLightSwitch from './ThemeLightSwitch.svelte';
-    import { countries, getCountryFlag } from '$lib/country_utils';
+    import { countries, getCountryFlag } from '$lib/utils/country_utils';
 
     let { user, roleAssignments, account } = $props();
 

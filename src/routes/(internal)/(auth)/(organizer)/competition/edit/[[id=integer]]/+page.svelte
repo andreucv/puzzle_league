@@ -9,7 +9,7 @@
     import type { CategoryType } from '@prisma/client';
     import { FileUpload, Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
     import { CldImage } from 'svelte-cloudinary';
-    import { countries, getCountryFlag } from '$lib/country_utils';
+    import { countries, getCountryFlag } from '$lib/utils/country_utils';
     import CustomDateRangePicker from "$lib/components/bits_ui/CustomDateRangePicker.svelte";
     import LoadingOverlay from "$lib/components/LoadingOverlay.svelte";
     import PuzzleLinkSection from "$lib/components/PuzzleLinkSection.svelte";

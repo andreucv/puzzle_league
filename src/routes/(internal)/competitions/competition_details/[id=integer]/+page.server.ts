@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from "./$types";
-import { getCompetitionWithCategories, getCategoryEntriesFromCompetition, removeUserFromCategory, createEntries, getCompetitionCategories} from "$lib/database";
+import { getCompetitionWithCategories, getCategoryEntriesFromCompetition, removeUserFromCategory, createEntries, getCompetitionCategories} from "$lib/database/database";
 import { auth } from "$lib/auth";
 
 export const load: PageServerLoad = async ( event ) => {

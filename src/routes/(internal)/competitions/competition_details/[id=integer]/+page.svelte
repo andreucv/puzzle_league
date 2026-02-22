@@ -1,7 +1,7 @@
 <script lang="ts">
     import Icon from '@iconify/svelte';
     import { getCompetitionStatusLabel } from '$lib/utils/competition_utils';
-    import { getCountryFlag, getCountryNameFromCode } from '$lib/country_utils.js';
+    import { getCountryFlag, getCountryNameFromCode } from '$lib/utils/country_utils';
     import CategoriesOverview from '$lib/components/CategoriesOverview.svelte';
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
 

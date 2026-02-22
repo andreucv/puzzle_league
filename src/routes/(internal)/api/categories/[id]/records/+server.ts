@@ -1,5 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { prisma } from '$lib/database';
+import { prisma } from '$lib/database/database';
 import { requireCategoryJudge } from '$lib/utils/api_auth';
 
 export const GET = async (event: RequestEvent) => {

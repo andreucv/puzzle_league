@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { prisma } from '$lib/prismaClient';
+import { prisma } from '$lib/database/create_prisma_client';
 
 export const auth = betterAuth({
     secret: `${process.env.BETTER_AUTH_SECRET}`,

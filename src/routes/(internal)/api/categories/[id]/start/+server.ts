@@ -1,5 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { startCategory } from '$lib/database';
+import { startCategory } from '$lib/database/database';
 import { requireCategoryJudge } from '$lib/utils/api_auth';
 
 export const POST = async (event: RequestEvent) => {

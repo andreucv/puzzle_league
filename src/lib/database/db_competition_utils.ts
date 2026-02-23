@@ -1,4 +1,5 @@
-import { type Competition, type Category, CompetitionStatus } from '$lib/.prisma/generated/prisma/client';
+import type { Competition, Category } from '$lib/.prisma/generated/prisma/client';
+import { CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
 import { prisma } from '$lib/database/database';
 
 export async function getUpcomingCompetitions(n_objects: number, offset: number) {

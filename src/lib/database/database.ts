@@ -1,7 +1,7 @@
 import "dotenv/config";
-import { CompetitionStatus, InscriptionStatus, Prisma} from "$lib/.prisma/generated/prisma/client";
-
-import type { Competition, Category } from '@prisma/client';
+import { CompetitionStatus, InscriptionStatus } from "$lib/.prisma/generated/prisma/enums";
+import type { Prisma } from "$lib/.prisma/generated/prisma/client";
+import type { Competition, Category } from '$lib/.prisma/generated/prisma/browser';
 import { prisma } from '$lib/database/create_prisma_client';
 
 // User related functions

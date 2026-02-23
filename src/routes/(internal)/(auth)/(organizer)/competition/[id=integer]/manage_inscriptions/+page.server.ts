@@ -1,7 +1,7 @@
 import type { PageServerLoad } from "./$types";
 import { getCompetition, getInscriptionsForCompetition, prisma } from "$lib/database/database";
 import { redirect } from "@sveltejs/kit";
-import { Role } from "$lib/.prisma/generated/prisma/client";
+import { Role } from "$lib/.prisma/generated/prisma/enums";
 
 export const load: PageServerLoad = async (event) => {
     const competitionId = parseInt(event.params.id);

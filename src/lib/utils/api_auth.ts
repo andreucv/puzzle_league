@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/database';
-import { Role } from '@prisma/client';
+import { Role } from '$lib/.prisma/generated/prisma/enums';
 
 export type AuthResult =
   | { authorized: true; userId: string }

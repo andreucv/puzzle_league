@@ -7,7 +7,6 @@
     import type { Category, Puzzle } from '@prisma/client';
     import Card from '$lib/components/common/card/Card.svelte';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
-    import { start } from 'repl';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
     type PartyUser = { id: string; name: string; email: string; image: string | null };

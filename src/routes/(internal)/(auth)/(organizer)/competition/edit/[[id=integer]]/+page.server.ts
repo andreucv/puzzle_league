@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import type { Action, Actions, PageServerLoad } from '../$types';
 import { updateCompetition, getCompetitionWithCategories } from '$lib/database/database';
-import { CategoryType } from '@prisma/client';
+import { CategoryType } from '$lib/.prisma/generated/prisma/enums';
 import { auth } from '$lib/auth';
 import { z } from 'zod';
 

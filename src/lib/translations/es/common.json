@@ -221,5 +221,12 @@
     "open": "Abiertas",
     "past": "Pasadas",
     "soon": "Pronto"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "mark_all_read": "Marcar todo como leído",
+    "empty": "No hay notificaciones",
+    "empty_detail": "Aquí te notificaremos cuando ocurra algo importante.",
+    "just_now": "ahora mismo"
   }
 }

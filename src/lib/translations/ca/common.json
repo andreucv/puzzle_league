@@ -221,5 +221,12 @@
     "open": "Obertes",
     "past": "Passades",
     "soon": "Pròximament"
+  },
+  "notifications": {
+    "title": "Notificacions",
+    "mark_all_read": "Marcar tot com a llegit",
+    "empty": "No hi ha notificacions",
+    "empty_detail": "Aquí et notificarem quan passi alguna cosa important.",
+    "just_now": "ara mateix"
   }
 }

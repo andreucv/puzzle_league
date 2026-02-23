@@ -1,7 +1,9 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { acceptInscription, prisma } from '$lib/database/database';
 import { Role } from '$lib/.prisma/generated/prisma/enums';
+import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 import { requireCompetitionRole } from '$lib/utils/api_auth';
+import { createNotificationForUsers } from '$lib/notifications/notifications';
 
 export const POST = async (event: RequestEvent) => {
 	try {
@@ -14,7 +16,10 @@ export const POST = async (event: RequestEvent) => {
 		// Look up the record to get the competition ID for auth check
 		const record = await prisma.record.findUnique({
 			where: { id: recordId },
-			include: { category: { select: { competitionId: true } } }
+			include: {
+				category: { select: { competitionId: true, description: true } },
+				users: { select: { id: true } }
+			}
 		});
 
 		if (!record) {
@@ -29,6 +34,16 @@ export const POST = async (event: RequestEvent) => {
 		if (!result.success) {
 			return json({ error: result.error }, { status: 400 });
 		}
+
+		// Notify all participants on this record
+		const userIds = record.users.map((u) => u.id);
+		await createNotificationForUsers(
+			userIds,
+			NotificationType.INSCRIPTION_ACCEPTED,
+			'Inscription accepted',
+			`Your inscription for "${record.category.description}" has been accepted.`,
+			`/competitions/competition_details/${record.category.competitionId}`
+		);
 
 		return json({ success: true, data: result.data });
 	} catch (error) {

@@ -76,6 +76,14 @@
                     <span>{$t('drawer_menu.explore_competitions')}</span>
                 </a>
             </li>
+            {#if data.user}
+            <li>
+                <a href="/notifications" onclick={navigate} class="nav-item" class:active={isActive('/notifications')}>
+                    <Icon icon="mdi:bell-outline" width="1.25rem" height="1.25rem" />
+                    <span>{$t('notifications.title')}</span>
+                </a>
+            </li>
+            {/if}
 
             {#if data.roleAssignments?.some((role: any) => role.role === "ORGANIZER")}
             <li class="pt-3">

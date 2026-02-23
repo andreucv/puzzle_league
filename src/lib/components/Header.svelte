@@ -6,19 +6,28 @@
     let currentPath = $derived(page.url.pathname);
 
     import { drawerState } from '../../shareds/drawer.svelte';
+    import { notificationState, refreshHasUnread } from '../../shareds/notifications.svelte';
+
+    $effect(() => {
+        if (user) {
+            refreshHasUnread();
+            const interval = setInterval(refreshHasUnread, 30_000);
+            return () => clearInterval(interval);
+        }
+    });
 </script>
 
 <header>
     <AppBar class="p-4 bg-transparent">
-        <AppBar.Toolbar class="grid-cols-[auto_1fr_auto]">
+        <AppBar.Toolbar class="grid-cols-[auto_1fr_auto] items-center">
         <AppBar.Lead>
-            <button id="states-button" onclick={() => drawerState.open = true} type="button">
+            <button id="states-button" class="flex items-center" onclick={() => drawerState.open = true} type="button">
                 <Icon icon="icon-park:hamburger-button" width="1.5rem" height="1.5rem" />
             </button>
         </AppBar.Lead>
         <AppBar.Headline>
-            <div class="text-left">
-                <h1 class="text-left h4 font-sans" style="font-weight: 800; font-stretch: 125%;"><a href='/'>PuzzLigas</a></h1>
+            <div class="flex items-center">
+                <h1 class="h4 font-sans" style="font-weight: 800; font-stretch: 125%;"><a href='/'>PuzzLigas</a></h1>
             </div>
         </AppBar.Headline>
         <AppBar.Trail>
@@ -27,7 +36,13 @@
                     <a href="/login">Log in</a>
                 </button>
             {:else}
-                <div class="flex items-center items-bottom relative">
+                <div class="flex items-center items-bottom relative gap-2">
+                    <a href="/notifications" class="relative p-1 text-primary-600" aria-label="Notifications">
+                        <Icon icon="mdi:bell-outline" width="1.5rem" height="1.5rem" />
+                        {#if notificationState.hasUnread}
+                            <span class="absolute top-1 right-1 w-2 h-2 rounded-full" style="background-color: #DD2200;"></span>
+                        {/if}
+                    </a>
                     <a href="/profile">
                         {#if user?.image === undefined}
                             <Icon icon="lets-icons:user-alt-fill" width="1.5rem" height="1.5rem" class="mx-2"/>

@@ -31,6 +31,7 @@ model User {
   requests        Request[]
   leaguePoints    LeaguePoints[]
   competitions    Competition[]
+  notifications   Notification[]    @relation("NotificationRecipient")
 
   @@unique([email])
   @@map("user")
@@ -117,6 +118,16 @@ enum InscriptionStatus {
   PENDING
   ACCEPTED
   REFUSED
+}
+
+enum NotificationType {
+  INSCRIPTION_ACCEPTED
+  INSCRIPTION_REFUSED
+  COMPETITION_STARTED
+  COMPETITION_CANCELLED
+  ROLE_REQUEST_APPROVED
+  ROLE_REQUEST_REJECTED
+  GENERAL
 }
 
 model League {
@@ -247,4 +258,19 @@ model LeaguePoints {
 
   @@unique([userId, leagueId])
   @@map("league_points")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  read      Boolean          @default(false)
+  userId    String
+  user      User             @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, read])
+  @@map("notification")
 }

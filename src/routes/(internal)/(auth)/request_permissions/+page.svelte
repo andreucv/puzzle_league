@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { enhance } from '$app/forms';
+	import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
+	import { t } from '$lib/translations';
 
 	let { data, form } = $props();
 
@@ -16,7 +18,7 @@
 </script>
 
 <div class="container mx-auto py-4 max-w-2xl">
-	<h1 class="h1 font-bold">Request Permissions</h1>
+	<GenericTitle text={$t('request_permissions.title')} />
 
 	{#if form?.success}
 		<div class="alert preset-filled-success-500 mt-4">

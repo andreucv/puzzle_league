@@ -1,5 +1,6 @@
 <script lang="ts">
 	import CompetitionCard from '$lib/components/competition/CompetitionCard.svelte';
+	import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
 	import { t } from '$lib/translations';
 	import type { PageData } from './$types';
 	export let data: PageData;
@@ -51,7 +52,7 @@
 <div class="p-4 max-w-4xl mx-auto">
 	<div class="flex justify-between items-center mb-4">
 		<button class="btn variant-filled-primary" on:click={prevMonth} aria-label="Previous month">{'<'}</button>
-		<h1 class="h1">{getMonthName(currentDate.getMonth())} {currentDate.getFullYear()}</h1>
+		<p class="h1">{getMonthName(currentDate.getMonth())} {currentDate.getFullYear()}</p>
 		<button class="btn variant-filled-primary" on:click={nextMonth} aria-label="Next month">{'>'}</button>
 	</div>
 	<div class="grid grid-cols-7 text-center text-xs font-semibold mb-1 select-none">
@@ -79,7 +80,7 @@
 </div>
 
 <div class="container mx-auto p-4">
-	<h4 class="mb-4">{$t('competitions.upcoming_competitions')}</h4>
+	<GenericTitle text={$t('competitions.upcoming_competitions')} />
 	{#if Object.keys(groupedCompetitions).length}
 		{#each Object.entries(groupedCompetitions) as [date, comps]}
 			<h5 class="h5 my-2">{new Date(date).toLocaleDateString(undefined,{ weekday:'long',year:'numeric',month:'long',day:'numeric'})}</h5>

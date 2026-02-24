@@ -56,7 +56,8 @@
   },
   "admin": {
     "review_requests": {
-      "search_placeholder": "Busca peticiones"
+      "search_placeholder": "Busca peticiones",
+      "title": "Revisar Solicitudes de Permisos"
     }
   },
   "competition": {
@@ -183,9 +184,27 @@
     "previously_refused": "Su registro anterior fue rechazado. \nPuedes registrarte nuevamente.",
     "sign_up_again": "Regístrese nuevamente"
   },
-  "puzzles": {},
+  "puzzles": {
+    "catalog_title": "Catálogo de Puzzles",
+    "edit_title": "Editar Puzzle",
+    "add_title": "Añadir Nuevo Puzzle"
+  },
   "head": {
     "title": "PuzzLigas - Competiciones de puzzles | \nÚnase a eventos globales de puzzles"
+  },
+  "request_permissions": {
+    "title": "Solicitar Permisos"
+  },
+  "error_pages": {
+    "access_denied": "Acceso Denegado"
+  },
+  "auth": {
+    "login_title": "Inicia sesión en tu cuenta",
+    "register_title": "Crea una cuenta"
+  },
+  "legal": {
+    "privacy_policy": "Política de Privacidad",
+    "terms_of_service": "Términos de Servicio"
   },
   "explore_competitions": {
     "clear_all_filters": "Limpiar todos los filtros",

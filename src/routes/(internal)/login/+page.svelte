@@ -1,6 +1,7 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { authClient } from "$lib/auth_client";
+    import { t } from '$lib/translations';
 
     let action = "login";
     let email = "";
@@ -57,7 +58,7 @@
           flex items-center justify-center">
         <div class="w-full h-100">
             <h1 class="text-xl md:text-2xl font-bold leading-tight">
-                {action === "register" ? "Create an account" : "Log in to your account"}
+                {action === "register" ? $t('auth.register_title') : $t('auth.login_title')}
             </h1>
 
             <div class="mt-6">

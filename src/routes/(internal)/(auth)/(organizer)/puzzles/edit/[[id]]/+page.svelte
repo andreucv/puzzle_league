@@ -6,6 +6,8 @@
     import { FileUpload } from '@skeletonlabs/skeleton-svelte';
     import { CldImage } from 'svelte-cloudinary';
     import LoadingOverlay from '$lib/components/LoadingOverlay.svelte';
+    import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
+    import { t } from '$lib/translations';
 
     let { data } = $props();
 
@@ -130,7 +132,7 @@
     }
 </script>
 
-<h4>{isEdit ? 'Edit Puzzle' : 'Add New Puzzle'}</h4>
+<TitleBackButton href="/puzzles" text={isEdit ? $t('puzzles.edit_title') : $t('puzzles.add_title')} />
 
 <div class="container mx-auto relative">
     <div class="space-y-3 mb-2">

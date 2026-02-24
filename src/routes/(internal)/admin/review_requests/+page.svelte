@@ -3,6 +3,7 @@
     import { t } from '$lib/translations';
     import { enhance } from '$app/forms';
     import SearchInput from '$lib/components/SearchInput.svelte';
+    import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
 
     export let data;
 
@@ -28,7 +29,7 @@
     <title>Review Requests - Puzzle League</title>
 </svelte:head>
 
-<h4>Review Permission Requests</h4>
+<GenericTitle text={$t('admin.review_requests.title')} />
 <div class="container mx-auto">
 
     <div class="mb-6">

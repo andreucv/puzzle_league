@@ -56,7 +56,8 @@
   },
   "admin": {
     "review_requests": {
-      "search_placeholder": "Search requests"
+      "search_placeholder": "Search requests",
+      "title": "Review Permission Requests"
     }
   },
   "competition": {
@@ -208,9 +209,27 @@
     "live": "Live",
     "soon": "Soon"
   },
-  "puzzles": {},
+  "puzzles": {
+    "catalog_title": "Puzzle Catalog",
+    "edit_title": "Edit Puzzle",
+    "add_title": "Add New Puzzle"
+  },
   "head": {
     "title": "PuzzLigas - Speed Puzzling Competitions | Join Global Puzzle Events"
+  },
+  "request_permissions": {
+    "title": "Request Permissions"
+  },
+  "error_pages": {
+    "access_denied": "Access Denied"
+  },
+  "auth": {
+    "login_title": "Log in to your account",
+    "register_title": "Create an account"
+  },
+  "legal": {
+    "privacy_policy": "Privacy Policy",
+    "terms_of_service": "Terms of Service"
   },
   "explore_competitions": {
     "clear_all_filters": "Clear all filters",

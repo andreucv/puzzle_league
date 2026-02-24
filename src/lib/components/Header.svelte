@@ -18,7 +18,7 @@
 </script>
 
 <header>
-    <AppBar class="p-4 bg-transparent">
+    <AppBar class="p-4 pb-2 bg-transparent">
         <AppBar.Toolbar class="grid-cols-[auto_1fr_auto] items-center">
         <AppBar.Lead>
             <button id="states-button" class="flex items-center" onclick={() => drawerState.open = true} type="button">
@@ -36,7 +36,7 @@
                     <a href="/login">Log in</a>
                 </button>
             {:else}
-                <div class="flex items-center items-bottom relative gap-2">
+                <div class="flex items-center items-bottom relative gap-3">
                     <a href="/notifications" class="relative p-1 text-primary-600" aria-label="Notifications">
                         <Icon icon="mdi:bell-outline" width="1.5rem" height="1.5rem" />
                         {#if notificationState.hasUnread}

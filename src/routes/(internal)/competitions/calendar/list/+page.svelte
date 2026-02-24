@@ -3,6 +3,7 @@
 	import CompetitionCard from '$lib/components/competition/CompetitionCard.svelte';
 	import InfiniteScroll from '$lib/components/InfiniteScroll.svelte';
 	import { t } from '$lib/translations';
+	import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
 	import type { Competition } from '@prisma/client';
 
 	let { data } = $props();
@@ -61,7 +62,7 @@
 	<title>{$t('competitions.upcoming_competitions')}</title>
 </svelte:head>
 
-<h4>{$t('competitions.upcoming_competitions')}</h4>
+<GenericTitle text={$t('competitions.upcoming_competitions')} />
 <div class="container mx-auto">
 	{#if competitions.length > 0}
 		{#each Object.entries(groupedCompetitions) as [date, comps]}

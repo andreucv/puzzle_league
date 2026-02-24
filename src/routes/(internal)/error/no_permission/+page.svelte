@@ -1,9 +1,10 @@
 <script>
     import { goto } from '$app/navigation';
+    import { t } from '$lib/translations';
 </script>
 
 <div class="error-container">
-    <h1>Access Denied</h1>
+    <h1>{$t('error_pages.access_denied')}</h1>
     <p>Sorry, you don't have permission to access this area.</p>
     <button on:click={() => goto('/')}>Return to Home</button>
 </div>

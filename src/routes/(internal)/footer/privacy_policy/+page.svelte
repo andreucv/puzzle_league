@@ -2,7 +2,7 @@
     import { t } from '$lib/translations';
 </script>
 
-<p id="layout-title">Privacy Policy</p>
+<h1>{$t('legal.privacy_policy')}</h1>
 <p>Welcome to our Privacy Policy page. Your privacy is critically important to us.</p>
 <h2>Data Collection</h2>
 <p>We collect various types of information in connection with the services we provide, including:</p>

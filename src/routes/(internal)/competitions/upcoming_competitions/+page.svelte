@@ -3,6 +3,7 @@
     import SearchInput from "$lib/components/SearchInput.svelte";
     import { t } from '$lib/translations';
     import CompetitionCard from "$lib/components/competition/CompetitionCard.svelte";
+    import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     let { data } = $props();
 
     let upcoming_competitions = $derived(data.props.upcoming_competitions);
@@ -13,7 +14,7 @@
     let upcoming_total_count    = $derived(upcoming_competitions.length);
 </script>
 
-<h4>{$t('competitions.upcoming_competitions')}</h4>
+<GenericTitle text={$t('competitions.upcoming_competitions')} />
 <div>
     <SearchInput placeholder={$t('list_competitions.look_for_competition')} bind:filter />
     <div class="pt-2">

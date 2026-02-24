@@ -5,6 +5,7 @@
     import FilterTabs from "$lib/components/FilterTabs.svelte";
     import SmartPresetChips from "$lib/components/SmartPresetChips.svelte";
     import ExploreCompetitionCard from "$lib/components/competition/ExploreCompetitionCard.svelte";
+    import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import type { RoleAssignment } from "@prisma/client";
 
     let { data } = $props();
@@ -112,7 +113,7 @@
     const totalCount = $derived(competitions.length);
 </script>
 
-<h4>{$t('competitions.explore_competitions')}</h4>
+<GenericTitle text={$t('competitions.explore_competitions')} />
 
 <div class="space-y-4">
     <!-- Search -->

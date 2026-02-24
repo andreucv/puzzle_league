@@ -4,6 +4,7 @@
     import Card from '$lib/components/common/card/Card.svelte';
     import { t } from '$lib/translations';
     import { notificationState } from '../../../shareds/notifications.svelte';
+    import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
 
     let notifications = $state<DbNotification[]>([]);
     let loading = $state(true);
@@ -91,7 +92,7 @@
 
 <div class="container mx-auto max-w-2xl">
     <div class="flex items-center justify-between mb-4">
-        <h4>{$t('notifications.title')}</h4>
+        <GenericTitle text={$t('notifications.title')}/>
         {#if hasUnread}
             <button
                 type="button"
@@ -126,53 +127,52 @@
     {:else}
         <div class="space-y-2">
             {#each notifications as notification (notification.id)}
-                <button
-                    type="button"
-                    class="w-full text-left rounded-xl transition-all duration-150
-                        {notification.read
-                            ? 'bg-surface-100 dark:bg-surface-900 opacity-70'
-                            : 'card preset-outlined-surface-200-800 shadow-sm hover:shadow-md'}
-                        p-4"
-                    onclick={() => {
-                        if (!notification.read) markOneAsRead(notification.id);
-                        if (notification.link) window.location.href = notification.link;
-                    }}
-                >
-                    <div class="flex items-start gap-3">
-                        <!-- Type icon -->
-                        <div class="flex-shrink-0 mt-0.5">
-                            <Icon
-                                icon={typeIcons[notification.type] ?? 'mdi:bell-outline'}
-                                width="1.5rem"
-                                height="1.5rem"
-                                class={typeColors[notification.type] ?? 'text-surface-500'}
-                            />
-                        </div>
+                <Card>
+                    <button
+                        type="button"
+                        class="w-full text-left transition-all duration-150
+                            {notification.read ? 'opacity-70' : ''}"
+                        onclick={() => {
+                            if (!notification.read) markOneAsRead(notification.id);
+                            if (notification.link) window.location.href = notification.link;
+                        }}
+                    >
+                        <div class="flex items-start gap-3">
+                            <!-- Type icon -->
+                            <div class="flex-shrink-0 mt-0.5">
+                                <Icon
+                                    icon={typeIcons[notification.type] ?? 'mdi:bell-outline'}
+                                    width="1.5rem"
+                                    height="1.5rem"
+                                    class={typeColors[notification.type] ?? 'text-surface-500'}
+                                />
+                            </div>
 
-                        <!-- Content -->
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2">
-                                <span class="font-semibold text-sm truncate {notification.read ? '' : 'text-surface-900 dark:text-surface-50'}">
-                                    {notification.title}
-                                </span>
-                                {#if !notification.read}
-                                    <span class="flex-shrink-0 w-2 h-2 rounded-full bg-primary-500"></span>
-                                {/if}
-                            </div>
-                            <p class="text-sm text-surface-500 mt-0.5 line-clamp-2">
-                                {notification.message}
-                            </p>
-                            <div class="flex items-center gap-2 mt-1.5">
-                                <span class="text-xs text-surface-400">
-                                    {formatDate(notification.createdAt as unknown as string)}
-                                </span>
-                                {#if notification.link}
-                                    <Icon icon="mdi:open-in-new" width="0.75rem" height="0.75rem" class="text-surface-400" />
-                                {/if}
+                            <!-- Content -->
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold text-sm truncate {notification.read ? '' : 'text-surface-900 dark:text-surface-50'}">
+                                        {notification.title}
+                                    </span>
+                                    {#if !notification.read}
+                                        <span class="flex-shrink-0 w-2 h-2 rounded-full bg-primary-500"></span>
+                                    {/if}
+                                </div>
+                                <p class="text-sm text-surface-500 mt-0.5 line-clamp-2">
+                                    {notification.message}
+                                </p>
+                                <div class="flex items-center gap-2 mt-1.5">
+                                    <span class="text-xs text-surface-400">
+                                        {formatDate(notification.createdAt as unknown as string)}
+                                    </span>
+                                    {#if notification.link}
+                                        <Icon icon="mdi:open-in-new" width="0.75rem" height="0.75rem" class="text-surface-400" />
+                                    {/if}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </button>
+                    </button>
+                </Card>
             {/each}
         </div>
     {/if}

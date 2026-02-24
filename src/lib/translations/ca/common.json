@@ -56,7 +56,8 @@
   },
   "admin": {
     "review_requests": {
-      "search_placeholder": "Cerca peticions"
+      "search_placeholder": "Cerca peticions",
+      "title": "Revisa Peticions de Permisos"
     }
   },
   "edit_competition": {
@@ -102,7 +103,11 @@
     "previously_refused": "S'ha rebutjat el vostre registre anterior. \nUs podeu inscriure de nou.",
     "sign_up_again": "Registra't de nou"
   },
-  "puzzles": {},
+  "puzzles": {
+    "catalog_title": "Catàleg de Puzzles",
+    "edit_title": "Edita Puzzle",
+    "add_title": "Afegeix Nou Puzzle"
+  },
   "competition": {
     "create": {
       "title": "Crea nova competició",
@@ -186,6 +191,20 @@
   },
   "head": {
     "title": "PuzzLigas - Competicions de Puzzles | Events de Puzzles"
+  },
+  "request_permissions": {
+    "title": "Sol·licita Permisos"
+  },
+  "error_pages": {
+    "access_denied": "Accés Denegat"
+  },
+  "auth": {
+    "login_title": "Inicia sessió al teu compte",
+    "register_title": "Crea un compte"
+  },
+  "legal": {
+    "privacy_policy": "Política de Privacitat",
+    "terms_of_service": "Termes de Servei"
   },
   "explore_competitions": {
     "clear_all_filters": "Esborra tots els filtres",

@@ -13,6 +13,7 @@
     import CustomDateRangePicker from "$lib/components/bits_ui/CustomDateRangePicker.svelte";
     import LoadingOverlay from "$lib/components/LoadingOverlay.svelte";
     import PuzzleLinkSection from "$lib/components/PuzzleLinkSection.svelte";
+    import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
 
     let { data } = $props();
     console.log("competition/edit/+page.svelte: data", data);
@@ -631,7 +632,7 @@
     <title>{isEdit? $t('edit_competition.title') : $t('competition.create.page_title')}</title>
 </svelte:head>
 
-<h4>{isEdit? $t('competition.edit.title') : $t('competition.create.title')}</h4>
+<TitleBackButton href={isEdit ? `/competitions/competition_details/${$form.id}` : '/competitions/explore_competitions'} text={isEdit? $t('competition.edit.title') : $t('competition.create.title')} />
 <div class="container mx-auto relative">
     <!-- Header Section -->
     <div class="space-y-3 mb-2">

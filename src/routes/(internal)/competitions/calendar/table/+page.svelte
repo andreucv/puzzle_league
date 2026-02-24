@@ -2,6 +2,7 @@
 	import CompetitionItem from '$lib/components/competition/CompetitionItem.svelte';
 	import InfiniteScroll from '$lib/components/InfiniteScroll.svelte';
 	import { t } from '$lib/translations';
+	import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
 	import type { Competition } from '@prisma/client';
 	import { getStartOfWeek, addDays } from '$lib/utils/date_utils';
 
@@ -100,7 +101,7 @@
 	<title>{$t('competitions.calendar')}</title>
 </svelte:head>
 
-<h4>{$t('competitions.calendar')}</h4>
+<GenericTitle text={$t('competitions.calendar')} />
 
 <div class="container mx-auto">
 	{#if competitions.length > 0}

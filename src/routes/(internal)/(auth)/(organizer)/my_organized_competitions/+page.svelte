@@ -1,6 +1,7 @@
 <script lang="ts">
     import CompetitionCard from '$lib/components/competition/CompetitionCard.svelte';
     import SearchInput from '$lib/components/SearchInput.svelte';
+    import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import { t } from '$lib/translations';
     let { data } = $props();
 
@@ -12,7 +13,7 @@
     let total_count    = $derived(competitions.length);
 </script>
 
-<h4>{$t('competitions.my_organized_competitions')}</h4>
+<GenericTitle text={$t('competitions.my_organized_competitions')} />
 <div>
     <SearchInput placeholder={$t('list_competitions.look_for_competition')} bind:filter />
     <div class="pt-2">

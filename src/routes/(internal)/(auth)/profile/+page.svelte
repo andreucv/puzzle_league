@@ -6,6 +6,7 @@
     import UserCard from "$lib/components/UserCard.svelte";
 
     import {t} from '$lib/translations';
+    import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
 
     let { data }: { data: PageData } = $props();
 
@@ -26,7 +27,7 @@
     }
 </script>
 
-<h4>{$t('profile.my_profile')}</h4>
+<GenericTitle text={$t('profile.my_profile')} />
 <div class="container">
     <div class="space-y-6">
         <UserCard {user} {roleAssignments} {account}/>

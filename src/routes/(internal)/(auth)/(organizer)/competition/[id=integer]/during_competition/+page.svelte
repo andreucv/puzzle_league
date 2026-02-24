@@ -1,5 +1,6 @@
 <script lang="ts">
     import CategoryDuringCompetition from "$lib/components/CategoryDuringCompetition.svelte";
+    import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import Icon from "@iconify/svelte";
 
     let { data } = $props();
@@ -27,7 +28,7 @@
 <!-- Improved Header with Competition Overview -->
 <div class="flex justify-between items-start">
     <div>
-        <h1 class="text-2xl font-bold mb-2">{competition?.name || "Competition"}</h1>
+        <GenericTitle text={competition?.name || "Competition"} />
         <div class="flex gap-4 text-sm">
             <div class="flex items-center gap-2">
                 <Icon icon="mdi:format-list-checks" class="text-base-content/60" />

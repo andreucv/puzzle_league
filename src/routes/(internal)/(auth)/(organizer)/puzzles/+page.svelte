@@ -2,6 +2,8 @@
     import Icon from '@iconify/svelte';
     import SearchInput from '$lib/components/SearchInput.svelte';
     import { CldImage } from 'svelte-cloudinary';
+    import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
+    import { t } from '$lib/translations';
 
     let { data } = $props();
     let filter = $state('');
@@ -21,7 +23,7 @@
     );
 </script>
 
-<h4>Puzzle Catalog</h4>
+<GenericTitle text={$t('puzzles.catalog_title')} />
 
 <div class="container mx-auto space-y-4">
     <div class="flex items-center justify-between gap-4">

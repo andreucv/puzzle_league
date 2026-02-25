@@ -16,11 +16,6 @@
     const categoriesWithCounts = data.props.categoriesWithCounts;
     const userRecords = data.props.records;
 
-    // Build a set of category IDs the user is registered for
-    const userRegisteredCategoryIds = $derived(
-        new Set((userRecords || []).map((r: any) => r.categoryId))
-    );
-
     let competition = $state(data.props.competition_and_categories);
     const competitionName = $derived(competition?.name);
 
@@ -105,16 +100,16 @@
 
         <!-- Categories Section -->
         <div>
-            <CategoriesOverview {categories} {isCreator} {categoriesWithCounts} {userRegisteredCategoryIds} userRecords={userRecords ?? []} />
+            <CategoriesOverview {categories} {isCreator} {categoriesWithCounts} userRecords={userRecords ?? []} />
         </div>
 
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <EndPageActionButton icon="mdi:account-plus" href="/competitions/competition_details/{competition?.id}/inscription" colorClass="preset-filled-success-500" disabled={!(currentUser && competition?.registrationOpen)} text={$t('competition_details.manage_inscription')} />
+            <EndPageActionButton icon="mdi:account-plus" href="/competitions/competition_details/{competition?.id}/inscription" colorClass="preset-filled-success-500" disabled={!(currentUser && competition?.registrationOpen)} text={$t('competition_details.manage_inscription')} testId="signup-button" />
             {#if isCreator}
                 <EndPageActionButton icon="mdi:pencil" href="/competition/edit/{competition?.id}" text={$t('competition_details.edit_button')} />
                 <EndPageActionButton icon="mdi:play-circle-outline" href="/competition/{competition?.id}/during_competition" text={$t('competition_details.start_competition_button')} />
-                <EndPageActionButton icon="mdi:clipboard-check-outline" href="/competition/{competition?.id}/manage_inscriptions" text={$t('manage_inscriptions.title')} />
+                <EndPageActionButton icon="mdi:clipboard-check-outline" href="/competition/{competition?.id}/manage_inscriptions" text={$t('manage_inscriptions.title')} testId="manage-inscriptions-button" />
             {/if}
             <EndPageActionButton icon="mdi:arrow-left" href="/competitions/explore_competitions/" colorClass="preset-tonal" text={$t('competition_details.back_to_competitions_button')} />
         </div>

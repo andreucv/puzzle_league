@@ -153,7 +153,7 @@
   "competition_details": {
     "feature_not_available": "Feature not available yet",
     "seats_available": "seats available",
-    "manage_inscription": "Sign Up",
+    "manage_inscription": "Your inscription",
     "no_categories": "No categories have been added to this competition yet.",
     "organized_by": "Organized by",
     "edit_button": "Edit Competition",
@@ -181,15 +181,17 @@
     "registration_not_available": "Registration is not available for this category.",
     "status_pending": "Pending",
     "status_accepted": "Accepted",
-    "status_refused": "Refused",
-    "previously_refused": "Your previous registration was refused. You can sign up again."
+    "status_waitlisted": "Waitlisted"
   },
   "manage_inscriptions": {
     "title": "Manage Inscriptions",
     "pending": "Pending",
     "accepted": "Accepted",
-    "refused": "Refused",
+    "waitlisted": "Waitlisted",
     "max_slots": "Slots",
+    "search_placeholder": "Search by participant name...",
+    "no_results_for_search": "No inscriptions match your search.",
+    "seats_available": "{accepted} of {max} seats filled",
     "no_inscriptions": "No inscriptions for this category.",
     "no_inscriptions_for_filter": "No inscriptions match the selected filter.",
     "no_categories": "No categories in this competition.",
@@ -199,7 +201,7 @@
     "refuse_error": "Failed to refuse inscription.",
     "status_pending": "Pending",
     "status_accepted": "Accepted",
-    "status_refused": "Refused",
+    "status_waitlisted": "Waitlisted",
     "all": "All",
     "open": "Open",
     "near-me": "Near Me",

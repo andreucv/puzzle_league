@@ -1,7 +1,7 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { acceptInscription, prisma } from '$lib/database/database';
-import { Role } from '$lib/.prisma/generated/prisma/enums';
-import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { acceptInscription } from '$lib/database/db_inscription_utils';
+import { prisma } from '$lib/database/create_prisma_client';
+import { Role, NotificationType } from '$lib/.prisma/generated/prisma/enums';
 import { requireCompetitionRole } from '$lib/utils/api_auth';
 import { createNotificationForUsers } from '$lib/notifications/notifications';
 

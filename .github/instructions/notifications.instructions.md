@@ -59,6 +59,7 @@ The `NotificationType` enum lives in the Prisma schema. Current values:
 |-------|-------------|
 | `INSCRIPTION_ACCEPTED` | Organizer accepts a participant's inscription |
 | `INSCRIPTION_REFUSED` | Organizer refuses a participant's inscription |
+| `INSCRIPTION_WAITLISTED` | Participant signs up for a full category (auto-waitlisted) |
 | `COMPETITION_STARTED` | A competition transitions to STARTED |
 | `COMPETITION_CANCELLED` | A competition is cancelled |
 | `ROLE_REQUEST_APPROVED` | Admin approves a role request |

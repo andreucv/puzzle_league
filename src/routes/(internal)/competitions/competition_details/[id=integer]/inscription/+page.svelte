@@ -46,14 +46,9 @@
     // Debounce timers
     let searchTimers: Map<number, ReturnType<typeof setTimeout>> = new Map();
 
-    // Check if user is already registered for a category (PENDING or ACCEPTED)
+    // Check if user is already registered for a category (PENDING, ACCEPTED, or WAITLISTED)
     function getExistingRecord(categoryId: number) {
-        return existingRecords.find((r: any) => r.categoryId === categoryId && (r.status === 'PENDING' || r.status === 'ACCEPTED'));
-    }
-
-    // Check if user has a REFUSED record (can re-register)
-    function getRefusedRecord(categoryId: number) {
-        return existingRecords.find((r: any) => r.categoryId === categoryId && r.status === 'REFUSED');
+        return existingRecords.find((r: any) => r.categoryId === categoryId && (r.status === 'PENDING' || r.status === 'ACCEPTED' || r.status === 'WAITLISTED'));
     }
 
     // Get status badge classes
@@ -61,7 +56,7 @@
         switch (status) {
             case 'ACCEPTED': return 'preset-filled-success-500';
             case 'PENDING': return 'preset-filled-warning-500';
-            case 'REFUSED': return 'preset-filled-error-500';
+            case 'WAITLISTED': return 'preset-filled-secondary-500';
             default: return 'preset-tonal';
         }
     }
@@ -70,7 +65,7 @@
         switch (status) {
             case 'ACCEPTED': return 'mdi:check-circle';
             case 'PENDING': return 'mdi:clock-outline';
-            case 'REFUSED': return 'mdi:close-circle';
+            case 'WAITLISTED': return 'mdi:clock-alert-outline';
             default: return 'mdi:help-circle';
         }
     }
@@ -230,7 +225,7 @@
         <CompetitionTitle title={competition.name} />
 
         {#if !canRegister}
-            <div class="alert preset-filled-warning-500 p-4 rounded-lg">
+            <div class="alert preset-filled-warning-500 p-4 rounded-lg" data-testid="registration-closed-warning">
                 <Icon icon="mdi:alert" width="1.5rem" height="1.5rem" />
                 <span>
                     {#if !competition?.registrationOpen}
@@ -267,7 +262,6 @@
     <div class="space-y-4 pb-20">
         {#each categories as category (category.id)}
             {@const existingRecord = getExistingRecord(category.id)}
-            {@const refusedRecord = getRefusedRecord(category.id)}
             {@const signup = getSignup(category.id)}
             {@const signupActive = isSignupStarted(category.id)}
             {@const maxSize = category.maxPartySize || 1}
@@ -275,7 +269,7 @@
             {@const query = searchQueries.get(category.id) || ''}
             {@const results = searchResults.get(category.id) || []}
 
-            <div class="card preset-outlined-surface-200-800 p-4">
+            <div class="card preset-outlined-surface-200-800 p-4" data-testid="inscription-category-{category.id}">
                 <!-- Category header -->
                 <div class="flex justify-between items-start mb-3">
                     <div>
@@ -317,16 +311,16 @@
                     </div>
                 {/if}
 
-                <!-- Already registered (PENDING or ACCEPTED) -->
+                <!-- Already registered (PENDING, ACCEPTED, or WAITLISTED) -->
                 {#if existingRecord}
-                    <div class="p-3 {existingRecord.status === 'ACCEPTED' ? 'bg-success-50 dark:bg-success-900/20 border-success-300 dark:border-success-700' : 'bg-warning-50 dark:bg-warning-900/20 border-warning-300 dark:border-warning-700'} border rounded-lg">
+                    <div class="p-3 {existingRecord.status === 'ACCEPTED' ? 'bg-success-50 dark:bg-success-900/20 border-success-300 dark:border-success-700' : existingRecord.status === 'WAITLISTED' ? 'bg-secondary-50 dark:bg-secondary-900/20 border-secondary-300 dark:border-secondary-700' : 'bg-warning-50 dark:bg-warning-900/20 border-warning-300 dark:border-warning-700'} border rounded-lg">
                         <div class="flex items-center justify-between mb-2">
                             <div class="flex items-center gap-2">
-                                <Icon icon={getStatusIcon(existingRecord.status)} width="1.2rem" height="1.2rem" class={existingRecord.status === 'ACCEPTED' ? 'text-success-600' : 'text-warning-600'} />
-                                <span class="font-semibold {existingRecord.status === 'ACCEPTED' ? 'text-success-700 dark:text-success-400' : 'text-warning-700 dark:text-warning-400'}">
+                                <Icon icon={getStatusIcon(existingRecord.status)} width="1.2rem" height="1.2rem" class={existingRecord.status === 'ACCEPTED' ? 'text-success-600' : existingRecord.status === 'WAITLISTED' ? 'text-secondary-600' : 'text-warning-600'} />
+                                <span class="font-semibold {existingRecord.status === 'ACCEPTED' ? 'text-success-700 dark:text-success-400' : existingRecord.status === 'WAITLISTED' ? 'text-secondary-700 dark:text-secondary-400' : 'text-warning-700 dark:text-warning-400'}">
                                     {$t('inscription.registered')}
                                 </span>
-                                <span class="badge {getStatusBadgeClasses(existingRecord.status)} text-xs">
+                                <span class="badge {getStatusBadgeClasses(existingRecord.status)} text-xs" data-testid="inscription-status-badge">
                                     {$t(`inscription.status_${existingRecord.status.toLowerCase()}`)}
                                 </span>
                             </div>
@@ -359,36 +353,6 @@
                         </div>
                     </div>
 
-                <!-- Previously refused — allow re-registration -->
-                {:else if refusedRecord && canRegister}
-                    <div class="p-3 bg-error-50 dark:bg-error-900/20 border border-error-300 dark:border-error-700 rounded-lg mb-3">
-                        <div class="flex items-center gap-2">
-                            <Icon icon="mdi:close-circle" width="1.2rem" height="1.2rem" class="text-error-600" />
-                            <span class="text-sm text-error-700 dark:text-error-400">{$t('inscription.previously_refused')}</span>
-                        </div>
-                    </div>
-                    {#if !signupActive}
-                        {#if individual}
-                            <button
-                                type="button"
-                                class="btn preset-filled-success-500 w-full sm:w-auto"
-                                onclick={() => toggleIndividualSignup(category.id)}
-                            >
-                                <Icon icon="mdi:account-plus" width="1.2rem" height="1.2rem" />
-                                {$t('inscription.sign_up_again')}
-                            </button>
-                        {:else}
-                            <button
-                                type="button"
-                                class="btn preset-filled-success-500 w-full sm:w-auto"
-                                onclick={() => startGroupSignup(category.id)}
-                            >
-                                <Icon icon="mdi:account-group" width="1.2rem" height="1.2rem" />
-                                {$t('inscription.sign_up_again')}
-                            </button>
-                        {/if}
-                    {/if}
-
                 <!-- Signup form -->
                 {:else if canRegister}
                     {#if !signupActive}
@@ -398,6 +362,7 @@
                                 type="button"
                                 class="btn preset-filled-success-500 w-full sm:w-auto"
                                 onclick={() => toggleIndividualSignup(category.id)}
+                                data-testid="signup-category-{category.id}"
                             >
                                 <Icon icon="mdi:account-plus" width="1.2rem" height="1.2rem" />
                                 {$t('inscription.sign_up')}
@@ -537,6 +502,7 @@
                     type="submit"
                     class="btn preset-filled-primary-500 w-full shadow-lg"
                     disabled={!canSubmit || isSubmitting}
+                    data-testid="submit-all-registrations"
                 >
                     <Icon icon="mdi:check-all" width="1.2rem" height="1.2rem" />
                     {$t('inscription.submit_all')}

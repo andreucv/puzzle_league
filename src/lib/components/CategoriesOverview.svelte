@@ -8,19 +8,17 @@
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
     type CategoryWithCounts = Category & { totalRecords: number; finishedRecords: number };
-    type UserRecord = { categoryId: number; users?: { id: string; name: string; email: string; image: string | null }[] };
+    type UserRecord = { categoryId: number; status?: string; users?: { id: string; name: string; email: string; image: string | null }[] };
 
     let {
         categories,
         isCreator = false,
         categoriesWithCounts = undefined,
-        userRegisteredCategoryIds = new Set<number>(),
         userRecords = []
     }: {
         categories: CategoryWithPuzzles[],
         isCreator: boolean,
         categoriesWithCounts?: CategoryWithCounts[],
-        userRegisteredCategoryIds?: Set<number>,
         userRecords?: UserRecord[]
     } = $props();
 
@@ -30,22 +28,22 @@
         return category.maxParties - registered;
     }
 
-    function getUserParty(categoryId: number) {
-        const record = userRecords.find(r => r.categoryId === categoryId);
-        return record?.users || null;
+    function getUserRecord(categoryId: number) {
+        return userRecords.find(r => r.categoryId === categoryId) || null;
     }
 </script>
 
 {#if categories.length > 0}
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {#each categories as category}
-            {@const isRegistered = userRegisteredCategoryIds.has(category.id)}
-            {@const party = getUserParty(category.id)}
+            {@const record = getUserRecord(category.id)}
+            {@const party = record?.users || null}
+            {@const inscriptionStatus = record?.status}
             <CategoryCard
                 {category}
                 {isCreator}
                 showRegistration={true}
-                {isRegistered}
+                {inscriptionStatus}
                 {party}
                 seatsAvailable={getSeatsAvailable(category)}
             />

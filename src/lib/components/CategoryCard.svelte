@@ -15,14 +15,14 @@
         category,
         isCreator = false,
         showRegistration = false,
-        isRegistered = false,
+        inscriptionStatus = undefined,
         party = null,
         seatsAvailable = undefined
     }: {
         category: CategoryWithPuzzles;
         isCreator?: boolean;
         showRegistration?: boolean;
-        isRegistered?: boolean;
+        inscriptionStatus?: string;
         party?: PartyUser[] | null;
         seatsAvailable?: number;
     } = $props();
@@ -70,7 +70,7 @@
     {#if showRegistration}
         <hr class="border-t border-surface-300 dark:border-surface-600" />
         <div class="flex items-center justify-between mt-auto -mb-0.5">
-            {#if isRegistered && party}
+            {#if inscriptionStatus && party}
                 <div class="flex items-center gap-2">
                     <div class="flex -space-x-1.5">
                         {#each party as user}
@@ -84,10 +84,22 @@
                         {party.map(u => u.name).join(', ')}
                     </span>
                 </div>
-                <span class="badge preset-tonal-success text-xs flex items-center gap-1 shrink-0">
-                    <Icon icon="mdi:check-circle" width="0.8rem" height="0.8rem" />
-                    {$t('inscription.registered')}
-                </span>
+                {#if inscriptionStatus === 'ACCEPTED'}
+                    <span class="badge preset-tonal-success text-xs flex items-center gap-1 shrink-0" data-testid="category-status-badge">
+                        <Icon icon="mdi:check-circle" width="0.8rem" height="0.8rem" />
+                        {$t('inscription.status_accepted')}
+                    </span>
+                {:else if inscriptionStatus === 'PENDING'}
+                    <span class="badge preset-tonal-warning text-xs flex items-center gap-1 shrink-0" data-testid="category-status-badge">
+                        <Icon icon="mdi:clock-outline" width="0.8rem" height="0.8rem" />
+                        {$t('inscription.status_pending')}
+                    </span>
+                {:else if inscriptionStatus === 'WAITLISTED'}
+                    <span class="badge preset-tonal-secondary text-xs flex items-center gap-1 shrink-0" data-testid="category-status-badge">
+                        <Icon icon="mdi:clock-alert-outline" width="0.8rem" height="0.8rem" />
+                        {$t('inscription.status_waitlisted')}
+                    </span>
+                {/if}
             {:else}
                 {#if seatsAvailable !== undefined}
                     <div class="flex items-center gap-1 text-sm text-surface-500">

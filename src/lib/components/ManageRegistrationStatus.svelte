@@ -64,6 +64,7 @@
 			class="btn btn-sm {competition_registration_status ? 'preset-filled-error-500' : 'preset-filled-success-500'}"
 			onclick={toggleRegistration}
 			disabled={loading || !hasCategories}
+			data-testid="toggle-registration"
 		>
 			{#if loading}
 				Updating...

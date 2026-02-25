@@ -4,8 +4,16 @@
     import CompetitionList from '$lib/components/competition/CompetitionList.svelte';
     import ButtonLink from '$lib/components/landing_page/ButtonLink.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
+    import { afterNavigate, invalidateAll } from '$app/navigation';
 
     let { data } = $props();
+
+    // Re-fetch data when navigating back to the home page (e.g. after inscription)
+    afterNavigate(({ from }) => {
+        if (from) {
+            invalidateAll();
+        }
+    });
 
     // Check if user has organizer role
     const hasOrganizerRole = $derived(
@@ -15,10 +23,6 @@
     const hasAdminRole = $derived(
         data.roleAssignments?.some((role: any) => role.role === 'ADMIN') ?? false
     );
-
-    console.log("+page.svelte: data", data);
-    console.log("+page.svelte: upcomingRegisteredCompetitions", data.props.upcomingRegisteredCompetitions);
-    console.log("+page.svelte: upcomingRegisteredCompetitions.categories", data.props.upcomingRegisteredCompetitions?.at(0)?.categories?.at(0)?.records.at(0)?.users);
 </script>
 
 <svelte:head>

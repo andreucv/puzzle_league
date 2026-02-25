@@ -1,7 +1,10 @@
 import type { PageServerLoad, Actions } from "./$types";
-import { getCompetitionWithCategories, getCategoryEntriesFromCompetition, signUpUsersToCompetition, removeUserFromCategory } from "$lib/database/database";
+import { getCompetitionWithCategories } from "$lib/database/database";
+import { getCategoryEntriesFromCompetition, signUpUsersToCompetition, removeUserFromCategory } from "$lib/database/db_inscription_utils";
 import { auth } from "$lib/auth";
 import { redirect } from "@sveltejs/kit";
+import { createNotificationForUsers } from "$lib/notifications/notifications";
+import { NotificationType, InscriptionStatus } from "$lib/.prisma/generated/prisma/enums";
 
 export const load: PageServerLoad = async (event) => {
     const session = await auth.api.getSession(event.request);
@@ -50,6 +53,21 @@ export const actions: Actions = {
             const result = await signUpUsersToCompetition(signups, session.user.id);
 
             if (result.success) {
+                // Notify users on waitlisted inscriptions
+                if (result.data) {
+                    for (const record of result.data) {
+                        if (record.status === InscriptionStatus.WAITLISTED) {
+                            const userIds = record.users.map((u: { id: string }) => u.id);
+                            await createNotificationForUsers(
+                                userIds,
+                                NotificationType.INSCRIPTION_WAITLISTED,
+                                'Inscription waitlisted',
+                                `Your inscription for "${record.category.description ?? record.category.type}" has been waitlisted. The category is currently full.`,
+                                `/competitions/competition_details/${record.category.competition.id}`
+                            );
+                        }
+                    }
+                }
                 return { success: true, message: result.message };
             } else {
                 return { success: false, message: result.error };

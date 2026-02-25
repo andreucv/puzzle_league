@@ -48,7 +48,19 @@
         );
     }
 
+    // Get the inscription status for the current user in a category
+    function getUserInscriptionStatus(category: any): string | null {
+        if (!currentUserId || !category.records) return null;
+        const record = category.records.find((r: any) =>
+            r.users?.some((u: any) => u.id === currentUserId)
+        );
+        return record?.status ?? null;
+    }
 
+    // Check if user is registered in any category of this competition
+    const isUserRegistered = $derived(
+        competition.categories?.some((c: any) => isUserInCategory(c)) ?? false
+    );
 
     // Days until text
     const daysUntilText = $derived.by(() => {
@@ -97,17 +109,12 @@
                     {competition.name}
                 </h3>
 
-                <!-- Status badge -->
+                <!-- Competition status -->
                 <div class="flex items-center gap-1.5 flex-wrap mb-2">
-                    {#if competition.registrationOpen && competition.status === 'NOT_STARTED'}
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300 rounded-full text-xs font-semibold animate-pulse">
-                            <Icon icon="mdi:door-open" class="w-3.5 h-3.5" />
-                            Registration Open
-                        </span>
-                    {:else if !competition.registrationOpen && competition.status === 'NOT_STARTED'}
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-error-100 text-error-700 dark:bg-error-900/50 dark:text-error-300 rounded-full text-xs font-medium">
-                            <Icon icon="mdi:door-closed-lock" class="w-3.5 h-3.5" />
-                            Closed
+                    {#if competition.status === 'NOT_STARTED'}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300 rounded-full text-xs font-medium">
+                            <Icon icon="mdi:calendar-clock" class="w-3.5 h-3.5" />
+                            Upcoming
                         </span>
                     {:else if competition.status === 'STARTED'}
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-warning-100 text-warning-700 dark:bg-warning-900/50 dark:text-warning-300 rounded-full text-xs font-medium">
@@ -122,19 +129,45 @@
                     {/if}
                 </div>
 
+                <!-- Registration status (only when user is not registered) -->
+                {#if !isUserRegistered && competition.status === 'NOT_STARTED'}
+                    <div class="flex items-center gap-1.5 flex-wrap mb-2">
+                        {#if competition.registrationOpen}
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 rounded-full text-xs font-semibold animate-pulse">
+                                <Icon icon="mdi:door-open" class="w-3.5 h-3.5" />
+                                Registration Open
+                            </span>
+                        {:else}
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-error-100 text-error-700 dark:bg-error-900/50 dark:text-error-300 rounded-full text-xs font-medium">
+                                <Icon icon="mdi:door-closed-lock" class="w-3.5 h-3.5" />
+                                Registration Closed
+                            </span>
+                        {/if}
+                    </div>
+                {/if}
+
                 <!-- Category chips showing user registration -->
                 {#if competition.categories && competition.categories.length > 0 && !noShowCategories}
                     <div class="flex items-center gap-1.5 flex-wrap">
                         {#each competition.categories as category (category.id)}
                             {@const registered = isUserInCategory(category)}
+                            {@const status = getUserInscriptionStatus(category)}
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs
-                                {registered
+                                {registered && status === 'ACCEPTED'
                                     ? 'bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 font-semibold'
+                                    : registered && status === 'PENDING'
+                                    ? 'bg-warning-100 text-warning-700 dark:bg-warning-900/50 dark:text-warning-300 font-semibold'
+                                    : registered && status === 'WAITLISTED'
+                                    ? 'bg-secondary-100 text-secondary-700 dark:bg-secondary-900/50 dark:text-secondary-300 font-semibold'
                                     : 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'}">
                                 <Icon icon={getCategoryTypeIcon(category.type as CategoryType)} class="w-3.5 h-3.5" />
                                 {getCategoryTypeName(category.type as any)}
-                                {#if registered}
+                                {#if status === 'ACCEPTED'}
                                     <Icon icon="mdi:check-circle" class="w-3.5 h-3.5 text-success-600 dark:text-success-400" />
+                                {:else if status === 'PENDING'}
+                                    <Icon icon="mdi:clock-outline" class="w-3.5 h-3.5 text-warning-600 dark:text-warning-400" />
+                                {:else if status === 'WAITLISTED'}
+                                    <Icon icon="mdi:clock-alert-outline" class="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" />
                                 {/if}
                             </span>
                         {/each}

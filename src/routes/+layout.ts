@@ -1,4 +1,8 @@
 import { addTranslations, setLocale, setRoute } from '$lib/translations';
+import { dev } from '$app/environment';
+import { injectAnalytics } from '@vercel/analytics/sveltekit';
+
+injectAnalytics({ mode: dev ? 'development' : 'production' });
 
 /** @type {import('@sveltejs/kit').Load} */
 export const load = async ({ data }) => {

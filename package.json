@@ -47,6 +47,7 @@
 		"@iconify/svelte": "^5.0.0",
 		"@prisma/adapter-pg": "^7.4.1",
 		"@prisma/client": "^7.4.1",
+		"@vercel/analytics": "^1.6.1",
 		"firebase": "^11.0.2",
 		"prisma": "^7.4.1",
 		"svelte-qr-scanner": "^1.1.0",

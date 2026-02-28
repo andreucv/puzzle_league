@@ -23,9 +23,19 @@
         };
         currentUserId?: string;
         noShowCategories?: boolean;
+        userCountry?: string | null;
+        userPostalCode?: string | null;
     }
 
-    let { competition, currentUserId, noShowCategories = false }: Props = $props();
+    let { competition, currentUserId, noShowCategories = false, userCountry, userPostalCode }: Props = $props();
+
+    // Check if competition is "near" (same country AND same postal code prefix)
+    const isNearMe = $derived(
+        userCountry && userPostalCode && competition.country && competition.postalCode
+            ? competition.country === userCountry &&
+              competition.postalCode.substring(0, 2) === userPostalCode.substring(0, 2)
+            : false
+    );
 
     // Calculate days until competition
     const today = new Date();
@@ -111,6 +121,12 @@
 
                 <!-- Competition status -->
                 <div class="flex items-center gap-1.5 flex-wrap mb-2">
+                    {#if isNearMe}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 rounded-full text-xs font-medium">
+                            <Icon icon="mdi:map-marker-radius" class="w-3.5 h-3.5" />
+                            Near you
+                        </span>
+                    {/if}
                     {#if competition.status === 'NOT_STARTED'}
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300 rounded-full text-xs font-medium">
                             <Icon icon="mdi:calendar-clock" class="w-3.5 h-3.5" />

@@ -1,23 +1,23 @@
-import { auth } from "$lib/auth";
 import type { PageServerLoad } from "./$types";
-import { getRoleAssignments, getUpcomingRegisteredCompetitions, getParticipatedCompetitions } from "$lib/database/database";
+import { getUpcomingRegisteredCompetitions, getParticipatedCompetitions } from "$lib/database/database";
 
-export const load: PageServerLoad = async ({ request }) => {
-	let session = null;
-	try {
-		session = await auth.api.getSession({
-			headers: request.headers,
-		});
-	} catch (error) {
-		console.error("(routes page.server.ts) Error fetching user session:", error);
+export const load: PageServerLoad = async ({ parent }) => {
+	// Wait for layout data to avoid Prisma connection pool contention
+	const { user } = await parent();
+
+	if (!user) {
+		return {
+			props: {
+				upcomingRegisteredCompetitions: null,
+				participatedCompetitions: null,
+			}
+		};
 	}
 
-	let upcomingRegisteredCompetitions = null;
-	let participatedCompetitions = null;
-	if (session) {
-		upcomingRegisteredCompetitions = await getUpcomingRegisteredCompetitions(session.user.id);
-		participatedCompetitions = await getParticipatedCompetitions(session.user.id);
-	}
+	const [upcomingRegisteredCompetitions, participatedCompetitions] = await Promise.all([
+		getUpcomingRegisteredCompetitions(user.id),
+		getParticipatedCompetitions(user.id),
+	]);
 
 	return {
 		props: {

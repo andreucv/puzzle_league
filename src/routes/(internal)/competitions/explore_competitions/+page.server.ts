@@ -4,11 +4,26 @@ import { prisma } from "$lib/database/database";
 export const load: PageServerLoad = async ({ locals }) => {
     const userId = locals.user?.id;
 
-    // Fetch all competitions with categories, sorted by startDate (soonest first)
+    // Fetch all competitions with categories and records (for per-category registration display)
     const [competitions, registeredCategoryIds] = await Promise.all([
         prisma.competition.findMany({
             include: {
-                categories: true,
+                categories: {
+                    orderBy: { startTime: 'asc' },
+                    include: {
+                        records: {
+                            include: {
+                                users: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        image: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
             },
             orderBy: {
                 startDate: 'asc'

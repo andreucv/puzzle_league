@@ -18,6 +18,6 @@ In both types of pages, it's important to maintain a consistent design and user 
 
 When you need to display information in a card format, use the Card component from lib/components/common/card/Card.svelte. This component provides a consistent design and makes it easier to maintain the code. Instead of creating a new div with card classes, simply wrap your content inside the Card component. This ensures that all cards across the application have a uniform appearance and behavior, and it also allows for easier updates in the future if the card design needs to be changed.
 
-## Using the ExploreCompetitionCard component
+## Using the CompetitionCard component
 
-When displaying a list of competitions, use the ExploreCompetitionCard component from lib/components/competition/explore/ExploreCompetitionCard.svelte. This component is specifically designed to display competition information in a card format and provides a consistent design for all competition cards across the application. By using this component, you can ensure that the competition information is presented in a visually appealing way and that users can easily navigate to the competition details page by clicking on the card.
+When displaying a list of competitions, use the CompetitionCard component from lib/components/competition/CompetitionCard.svelte. This is the unified competition card used across the entire application (home page, explore, upcoming, past, calendar, etc.). It displays the competition image, name, status badges, "Near you" badge, registration status per category, and a calendar-style date panel. Pass `currentUserId` to show per-category registration status, and `userCountry`/`userPostalCode` to show the "Near you" badge.

@@ -4,7 +4,7 @@
     import SearchInput from "$lib/components/SearchInput.svelte";
     import FilterTabs from "$lib/components/FilterTabs.svelte";
     import SmartPresetChips from "$lib/components/SmartPresetChips.svelte";
-    import ExploreCompetitionCard from "$lib/components/competition/ExploreCompetitionCard.svelte";
+    import CompetitionCard from "$lib/components/competition/CompetitionCard.svelte";
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import type { RoleAssignment } from "@prisma/client";
 
@@ -154,9 +154,9 @@
     {/if}
 
     <!-- Competition cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="space-y-2">
         {#each filteredCompetitions as competition (competition.id)}
-            <ExploreCompetitionCard {competition} userCountry={user?.country ?? null} userPostalCode={user?.postalCode ?? null} {registeredCategoryIds} />
+            <CompetitionCard {competition} currentUserId={user?.id} userCountry={user?.country ?? null} userPostalCode={user?.postalCode ?? null} />
         {:else}
             <div class="col-span-full flex flex-col items-center justify-center py-12 text-center">
                 <Icon icon="mdi:magnify-remove-outline" class="w-16 h-16 text-surface-300 dark:text-surface-600 mb-4" />

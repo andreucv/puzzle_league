@@ -1,5 +1,6 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
+    import PlusIcon from '@iconify-svelte/mdi/plus';
     import { t } from '$lib/translations';
     import SearchInput from "$lib/components/SearchInput.svelte";
     import FilterTabs from "$lib/components/FilterTabs.svelte";
@@ -135,7 +136,7 @@
         </span>
         {#if roleAssignments?.some((role: RoleAssignment) => role.role === 'ORGANIZER')}
             <a class="btn btn-sm preset-filled-primary-500" href="/competition/edit">
-                <Icon icon="mdi:plus" class="mr-1" />
+                <PlusIcon width="1rem" height="1rem" class="mr-1" />
                 {$t('competitions.create_competition')}
             </a>
         {/if}

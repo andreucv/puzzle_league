@@ -1,6 +1,8 @@
 <script lang="ts">
     import { AppBar, Avatar } from '@skeletonlabs/skeleton-svelte';
     import Icon from '@iconify/svelte';
+    import HamburgerIcon from '@iconify-svelte/icon-park/hamburger-button';
+    import BellOutlineIcon from '@iconify-svelte/mdi/bell-outline';
     import { page } from '$app/state';
     let user = $derived(page.data.user);
     let currentPath = $derived(page.url.pathname);
@@ -22,7 +24,7 @@
         <AppBar.Toolbar class="grid-cols-[auto_1fr_auto] items-center">
         <AppBar.Lead>
             <button id="states-button" class="flex items-center" onclick={() => drawerState.open = true} type="button">
-                <Icon icon="icon-park:hamburger-button" width="1.5rem" height="1.5rem" />
+                <HamburgerIcon width="1.5rem" height="1.5rem" />
             </button>
         </AppBar.Lead>
         <AppBar.Headline>
@@ -38,7 +40,7 @@
             {:else}
                 <div class="flex items-center items-bottom relative gap-3">
                     <a href="/notifications" class="relative p-1 text-primary-600" aria-label="Notifications">
-                        <Icon icon="mdi:bell-outline" width="1.5rem" height="1.5rem" />
+                        <BellOutlineIcon width="1.5rem" height="1.5rem" class="text-primary-600" />
                         {#if notificationState.hasUnread}
                             <span class="absolute top-1 right-1 w-2 h-2 rounded-full" style="background-color: #DD2200;"></span>
                         {/if}

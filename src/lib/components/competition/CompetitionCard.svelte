@@ -1,8 +1,33 @@
 <script lang="ts">
-    import type { Competition, CategoryType } from "@prisma/client";
+    import type { Competition } from "@prisma/client";
     import { CldImage } from 'svelte-cloudinary';
     import Icon from '@iconify/svelte';
-    import { getCategoryTypeName, getCategoryTypeIcon } from "$lib/utils/category_utils";
+    import { getCategoryTypeName } from "$lib/utils/category_utils";
+    import MapMarkerRadiusIcon from '@iconify-svelte/mdi/map-marker-radius';
+    import AccountIcon from '@iconify-svelte/mdi/account';
+    import AccountMultipleIcon from '@iconify-svelte/mdi/account-multiple';
+    import AccountGroupIcon from '@iconify-svelte/mdi/account-group';
+    import AccountChildIcon from '@iconify-svelte/mdi/account-child';
+    import ChessKnightIcon from '@iconify-svelte/mdi/chess-knight';
+    import ShapeIcon from '@iconify-svelte/mdi/shape';
+
+    const categoryTypeIcons: Record<string, typeof ShapeIcon> = {
+        INDIVIDUAL: AccountIcon,
+        PAIRS: AccountMultipleIcon,
+        TEAM: AccountGroupIcon,
+        JUNIOR_INDIVIDUAL: AccountChildIcon,
+        JUNIOR_PAIRS: AccountChildIcon,
+        PUZZLE_CHESS: ChessKnightIcon,
+        OTHER: ShapeIcon,
+    };
+    import CalendarClockIcon from '@iconify-svelte/mdi/calendar-clock';
+    import PlayCircleIcon from '@iconify-svelte/mdi/play-circle';
+    import CheckAllIcon from '@iconify-svelte/mdi/check-all';
+    import DoorOpenIcon from '@iconify-svelte/mdi/door-open';
+    import DoorClosedLockIcon from '@iconify-svelte/mdi/door-closed-lock';
+    import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
+    import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
+    import ClockAlertOutlineIcon from '@iconify-svelte/mdi/clock-alert-outline';
 
     interface Props {
         competition: Competition & {
@@ -123,23 +148,23 @@
                 <div class="flex items-center gap-1.5 flex-wrap mb-2">
                     {#if isNearMe}
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 rounded-full text-xs font-medium">
-                            <Icon icon="mdi:map-marker-radius" class="w-3.5 h-3.5" />
+                            <MapMarkerRadiusIcon width="1rem" height="1rem" class="text-success-700 dark:text-success-300" />
                             Near you
                         </span>
                     {/if}
                     {#if competition.status === 'NOT_STARTED'}
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300 rounded-full text-xs font-medium">
-                            <Icon icon="mdi:calendar-clock" class="w-3.5 h-3.5" />
+                            <CalendarClockIcon width="1rem" height="1rem" class="text-primary-700 dark:text-primary-300" />
                             Upcoming
                         </span>
                     {:else if competition.status === 'STARTED'}
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-warning-100 text-warning-700 dark:bg-warning-900/50 dark:text-warning-300 rounded-full text-xs font-medium">
-                            <Icon icon="mdi:play-circle" class="w-3.5 h-3.5" />
+                            <PlayCircleIcon width="1rem" height="1rem" class="text-warning-700 dark:text-warning-300" />
                             Live
                         </span>
                     {:else if competition.status === 'FINISHED'}
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-200 text-surface-500 dark:bg-surface-700 dark:text-surface-400 rounded-full text-xs font-medium">
-                            <Icon icon="mdi:check-all" class="w-3.5 h-3.5" />
+                            <CheckAllIcon width="1rem" height="1rem" class="text-surface-500 dark:text-surface-400" />
                             Finished
                         </span>
                     {/if}
@@ -150,12 +175,12 @@
                     <div class="flex items-center gap-1.5 flex-wrap mb-2">
                         {#if competition.registrationOpen}
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 rounded-full text-xs font-semibold animate-pulse">
-                                <Icon icon="mdi:door-open" class="w-3.5 h-3.5" />
+                                <DoorOpenIcon width="1rem" height="1rem" class="text-success-700 dark:text-success-300" />
                                 Registration Open
                             </span>
                         {:else}
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-error-100 text-error-700 dark:bg-error-900/50 dark:text-error-300 rounded-full text-xs font-medium">
-                                <Icon icon="mdi:door-closed-lock" class="w-3.5 h-3.5" />
+                                <DoorClosedLockIcon width="1rem" height="1rem"/>
                                 Registration Closed
                             </span>
                         {/if}
@@ -168,6 +193,7 @@
                         {#each competition.categories as category (category.id)}
                             {@const registered = isUserInCategory(category)}
                             {@const status = getUserInscriptionStatus(category)}
+                            {@const CategoryIcon = categoryTypeIcons[category.type] ?? ShapeIcon}
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs
                                 {registered && status === 'ACCEPTED'
                                     ? 'bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 font-semibold'
@@ -176,14 +202,14 @@
                                     : registered && status === 'WAITLISTED'
                                     ? 'bg-secondary-100 text-secondary-700 dark:bg-secondary-900/50 dark:text-secondary-300 font-semibold'
                                     : 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'}">
-                                <Icon icon={getCategoryTypeIcon(category.type as CategoryType)} class="w-3.5 h-3.5" />
+                                <CategoryIcon width="0.8rem" height="0.8rem" />
                                 {getCategoryTypeName(category.type as any)}
                                 {#if status === 'ACCEPTED'}
-                                    <Icon icon="mdi:check-circle" class="w-3.5 h-3.5 text-success-600 dark:text-success-400" />
+                                    <CheckCircleIcon width="0.8rem" height="0.8rem" class="text-success-600 dark:text-success-400" />
                                 {:else if status === 'PENDING'}
-                                    <Icon icon="mdi:clock-outline" class="w-3.5 h-3.5 text-warning-600 dark:text-warning-400" />
+                                    <ClockOutlineIcon width="0.8rem" height="0.8rem" class="text-warning-600 dark:text-warning-400" />
                                 {:else if status === 'WAITLISTED'}
-                                    <Icon icon="mdi:clock-alert-outline" class="w-3.5 h-3.5 text-secondary-600 dark:text-secondary-400" />
+                                    <ClockAlertOutlineIcon width="0.8rem" height="0.8rem" class="text-secondary-600 dark:text-secondary-400" />
                                 {/if}
                             </span>
                         {/each}

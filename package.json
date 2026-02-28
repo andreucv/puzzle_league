@@ -43,6 +43,9 @@
 		"vite": "^6.0.0"
 	},
 	"dependencies": {
+		"@iconify-svelte/icon-park": "^1.0.0",
+		"@iconify-svelte/material-symbols": "^1.0.18",
+		"@iconify-svelte/mdi": "^1.0.0",
 		"@iconify/svelte": "^5.0.0",
 		"@prisma/adapter-pg": "^7.4.1",
 		"@prisma/client": "^7.4.1",

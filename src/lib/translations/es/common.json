@@ -97,7 +97,11 @@
       "remove_category": "Eliminar categoría",
       "remove_image": "Quitar imagen",
       "select_category_type": "Seleccione un tipo de categoría",
-      "start_time": "Hora de inicio"
+      "start_time": "Hora de inicio",
+      "payment_method": "Método de pago",
+      "payment_method_placeholder": "Describe cómo deben pagar los participantes (ej. transferencia bancaria, efectivo en puerta...)",
+      "price": "Precio (€)",
+      "price_placeholder": "Precio de la categoría en euros"
     },
     "edit": {
       "title": "Edita Competición",
@@ -121,7 +125,8 @@
         "competition_name": "El nombre de la competición no puede superar los 80 caracteres",
         "description": "La descripción no puede superar los 1000 caracteres",
         "location": "La dirección debe tener como máximo 200 caracteres.",
-        "category_description": "Los comentarios de la categoría deben tener como máximo 60 caracteres."
+        "category_description": "Los comentarios de la categoría deben tener como máximo 60 caracteres.",
+        "payment_method": "El método de pago no puede superar los 500 caracteres"
       },
       "image": {
         "processing_failed": "No se pudo procesar la imagen. \nPruebe con un archivo diferente.",
@@ -130,7 +135,8 @@
       },
       "min_value": {
         "max_parties": "El máximo de participaciones debe ser de al menos 1",
-        "max_party_size": "Los participantes por participación deben ser al menos 1"
+        "max_party_size": "Los participantes por participación deben ser al menos 1",
+        "price": "El precio debe ser 0 o superior"
       }
     },
     "confirm_removal_message": "¿Estás seguro de que deseas eliminar esta categoría? \nEsta acción no se puede deshacer.",

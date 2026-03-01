@@ -21,5 +21,5 @@ test('GivenLandingPage_WhenOpeningLeftMenu_ThenHomeButtonIsVisible', async ({ pa
     await page.goto('/');
     await page.click('#states-button');
     await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Competitions' })).toBeVisible();
+    await expect(page.getByTestId('nav-drawer-competitions')).toBeVisible();
 });

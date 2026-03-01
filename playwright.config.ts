@@ -80,8 +80,13 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run build && npm run preview --host',
-  //   port: 4173,
-  // },
+  webServer: {
+    command: 'npm run build && npm run preview --host',
+    port: 4173,
+    reuseExistingServer: !process.env.CI,
+    env: {
+      ...process.env,
+      BETTER_AUTH_URL: process.env.BETTER_AUTH_URL_TEST,
+    },
+  },
 });

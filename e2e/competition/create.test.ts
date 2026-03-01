@@ -10,6 +10,7 @@ interface CompetitionData {
     description: string;
     country?: string;
     postal_code?: string;
+    payment_method?: string;
 }
 
 interface CategoryData {
@@ -19,6 +20,7 @@ interface CategoryData {
     end_time: string;
     max_parties: string;
     participants_per_party: string;
+    price: string;
 }
 
 const competition_data: { competition: CompetitionData; categories: CategoryData[] } = {
@@ -28,6 +30,7 @@ const competition_data: { competition: CompetitionData; categories: CategoryData
         description: "Test Description",
         country: "Spain",
         postal_code: "28001",
+        payment_method: "Cash at the door or bank transfer",
     },
     categories: [
         {
@@ -37,6 +40,7 @@ const competition_data: { competition: CompetitionData; categories: CategoryData
             end_time: "12:00",
             max_parties: "10",
             participants_per_party: "1",
+            price: "10",
         },
         {
             description: "500 pcs",
@@ -45,6 +49,7 @@ const competition_data: { competition: CompetitionData; categories: CategoryData
             end_time: "16:00",
             max_parties: "10",
             participants_per_party: "2",
+            price: "15",
         },
         {
             description: "1000 pcs",
@@ -53,6 +58,7 @@ const competition_data: { competition: CompetitionData; categories: CategoryData
             end_time: "20:00",
             max_parties: "10",
             participants_per_party: "4",
+            price: "20",
         }
     ]
 };
@@ -64,25 +70,9 @@ const updated_competition_data: { competition: CompetitionData; categories: Cate
         description: "Test Description Updated",
         country: "Spain",
         postal_code: "28001",
+        payment_method: "Bank transfer only",
     },
-    categories: [
-        {
-            description: "500 pcs Updated",
-            type: "Individual",
-            start_time: "11:00",
-            end_time: "13:00",
-            max_parties: "10",
-            participants_per_party: "1",
-        },
-        {
-            description: "1000 pcs Updated",
-            type: "Team",
-            start_time: "18:00",
-            end_time: "20:00",
-            max_parties: "10",
-            participants_per_party: "4",
-        }
-    ]
+    categories: []
 };
 
 // ==================== HELPER FUNCTIONS ====================
@@ -104,7 +94,7 @@ async function navigateToCreateForm(page: Page) {
     await expect(page.getByRole('heading', { name: 'Create new competition' }).first()).toBeVisible();
 }
 
-/** Fills the main competition detail fields (name, location, description, country, postal code). */
+/** Fills the main competition detail fields (name, location, description, country, postal code, payment method). */
 async function fillCompetitionDetails(page: Page, data: CompetitionData) {
     await page.locator('input[name="competition_name"]').fill(data.name);
     await page.locator('input[name="location"]').fill(data.location);
@@ -114,10 +104,12 @@ async function fillCompetitionDetails(page: Page, data: CompetitionData) {
         await page.getByLabel('Toggle suggestions').click();
         await page.getByPlaceholder('Select a country...').fill('Spain');
         await page.getByRole('option', { name: '🇪🇸 Spain' }).click();
-        await page.getByPlaceholder('e.g.').click();
     }
     if (data.postal_code) {
-        await page.getByPlaceholder('e.g.').fill(data.postal_code);
+        await page.getByRole('textbox', { name: 'e.g. 08001' }).fill(data.postal_code);
+    }
+    if (data.payment_method) {
+        await page.getByTestId('payment-method').fill(data.payment_method);
     }
 }
 
@@ -140,6 +132,7 @@ async function addCategory(page: Page, index: number, category: CategoryData) {
     await page.getByTestId(`end-time-create-${index}`).fill(category.end_time);
     await page.getByTestId(`max-parties-create-${index}`).fill(category.max_parties);
     await page.getByTestId(`max-party-size-create-${index}`).fill(category.participants_per_party);
+    await page.getByTestId(`price-create-${index}`).fill(category.price);
 }
 
 /**
@@ -162,9 +155,15 @@ async function assertCompetitionCreated(page: Page, competition: CompetitionData
     await expect(page.getByText(competition.description).first()).toBeVisible();
     await expect(page.locator('span').filter({ hasText: competition.location }).first()).toBeVisible();
 
+    if (competition.payment_method) {
+        await expect(page.getByText(competition.payment_method).first()).toBeVisible();
+    }
+
     for (const cat of categories) {
         // CategoryCard renders: "{type}" as h3 heading, "{description}" as paragraph, and "{startTime} – {endTime}" in a time block
         await expect(page.getByRole('heading', { name: cat.type, level: 3 }).first()).toBeVisible();
+        // Verify price is displayed
+        await expect(page.getByText(`${cat.price} €`).first()).toBeVisible();
     }
 }
 

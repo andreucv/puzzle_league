@@ -161,6 +161,7 @@ model Competition {
   categories       Category[]
   roleAssignments  RoleAssignment[]
   requests         Request[]
+  paymentMethod   String?
   creatorId        String
   creator          User              @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   registrationOpen Boolean           @default(false)
@@ -195,6 +196,7 @@ model Category {
   realEndTime   DateTime?
   status        String       @default("not_started") // not_started, in_progress, completed
   maxParties    Int?
+  price         Int          @default(0)
   competitionId Int
   competition   Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   records       Record[]

@@ -27,6 +27,7 @@ const CategorySchema = z.object({
     endTime: z.string().min(1, "End time is required"),
     maxParties: z.number().int().min(1, "Max parties must be at least 1").nullable().optional(),
     maxPartySize: z.number().int().min(1, "Party size must be at least 1").nullable().optional(),
+    price: z.number().int().min(0, "Price must be 0 or greater"),
     status: z.string().optional(),
     puzzleIds: z.array(z.string()).optional(),
 });
@@ -44,6 +45,7 @@ const CompetitionEditSchema = z.object({
     location: z.string().max(120, "Location must be at most 120 characters").nullable().optional(),
     country: z.string().max(2, "Country code must be 2 characters").nullable().optional(),
     postalCode: z.string().max(20, "Postal code must be at most 20 characters").nullable().optional(),
+    paymentMethod: z.string().max(500, "Payment method must be at most 500 characters").nullable().optional(),
     image_cld_id: z.string().nullable().optional(),
     startDate: z.string().min(1, "Start date is required"),
     endDate: z.string().min(1, "End date is required"),

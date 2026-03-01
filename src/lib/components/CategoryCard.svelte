@@ -44,6 +44,12 @@
         </span>
     </div>
 
+    <!-- Price -->
+    <div class="flex items-center gap-2">
+        <Icon icon="mdi:currency-eur" width="1rem" height="1rem" class="text-primary-500 shrink-0" />
+        <span class="text-sm font-semibold">{category.price} €</span>
+    </div>
+
     <!-- Puzzles: public info for everyone, private details for creator -->
     {#if category.puzzles && category.puzzles.length > 0}
         <div class="flex flex-wrap gap-2">

@@ -144,7 +144,11 @@
       "remove_category": "Elimina la categoria",
       "remove_image": "Elimina la imatge",
       "select_category_type": "Seleccioneu un tipus de categoria",
-      "start_time": "Hora d'inici"
+      "start_time": "Hora d'inici",
+      "payment_method": "Mètode de pagament",
+      "payment_method_placeholder": "Descriu com han de pagar els participants (ex. transferència bancària, efectiu a la porta...)",
+      "price": "Preu (€)",
+      "price_placeholder": "Preu de la categoria en euros"
     },
     "edit": {
       "title": "Edita Competició",
@@ -168,7 +172,8 @@
         "competition_name": "El nom de la competició no pot sobrepassar els 80 caracters",
         "description": "La descripció no pot superar els 1000 caracters",
         "location": "L'adreça ha de tenir com a màxim 200 caràcters",
-        "category_description": "Els comentaris de la categoria han de tenir com a màxim 60 caràcters"
+        "category_description": "Els comentaris de la categoria han de tenir com a màxim 60 caràcters",
+        "payment_method": "El mètode de pagament no pot superar els 500 caràcters"
       },
       "image": {
         "processing_failed": "No s'ha pogut processar la imatge. \nSi us plau, proveu amb un fitxer diferent.",
@@ -177,7 +182,8 @@
       },
       "min_value": {
         "max_parties": "El màxim de participacions ha de ser com a mínim 1",
-        "max_party_size": "Els participants per participació han de ser com a mínim 1"
+        "max_party_size": "Els participants per participació han de ser com a mínim 1",
+        "price": "El preu ha de ser 0 o superior"
       }
     },
     "confirm_removal_message": "Esteu segur que voleu eliminar aquesta categoria? \nAquesta acció no es pot desfer.",

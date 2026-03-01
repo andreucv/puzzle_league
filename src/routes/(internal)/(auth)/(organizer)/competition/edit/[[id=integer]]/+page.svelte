@@ -133,6 +133,12 @@
             isValid = false;
         }
 
+        // Validate payment method (max 500 chars)
+        if ($form.paymentMethod && $form.paymentMethod.length > 500) {
+            formErrors.paymentMethod = $t('competition.form_error.max_length.payment_method');
+            isValid = false;
+        }
+
         // Validate location (max 120 chars)
         if ($form.location && $form.location.length > 200) {
             formErrors.location = $t('competition.form_error.max_length.location');
@@ -188,6 +194,11 @@
                     categoryErrors.create[i].maxPartySize = $t('competition.form_error.min_value.max_party_size');
                     isValid = false;
                 }
+
+                if (cat.price === null || cat.price === undefined || cat.price < 0) {
+                    categoryErrors.create[i].price = $t('competition.form_error.min_value.price');
+                    isValid = false;
+                }
             }
         }
 
@@ -224,6 +235,11 @@
 
                 if (!cat.maxPartySize || cat.maxPartySize < 1) {
                     categoryErrors.update[i].maxPartySize = $t('competition.form_error.min_value.max_party_size');
+                    isValid = false;
+                }
+
+                if (cat.price === null || cat.price === undefined || cat.price < 0) {
+                    categoryErrors.update[i].price = $t('competition.form_error.min_value.price');
                     isValid = false;
                 }
             }
@@ -321,8 +337,8 @@
 
     // Client-side validation errors for categories
     let categoryErrors = $state({
-        create: [] as Array<{ description?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string }>,
-        update: [] as Array<{ description?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string }>
+        create: [] as Array<{ description?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string; price?: string }>,
+        update: [] as Array<{ description?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string; price?: string }>
     });
 
     // Date validation error
@@ -336,6 +352,7 @@
         description?: string;
         country?: string;
         postalCode?: string;
+        paymentMethod?: string;
     }>({});
 
     // Confirmation dialog state
@@ -377,6 +394,7 @@
             // Optional fields can be omitted or set to defaults
             maxParties: null, // Add this property
             maxPartySize: 1, // Change from null to 1
+            price: 0,
             status: "not_started",
             puzzleIds: [],
         }];
@@ -468,6 +486,13 @@
                     categoryErrors[source][index].maxPartySize = $t('competition.form_error.min_value.max_party_size');
                 } else {
                     delete categoryErrors[source][index].maxPartySize;
+                }
+                break;
+            case 'price':
+                if (value === null || value === undefined || isNaN(value) || value < 0) {
+                    categoryErrors[source][index].price = $t('competition.form_error.min_value.price');
+                } else {
+                    delete categoryErrors[source][index].price;
                 }
                 break;
         }
@@ -799,6 +824,28 @@
                     {/if}
                 </div>
 
+                <div class="label lg:col-span-2">
+                    <span>{$t('competition.create.payment_method')}</span>
+                    <textarea
+                        name="payment_method"
+                        bind:value={$form.paymentMethod}
+                        rows="3"
+                        maxlength="500"
+                        class="textarea rounded-lg bg-primary-50-950"
+                        class:input-error={formErrors.paymentMethod || $errors.paymentMethod}
+                        placeholder={$t('competition.create.payment_method_placeholder')}
+                        data-testid="payment-method"
+                        oninput={() => {
+                            if (formErrors.paymentMethod) formErrors.paymentMethod = undefined;
+                        }}
+                    ></textarea>
+                    {#if formErrors.paymentMethod}
+                        <span class="invalid text-error-500 text-sm">{formErrors.paymentMethod}</span>
+                    {:else if $errors.paymentMethod}
+                        <span class="invalid text-error-500 text-sm">{$errors.paymentMethod}</span>
+                    {/if}
+                </div>
+
                 <div class="label">
                     <span>{$t('competition.create.image')}</span>
                     {#if selected_image_src === undefined}
@@ -1017,6 +1064,24 @@
                                         <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].maxPartySize}</span>
                                     {/if}
                                 </div>
+                                <!-- Price -->
+                                <div class="label">
+                                    <span class="text-sm font-medium">{$t('competition.create.price')} *</span>
+                                    <input
+                                        type="number"
+                                        class="input bg-primary-50-950"
+                                        class:input-error={categoryErrors.update[i]?.price}
+                                        data-testid="price-update-{i}"
+                                        bind:value={categories.update[i].data.price}
+                                        min="0"
+                                        step="1"
+                                        placeholder={$t('competition.create.price_placeholder')}
+                                        oninput={(e) => validateCategoryField('update', i, 'price', parseInt((e.target as HTMLInputElement).value))}
+                                    />
+                                    {#if categoryErrors.update[i]?.price}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].price}</span>
+                                    {/if}
+                                </div>
                                 <!-- Category Description -->
                                 <div class="label">
                                     <span class="text-sm font-medium">{$t('competition.create.category_description')}</span>
@@ -1162,6 +1227,24 @@
                                     />
                                     {#if categoryErrors.create[i]?.maxPartySize}
                                         <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].maxPartySize}</span>
+                                    {/if}
+                                </div>
+                                <!-- Price -->
+                                <div class="label">
+                                    <span class="text-sm font-medium">{$t('competition.create.price')} *</span>
+                                    <input
+                                        type="number"
+                                        class="input bg-primary-50-950"
+                                        class:input-error={categoryErrors.create[i]?.price}
+                                        data-testid="price-create-{i}"
+                                        bind:value={categories.create[i].price}
+                                        min="0"
+                                        step="1"
+                                        placeholder={$t('competition.create.price_placeholder')}
+                                        oninput={(e) => validateCategoryField('create', i, 'price', parseInt((e.target as HTMLInputElement).value))}
+                                    />
+                                    {#if categoryErrors.create[i]?.price}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].price}</span>
                                     {/if}
                                 </div>
                                 <!-- Category Description -->

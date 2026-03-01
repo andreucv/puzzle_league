@@ -14,32 +14,32 @@ test.describe('Anonymous user mobile navigation', () => {
     test('GivenMobileLandingPage_WhenClickingHamburgerMenu_ThenDrawerOpens', async ({ page }) => {
         await page.goto('/');
         await page.locator('#states-button').click();
-        await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
+        await expect(page.getByTestId('nav-drawer-home')).toBeVisible();
     });
 
     test('GivenMobileDrawerOpen_WhenClickingCloseButton_ThenDrawerCloses', async ({ page }) => {
         await page.goto('/');
         await page.locator('#states-button').click();
-        await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
+        await expect(page.getByTestId('nav-drawer-home')).toBeVisible();
 
         // Click the close button (icon-park:close)
         await page.getByRole('navigation').locator('div').filter({ hasText: 'PuzzLigas' }).getByRole('button').first().click();
-        await expect(page.getByRole('link', { name: 'Home' })).not.toBeVisible();
+        await expect(page.getByTestId('nav-drawer-home')).not.toBeVisible();
     });
 
     test('GivenMobileDrawerOpen_WhenClickingHomeLink_ThenNavigatesToHomeAndClosesDrawer', async ({ page }) => {
         await page.goto('/login');
         await page.locator('#states-button').click();
-        await page.getByRole('link', { name: 'Home' }).click();
+        await page.getByTestId('nav-drawer-home').click();
 
         await page.waitForURL('/');
-        await expect(page.getByRole('link', { name: 'Home' })).not.toBeVisible();
+        await expect(page.getByTestId('nav-drawer-home')).not.toBeVisible();
     });
 
     test('GivenAnonymousMobileUser_WhenOpeningDrawer_ThenCreateCompetitionIsNotVisible', async ({ page }) => {
         await page.goto('/');
         await page.locator('#states-button').click();
-        await expect(page.getByRole('link', { name: 'Create Competition' })).not.toBeVisible();
+        await expect(page.getByTestId('nav-drawer-create-competition')).not.toBeVisible();
     });
 
     test('GivenAnonymousMobileUser_WhenOpeningDrawer_ThenReviewRequestsIsNotVisible', async ({ page }) => {
@@ -56,14 +56,14 @@ test.describe('Participant user mobile navigation', () => {
         await page.goto('/');
         await page.locator('#states-button').click();
 
-        await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
-        await expect(page.getByRole('link', { name: 'Competitions' })).toBeVisible();
+        await expect(page.getByTestId('nav-drawer-home')).toBeVisible();
+        await expect(page.getByTestId('nav-drawer-competitions')).toBeVisible();
     });
 
     test('GivenParticipantMobile_WhenOpeningDrawer_ThenCreateCompetitionIsNotVisible', async ({ page }) => {
         await page.goto('/');
         await page.locator('#states-button').click();
-        await expect(page.getByRole('link', { name: 'Create Competition' })).not.toBeVisible();
+        await expect(page.getByTestId('nav-drawer-create-competition')).not.toBeVisible();
     });
 
     test('GivenParticipantMobile_WhenOpeningDrawer_ThenReviewRequestsIsNotVisible', async ({ page }) => {
@@ -79,7 +79,7 @@ test.describe('Organizer user mobile navigation', () => {
     test('GivenOrganizerMobile_WhenOpeningDrawer_ThenCreateCompetitionIsVisible', async ({ page }) => {
         await page.goto('/');
         await page.locator('#states-button').click();
-        await expect(page.getByRole('link', { name: 'Create Competition' })).toBeVisible();
+        await expect(page.getByTestId('nav-drawer-create-competition')).toBeVisible();
     });
 
     test('GivenOrganizerMobile_WhenOpeningDrawer_ThenMyOrganizedCompetitionsIsVisible', async ({ page }) => {
@@ -91,7 +91,7 @@ test.describe('Organizer user mobile navigation', () => {
     test('GivenOrganizerMobile_WhenClickingCreateCompetition_ThenNavigatesToEditPage', async ({ page }) => {
         await page.goto('/');
         await page.locator('#states-button').click();
-        await page.getByRole('link', { name: 'Create Competition' }).click();
+        await page.getByTestId('nav-drawer-create-competition').click();
 
         await page.waitForURL('/competition/edit');
         await expect(page.getByRole('heading', { name: 'Create new competition' })).toBeVisible();
@@ -128,13 +128,13 @@ test.describe('Mobile touch interactions', () => {
     test('GivenMobileViewport_WhenTappingOutsideDrawer_ThenDrawerCloses', async ({ page }) => {
         await page.goto('/');
         await page.locator('#states-button').click();
-        await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
+        await expect(page.getByTestId('nav-drawer-home')).toBeVisible();
 
         // Click outside the drawer (on the backdrop)
-        await page.getByRole('button').nth(2).click();
+        await page.getByTestId('nav-drawer-close-button').click();
 
         // Drawer should close
-        await expect(page.getByRole('link', { name: 'Home' })).not.toBeVisible({ timeout: 5000 });
+        await expect(page.getByTestId('nav-drawer-home')).not.toBeVisible({ timeout: 5000 });
     });
 
     test('GivenMobileViewport_WhenNavigatingViaDrawer_ThenPageScrollsToTop', async ({ page }) => {
@@ -144,7 +144,7 @@ test.describe('Mobile touch interactions', () => {
         await page.evaluate(() => window.scrollTo(0, 500));
 
         await page.locator('#states-button').click();
-        await page.getByRole('link', { name: 'Home' }).click();
+        await page.getByTestId('nav-drawer-home').click();
         await page.waitForURL('/');
 
         // Check scroll position is at top

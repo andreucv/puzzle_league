@@ -82,6 +82,12 @@
                     </div>
                 {/if}
             </div>
+            {#if competition?.paymentMethod}
+                <div class="flex items-start gap-2 text-sm">
+                    <Icon icon="mdi:credit-card-outline" width="1.2rem" height="1.2rem" class="text-primary-500 shrink-0 mt-0.5" />
+                    <span class="text-surface-600 dark:text-surface-400 whitespace-pre-line">{competition.paymentMethod}</span>
+                </div>
+            {/if}
         </div>
         {#if competition?.image_cld_id}
         <div class="w-full">

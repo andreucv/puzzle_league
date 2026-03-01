@@ -101,7 +101,11 @@
       "category_subname": "Category Subname",
       "category_subname_placeholder": "Enter category subname",
       "remove_image": "Remove Image",
-      "remove_category": "Remove Category"
+      "remove_category": "Remove Category",
+      "payment_method": "Payment Method",
+      "payment_method_placeholder": "Describe how participants should pay (e.g. bank transfer, cash at the door...)",
+      "price": "Price (€)",
+      "price_placeholder": "Category price in euros"
     },
     "upload_image": "Uploading image... This may take a moment",
     "saving_competition": "Saving competition...",
@@ -128,11 +132,13 @@
         "competition_name": "Competition name must be at most 80 characters",
         "description": "Description must be at most 1000 characters",
         "location": "Location must be at most 200 characters",
-        "category_description": "Category description must be at most 60 characters"
+        "category_description": "Category description must be at most 60 characters",
+        "payment_method": "Payment method must be at most 500 characters"
       },
       "min_value": {
         "max_parties": "Max parties must be at least 1",
-        "max_party_size": "Participants per party must be at least 1"
+        "max_party_size": "Participants per party must be at least 1",
+        "price": "Price must be 0 or greater"
       },
       "image": {
         "too_large": "Image is too large. Please select an image under 10 MB.",

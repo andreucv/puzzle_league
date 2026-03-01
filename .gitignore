@@ -29,6 +29,9 @@ vite.config.ts.timestamp-*
 *.db
 dev.*
 
+# Local-only seed data with real user info (never commit)
+scripts/db_migration/*seed_data.json
+
 # Playwright
 /playwright-report/
 /blob-report/

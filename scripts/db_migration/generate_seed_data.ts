@@ -1,4 +1,4 @@
-import { writeFileSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
@@ -93,7 +93,7 @@ const COMPETITION_TEMPLATES = [
     { name: 'International Puzzle Cup', location: 'Milan Puzzlefest', country: 'IT', postalCode: '20121' },
 ];
 
-function generateCompetitions(baseDate: Date): SeedCompetition[] {
+function generateCompetitions(baseDate: Date, creatorIndices: number[]): SeedCompetition[] {
     return COMPETITION_TEMPLATES.map((tpl, i) => {
         // One competition per month, starting next month
         const compDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1 + i, 15);
@@ -105,7 +105,7 @@ function generateCompetitions(baseDate: Date): SeedCompetition[] {
             postalCode: tpl.postalCode,
             startDate: compDate.toISOString(),
             endDate: compDate.toISOString(),
-            creatorIndex: 0, // First user is always the organizer / creator
+            creatorIndex: creatorIndices[i] ?? creatorIndices[0],
         };
     });
 }
@@ -166,9 +166,9 @@ function generateCategories(competitions: SeedCompetition[]): SeedCategory[] {
 
 const STATUSES = ['ACCEPTED', 'PENDING', 'WAITLISTED'];
 
-function generateRecords(categories: SeedCategory[], totalUsers: number): SeedRecord[] {
+function generateRecords(categories: SeedCategory[], totalUsers: number, startUserIndex = 0): SeedRecord[] {
     const records: SeedRecord[] = [];
-    let userCursor = 1; // Start from user index 1 (index 0 is the competition creator)
+    let userCursor = startUserIndex; // Start after real users (or from 0 for generated-only)
 
     for (let catIdx = 0; catIdx < categories.length; catIdx++) {
         const cat = categories[catIdx];
@@ -209,7 +209,7 @@ function generateRecords(categories: SeedCategory[], totalUsers: number): SeedRe
     }
 
     // Regenerate with correct categoryIndex
-    userCursor = 1;
+    userCursor = startUserIndex;
     for (let catIdx = 0; catIdx < categories.length; catIdx++) {
         const cat = categories[catIdx];
         const partySize = cat.maxPartySize;
@@ -240,11 +240,42 @@ function generateRecords(categories: SeedCategory[], totalUsers: number): SeedRe
 
 export function generateSeedData(): SeedData {
     const baseDate = new Date(2026, 2, 1); // March 1, 2026
+    const scriptDir = dirname(fileURLToPath(import.meta.url));
 
-    const users = generateUsers(30);
-    const competitions = generateCompetitions(baseDate);
+    // Load real users if real_seed_data.json is present
+    const realSeedPath = join(scriptDir, 'real_seed_data.json');
+    let realUsers: SeedUser[] = [];
+
+    if (existsSync(realSeedPath)) {
+        const realData = JSON.parse(readFileSync(realSeedPath, 'utf-8'));
+        realUsers = (realData.users as Array<{
+            id: string; name: string; email: string;
+            country: string | null; postalCode: string | null;
+        }>).map((u) => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            country: u.country ?? 'ES',
+            postalCode: u.postalCode ?? '08001',
+        }));
+        console.log(`ℹ️  Found real_seed_data.json — ${realUsers.length} real user(s) will own one competition each`);
+    }
+
+    // Real users first (indices 0..M-1), generated users after (indices M..M+29)
+    const generatedUsers = generateUsers(30);
+    const users = [...realUsers, ...generatedUsers];
+    const M = realUsers.length;
+
+    // Creator indices: real users own the first min(M, 4) competitions;
+    // remaining competitions use the first available generated users
+    const creatorIndices = COMPETITION_TEMPLATES.map((_, i) =>
+        i < M ? i : M + (i - M),
+    );
+
+    const competitions = generateCompetitions(baseDate, creatorIndices);
     const categories = generateCategories(competitions);
-    const records = generateRecords(categories, users.length);
+    // Participants start from the first generated user (index M), cycling through them
+    const records = generateRecords(categories, users.length, M);
 
     return { users, competitions, categories, records };
 }

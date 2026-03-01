@@ -31,6 +31,7 @@ usage() {
     echo "  --generate-seed  (Re)generate seed_data.json using the data generator"
     echo "  --clean          Erase all data from the database"
     echo "  --seed           Insert data from seed_data.json"
+    echo "  --seed-custom-users  Restore real users from real_seed_data.json (roles included)"
     echo "  --admin <email>      Grant ADMIN role to the given user"
     echo "  --organizer <email>  Grant ORGANIZER role to the given user"
     echo ""
@@ -54,6 +55,7 @@ shift
 DO_GENERATE_SEED=false
 DO_CLEAN=false
 DO_SEED=false
+DO_SEED_CUSTOM_USERS=false
 ADMIN_EMAIL=""
 ORGANIZER_EMAIL=""
 
@@ -69,6 +71,10 @@ while [ $# -gt 0 ]; do
             ;;
         --seed)
             DO_SEED=true
+            shift
+            ;;
+        --seed-custom-users)
+            DO_SEED_CUSTOM_USERS=true
             shift
             ;;
         --admin)
@@ -157,6 +163,11 @@ fi
 if [ "$DO_SEED" = true ]; then
     echo "🌱 Seeding database from seed_data.json..."
     DATABASE_URL=$DATABASE_URL npx tsx "$SCRIPT_DIR/action_seed.ts"
+fi
+
+if [ "$DO_SEED_CUSTOM_USERS" = true ]; then
+    echo "👤 Restoring custom users from real_seed_data.json..."
+    DATABASE_URL=$DATABASE_URL npx tsx "$SCRIPT_DIR/action_seed_custom_users.ts"
 fi
 
 if [ -n "$ADMIN_EMAIL" ]; then

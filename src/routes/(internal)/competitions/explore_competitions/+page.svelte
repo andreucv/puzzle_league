@@ -162,13 +162,13 @@
             <div class="col-span-full flex flex-col items-center justify-center py-12 text-center">
                 <Icon icon="mdi:magnify-remove-outline" class="w-16 h-16 text-surface-300 dark:text-surface-600 mb-4" />
                 <h3 class="text-lg font-semibold text-surface-700 dark:text-surface-300 mb-2">
-                    $t('explore_competitions.no_competitions_found')
+                    {$t('explore_competitions.no_competitions_found')}
                 </h3>
                 <p class="text-sm text-surface-500 dark:text-surface-400 max-w-xs">
                     {#if filter || activePresets.length > 0}
-                        $t('explore_competitions.no_competitions_found_for_filters')
+                        {$t('explore_competitions.no_competitions_found_for_filters')}
                     {:else}
-                        $t('explore_competitions.no_competitions_found')
+                        {$t('explore_competitions.no_competitions_found')}
                     {/if}
                 </p>
                 {#if filter || activePresets.length > 0}
@@ -177,7 +177,7 @@
                         class="btn btn-sm preset-outlined-primary-500 mt-4"
                         onclick={() => { filter = ''; activePresets = []; activeTab = 'ALL'; }}
                     >
-                        $t('explore_competitions.clear_all_filters')
+                        {$t('explore_competitions.clear_all_filters')}
                     </button>
                 {/if}
             </div>

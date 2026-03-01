@@ -60,10 +60,10 @@
             {#if data.props.upcomingRegisteredCompetitions && data.props.upcomingRegisteredCompetitions.length === 0}
                 <GenericTitle text={$t('landing_page.no_upcoming_competitions')} />
                 <p class="mb-2">{$t('landing_page.no_upcoming_competitions_detail')}</p>
-                <ButtonLink href="/competitions/calendar/list"
-                            title={$t('landing_page.explore_title')}
-                            subtitle={$t('landing_page.explore_subtitle')}
-                            icon="mdi:calendar" />
+                <ButtonLink href="/competitions/explore_competitions"
+                        title={$t('landing_page.explore_title')}
+                        subtitle={$t('landing_page.explore_subtitle')}
+                        icon="mdi:calendar" />
             {:else}
                 <GenericTitle text={$t('landing_page.your_upcoming_competitions')} />
                 <CompetitionList competitions={data.props.upcomingRegisteredCompetitions} n_show=2 currentUsedId={data.user.id} />

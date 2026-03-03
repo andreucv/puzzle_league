@@ -1,0 +1,167 @@
+<script lang="ts">
+    import Icon from '@iconify/svelte';
+    import { Avatar } from '@skeletonlabs/skeleton-svelte';
+    import { formatTime } from '$lib/utils/datetime_utils';
+    import { getCategoryTypeName } from '$lib/utils/category_utils';
+    import { t } from '$lib/translations';
+    import type { Category, Puzzle } from '$lib/.prisma/generated/prisma/browser';
+    import Card from '$lib/components/common/card/Card.svelte';
+    import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
+
+    type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
+    type PartyUser = { id: string; name: string; email: string; image: string | null };
+    type UserIntentInfo = { id: string; name: string; claimedById: string | null };
+    type UserRecord = { id?: string; status?: string; users?: PartyUser[]; userIntents?: UserIntentInfo[] };
+
+    let {
+        category,
+        isCreator = false,
+        showRegistration = false,
+        records = [],
+        inscriptionStatus = undefined,
+        party = null,
+        userIntents = null,
+        seatsAvailable = undefined
+    }: {
+        category: CategoryWithPuzzles;
+        isCreator?: boolean;
+        showRegistration?: boolean;
+        records?: UserRecord[];
+        inscriptionStatus?: string;
+        party?: PartyUser[] | null;
+        userIntents?: UserIntentInfo[] | null;
+        seatsAvailable?: number;
+    } = $props();
+
+    const normalizedRecords = $derived(
+        records.length > 0
+            ? records
+            : [{ status: inscriptionStatus, users: party ?? [], userIntents: userIntents ?? [] }]
+    );
+
+    function getStatusTone(status: string | undefined): string {
+        if (status === 'ACCEPTED') return 'preset-tonal-success';
+        if (status === 'PENDING') return 'preset-tonal-warning';
+        if (status === 'WAITLISTED') return 'preset-tonal-secondary';
+        return 'preset-tonal-surface';
+    }
+
+    function getStatusTranslationKey(status: string | undefined): string | null {
+        if (status === 'ACCEPTED') return 'inscription.status_accepted';
+        if (status === 'PENDING') return 'inscription.status_pending';
+        if (status === 'WAITLISTED') return 'inscription.status_waitlisted';
+        return null;
+    }
+
+    function getStatusIcon(status: string | undefined): string {
+        if (status === 'ACCEPTED') return 'mdi:check-circle';
+        if (status === 'PENDING') return 'mdi:clock-outline';
+        if (status === 'WAITLISTED') return 'mdi:clock-alert-outline';
+        return 'mdi:account-plus-outline';
+    }
+</script>
+
+<Card>
+    <!-- Header: Icon + Category type -->
+    <CategoryCardTitle type={category.type} subname={category.subname ?? ''} />
+
+    {#if category.description !== getCategoryTypeName(category.type).toUpperCase()}
+        <p class="text-surface-600-400 text-sm">{category.description}</p>
+    {/if}
+
+    <!-- Time block -->
+    <div class="flex items-center gap-2">
+        <Icon icon="mdi:clock-outline" width="1rem" height="1rem" class="text-primary-500 shrink-0" />
+        <span class="text-sm font-semibold">
+            {formatTime(new Date(category.startTime))} – {formatTime(new Date(category.endTime))}
+        </span>
+    </div>
+
+    <!-- Price -->
+    <div class="flex items-center gap-2">
+        <Icon icon="mdi:currency-eur" width="1rem" height="1rem" class="text-primary-500 shrink-0" />
+        <span class="text-sm font-semibold">{category.price} €</span>
+    </div>
+
+    <!-- Puzzles: public info for everyone, private details for creator -->
+    {#if category.puzzles && category.puzzles.length > 0}
+        <div class="flex flex-wrap gap-2">
+            {#each category.puzzles as puzzle}
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-2">
+                        <Icon icon="mdi:puzzle-outline" width="1rem" height="1rem" class="text-primary-500 shrink-0" />
+                        <span class="text-sm font-semibold">{puzzle.pieces} pcs – {puzzle.brand}</span>
+                    </div>
+                    {#if isCreator}
+                        <div class="text-xs text-surface-500 dark:text-surface-400 pl-6">
+                            {#if puzzle.name}
+                                <span class="mr-2">Name: {puzzle.name}</span>
+                            {/if}
+                            <span>Barcode: {puzzle.barcode}</span>
+                        </div>
+                    {/if}
+                </div>
+            {/each}
+        </div>
+    {/if}
+
+    <!-- Footer: Registration status (optional) -->
+    {#if showRegistration}
+        <hr class="border-t border-surface-300 dark:border-surface-600" />
+        <a href="/competitions/competition_details/{category.competitionId}/inscription" class="block mt-auto -mb-0.5 hover:opacity-80 transition-opacity overflow-hidden">
+            {#if normalizedRecords.some((record) => (record.users?.length ?? 0) > 0 || (record.userIntents?.length ?? 0) > 0)}
+                <div class="flex flex-col gap-2 overflow-hidden">
+                    {#each normalizedRecords as record, index (record.id ?? `${category.id}-${index}`)}
+                        {@const recordUsers = record.users ?? []}
+                        {@const recordIntents = record.userIntents ?? []}
+                        {#if recordUsers.length > 0 || recordIntents.length > 0}
+                            <div class="flex items-center gap-2 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-50/70 dark:bg-surface-800/60 px-2 py-1 overflow-hidden">
+                                <div class="flex items-center gap-2 min-w-0 flex-1">
+                                    <div class="flex -space-x-1.5 shrink-0">
+                                        {#each recordUsers as user}
+                                            <Avatar class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-surface-900 shadow-sm">
+                                                <Avatar.Image src={user?.image ?? undefined} alt={user.name ?? 'User'} />
+                                                <Avatar.Fallback>{user.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
+                                            </Avatar>
+                                        {/each}
+                                        {#each recordIntents as intent}
+                                            <Avatar class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-surface-900 shadow-sm bg-primary-100 dark:bg-primary-900/40">
+                                                <Avatar.Fallback>{intent.name.substring(0,2)}</Avatar.Fallback>
+                                            </Avatar>
+                                        {/each}
+                                    </div>
+                                    <span class="text-xs text-surface-600 dark:text-surface-400 truncate">
+                                        {[...recordUsers.map(u => u.name), ...recordIntents.map(i => i.name)].join(', ')}
+                                    </span>
+                                </div>
+                                <span class={`badge text-xs flex items-center gap-1 shrink-0 ${getStatusTone(record.status)}`} data-testid="category-status-badge">
+                                    <Icon icon={getStatusIcon(record.status)} width="0.8rem" height="0.8rem" />
+                                    {#if getStatusTranslationKey(record.status)}
+                                        {$t(getStatusTranslationKey(record.status) ?? '')}
+                                    {:else}
+                                        Open
+                                    {/if}
+                                </span>
+                            </div>
+                        {/if}
+                    {/each}
+                </div>
+            {:else}
+                <div class="flex items-center justify-between gap-2 overflow-hidden">
+                    {#if seatsAvailable !== undefined}
+                        <div class="flex items-center gap-1 text-sm text-surface-500 min-w-0">
+                            <Icon icon="mdi:account-box-plus-outline" width="1rem" height="1rem" class="shrink-0" />
+                            <span class="truncate">{seatsAvailable} {$t('competition_details.seats_available')}</span>
+                        </div>
+                    {:else}
+                        <div></div>
+                    {/if}
+                    <span class="badge preset-tonal-surface text-xs flex items-center gap-1 shrink-0">
+                        <Icon icon="mdi:account-plus-outline" width="0.8rem" height="0.8rem" />
+                        Open
+                    </span>
+                </div>
+            {/if}
+        </a>
+    {/if}
+</Card>

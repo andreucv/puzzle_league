@@ -124,9 +124,10 @@
                 <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
                     <CategoryCardTitle type={category.type} subname={category.subname ?? ''}/>
                     {#if category.maxParties}
-                        <span class="text-sm text-surface-600 dark:text-surface-400">
+                        {@const remaining = category.maxParties - category.records.filter((r: any) => r.status === 'ACCEPTED').length}
+                        <span class="text-sm {remaining > 0 ? 'text-surface-600 dark:text-surface-400' : 'text-error-600 dark:text-error-400'}">
                             <Icon icon="mdi:seat-outline" width="1rem" height="1rem" class="inline-block align-text-bottom mr-1" />
-                            {category.records.filter((r: any) => r.status === 'ACCEPTED').length} / {category.maxParties} {$t('manage_inscriptions.max_slots')}
+                            {remaining} {$t('manage_inscriptions.seats_remaining')}
                         </span>
                     {/if}
                 </div>

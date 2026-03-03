@@ -14,24 +14,26 @@ datasource db {
 }
 
 model User {
-  id              String           @id
-  name            String
-  email           String
-  emailVerified   Boolean
-  image           String?
-  country         String?
-  postalCode      String?
-  createdAt       DateTime
-  updatedAt       DateTime
-  sessions        Session[]
-  accounts        Account[]
-  records         Record[]          @relation("RecordParticipants")
-  createdRecords  Record[]          @relation("RecordCreator")
-  roleAssignments RoleAssignment[]
-  requests        Request[]
-  leaguePoints    LeaguePoints[]
-  competitions    Competition[]
-  notifications   Notification[]    @relation("NotificationRecipient")
+  id                    String           @id
+  name                  String
+  email                 String
+  emailVerified         Boolean
+  image                 String?
+  country               String?
+  postalCode            String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  sessions              Session[]
+  accounts              Account[]
+  records               Record[]          @relation("RecordParticipants")
+  createdRecords        Record[]          @relation("RecordCreator")
+  roleAssignments       RoleAssignment[]
+  requests              Request[]
+  leaguePoints          LeaguePoints[]
+  competitions          Competition[]
+  notifications         Notification[]    @relation("NotificationRecipient")
+  createdUserIntents    UserIntent[]      @relation("UserIntentCreator")
+  claimedUserIntents    UserIntent[]      @relation("UserIntentClaimer")
 
   @@unique([email])
   @@map("user")
@@ -121,6 +123,7 @@ enum InscriptionStatus {
 }
 
 enum NotificationType {
+  INSCRIPTION_CREATED
   INSCRIPTION_ACCEPTED
   INSCRIPTION_REFUSED
   INSCRIPTION_WAITLISTED
@@ -128,6 +131,7 @@ enum NotificationType {
   COMPETITION_CANCELLED
   ROLE_REQUEST_APPROVED
   ROLE_REQUEST_REJECTED
+  USER_INTENT_CLAIMED
   GENERAL
 }
 
@@ -206,19 +210,33 @@ model Category {
 }
 
 model Record {
-  id          String            @id @default(cuid())
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  finishTime  DateTime?
-  tableNumber Int?
-  status      InscriptionStatus @default(PENDING)
-  categoryId  Int
-  category    Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  users       User[]            @relation("RecordParticipants")
-  creatorId   String
-  creator     User              @relation("RecordCreator", fields: [creatorId], references: [id], onDelete: SetDefault)
+  id           String            @id @default(cuid())
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  finishTime   DateTime?
+  tableNumber  Int?
+  status       InscriptionStatus @default(PENDING)
+  categoryId   Int
+  category     Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  users        User[]            @relation("RecordParticipants")
+  userIntents  UserIntent[]      @relation("RecordUserIntents")
+  creatorId    String
+  creator      User              @relation("RecordCreator", fields: [creatorId], references: [id], onDelete: SetDefault)
 
   @@map("record")
+}
+
+model UserIntent {
+  id          String    @id @default(cuid())
+  name        String
+  createdAt   DateTime  @default(now())
+  createdById String
+  createdBy   User      @relation("UserIntentCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  claimedById String?
+  claimedBy   User?     @relation("UserIntentClaimer", fields: [claimedById], references: [id], onDelete: SetNull)
+  records     Record[]  @relation("RecordUserIntents")
+
+  @@map("user_intent")
 }
 
 model RoleAssignment {

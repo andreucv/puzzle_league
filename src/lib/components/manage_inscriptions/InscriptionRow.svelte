@@ -21,12 +21,27 @@
                 <Avatar.Fallback class="text-[0.6rem]">{user.name?.substring(0, 2) || 'U'}</Avatar.Fallback>
             </Avatar>
         {/each}
+        {#each record.userIntents || [] as intent, i}
+            <div class="w-7 h-7 shrink-0 ring-2 ring-surface-50 dark:ring-surface-800 rounded-full bg-warning-200 dark:bg-warning-800 flex items-center justify-center {(record.users.length + i) > 0 ? '-ml-4' : ''}">
+                <Icon icon="mdi:account-question" width="0.9rem" height="0.9rem" class="text-warning-700 dark:text-warning-300" />
+            </div>
+        {/each}
     </div>
 
-    <!-- Names -->
-    <span class="text-xs font-medium truncate min-w-0 flex-1">
-        {record.users.map((u: any) => u.name).join(', ')}
-    </span>
+    <!-- Names & creator -->
+    <div class="min-w-0 flex-1">
+        <div class="text-xs font-medium flex flex-wrap gap-x-1">
+            {#each [...record.users.map((u: any) => u.name), ...(record.userIntents || []).map((ui: any) => ui.name)] as name, i}
+                <span>{name}{i < record.users.length + (record.userIntents?.length ?? 0) - 1 ? ',' : ''}</span>
+            {/each}
+        </div>
+        {#if record.creator}
+            <span class="text-[0.65rem] text-surface-500 dark:text-surface-400 truncate block">
+                <Icon icon="mdi:account-edit-outline" width="0.75rem" height="0.75rem" class="inline-block align-text-bottom" />
+                {record.creator.name ?? record.creator.email}
+            </span>
+        {/if}
+    </div>
 
     <!-- Actions: always same fixed width so buttons align across all rows -->
     <div class="flex items-center gap-1.5 shrink-0 ml-auto" style="width: 4.5rem; justify-content: flex-end;">

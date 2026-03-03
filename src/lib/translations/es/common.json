@@ -166,6 +166,16 @@
     "start_competition_button": "Empieza la competición",
     "back_to_competitions_button": "Volver a competiciones"
   },
+  "claim_participations": {
+    "title": "Reclamar participaciones",
+    "description": "Hemos encontrado participaciones en competiciones que podrían ser tuyas. Selecciona las que te correspondan para vincularlas a tu cuenta.",
+    "no_matches": "No se encontraron participaciones coincidentes. ¡Todo en orden!",
+    "registered_by": "Registrado por",
+    "select_all": "Seleccionar todo",
+    "deselect_all": "Deseleccionar todo",
+    "claim_selected": "Reclamar seleccionadas",
+    "skip": "Omitir por ahora"
+  },
   "inscription": {
     "title": "Inscripción a categorías",
     "submitting": "Enviando inscripciones...",
@@ -187,7 +197,16 @@
     "status_accepted": "Aceptado",
     "status_pending": "Pendiente",
     "status_waitlisted": "En lista de espera",
-    "sign_up_again": "Regístrese nuevamente"
+    "sign_up_again": "Regístrese nuevamente",
+    "add_non_registered": "Añadir como participante no registrado",
+    "already_inscribed": "Ya inscrito en esta categoría",
+    "not_registered": "no registrado",
+    "not_claimed": "no reclamado",
+    "previously_registered": "Registrado anteriormente",
+    "add_another": "Añadir otra inscripción",
+    "build_another_team": "Formar otro equipo",
+    "queued": "En cola",
+    "new_registrations_summary": "nueva(s) inscripción(es)"
   },
   "puzzles": {
     "catalog_title": "Catálogo de Puzzles",
@@ -226,6 +245,7 @@
     "accepted_success": "Inscripción aceptada con éxito.",
     "no_categories": "No hay categorías en esta competición.",
     "max_slots": "Sitios",
+    "seats_remaining": "plazas disponibles",
     "search_placeholder": "Buscar por nombre de participante...",
     "no_results_for_search": "Ninguna inscripción coincide con tu búsqueda.",
     "seats_available": "{accepted} de {max} plazas ocupadas",

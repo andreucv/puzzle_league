@@ -838,5 +838,31 @@
       ],
       "status": "ACCEPTED"
     }
+  ],
+  "userIntents": [
+    {
+      "name": "Sophie Martin",
+      "creatorIndex": 1,
+      "recordCompetitionIndex": 0,
+      "recordCategoryIndex": 1
+    },
+    {
+      "name": "Ana García",
+      "creatorIndex": 2,
+      "recordCompetitionIndex": 1,
+      "recordCategoryIndex": 1
+    },
+    {
+      "name": "Luis Romero",
+      "creatorIndex": 2,
+      "recordCompetitionIndex": 1,
+      "recordCategoryIndex": 1
+    },
+    {
+      "name": "Frank Johnson",
+      "creatorIndex": 5,
+      "recordCompetitionIndex": 2,
+      "recordCategoryIndex": 0
+    }
   ]
 }

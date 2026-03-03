@@ -83,7 +83,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run build && npm run preview --host',
     port: 4173,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     env: {
       ...process.env,
       BETTER_AUTH_URL: process.env.BETTER_AUTH_URL_TEST,

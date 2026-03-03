@@ -1,14 +1,12 @@
 <script lang="ts">
     import Icon from '@iconify/svelte';
-    import { formatTime } from '$lib/utils/datetime_utils';
-    import { getCategoryTypeName } from '$lib/utils/category_utils';
     import { t } from '$lib/translations';
-    import CategoryCard from '$lib/components/CategoryCard.svelte';
-    import type { Category, Puzzle } from '@prisma/client';
+    import CategoryCard from '$lib/components/competition/CategoryCard.svelte';
+    import type { Category, Puzzle } from '$lib/.prisma/generated/prisma/browser';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
     type CategoryWithCounts = Category & { totalRecords: number; finishedRecords: number };
-    type UserRecord = { categoryId: number; status?: string; users?: { id: string; name: string; email: string; image: string | null }[] };
+    type UserRecord = { categoryId: number; status?: string; users?: { id: string; name: string; email: string; image: string | null }[]; userIntents?: { id: string; name: string; claimedById: string | null }[] };
 
     let {
         categories,
@@ -28,23 +26,20 @@
         return category.maxParties - registered;
     }
 
-    function getUserRecord(categoryId: number) {
-        return userRecords.find(r => r.categoryId === categoryId) || null;
+    function getUserRecords(categoryId: number) {
+        return userRecords.filter(r => r.categoryId === categoryId);
     }
 </script>
 
 {#if categories.length > 0}
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {#each categories as category}
-            {@const record = getUserRecord(category.id)}
-            {@const party = record?.users || null}
-            {@const inscriptionStatus = record?.status}
+            {@const records = getUserRecords(category.id)}
             <CategoryCard
                 {category}
                 {isCreator}
                 showRegistration={true}
-                {inscriptionStatus}
-                {party}
+                {records}
                 seatsAvailable={getSeatsAvailable(category)}
             />
         {/each}

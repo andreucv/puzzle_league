@@ -15,7 +15,12 @@
     function filterBySearch(recs: any[]): any[] {
         if (!searchFilter.trim()) return recs;
         const query = searchFilter.toLowerCase();
-        return recs.filter((r: any) => r.users.some((u: any) => u.name?.toLowerCase().includes(query)));
+        return recs.filter((r: any) =>
+            r.users.some((u: any) => u.name?.toLowerCase().includes(query)) ||
+            (r.userIntents || []).some((ui: any) => ui.name?.toLowerCase().includes(query)) ||
+            r.creator?.name?.toLowerCase().includes(query) ||
+            r.creator?.email?.toLowerCase().includes(query)
+        );
     }
 
     function byStatus(recs: any[], status: string): any[] {

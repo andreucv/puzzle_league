@@ -41,11 +41,19 @@ interface SeedRecord {
     status: string;
 }
 
+interface SeedUserIntent {
+    name: string;
+    creatorIndex: number;
+    recordCompetitionIndex: number;
+    recordCategoryIndex: number;
+}
+
 interface SeedData {
     users: SeedUser[];
     competitions: SeedCompetition[];
     categories: SeedCategory[];
     records: SeedRecord[];
+    userIntents?: SeedUserIntent[];
 }
 
 async function main() {
@@ -151,6 +159,50 @@ async function main() {
         recordCount++;
     }
     console.log(`   ✅ ${recordCount} records created`);
+
+    // 4. Create user intents (non-registered participants)
+    if (seedData.userIntents && seedData.userIntents.length > 0) {
+        console.log(`🔗 Creating ${seedData.userIntents.length} user intents...`);
+        let intentCount = 0;
+        for (const intent of seedData.userIntents) {
+            const catIds = categoryIdMap.get(intent.recordCompetitionIndex);
+            if (!catIds) continue;
+            const categoryId = catIds[intent.recordCategoryIndex];
+            if (categoryId === undefined) continue;
+
+            const creatorDbId = dbUsers[intent.creatorIndex].id;
+
+            // Find the record for this category created by this user (or create a new one)
+            let record = await prisma.record.findFirst({
+                where: {
+                    categoryId,
+                    creatorId: creatorDbId
+                }
+            });
+
+            if (!record) {
+                // Create a record for this user intent
+                record = await prisma.record.create({
+                    data: {
+                        categoryId,
+                        creatorId: creatorDbId,
+                        status: 'PENDING' as InscriptionStatus,
+                        users: { connect: { id: creatorDbId } }
+                    }
+                });
+            }
+
+            await prisma.userIntent.create({
+                data: {
+                    name: intent.name,
+                    createdById: creatorDbId,
+                    records: { connect: { id: record.id } }
+                }
+            });
+            intentCount++;
+        }
+        console.log(`   ✅ ${intentCount} user intents created`);
+    }
 
     console.log('✅ Seed data inserted successfully!');
 }

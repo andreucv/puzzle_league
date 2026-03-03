@@ -11,6 +11,7 @@
     let error = $state('');
 
     const typeIcons: Record<string, string> = {
+        INSCRIPTION_CREATED: 'mdi:account-plus-outline',
         INSCRIPTION_ACCEPTED: 'mdi:check-circle-outline',
         INSCRIPTION_REFUSED: 'mdi:close-circle-outline',
         INSCRIPTION_WAITLISTED: 'mdi:clock-alert-outline',
@@ -18,10 +19,12 @@
         COMPETITION_CANCELLED: 'mdi:cancel',
         ROLE_REQUEST_APPROVED: 'mdi:shield-check-outline',
         ROLE_REQUEST_REJECTED: 'mdi:shield-off-outline',
+        USER_INTENT_CLAIMED: 'mdi:account-check-outline',
         GENERAL: 'mdi:bell-outline',
     };
 
     const typeColors: Record<string, string> = {
+        INSCRIPTION_CREATED: 'text-primary-500',
         INSCRIPTION_ACCEPTED: 'text-success-500',
         INSCRIPTION_REFUSED: 'text-error-500',
         INSCRIPTION_WAITLISTED: 'text-secondary-500',
@@ -29,6 +32,7 @@
         COMPETITION_CANCELLED: 'text-warning-500',
         ROLE_REQUEST_APPROVED: 'text-success-500',
         ROLE_REQUEST_REJECTED: 'text-error-500',
+        USER_INTENT_CLAIMED: 'text-primary-500',
         GENERAL: 'text-surface-500',
     };
 

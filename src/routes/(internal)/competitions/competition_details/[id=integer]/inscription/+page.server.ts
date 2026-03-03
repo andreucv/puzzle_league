@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from "./$types";
 import { getCompetitionWithCategories } from "$lib/database/database";
-import { getCategoryEntriesFromCompetition, signUpUsersToCompetition, removeUserFromCategory } from "$lib/database/db_inscription_utils";
+import { getCategoryEntriesFromCompetition, signUpUsersToCompetition, removeRecordById, getInscribedUserIdsByCategory } from "$lib/database/db_inscription_utils";
 import { auth } from "$lib/auth";
 import { redirect } from "@sveltejs/kit";
 import { createNotificationForUsers } from "$lib/notifications/notifications";
@@ -20,11 +20,15 @@ export const load: PageServerLoad = async (event) => {
         throw redirect(302, '/competitions/explore_competitions');
     }
 
-    const existingRecords = await getCategoryEntriesFromCompetition(competitionId, session.user.id);
+    const [existingRecords, inscribedUserIds] = await Promise.all([
+        getCategoryEntriesFromCompetition(competitionId, session.user.id),
+        getInscribedUserIdsByCategory(competitionId)
+    ]);
 
     return {
         competition,
         existingRecords: existingRecords || [],
+        inscribedUserIds,
     };
 };
 
@@ -89,14 +93,14 @@ export const actions: Actions = {
         }
 
         const data = await request.formData();
-        const categoryId = data.get('category_id')?.toString();
+        const recordId = data.get('record_id')?.toString();
 
-        if (!categoryId) {
-            return { success: false, message: 'Missing category ID' };
+        if (!recordId) {
+            return { success: false, message: 'Missing record ID' };
         }
 
         try {
-            const result = await removeUserFromCategory(parseInt(categoryId), session.user.id);
+            const result = await removeRecordById(recordId, session.user.id);
             if (result) {
                 return { success: true, message: 'Successfully unregistered' };
             }

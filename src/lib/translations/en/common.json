@@ -166,6 +166,16 @@
     "start_competition_button": "Start Competition",
     "back_to_competitions_button": "Back to Competitions"
   },
+  "claim_participations": {
+    "title": "Claim Participations",
+    "description": "We found competition participations that may belong to you. Select the ones that are yours to link them to your account.",
+    "no_matches": "No matching participations found. You're all set!",
+    "registered_by": "Registered by",
+    "select_all": "Select all",
+    "deselect_all": "Deselect all",
+    "claim_selected": "Claim selected",
+    "skip": "Skip for now"
+  },
   "inscription": {
     "title": "Category Registration",
     "submitting": "Submitting registrations...",
@@ -187,7 +197,20 @@
     "registration_not_available": "Registration is not available for this category.",
     "status_pending": "Pending",
     "status_accepted": "Accepted",
-    "status_waitlisted": "Waitlisted"
+    "status_waitlisted": "Waitlisted",
+    "add_non_registered": "Add as non-registered participant",
+    "already_inscribed": "Already inscribed in this category",
+    "not_registered": "not registered",
+    "not_claimed": "not claimed",
+    "previously_registered": "Previously registered",
+    "registrations_count": "{current}/{max} registrations",
+    "limit_reached": "Maximum registrations reached",
+    "your_registrations": "Your registrations",
+    "created_by_you": "Created by you",
+    "add_another": "Add another inscription",
+    "build_another_team": "Build another team",
+    "queued": "Queued",
+    "new_registrations_summary": "new registration(s)"
   },
   "manage_inscriptions": {
     "title": "Manage Inscriptions",
@@ -195,6 +218,7 @@
     "accepted": "Accepted",
     "waitlisted": "Waitlisted",
     "max_slots": "Slots",
+    "seats_remaining": "seats remaining",
     "search_placeholder": "Search by participant name...",
     "no_results_for_search": "No inscriptions match your search.",
     "seats_available": "{accepted} of {max} seats filled",

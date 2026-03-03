@@ -39,6 +39,19 @@ export function getPartySizeByCategoryType(type: CategoryType) {
     return partySizes[type] || 1;
 }
 
+export function getMaxRecordsPerCategory(type: CategoryType): number {
+    const maxRecords: Record<CategoryType, number> = {
+        INDIVIDUAL: 4,
+        PAIRS: 2,
+        TEAM: 1,
+        JUNIOR_INDIVIDUAL: 4,
+        JUNIOR_PAIRS: 2,
+        PUZZLE_CHESS: 1,
+        OTHER: 1
+    };
+    return maxRecords[type] || 1;
+}
+
 export function calculateDuration(startTime: Date, endTime: Date) {
     if (!startTime || !endTime) return "-";
     const duration = new Date(endTime).getTime() - new Date(startTime).getTime();

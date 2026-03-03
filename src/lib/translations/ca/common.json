@@ -79,6 +79,16 @@
     "start_competition_button": "Comença la competició",
     "back_to_competitions_button": "Torna a competicions"
   },
+  "claim_participations": {
+    "title": "Reclama participacions",
+    "description": "Hem trobat participacions en competicions que podrien ser teves. Selecciona les que corresponguin per vincular-les al teu compte.",
+    "no_matches": "No s'han trobat participacions coincidents. Tot en ordre!",
+    "registered_by": "Registrat per",
+    "select_all": "Selecciona tot",
+    "deselect_all": "Desselecciona tot",
+    "claim_selected": "Reclama seleccionades",
+    "skip": "Omet per ara"
+  },
   "inscription": {
     "title": "Inscripció a categories",
     "submitting": "Enviant inscripcions...",
@@ -100,7 +110,16 @@
     "status_accepted": "Aceptat",
     "status_pending": "Pendent",
     "status_waitlisted": "En llista d'espera",
-    "sign_up_again": "Registra't de nou"
+    "sign_up_again": "Registra't de nou",
+    "add_non_registered": "Afegeix com a participant no registrat",
+    "already_inscribed": "Ja inscrit en aquesta categoria",
+    "not_registered": "no registrat",
+    "not_claimed": "no reclamat",
+    "previously_registered": "Registrat anteriorment",
+    "add_another": "Afegeix una altra inscripció",
+    "build_another_team": "Forma un altre equip",
+    "queued": "En cua",
+    "new_registrations_summary": "nova/es inscripció/ns"
   },
   "puzzles": {
     "catalog_title": "Catàleg de Puzzles",
@@ -226,6 +245,7 @@
     "accepted_success": "Inscripció acceptada correctament.",
     "no_categories": "No hi ha categories en aquesta competició.",
     "max_slots": "Llocs",
+    "seats_remaining": "llocs disponibles",
     "search_placeholder": "Cerca per nom de participant...",
     "no_results_for_search": "Cap inscripció coincideix amb la teva cerca.",
     "seats_available": "{accepted} de {max} places ocupades",

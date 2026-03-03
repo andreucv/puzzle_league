@@ -5,7 +5,7 @@ import type { Competition, Category } from '$lib/.prisma/generated/prisma/browse
 import { prisma } from '$lib/database/create_prisma_client';
 
 // Re-export inscription helpers from dedicated module
-export { signUpUsersToCompetition, getCategoryEntriesFromCompetition, removeUserFromCategory, getInscriptionsForCompetition, acceptInscription, refuseInscription } from '$lib/database/db_inscription_utils';
+export { signUpUsersToCompetition, getCategoryEntriesFromCompetition, removeUserFromCategory, removeRecordById, getInscriptionsForCompetition, acceptInscription, refuseInscription } from '$lib/database/db_inscription_utils';
 
 // User related functions
 export async function getRoleAssignments(userId: string) {

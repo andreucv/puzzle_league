@@ -1,8 +1,8 @@
 <script lang="ts">
     import { AppBar, Avatar } from '@skeletonlabs/skeleton-svelte';
-    import Icon from '@iconify/svelte';
     import HamburgerIcon from '@iconify-svelte/icon-park/hamburger-button';
     import BellOutlineIcon from '@iconify-svelte/mdi/bell-outline';
+    import UserAltFillIcon from '@iconify-svelte/mdi/account-circle';
     import { page } from '$app/state';
     let user = $derived(page.data.user);
     let currentPath = $derived(page.url.pathname);
@@ -47,7 +47,7 @@
                     </a>
                     <a href="/profile">
                         {#if user?.image === undefined}
-                            <Icon icon="lets-icons:user-alt-fill" width="1.5rem" height="1.5rem" class="mx-2"/>
+                            <UserAltFillIcon width="1.5rem" height="1.5rem" class="mx-2"/>
                         {:else}
                             <Avatar class="w-8 h-8">
                                 <Avatar.Image src={user.image} alt={user.name ?? 'User'} />

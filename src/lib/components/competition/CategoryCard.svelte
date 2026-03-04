@@ -1,5 +1,4 @@
 <script lang="ts">
-    import Icon from '@iconify/svelte';
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
     import { formatTime } from '$lib/utils/datetime_utils';
     import { getCategoryTypeName } from '$lib/utils/category_utils';
@@ -7,6 +6,14 @@
     import type { Category, Puzzle } from '$lib/.prisma/generated/prisma/browser';
     import Card from '$lib/components/common/card/Card.svelte';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
+
+    import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
+    import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
+    import ClockAlertOutlineIcon from '@iconify-svelte/mdi/clock-alert-outline';
+    import CurrencyEurIcon from '@iconify-svelte/mdi/currency-eur';
+    import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
+    import AccountPlusOutlineIcon from '@iconify-svelte/mdi/account-plus-outline';
+    import AccountBoxPlusOutlineIcon from '@iconify-svelte/mdi/account-box-plus-outline';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
     type PartyUser = { id: string; name: string; email: string; image: string | null };
@@ -53,11 +60,11 @@
         return null;
     }
 
-    function getStatusIcon(status: string | undefined): string {
-        if (status === 'ACCEPTED') return 'mdi:check-circle';
-        if (status === 'PENDING') return 'mdi:clock-outline';
-        if (status === 'WAITLISTED') return 'mdi:clock-alert-outline';
-        return 'mdi:account-plus-outline';
+    function getStatusIcon(status: string | undefined): typeof AccountPlusOutlineIcon {
+        if (status === 'ACCEPTED') return CheckCircleIcon;
+        if (status === 'PENDING') return ClockOutlineIcon;
+        if (status === 'WAITLISTED') return ClockAlertOutlineIcon;
+        return AccountPlusOutlineIcon;
     }
 </script>
 
@@ -71,7 +78,7 @@
 
     <!-- Time block -->
     <div class="flex items-center gap-2">
-        <Icon icon="mdi:clock-outline" width="1rem" height="1rem" class="text-primary-500 shrink-0" />
+        <ClockOutlineIcon width="1rem" height="1rem" class="text-primary-500 shrink-0" />
         <span class="text-sm font-semibold">
             {formatTime(new Date(category.startTime))} – {formatTime(new Date(category.endTime))}
         </span>
@@ -79,7 +86,7 @@
 
     <!-- Price -->
     <div class="flex items-center gap-2">
-        <Icon icon="mdi:currency-eur" width="1rem" height="1rem" class="text-primary-500 shrink-0" />
+        <CurrencyEurIcon width="1rem" height="1rem" class="text-primary-500 shrink-0" />
         <span class="text-sm font-semibold">{category.price} €</span>
     </div>
 
@@ -89,7 +96,7 @@
             {#each category.puzzles as puzzle}
                 <div class="flex flex-col gap-1">
                     <div class="flex items-center gap-2">
-                        <Icon icon="mdi:puzzle-outline" width="1rem" height="1rem" class="text-primary-500 shrink-0" />
+                        <PuzzleOutlineIcon width="1rem" height="1rem" class="text-primary-500 shrink-0" />
                         <span class="text-sm font-semibold">{puzzle.pieces} pcs – {puzzle.brand}</span>
                     </div>
                     {#if isCreator}
@@ -114,6 +121,7 @@
                     {#each normalizedRecords as record, index (record.id ?? `${category.id}-${index}`)}
                         {@const recordUsers = record.users ?? []}
                         {@const recordIntents = record.userIntents ?? []}
+                        {@const StatusIcon = getStatusIcon(record.status)}
                         {#if recordUsers.length > 0 || recordIntents.length > 0}
                             <div class="flex items-center gap-2 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-50/70 dark:bg-surface-800/60 px-2 py-1 overflow-hidden">
                                 <div class="flex items-center gap-2 min-w-0 flex-1">
@@ -135,7 +143,7 @@
                                     </span>
                                 </div>
                                 <span class={`badge text-xs flex items-center gap-1 shrink-0 ${getStatusTone(record.status)}`} data-testid="category-status-badge">
-                                    <Icon icon={getStatusIcon(record.status)} width="0.8rem" height="0.8rem" />
+                                    <StatusIcon width="0.8rem" height="0.8rem" />
                                     {#if getStatusTranslationKey(record.status)}
                                         {$t(getStatusTranslationKey(record.status) ?? '')}
                                     {:else}
@@ -150,14 +158,14 @@
                 <div class="flex items-center justify-between gap-2 overflow-hidden">
                     {#if seatsAvailable !== undefined}
                         <div class="flex items-center gap-1 text-sm text-surface-500 min-w-0">
-                            <Icon icon="mdi:account-box-plus-outline" width="1rem" height="1rem" class="shrink-0" />
+                            <AccountBoxPlusOutlineIcon width="1rem" height="1rem" class="shrink-0" />
                             <span class="truncate">{seatsAvailable} {$t('competition_details.seats_available')}</span>
                         </div>
                     {:else}
                         <div></div>
                     {/if}
                     <span class="badge preset-tonal-surface text-xs flex items-center gap-1 shrink-0">
-                        <Icon icon="mdi:account-plus-outline" width="0.8rem" height="0.8rem" />
+                        <AccountPlusOutlineIcon width="0.8rem" height="0.8rem" />
                         Open
                     </span>
                 </div>

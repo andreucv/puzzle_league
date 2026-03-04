@@ -1,5 +1,12 @@
 import type { CategoryType } from "@prisma/client";
 
+import AccountIcon from '@iconify-svelte/mdi/account';
+import AccountMultipleIcon from '@iconify-svelte/mdi/account-multiple';
+import AccountGroupIcon from '@iconify-svelte/mdi/account-group';
+import AccountChildIcon from '@iconify-svelte/mdi/account-child';
+import ChessKnightIcon from '@iconify-svelte/mdi/chess-knight';
+import ShapeIcon from '@iconify-svelte/mdi/shape';
+
 export function getCategoryTypeName(type: CategoryType) {
     const typeNames: Record<CategoryType, string> = {
         INDIVIDUAL: 'Individual',
@@ -14,16 +21,16 @@ export function getCategoryTypeName(type: CategoryType) {
 }
 
 export function getCategoryTypeIcon(type: CategoryType) {
-    const typeIcons: Record<CategoryType, string> = {
-        INDIVIDUAL: 'mdi:account',
-        PAIRS: 'mdi:account-multiple',
-        TEAM: 'mdi:account-group',
-        JUNIOR_INDIVIDUAL: 'mdi:account-child',
-        JUNIOR_PAIRS: 'mdi:account-child',
-        PUZZLE_CHESS: 'mdi:chess-knight',
-        OTHER: 'mdi:shape'
+    const typeIcons: Record<CategoryType, typeof AccountIcon> = {
+        INDIVIDUAL: AccountIcon,
+        PAIRS: AccountMultipleIcon,
+        TEAM: AccountGroupIcon,
+        JUNIOR_INDIVIDUAL: AccountChildIcon,
+        JUNIOR_PAIRS: AccountChildIcon,
+        PUZZLE_CHESS: ChessKnightIcon,
+        OTHER: ShapeIcon
     };
-    return typeIcons[type] || 'mdi:shape';
+    return typeIcons[type] || ShapeIcon;
 }
 
 export function getPartySizeByCategoryType(type: CategoryType) {

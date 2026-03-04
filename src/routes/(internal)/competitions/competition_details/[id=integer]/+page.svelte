@@ -10,13 +10,18 @@
     import EndPageActionButton from '$lib/components/common/buttons/EndPageActionButton.svelte';
     import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
 
+    import MapMarkerIcon from '@iconify-svelte/mdi/map-marker';
+    import EarthIcon from '@iconify-svelte/mdi/earth';
+    import CalendarClockIcon from '@iconify-svelte/mdi/calendar-clock';
+    import CreditCardOutlineIcon from '@iconify-svelte/mdi/credit-card-outline';
+
     let { data } = $props();
 
-    const currentUser = data.user;
-    const categoriesWithCounts = data.props.categoriesWithCounts;
-    const userRecords = data.props.records;
+    const currentUser = $derived(data.user);
+    const categoriesWithCounts = $derived(data.props.categoriesWithCounts);
+    const userRecords = $derived(data.props.records);
 
-    let competition = $state(data.props.competition_and_categories);
+    let competition = $derived(data.props.competition_and_categories);
     const competitionName = $derived(competition?.name);
 
 	const startDate = $derived(new Date(competition?.startDate ?? new Date()));
@@ -44,19 +49,19 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 {#if competition.location}
                     <div class="flex items-center gap-2">
-                        <Icon icon="mdi:map-marker" width="1.2rem" height="1.2rem" class="text-primary-500" />
+                        <MapMarkerIcon width="1.2rem" height="1.2rem" class="text-primary-500" />
                         <span>{competition.location}</span>
                     </div>
                 {/if}
                 {#if competition.country}
                     <div class="flex items-center gap-2">
-                        <Icon icon="mdi:earth" width="1.2rem" height="1.2rem" class="text-primary-500" />
+                        <EarthIcon width="1.2rem" height="1.2rem" class="text-primary-500" />
                         <span>{getCountryNameFromCode(competition.country)} {getCountryFlag(competition.country)} {competition.postalCode ? ` - ${competition.postalCode}` : ''}</span>
                     </div>
                 {/if}
                 <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2">
-                        <Icon icon="mdi:calendar-clock" width="1.2rem" height="1.2rem" class="text-primary-500" />
+                        <CalendarClockIcon width="1.2rem" height="1.2rem" class="text-primary-500" />
                         <span>
                             {startDate.toLocaleDateString('default', { day: 'numeric', month: 'short', year: 'numeric' })}
                             {#if isMultiDay}
@@ -84,7 +89,7 @@
             </div>
             {#if competition?.paymentMethod}
                 <div class="flex items-start gap-2 text-sm">
-                    <Icon icon="mdi:credit-card-outline" width="1.2rem" height="1.2rem" class="text-primary-500 shrink-0 mt-0.5" />
+                    <CreditCardOutlineIcon width="1.2rem" height="1.2rem" class="text-primary-500 shrink-0 mt-0.5" />
                     <span class="text-surface-600 dark:text-surface-400 whitespace-pre-line">{competition.paymentMethod}</span>
                 </div>
             {/if}

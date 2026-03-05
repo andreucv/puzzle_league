@@ -505,6 +505,7 @@
                 <!-- Registration count badge -->
                 {#if records.length > 0 || slots.length > 0}
                     <div class="flex items-center gap-2">
+                        <!-- TODO: maxRecords is misleading for the user, if there is a category with less available spots than the maxRecords -->
                         <span class="badge {limitReached ? 'preset-filled-surface-200-800' : 'preset-tonal-primary'} text-xs p-2">
                             <Icon icon="mdi:clipboard-list" width="0.9rem" height="0.9rem" />
                             {totalRegistrations}/{maxRecords} {$t('inscription.your_registrations')}

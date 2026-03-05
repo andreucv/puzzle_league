@@ -10,7 +10,9 @@
     import { FileUpload, Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
     import { CldImage } from 'svelte-cloudinary';
     import { countries, getCountryFlag } from '$lib/utils/country_utils';
-    import CustomDateRangePicker from "$lib/components/bits_ui/CustomDateRangePicker.svelte";
+
+    // Components
+    import CustomDatePicker from "$lib/components/bits_ui/CustomDatePicker.svelte";
     import LoadingOverlay from "$lib/components/LoadingOverlay.svelte";
     import PuzzleLinkSection from "$lib/components/PuzzleLinkSection.svelte";
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
@@ -146,8 +148,16 @@
         }
 
         // Validate date (required)
-        if (!$form.startDate) {
+        if (!isMultiDay && !$form.startDate) {
             dateError = $t('competition.form_error.required.date');
+            isValid = false;
+        }
+        if (isMultiDay && !$form.startDate) {
+            dateError = $t('competition.form_error.required.start_date');
+            isValid = false;
+        }
+        if (isMultiDay && !$form.endDate) {
+            dateError = $t('competition.form_error.required.end_date');
             isValid = false;
         }
 
@@ -175,8 +185,18 @@
             }
 
             if (cat.type) { // Only validate times if type is selected
+                if (isMultiDay && !categories_times_obj_arr.create[i]?.date) {
+                    categoryErrors.create[i].date = $t('competition.form_error.required.category_date');
+                    isValid = false;
+                }
+
                 if (!categories_times_obj_arr.create[i]?.startTime) {
                     categoryErrors.create[i].startTime = $t('competition.form_error.required.start_time');
+                    isValid = false;
+                }
+
+                if (isMultiDay && !categories_times_obj_arr.create[i]?.endDate) {
+                    categoryErrors.create[i].endDate = $t('competition.form_error.required.category_end_date');
                     isValid = false;
                 }
 
@@ -218,8 +238,18 @@
             }
 
             if (cat.type) { // Only validate times if type is selected
+                if (isMultiDay && !categories_times_obj_arr.update[i]?.date) {
+                    categoryErrors.update[i].date = $t('competition.form_error.required.category_date');
+                    isValid = false;
+                }
+
                 if (!categories_times_obj_arr.update[i]?.startTime) {
                     categoryErrors.update[i].startTime = $t('competition.form_error.required.start_time');
+                    isValid = false;
+                }
+
+                if (isMultiDay && !categories_times_obj_arr.update[i]?.endDate) {
+                    categoryErrors.update[i].endDate = $t('competition.form_error.required.category_end_date');
                     isValid = false;
                 }
 
@@ -337,13 +367,17 @@
 
     // Client-side validation errors for categories
     let categoryErrors = $state({
-        create: [] as Array<{ description?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string; price?: string }>,
-        update: [] as Array<{ description?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string; price?: string }>
+        create: [] as Array<{ description?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string; price?: string; date?: string; endDate?: string }>,
+        update: [] as Array<{ description?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string; price?: string; date?: string; endDate?: string }>
     });
 
     // Date validation error
     let dateError = $state<string | null>(null);
     let datePickerRef: HTMLDivElement;
+
+    // Multi-day state
+    let isMultiDay = $state(false);
+
 
     // Client-side validation errors for main form fields
     let formErrors = $state<{
@@ -371,6 +405,24 @@
         console.log("initialCompetitionStartDate", $form.startDate);
         console.log("initialCompetitionStartDate", initialCompetitionStartDate);
         selected_image_src = ($form.image_cld_id as string) || undefined;
+
+        // Auto-detect multi-day: check if categories span multiple calendar days
+        const allDayKeys = new Set<string>();
+        for (const cat of ($form.categories as any[]) || []) {
+            const d = new Date(cat.startTime);
+            allDayKeys.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
+        }
+        if (allDayKeys.size > 1) {
+            isMultiDay = true;
+        }
+
+        // Populate per-category dates from their startTime and endTime
+        for (let i = 0; i < toUpdateCategoriesTimes.length; i++) {
+            const d = new Date(($form.categories as any[])[i].startTime);
+            toUpdateCategoriesTimes[i].date = new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate());
+            const ed = new Date(($form.categories as any[])[i].endTime);
+            toUpdateCategoriesTimes[i].endDate = new CalendarDate(ed.getFullYear(), ed.getMonth() + 1, ed.getDate());
+        }
     }
 
 
@@ -385,21 +437,27 @@
     });
 
     function addCategory() {
+        // Default date for new categories: in multi-day use competition start date, in single-day use the existing competition date
+        let defaultDate: CalendarDate | null = null;
+        if ($form.startDate) {
+            const d = new Date($form.startDate as string);
+            defaultDate = new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate());
+        }
+
         categories.create = [...categories.create, {
             description: "",
             subname: "",
-            type: "INDIVIDUAL", // or whatever default CategoryType you want
-            startTime: "", // Add this property
-            endTime: "", // Add this property
-            // Optional fields can be omitted or set to defaults
-            maxParties: null, // Add this property
-            maxPartySize: 1, // Change from null to 1
+            type: "INDIVIDUAL",
+            startTime: "",
+            endTime: "",
+            maxParties: null,
+            maxPartySize: 1,
             price: 0,
             status: "not_started",
             puzzleIds: [],
         }];
 
-        categories_times_obj_arr.create = [...categories_times_obj_arr.create, {startTime: "", endTime: ""}];
+        categories_times_obj_arr.create = [...categories_times_obj_arr.create, {startTime: "", endTime: "", date: defaultDate, endDate: defaultDate}];
     }
 
     function requestRemoveCategory(source: 'create' | 'update', index: number) {
@@ -429,14 +487,18 @@
     function removeCategory(source: 'create' | 'update', index: number) {
         if(source === "create") {
             categories.create = categories.create.filter((_: any, i: number) => i !== index);
+            categories_times_obj_arr.create = categories_times_obj_arr.create.filter((_: any, i: number) => i !== index);
             categoryErrors.create = categoryErrors.create.filter((_: any, i: number) => i !== index);
         } else if (source === "update") {
             const categoryToDelete = categories.update[index].where.id;
             console.log("categoryToDelete", categoryToDelete);
             categories.delete = [...categories.delete, {id: categoryToDelete}];
             categories.update = categories.update.filter((_: any, i: number) => i !== index);
+            categories_times_obj_arr.update = categories_times_obj_arr.update.filter((_: any, i: number) => i !== index);
             categoryErrors.update = categoryErrors.update.filter((_: any, i: number) => i !== index);
         }
+        // Recompute competition dates after removing a category
+        autoComputeCompetitionDates();
     }
 
     // Client-side validation for category fields
@@ -498,7 +560,7 @@
         }
     }
 
-    function mixCompetitionDateWithCategoryTimeNewPicker(field: string, source: 'create' | 'update', index: number, time_value: string) {
+    function buildCategoryDateTime(field: string, source: 'create' | 'update', index: number, time_value: string) {
         // Always update the time display value first
         if (time_value) {
             if (source === "create") {
@@ -508,24 +570,28 @@
             }
         }
 
-        if (!$form.startDate || $form.startDate === "" || !time_value) {
-            console.log("mixCompetitionDateWithCategoryTime", "startDate is empty or time_value is undefined", $form.startDate, time_value);
-            return "";
+        // Determine the date source: in multi-day mode use the category's own date (endDate for endTime), otherwise the competition date
+        let dateSource: string | null = null;
+        if (isMultiDay) {
+            const catDate = (field === 'endTime'
+                ? categories_times_obj_arr[source][index]?.endDate
+                : categories_times_obj_arr[source][index]?.date) as CalendarDate | null;
+            if (!catDate || !time_value) return "";
+            const jsDate = catDate.toDate(getLocalTimeZone());
+            dateSource = fromDate(jsDate, getLocalTimeZone()).toAbsoluteString();
+        } else {
+            if (!$form.startDate || $form.startDate === "" || !time_value) return "";
+            dateSource = (new Date($form.startDate as string)).toISOString();
         }
 
-        console.log("mixCompetitionDateWithCategoryTime $form.startDate", $form.startDate, "time_value", time_value.toString());
-        console.log("mixCompetitionDateWithCategoryTime $form.startDate", $form.startDate, "time_value", parseInt(time_value.toString().split(':')[0]), parseInt(time_value.toString().split(':')[1]));
-        const date = parseAbsolute((new Date($form.startDate as string)).toISOString(), getLocalTimeZone());
-        const js_date = toCalendarDateTime(date, new Time(parseInt(time_value.split(':')[0]), parseInt(time_value.split(':')[1]))).toDate(getLocalTimeZone());
-        const updated_date = fromDate(js_date, getLocalTimeZone()).toAbsoluteString();
-
-        console.log("mixCompetitionDateWithCategoryTime after math", updated_date);
+        const localTimeZone = getLocalTimeZone();
+        const date = parseAbsolute(dateSource, localTimeZone);
+        const js_date = toCalendarDateTime(date, new Time(parseInt(time_value.split(':')[0]), parseInt(time_value.split(':')[1]))).toDate(localTimeZone);
+        const updated_date = fromDate(js_date, localTimeZone).toAbsoluteString();
 
         if(source === "create") {
-            console.log("category_start_time", updated_date);
             categories.create[index][field] = updated_date;
         } else if (source === "update") {
-            console.log("category_end_time", updated_date);
             categories.update[index].data[field] = updated_date;
         }
     }
@@ -534,32 +600,113 @@
         // Clear any previous date error when user interacts with date picker
         dateError = null;
 
-        if (!date_value) {
-            console.log("onDateChange: no date value provided");
-            return;
-        }
+        if (!date_value) return;
 
-        console.log("onDateChange", date_value);
         const localTimeZone = getLocalTimeZone();
         const date = date_value.toDate(localTimeZone);
         $form.startDate = fromDate(date, localTimeZone).toAbsoluteString();
         $form.endDate   = fromDate(date, localTimeZone).toAbsoluteString();
 
-        console.log("onDateChange changing all categories times...");
-
+        // In single-day mode, update all category datetimes with the new date
+        // Also set the default category date for all categories
         if (categories.create) {
             for (let i = 0; i < categories.create.length; i++) {
-                console.log("onDateChange changing create category time", i, categories.create);
-                mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'create', i, categories_times_obj_arr.create[i].startTime);
-                mixCompetitionDateWithCategoryTimeNewPicker('endTime',   'create', i, categories_times_obj_arr.create[i].endTime);
+                categories_times_obj_arr.create[i].date = date_value;
+                buildCategoryDateTime('startTime', 'create', i, categories_times_obj_arr.create[i].startTime);
+                buildCategoryDateTime('endTime',   'create', i, categories_times_obj_arr.create[i].endTime);
             }
         }
 
         if (categories.update) {
             for (let i = 0; i < categories.update.length; i++) {
-                console.log("onDateChange changing update category time", i, categories.update);
-                mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'update', i, categories_times_obj_arr.update[i].startTime);
-                mixCompetitionDateWithCategoryTimeNewPicker('endTime',   'update', i, categories_times_obj_arr.update[i].endTime);
+                categories_times_obj_arr.update[i].date = date_value;
+                buildCategoryDateTime('startTime', 'update', i, categories_times_obj_arr.update[i].startTime);
+                buildCategoryDateTime('endTime',   'update', i, categories_times_obj_arr.update[i].endTime);
+            }
+        }
+
+        // Update competition dates with earliest/latest category times
+        autoComputeCompetitionDates();
+    }
+
+    function onCategoryDateChange(source: 'create' | 'update', index: number, date_value: CalendarDate | null | undefined) {
+        if (!date_value) return;
+        categories_times_obj_arr[source][index].date = date_value;
+        // If endDate hasn't been explicitly set or is before the new start date, sync it
+        const curEnd = categories_times_obj_arr[source][index].endDate as CalendarDate | null;
+        if (!curEnd || curEnd.compare(date_value) < 0) {
+            categories_times_obj_arr[source][index].endDate = date_value;
+        }
+        buildCategoryDateTime('startTime', source, index, categories_times_obj_arr[source][index].startTime);
+        buildCategoryDateTime('endTime',   source, index, categories_times_obj_arr[source][index].endTime);
+        // Trigger auto-compute of competition dates
+        autoComputeCompetitionDates();
+    }
+
+    function onCategoryEndDateChange(source: 'create' | 'update', index: number, date_value: CalendarDate | null | undefined) {
+        if (!date_value) return;
+        categories_times_obj_arr[source][index].endDate = date_value;
+        buildCategoryDateTime('endTime', source, index, categories_times_obj_arr[source][index].endTime);
+        autoComputeCompetitionDates();
+    }
+
+    function autoComputeCompetitionDates() {
+
+        const allDatetimes: Date[] = [];
+        const allEndDatetimes: Date[] = [];
+
+        for (let i = 0; i < categories.create.length; i++) {
+            if (categories.create[i].startTime) allDatetimes.push(new Date(categories.create[i].startTime));
+            if (categories.create[i].endTime) allEndDatetimes.push(new Date(categories.create[i].endTime));
+        }
+        for (let i = 0; i < categories.update.length; i++) {
+            if (categories.update[i].data.startTime) allDatetimes.push(new Date(categories.update[i].data.startTime));
+            if (categories.update[i].data.endTime) allEndDatetimes.push(new Date(categories.update[i].data.endTime));
+        }
+
+        if (allDatetimes.length === 0) return;
+
+        const localTimeZone = getLocalTimeZone();
+        const earliest = new Date(Math.min(...allDatetimes.map(d => d.getTime())));
+        const latest = new Date(Math.max(...allEndDatetimes.map(d => d.getTime())));
+
+        $form.startDate = fromDate(earliest, localTimeZone).toAbsoluteString();
+        $form.endDate   = fromDate(latest, localTimeZone).toAbsoluteString();
+    }
+
+    function onToggleMultiDay() {
+        isMultiDay = !isMultiDay;
+
+        if (isMultiDay) {
+            // Switching to multi-day: give each category the current competition date
+            const compDate = $form.startDate
+                ? (() => { const d = new Date($form.startDate as string); return new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate()); })()
+                : null;
+            for (let i = 0; i < categories_times_obj_arr.create.length; i++) {
+                categories_times_obj_arr.create[i].date = compDate;
+                categories_times_obj_arr.create[i].endDate = compDate;
+            }
+            for (let i = 0; i < categories_times_obj_arr.update.length; i++) {
+                if (!categories_times_obj_arr.update[i].date) {
+                    categories_times_obj_arr.update[i].date = compDate;
+                }
+                if (!categories_times_obj_arr.update[i].endDate) {
+                    categories_times_obj_arr.update[i].endDate = compDate;
+                }
+            }
+            autoComputeCompetitionDates();
+        } else {
+            // Switching to single-day: use the earliest category date as the single competition date
+            let earliest: CalendarDate | null = null;
+            const allEntries = [...categories_times_obj_arr.create, ...categories_times_obj_arr.update];
+            for (const entry of allEntries) {
+                if (entry.date && (!earliest || entry.date.compare(earliest) < 0)) {
+                    earliest = entry.date;
+                }
+            }
+            if (earliest) {
+                initialCompetitionStartDate = earliest;
+                onDateChange(earliest);
             }
         }
     }
@@ -567,29 +714,6 @@
     function autofillCategoryMaxPartySize(index: number, source: 'create' | 'update', value: string) {
         categories[source][index].maxPartySize = getPartySizeByCategoryType(value as CategoryType);
     }
-
-    function getEndTimeOptions(startTime: string) {
-        const options = [];
-        console.log("getEndTimeOptions", startTime);
-        const [startHour, startMinute] = (startTime || '00:00').split(':').map(Number);
-        console.log("getEndTimeOptions", startHour, startMinute);
-
-        for (let hour = 8; hour <= 22; hour++) {
-            for (const minute of [0, 30]) {
-                if (hour > startHour || (hour === startHour && minute > startMinute)) {
-                    console.log("getEndTimeOptions pushing", hour, minute);
-                    options.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`);
-                }
-            }
-        }
-        return options;
-    }
-
-    const startTimeOptions = Array.from({length: 11}, (_, i) => i + 8).flatMap(hour => {
-        return [0, 30].map(minute => {
-            return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        });
-    });
 
     // Max base64 payload size we allow (~3MB image → ~4MB base64, under Vercel's 4.5MB limit)
     const MAX_IMAGE_FILE_SIZE = 10 * 1024 * 1024; // 10MB raw file (will be compressed)
@@ -892,31 +1016,68 @@
                 {$t('competition.create.date_title')}
             </h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div bind:this={datePickerRef} class="label" data-testid="date-picker">
-                    <CustomDateRangePicker
-                        name="start_date"
-                        labelText="{$t('edit_competition.date')} *"
-                        locale={data.i18n.locale}
-                        value={initialCompetitionStartDate}
-                        minValue={today(getLocalTimeZone())}
-                        disableDaysOutsideMonth={true}
-                        weekStartsOn={1}
-                        pagedNavigation={true}
-                        onValueChange={(e) => onDateChange(e)}
-                    />
-                    {#if dateError}
-                        <span class="invalid text-error-500 text-sm">{dateError}</span>
-                    {/if}
-                </div>
-                <label class="label">
-                    <!-- <span>End Date</span> -->
-                    <input
-                        type="hidden"
-                        name="end_date"
-                        class="input rounded-lg bg-primary-50-950"
-                    />
-                </label>
+            <!-- Multi-day toggle -->
+            <div class="flex items-center gap-3 mb-4">
+                <button
+                    type="button"
+                    role="switch"
+                    aria-checked={isMultiDay}
+                    aria-label={$t('competition.create.multi_day_toggle')}
+                    class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 {isMultiDay ? 'bg-primary-500' : 'bg-surface-300 dark:bg-surface-600'}"
+                    onclick={onToggleMultiDay}
+                >
+                    <span
+                        aria-hidden="true"
+                        class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {isMultiDay ? 'translate-x-5' : 'translate-x-0'}"
+                    ></span>
+                </button>
+                <span class="text-sm font-medium">{$t('competition.create.multi_day_toggle')}</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" bind:this={datePickerRef}>
+                {#if !isMultiDay}
+                    <!-- Single-day mode -->
+                    <div class="label" data-testid="date-picker">
+                        <CustomDatePicker
+                            name="start_date"
+                            labelText="{$t('edit_competition.date')} *"
+                            locale={data.i18n.locale}
+                            value={initialCompetitionStartDate ?? undefined}
+                            minValue={today(getLocalTimeZone())}
+                            disableDaysOutsideMonth={true}
+                            weekStartsOn={1}
+                            pagedNavigation={true}
+                            onValueChange={(e) => onDateChange(e)}
+                        />
+                        {#if dateError}
+                            <span class="invalid text-error-500 text-sm">{dateError}</span>
+                        {/if}
+                    </div>
+                {:else}
+                    <!-- Multi-day mode: dates are auto-computed from categories -->
+                    <div class="md:col-span-2">
+                        <div class="flex items-center gap-2 text-sm text-surface-500 dark:text-surface-400 py-2">
+                            <Icon icon="mdi:information-outline" width="1.1rem" height="1.1rem" />
+                            <span>{$t('competition.create.auto_computed_dates')}</span>
+                        </div>
+                        {#if $form.startDate || $form.endDate}
+                            <div class="flex items-center gap-2 text-sm mt-1">
+                                <Icon icon="mdi:calendar-range" width="1.1rem" height="1.1rem" class="text-primary-500" />
+                                <span class="font-medium">
+                                    {#if $form.startDate}
+                                        {new Date($form.startDate as string).toLocaleDateString(data.i18n.locale, { year: 'numeric', month: 'long', day: 'numeric' })}
+                                    {/if}
+                                    {#if $form.endDate && $form.startDate !== $form.endDate}
+                                        &nbsp;–&nbsp;{new Date($form.endDate as string).toLocaleDateString(data.i18n.locale, { year: 'numeric', month: 'long', day: 'numeric' })}
+                                    {/if}
+                                </span>
+                            </div>
+                        {/if}
+                        {#if dateError}
+                            <span class="invalid text-error-500 text-sm mt-2">{dateError}</span>
+                        {/if}
+                    </div>
+                {/if}
             </div>
         </div>
 
@@ -937,7 +1098,7 @@
                     type="button"
                     class="btn preset-filled-primary-500 rounded-lg"
                     onclick={addCategory}
-                    disabled={!$form.startDate}
+                    disabled={!isMultiDay && !$form.startDate}
                 >
                     <Icon icon="mdi:plus" width="1.2rem" height="1.2rem" />
                     {$t('competition.create.add_category')}
@@ -993,6 +1154,24 @@
                                         maxlength="60"
                                     />
                                 </div>
+                                <!-- Category Dates (multi-day only) -->
+                                {#if isMultiDay}
+                                <div class="label" data-testid="category-start-date-update-{i}">
+                                    <CustomDatePicker
+                                        labelText={$t('competition.create.category_date')}
+                                        value={categories_times_obj_arr.update[i]?.date ?? undefined}
+                                        locale={data.i18n.locale}
+                                        minValue={today(getLocalTimeZone())}
+                                        weekStartsOn={1}
+                                        pagedNavigation={true}
+                                        disableDaysOutsideMonth={true}
+                                        onValueChange={(e) => onCategoryDateChange('update', i, e)}
+                                    />
+                                    {#if categoryErrors.update[i]?.date}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].date}</span>
+                                    {/if}
+                                </div>
+                                {/if}
                                 <!-- Start Time -->
                                 <div class="label">
                                     <span class="text-sm font-medium">{$t('competition.create.start_time')}</span>
@@ -1004,7 +1183,7 @@
                                         data-testid="start-time-update-{i}"
                                         value={categories_times_obj_arr.update[i].startTime}
                                         onchange={(e) => {
-                                            mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'update', i, (e.target as HTMLInputElement).value);
+                                            buildCategoryDateTime('startTime', 'update', i, (e.target as HTMLInputElement).value); autoComputeCompetitionDates();
                                             validateCategoryField('update', i, 'startTime', (e.target as HTMLInputElement).value);
                                         }}
                                     />
@@ -1012,6 +1191,24 @@
                                         <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].startTime}</span>
                                     {/if}
                                 </div>
+                                <!-- Category End Date (multi-day only) -->
+                                {#if isMultiDay}
+                                <div class="label" data-testid="category-end-date-update-{i}">
+                                    <CustomDatePicker
+                                        labelText={$t('competition.create.category_end_date')}
+                                        value={categories_times_obj_arr.update[i]?.endDate ?? undefined}
+                                        locale={data.i18n.locale}
+                                        minValue={categories_times_obj_arr.update[i]?.date ?? today(getLocalTimeZone())}
+                                        weekStartsOn={1}
+                                        pagedNavigation={true}
+                                        disableDaysOutsideMonth={true}
+                                        onValueChange={(e) => onCategoryEndDateChange('update', i, e)}
+                                    />
+                                    {#if categoryErrors.update[i]?.endDate}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].endDate}</span>
+                                    {/if}
+                                </div>
+                                {/if}
                                 <div class="label">
                                     <span class="text-sm font-medium">{$t('competition.create.end_time')}</span>
                                     <input
@@ -1021,7 +1218,7 @@
                                         data-testid="end-time-update-{i}"
                                         value={categories_times_obj_arr.update[i].endTime}
                                         onchange={(e) => {
-                                            mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'update', i, (e.target as HTMLInputElement).value);
+                                            buildCategoryDateTime('endTime', 'update', i, (e.target as HTMLInputElement).value); autoComputeCompetitionDates();
                                             validateCategoryField('update', i, 'endTime', (e.target as HTMLInputElement).value);
                                         }}
                                     />
@@ -1159,6 +1356,24 @@
                             <!-- Category Details (only show when type is selected) -->
                             {#if categories.create[i].type}
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <!-- Category Dates (multi-day only) -->
+                                {#if isMultiDay}
+                                <div class="label" data-testid="category-start-date-create-{i}">
+                                    <CustomDatePicker
+                                        labelText={$t('competition.create.category_date')}
+                                        value={categories_times_obj_arr.create[i]?.date ?? undefined}
+                                        locale={data.i18n.locale}
+                                        minValue={today(getLocalTimeZone())}
+                                        weekStartsOn={1}
+                                        pagedNavigation={true}
+                                        disableDaysOutsideMonth={true}
+                                        onValueChange={(e) => onCategoryDateChange('create', i, e)}
+                                    />
+                                    {#if categoryErrors.create[i]?.date}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].date}</span>
+                                    {/if}
+                                </div>
+                                {/if}
                                 <div class="label">
                                     <span class="text-sm font-medium">{$t('competition.create.start_time')}</span>
                                     <input
@@ -1168,7 +1383,7 @@
                                         data-testid="start-time-create-{i}"
                                         value={categories_times_obj_arr.create[i].startTime}
                                         onchange={(e) => {
-                                            mixCompetitionDateWithCategoryTimeNewPicker('startTime', 'create', i, (e.target as HTMLInputElement).value);
+                                            buildCategoryDateTime('startTime', 'create', i, (e.target as HTMLInputElement).value); autoComputeCompetitionDates();
                                             validateCategoryField('create', i, 'startTime', (e.target as HTMLInputElement).value);
                                         }}
                                     />
@@ -1176,6 +1391,24 @@
                                         <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].startTime}</span>
                                     {/if}
                                 </div>
+                                <!-- Category End Date (multi-day only) -->
+                                {#if isMultiDay}
+                                <div class="label" data-testid="category-end-date-create-{i}">
+                                    <CustomDatePicker
+                                        labelText={$t('competition.create.category_end_date')}
+                                        value={categories_times_obj_arr.create[i]?.endDate ?? undefined}
+                                        locale={data.i18n.locale}
+                                        minValue={categories_times_obj_arr.create[i]?.date ?? today(getLocalTimeZone())}
+                                        weekStartsOn={1}
+                                        pagedNavigation={true}
+                                        disableDaysOutsideMonth={true}
+                                        onValueChange={(e) => onCategoryEndDateChange('create', i, e)}
+                                    />
+                                    {#if categoryErrors.create[i]?.endDate}
+                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].endDate}</span>
+                                    {/if}
+                                </div>
+                                {/if}
                                 <div class="label">
                                     <span class="text-sm font-medium">{$t('competition.create.end_time')}</span>
                                     <input
@@ -1185,7 +1418,7 @@
                                         data-testid="end-time-create-{i}"
                                         value={categories_times_obj_arr.create[i].endTime}
                                         onchange={(e) => {
-                                            mixCompetitionDateWithCategoryTimeNewPicker('endTime', 'create', i, (e.target as HTMLInputElement).value);
+                                            buildCategoryDateTime('endTime', 'create', i, (e.target as HTMLInputElement).value); autoComputeCompetitionDates();
                                             validateCategoryField('create', i, 'endTime', (e.target as HTMLInputElement).value);
                                         }}
                                         min={categories_times_obj_arr.create[i].startTime}
@@ -1306,7 +1539,7 @@
                             type="button"
                             class="btn preset-filled-primary-500 rounded-lg"
                             onclick={addCategory}
-                            disabled={!$form.startDate}
+                            disabled={!isMultiDay && !$form.startDate}
                         >
                             <Icon icon="mdi:plus" width="1.2rem" height="1.2rem" />
                             {$t('competition.create.add_category')}

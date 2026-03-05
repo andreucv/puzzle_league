@@ -76,6 +76,14 @@
       "location": "Location",
       "comments": "Description",
       "date_title": "Schedule",
+      "multi_day_toggle": "Multi-day competition",
+      "multi_day_description": "Enable if your competition spans multiple days",
+      "competition_start_date": "Start date",
+      "competition_end_date": "End date",
+      "category_date": "Start date",
+      "category_end_date": "End date",
+      "auto_computed_dates": "Dates auto-computed from categories",
+      "override_dates": "Override dates",
       "categories_title": "Categories",
       "add_category": "Add Category",
       "not_categories_yet": "No categories yet",
@@ -123,7 +131,11 @@
         "date": "Select a date",
         "category_type": "Please select a category type",
         "start_time": "Start time is required",
-        "end_time": "End time is required"
+        "end_time": "End time is required",
+        "category_date": "Please select a start date for this category",
+        "category_end_date": "Please select an end date for this category",
+        "start_date": "Start date is required",
+        "end_date": "End date is required"
       },
       "min_length": {
         "competition_name": "Competition name must be at least 3 characters"

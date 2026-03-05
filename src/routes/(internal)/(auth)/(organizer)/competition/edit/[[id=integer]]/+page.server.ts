@@ -242,6 +242,40 @@ const create_update_competition: Action = async ({ request, params }) => {
         }
     }
 
+    // Auto-compute competition startDate/endDate from category datetimes
+    // This ensures competition dates always encompass all category times
+    const allCategoryStartTimes: Date[] = [];
+    const allCategoryEndTimes: Date[] = [];
+
+    if (competitionData.categories?.create) {
+        for (const cat of competitionData.categories.create) {
+            if (cat.startTime) allCategoryStartTimes.push(new Date(cat.startTime));
+            if (cat.endTime) allCategoryEndTimes.push(new Date(cat.endTime));
+        }
+    }
+    if (competitionData.categories?.update) {
+        for (const item of competitionData.categories.update) {
+            const catData = (item as any).data;
+            if (catData.startTime) allCategoryStartTimes.push(new Date(catData.startTime));
+            if (catData.endTime) allCategoryEndTimes.push(new Date(catData.endTime));
+        }
+    }
+
+    if (allCategoryStartTimes.length > 0) {
+        const earliest = new Date(Math.min(...allCategoryStartTimes.map(d => d.getTime())));
+        const latest = new Date(Math.max(...allCategoryEndTimes.map(d => d.getTime())));
+
+        // Only override if the client-sent dates don't encompass all categories
+        const currentStart = new Date(competitionData.startDate);
+        const currentEnd = new Date(competitionData.endDate);
+        if (earliest < currentStart) {
+            competitionData.startDate = earliest.toISOString();
+        }
+        if (latest > currentEnd) {
+            competitionData.endDate = latest.toISOString();
+        }
+    }
+
     const result = await updateCompetition(competitionId, competitionData);
     console.log('competition/edit/+page.server.ts: on action result', result);
 

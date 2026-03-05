@@ -111,7 +111,7 @@
 
         <!-- Categories Section -->
         <div>
-            <CategoriesOverview {categories} {isCreator} {categoriesWithCounts} userRecords={userRecords ?? []} />
+            <CategoriesOverview {categories} {isCreator} {isMultiDay} {categoriesWithCounts} userRecords={userRecords ?? []} />
         </div>
 
         <!-- Action Buttons -->

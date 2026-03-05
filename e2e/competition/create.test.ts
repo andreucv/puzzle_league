@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page, type Locator } from '@playwright/test';
 
 test.use({ storageState: "playwright/.auth/organizer_user.json" });
 
@@ -21,6 +21,11 @@ interface CategoryData {
     max_parties: string;
     participants_per_party: string;
     price: string;
+}
+
+interface MultiDayCategoryData extends CategoryData {
+    start_date: Date;
+    end_date: Date;
 }
 
 const competition_data: { competition: CompetitionData; categories: CategoryData[] } = {
@@ -62,6 +67,64 @@ const competition_data: { competition: CompetitionData; categories: CategoryData
         }
     ]
 };
+
+/** Returns tomorrow and the day after tomorrow as Date objects. */
+function getMultiDayDates(): { day1: Date; day2: Date } {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayAfter = new Date();
+    dayAfter.setDate(dayAfter.getDate() + 2);
+    return { day1: tomorrow, day2: dayAfter };
+}
+
+const multiday_competition_data: { competition: CompetitionData; categories: MultiDayCategoryData[] } = (() => {
+    const { day1, day2 } = getMultiDayDates();
+    return {
+        competition: {
+            name: "Multi-day Competition",
+            location: "Test Location",
+            description: "A competition spanning multiple days",
+            country: "Spain",
+            postal_code: "28001",
+            payment_method: "Cash at the door",
+        },
+        categories: [
+            {
+                description: "500 pcs",
+                type: "Individual",
+                start_time: "10:00",
+                end_time: "12:00",
+                start_date: day1,
+                end_date: day1,
+                max_parties: "10",
+                participants_per_party: "1",
+                price: "10",
+            },
+            {
+                description: "1000 pcs Marathon",
+                type: "Pairs",
+                start_time: "14:00",
+                end_time: "18:00",
+                start_date: day1,
+                end_date: day2,
+                max_parties: "8",
+                participants_per_party: "2",
+                price: "25",
+            },
+            {
+                description: "500 pcs",
+                type: "Team",
+                start_time: "09:00",
+                end_time: "11:00",
+                start_date: day2,
+                end_date: day2,
+                max_parties: "10",
+                participants_per_party: "4",
+                price: "20",
+            }
+        ],
+    };
+})();
 
 const updated_competition_data: { competition: CompetitionData; categories: CategoryData[] } = {
     competition: {
@@ -117,7 +180,23 @@ async function fillCompetitionDetails(page: Page, data: CompetitionData) {
 async function selectTodaysDate(page: Page) {
     await page.getByTestId('date-picker').locator('button').first().click();
     await page.getByLabel(formatDateToCalendarLabel()).click();
-    await page.getByLabel(formatDateToCalendarLabel()).click();
+}
+
+/** Selects a specific date on a date picker identified by a locator. */
+async function selectDateOnPicker(picker: Locator, date: Date) {
+    await picker.locator('button').first().click();
+    const label = formatDateToCalendarLabel(date);
+    // Scope within the picker to avoid strict mode violations when multiple
+    // calendars on the page show the same date (e.g. category start + end pickers).
+    await picker.getByLabel(label).click();
+    // Press Escape to ensure the calendar popup closes on all browsers
+    // (Firefox/WebKit may keep it open when clicking an already-selected date).
+    await picker.page().keyboard.press('Escape');
+}
+
+/** Enables multi-day mode by clicking the toggle switch. */
+async function enableMultiDay(page: Page) {
+    await page.getByRole('switch', { name: 'Multi-day competition' }).click();
 }
 
 /**
@@ -128,6 +207,28 @@ async function addCategory(page: Page, index: number, category: CategoryData) {
     await page.getByRole('button', { name: 'Add Category' }).first().click();
     await page.locator(`#category-type-create-${index}`).selectOption(category.type);
     await page.getByTestId(`description-create-${index}`).fill(category.description);
+    await page.getByTestId(`start-time-create-${index}`).fill(category.start_time);
+    await page.getByTestId(`end-time-create-${index}`).fill(category.end_time);
+    await page.getByTestId(`max-parties-create-${index}`).fill(category.max_parties);
+    await page.getByTestId(`max-party-size-create-${index}`).fill(category.participants_per_party);
+    await page.getByTestId(`price-create-${index}`).fill(category.price);
+}
+
+/**
+ * Clicks "Add Category" and fills all fields including per-category dates for multi-day mode.
+ */
+async function addMultiDayCategory(page: Page, index: number, category: MultiDayCategoryData) {
+    await page.getByRole('button', { name: 'Add Category' }).first().click();
+    await page.locator(`#category-type-create-${index}`).selectOption(category.type);
+    await page.getByTestId(`description-create-${index}`).fill(category.description);
+
+    // Select start date for this category
+    await selectDateOnPicker(page.getByTestId(`category-start-date-create-${index}`), category.start_date);
+    // Only select end date if different from start; auto-sync already fills it when they match
+    if (category.start_date.toDateString() !== category.end_date.toDateString()) {
+        await selectDateOnPicker(page.getByTestId(`category-end-date-create-${index}`), category.end_date);
+    }
+
     await page.getByTestId(`start-time-create-${index}`).fill(category.start_time);
     await page.getByTestId(`end-time-create-${index}`).fill(category.end_time);
     await page.getByTestId(`max-parties-create-${index}`).fill(category.max_parties);
@@ -299,6 +400,147 @@ test.describe('Create Competition Form Validation', () => {
 
         await page.locator('input[name="competition_name"]').fill('Valid Competition Name');
         await expect(page.getByText('Competition name is required')).not.toBeVisible();
+    });
+
+});
+
+// ==================== MULTI-DAY COMPETITION TESTS ====================
+
+test.describe('Multi-day Competition', () => {
+
+    test('GivenCreateCompetitionPage_WhenOrganizerCreatesMultiDayCompetition_ThenCompetitionIsCreated', async ({ page }) => {
+        await navigateToCreateForm(page);
+        await fillCompetitionDetails(page, multiday_competition_data.competition);
+
+        // Enable multi-day mode
+        await enableMultiDay(page);
+
+        // Verify auto-computed dates info is shown instead of date pickers
+        await expect(page.getByText('Dates auto-computed from categories')).toBeVisible();
+
+        // Add categories with per-category dates
+        for (let i = 0; i < multiday_competition_data.categories.length; i++) {
+            await addMultiDayCategory(page, i, multiday_competition_data.categories[i]);
+        }
+
+        await submitCompetition(page);
+        await assertCompetitionCreated(page, multiday_competition_data.competition, multiday_competition_data.categories);
+    });
+
+    test('GivenCreateCompetitionPage_WhenMultiDayToggled_ThenUIReflectsCurrentMode', async ({ page }) => {
+        await navigateToCreateForm(page);
+
+        const toggle = page.getByRole('switch', { name: 'Multi-day competition' });
+
+        // Initially single-day mode: date picker visible, toggle off, no auto-computed text
+        await expect(page.getByTestId('date-picker')).toBeVisible();
+        await expect(toggle).toHaveAttribute('aria-checked', 'false');
+        await expect(page.getByText('Dates auto-computed from categories')).not.toBeVisible();
+
+        // Enable multi-day
+        await toggle.click();
+
+        // Multi-day mode: toggle on, auto-computed text visible, single date picker hidden
+        await expect(toggle).toHaveAttribute('aria-checked', 'true');
+        await expect(page.getByTestId('date-picker')).not.toBeVisible();
+        await expect(page.getByText('Dates auto-computed from categories')).toBeVisible();
+
+        // Toggle back to single-day
+        await toggle.click();
+
+        // Back to single-day mode
+        await expect(toggle).toHaveAttribute('aria-checked', 'false');
+        await expect(page.getByTestId('date-picker')).toBeVisible();
+        await expect(page.getByText('Dates auto-computed from categories')).not.toBeVisible();
+    });
+
+    test('GivenMultiDayMode_WhenCategoryAdded_ThenCategoryDatePickersAreVisible', async ({ page }) => {
+        await navigateToCreateForm(page);
+        await enableMultiDay(page);
+
+        // Add a category
+        await page.getByRole('button', { name: 'Add Category' }).first().click();
+        await page.locator('#category-type-create-0').selectOption('Individual');
+
+        // Category start and end date pickers should be visible
+        await expect(page.getByTestId('category-start-date-create-0')).toBeVisible();
+        await expect(page.getByTestId('category-end-date-create-0')).toBeVisible();
+    });
+
+    test('GivenMultiDayMode_WhenCategoryDatesAreMissing_ThenShowsDateRequiredErrors', async ({ page }) => {
+        await navigateToCreateForm(page);
+        await page.locator('input[name="competition_name"]').fill('Multi-day Validation Test');
+        await enableMultiDay(page);
+
+        // Add a category with times but no dates
+        await addCategoryWithType(page, 0, 'Individual');
+        await page.getByTestId('description-create-0').fill('Valid Category');
+        await page.getByTestId('start-time-create-0').fill('10:00');
+        await page.getByTestId('end-time-create-0').fill('12:00');
+        await page.getByTestId('max-parties-create-0').fill('10');
+
+        await submitCompetition(page);
+
+        // Should show category date required error
+        await expect(page.getByText('Please select a start date for this category')).toBeVisible();
+    });
+
+    test('GivenMultiDayMode_WhenCategoryStartDateSet_ThenEndDateIsAutoSynced', async ({ page }) => {
+        await navigateToCreateForm(page);
+        await enableMultiDay(page);
+
+        const { day1 } = getMultiDayDates();
+
+        // Add a category and set only the start date
+        await page.getByRole('button', { name: 'Add Category' }).first().click();
+        await page.locator('#category-type-create-0').selectOption('Individual');
+        await selectDateOnPicker(page.getByTestId('category-start-date-create-0'), day1);
+
+        // End date should be auto-synced to the same date as start date
+        // Verify the end date picker segments are filled (not showing placeholders)
+        const endDatePicker = page.getByTestId('category-end-date-create-0');
+        const monthSegment = endDatePicker.getByRole('spinbutton', { name: /month/i });
+        const daySegment = endDatePicker.getByRole('spinbutton', { name: /day/i });
+        const yearSegment = endDatePicker.getByRole('spinbutton', { name: /year/i });
+        await expect(monthSegment).not.toHaveText('mm');
+        await expect(daySegment).not.toHaveText('dd');
+        await expect(yearSegment).not.toHaveText('yyyy');
+    });
+
+    test('GivenMultiDayCompetition_WhenCompetitionDatesAutoComputed_ThenDatesMatchCategoryRange', async ({ page }) => {
+        await navigateToCreateForm(page);
+        await fillCompetitionDetails(page, multiday_competition_data.competition);
+        await enableMultiDay(page);
+
+        // Add categories spanning day1 to day2
+        for (let i = 0; i < multiday_competition_data.categories.length; i++) {
+            await addMultiDayCategory(page, i, multiday_competition_data.categories[i]);
+        }
+
+        // Auto-computed dates info should be visible
+        await expect(page.getByText('Dates auto-computed from categories')).toBeVisible();
+    });
+
+    test('GivenMultiDayCompetition_WhenCreatedAndEdited_ThenMultiDayModeIsAutoDetected', async ({ page }) => {
+        await navigateToCreateForm(page);
+        await fillCompetitionDetails(page, multiday_competition_data.competition);
+        await enableMultiDay(page);
+
+        for (let i = 0; i < multiday_competition_data.categories.length; i++) {
+            await addMultiDayCategory(page, i, multiday_competition_data.categories[i]);
+        }
+
+        await submitCompetition(page);
+        await assertCompetitionCreated(page, multiday_competition_data.competition, multiday_competition_data.categories);
+
+        // Navigate to edit
+        await page.getByRole('link', { name: 'Edit Competition' }).click();
+        await expect(page.getByRole('heading', { name: 'Edit competition' }).first()).toBeVisible();
+
+        // Multi-day mode should be auto-detected: toggle on, auto-computed text visible, no single date picker
+        await expect(page.getByRole('switch', { name: 'Multi-day competition' })).toHaveAttribute('aria-checked', 'true');
+        await expect(page.getByText('Dates auto-computed from categories')).toBeVisible();
+        await expect(page.getByTestId('date-picker')).not.toBeVisible();
     });
 
 });

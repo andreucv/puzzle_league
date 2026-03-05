@@ -72,6 +72,14 @@
       "location": "Lugar",
       "comments": "Comentarios",
       "date_title": "Fecha",
+      "multi_day_toggle": "Competición de varios días",
+      "multi_day_description": "Activar si la competición se extiende por varios días",
+      "competition_start_date": "Fecha de inicio",
+      "competition_end_date": "Fecha de fin",
+      "category_date": "Fecha de inicio",
+      "category_end_date": "Fecha de fin",
+      "auto_computed_dates": "Fechas calculadas automáticamente a partir de las categorías",
+      "override_dates": "Modificar fechas",
       "categories_title": "Categorías",
       "add_category": "Añade Categoría",
       "not_categories_yet": "No hay categorías",
@@ -116,7 +124,11 @@
         "date": "Selecciona una fecha",
         "category_type": "Por favor seleccione un tipo de categoría",
         "end_time": "Se requiere hora de finalización",
-        "start_time": "Se requiere hora de inicio"
+        "start_time": "Se requiere hora de inicio",
+        "category_date": "Selecciona una fecha de inicio para esta categoría",
+        "category_end_date": "Selecciona una fecha de fin para esta categoría",
+        "start_date": "Se requiere fecha de inicio",
+        "end_date": "Se requiere fecha de fin"
       },
       "min_length": {
         "competition_name": "El nombre de la competición debe tener almenos 3 caracteres"

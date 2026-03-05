@@ -11,11 +11,13 @@
     let {
         categories,
         isCreator = false,
+        isMultiDay = false,
         categoriesWithCounts = undefined,
         userRecords = []
     }: {
         categories: CategoryWithPuzzles[],
         isCreator: boolean,
+        isMultiDay?: boolean,
         categoriesWithCounts?: CategoryWithCounts[],
         userRecords?: UserRecord[]
     } = $props();
@@ -38,6 +40,7 @@
             <CategoryCard
                 {category}
                 {isCreator}
+                {isMultiDay}
                 showRegistration={true}
                 {records}
                 seatsAvailable={getSeatsAvailable(category)}

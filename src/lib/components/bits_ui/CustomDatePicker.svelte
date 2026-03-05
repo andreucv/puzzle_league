@@ -3,20 +3,52 @@
   import CaretLeft from "phosphor-svelte/lib/CaretLeft";
   import CaretRight from "phosphor-svelte/lib/CaretRight";
   import { DatePicker } from "bits-ui";
+  import type { CalendarDate, DateValue } from "@internationalized/date";
 
   let {
     labelText = "Select a date",
-    value = $bindable(),
-    placeholder = $bindable(),
-    name,
-    ...restProps
-  }: DateField.RootProps & { labelText: string; name?: string } = $props();
-  console.log("restProps", restProps);
+    value = $bindable<CalendarDate | undefined>(undefined),
+    locale = undefined,
+    name = undefined,
+    minValue = undefined,
+    maxValue = undefined,
+    disableDaysOutsideMonth = true,
+    weekStartsOn = 1,
+    pagedNavigation = true,
+    onValueChange = undefined,
+  }: {
+    labelText?: string;
+    value?: CalendarDate | undefined;
+    locale?: string;
+    name?: string;
+    minValue?: DateValue;
+    maxValue?: DateValue;
+    disableDaysOutsideMonth?: boolean;
+    weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    pagedNavigation?: boolean;
+    onValueChange?: (value: CalendarDate | undefined) => void;
+  } = $props();
+
+  function handleValueChange(newValue: DateValue | undefined) {
+    value = newValue as CalendarDate | undefined;
+    onValueChange?.(value);
+  }
 </script>
 
-<DatePicker.Root weekdayFormat="short" fixedWeeks={true} bind:value={value} {...restProps}>
+<DatePicker.Root
+  weekdayFormat="short"
+  fixedWeeks={true}
+  value={value}
+  onValueChange={handleValueChange}
+  {locale}
+  {minValue}
+  {maxValue}
+  {weekStartsOn}
+  {pagedNavigation}
+  {disableDaysOutsideMonth}
+>
   <div class="flex w-full flex-col gap-1">
-    <DatePicker.Label>
+    <DatePicker.Label class="font-medium">
         {labelText}
     </DatePicker.Label>
     <DatePicker.Input

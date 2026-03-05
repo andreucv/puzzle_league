@@ -23,6 +23,7 @@
     let {
         category,
         isCreator = false,
+        isMultiDay = false,
         showRegistration = false,
         records = [],
         inscriptionStatus = undefined,
@@ -32,6 +33,7 @@
     }: {
         category: CategoryWithPuzzles;
         isCreator?: boolean;
+        isMultiDay?: boolean;
         showRegistration?: boolean;
         records?: UserRecord[];
         inscriptionStatus?: string;
@@ -80,7 +82,14 @@
     <div class="flex items-center gap-2">
         <ClockOutlineIcon width="1rem" height="1rem" class="text-primary-500 shrink-0" />
         <span class="text-sm font-semibold">
-            {formatTime(new Date(category.startTime))} – {formatTime(new Date(category.endTime))}
+            {#if isMultiDay}
+                {new Date(category.startTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })},
+            {/if}
+            {formatTime(new Date(category.startTime))} –
+            {#if isMultiDay}
+                {new Date(category.endTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })},
+            {/if}
+            {formatTime(new Date(category.endTime))}
         </span>
     </div>
 

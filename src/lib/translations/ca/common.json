@@ -138,6 +138,14 @@
       "location": "Lloc",
       "comments": "Comentaris",
       "date_title": "Data",
+      "multi_day_toggle": "Competició de diversos dies",
+      "multi_day_description": "Activeu si la competició s'estén per diversos dies",
+      "competition_start_date": "Data d'inici",
+      "competition_end_date": "Data de fi",
+      "category_date": "Data d'inici",
+      "category_end_date": "Data de fi",
+      "auto_computed_dates": "Dates calculades automàticament a partir de les categories",
+      "override_dates": "Modificar dates",
       "categories_title": "Categories",
       "add_category": "Afegeix Categoria",
       "not_categories_yet": "Encara no hi ha categories",
@@ -182,7 +190,11 @@
         "date": "Seleccioneu una data",
         "category_type": "Seleccioneu un tipus de categoria",
         "end_time": "Cal l'hora de finalització",
-        "start_time": "Cal l'hora d'inici"
+        "start_time": "Cal l'hora d'inici",
+        "category_date": "Seleccioneu una data d'inici per a aquesta categoria",
+        "category_end_date": "Seleccioneu una data de fi per a aquesta categoria",
+        "start_date": "Cal la data d'inici",
+        "end_date": "Cal la data de fi"
       },
       "min_length": {
         "competition_name": "El nom de la competició ha de tenir almenys 3 caracters"

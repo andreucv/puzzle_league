@@ -34,6 +34,7 @@ model User {
   notifications         Notification[]    @relation("NotificationRecipient")
   createdUserIntents    UserIntent[]      @relation("UserIntentCreator")
   claimedUserIntents    UserIntent[]      @relation("UserIntentClaimer")
+  judgedCategories      Category[]        @relation("CategoryJudges")
 
   @@unique([email])
   @@map("user")
@@ -205,6 +206,7 @@ model Category {
   competition   Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   records       Record[]
   puzzles       Puzzle[]
+  judges        User[]       @relation("CategoryJudges")
 
   @@map("category")
 }

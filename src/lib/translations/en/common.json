@@ -176,7 +176,8 @@
     "organized_by": "Organized by",
     "edit_button": "Edit Competition",
     "start_competition_button": "Start Competition",
-    "back_to_competitions_button": "Back to Competitions"
+    "back_to_competitions_button": "Back to Competitions",
+    "manage_judges_button": "Manage Judges"
   },
   "claim_participations": {
     "title": "Claim Participations",
@@ -223,6 +224,19 @@
     "build_another_team": "Build another team",
     "queued": "Queued",
     "new_registrations_summary": "new registration(s)"
+  },
+  "manage_judges": {
+    "title": "Manage Judges",
+    "search_placeholder": "Search users by name or email...",
+    "no_judges": "No judges assigned",
+    "no_results": "No users found",
+    "no_categories": "No categories in this competition.",
+    "remove_judge": "Remove judge",
+    "judge_added": "Judge added successfully.",
+    "judge_removed": "Judge removed successfully.",
+    "copy_to_all": "Copy to all categories",
+    "judges_copied": "Judges copied to all categories.",
+    "error": "An error occurred. Please try again."
   },
   "manage_inscriptions": {
     "title": "Manage Inscriptions",

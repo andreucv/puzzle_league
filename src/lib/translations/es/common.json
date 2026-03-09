@@ -176,7 +176,8 @@
     "organized_by": "Organizado por",
     "edit_button": "Edita la competición",
     "start_competition_button": "Empieza la competición",
-    "back_to_competitions_button": "Volver a competiciones"
+    "back_to_competitions_button": "Volver a competiciones",
+    "manage_judges_button": "Gestionar Jueces"
   },
   "claim_participations": {
     "title": "Reclamar participaciones",
@@ -250,6 +251,19 @@
     "near_me_goto_profile_3": "para habilitar el filtrado \"Cerca de mí\".",
     "no_competitions_found_for_filters": "Intente ajustar su búsqueda o filtros para encontrar lo que está buscando.",
     "no-competitions-found": "No se han encontrado competiciones"
+  },
+  "manage_judges": {
+    "title": "Gestionar Jueces",
+    "search_placeholder": "Buscar usuarios por nombre o email...",
+    "no_judges": "Sin jueces asignados",
+    "no_results": "No se encontraron usuarios",
+    "no_categories": "No hay categorías en esta competición.",
+    "remove_judge": "Eliminar juez",
+    "judge_added": "Juez añadido correctamente.",
+    "judge_removed": "Juez eliminado correctamente.",
+    "copy_to_all": "Copiar a todas las categorías",
+    "judges_copied": "Jueces copiados a todas las categorías.",
+    "error": "Ha ocurrido un error. Inténtalo de nuevo."
   },
   "manage_inscriptions": {
     "accept_error": "Error al aceptar la inscripción",

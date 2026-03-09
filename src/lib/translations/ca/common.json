@@ -77,7 +77,8 @@
     "organized_by": "Organitzat per",
     "edit_button": "Edita la competició",
     "start_competition_button": "Comença la competició",
-    "back_to_competitions_button": "Torna a competicions"
+    "back_to_competitions_button": "Torna a competicions",
+    "manage_judges_button": "Gestionar Jutges"
   },
   "claim_participations": {
     "title": "Reclama participacions",
@@ -250,6 +251,19 @@
     "near_me_goto_profile_3": "per activar el filtratge \"A prop meu\".",
     "no_competitions_found_for_filters": "Proveu d'ajustar la cerca o els filtres per trobar el que busqueu.",
     "no-competitions-found": "No s'han trobat competicions"
+  },
+  "manage_judges": {
+    "title": "Gestionar Jutges",
+    "search_placeholder": "Cerca usuaris per nom o email...",
+    "no_judges": "Sense jutges assignats",
+    "no_results": "No s'han trobat usuaris",
+    "no_categories": "No hi ha categories en aquesta competició.",
+    "remove_judge": "Eliminar jutge",
+    "judge_added": "Jutge afegit correctament.",
+    "judge_removed": "Jutge eliminat correctament.",
+    "copy_to_all": "Copiar a totes les categories",
+    "judges_copied": "Jutges copiats a totes les categories.",
+    "error": "S'ha produït un error. Torna-ho a provar."
   },
   "manage_inscriptions": {
     "accept_error": "Error al acceptar la inscripció",

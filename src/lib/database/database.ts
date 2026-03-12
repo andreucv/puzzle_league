@@ -739,6 +739,63 @@ export async function getCompetitionWithCategoriesAndEntries(competitionId: numb
     }
 }
 
+export async function getCompetitionResults(competitionId: number) {
+    try {
+        const competition = await prisma.competition.findUnique({
+            where: { id: competitionId },
+            select: {
+                id: true,
+                name: true,
+                status: true,
+                image_cld_id: true,
+                startDate: true,
+                categories: {
+                    where: { status: 'completed' },
+                    orderBy: { realStartTime: 'asc' },
+                    include: {
+                        puzzles: {
+                            select: {
+                                id: true,
+                                name: true,
+                                pieces: true,
+                                brand: true,
+                                image_cld_id: true
+                            }
+                        },
+                        records: {
+                            where: { status: InscriptionStatus.ACCEPTED },
+                            orderBy: [
+                                { finishTime: 'asc' },
+                                { tableNumber: 'asc' }
+                            ],
+                            include: {
+                                users: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        image: true
+                                    }
+                                },
+                                userIntents: {
+                                    select: {
+                                        id: true,
+                                        name: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        return competition;
+    } catch (error) {
+        console.error('Error getting competition results:', error);
+        throw error;
+    }
+}
+
 // Puzzle related functions
 export async function getPuzzles() {
     try {

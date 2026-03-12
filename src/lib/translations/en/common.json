@@ -63,7 +63,9 @@
   "competition": {
     "edit": {
       "title": "Edit Competition",
-      "validating_data": "Validating new data"
+      "validating_data": "Validating new data",
+      "not_editable_title": "Competition cannot be edited",
+      "not_editable_message": "The competition \"{{name}}\" is currently {{status}} and can no longer be edited."
     },
     "create": {
       "title": "Create new competition",
@@ -304,5 +306,67 @@
     "empty": "No notifications yet",
     "empty_detail": "You'll be notified here when something important happens.",
     "just_now": "just now"
+  },
+  "during_competition": {
+    "title": "During Competition",
+    "currently_running": "Currently Running",
+    "upcoming": "Upcoming",
+    "completed_section": "Completed",
+    "completed": "Completed",
+    "start": "Start",
+    "stop": "Stop",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "entries": "entries",
+    "search_placeholder": "Search by name, table # or record ID...",
+    "no_results": "No matching records found",
+    "selected_record": "Selected record",
+    "record_finish": "Record Finish",
+    "mark_pieces": "Mark Pieces",
+    "pieces": "Pieces",
+    "pieces_completed": "pieces completed",
+    "finished": "Finished",
+    "pending": "Pending",
+    "finished_records": "Finished Records",
+    "no_finished_records": "No finished records yet",
+    "pending_records": "Pending Records",
+    "no_pending_records": "No pending records",
+    "all_records": "All Records",
+    "no_records": "No records",
+    "view_results": "View Results",
+    "manage_judges": "Manage Judges",
+    "no_categories": "No categories available for your role",
+    "connection_error": "Connection lost \u2014 updates may be delayed",
+    "stop_confirm_title": "Stop Category?",
+    "stop_confirm_message": "Are you sure you want to stop",
+    "unfinished_warning": "records are still unfinished",
+    "auto_complete_notice": "Unfinished records will be auto-completed with the maximum time.",
+    "stop_confirm": "Stop Category",
+    "cancel_competition": "Cancel Competition",
+    "cancel_competition_confirm_title": "Cancel Competition?",
+    "cancel_competition_confirm_message": "Are you sure you want to cancel this competition? This action cannot be undone. All participants will be notified.",
+    "cancel_competition_confirm": "Yes, Cancel Competition",
+    "cancel_competition_success": "Competition has been cancelled.",
+    "cancel_competition_error": "Failed to cancel competition."
+  },
+  "results": {
+    "title": "Results",
+    "position": "#",
+    "participants": "Participants",
+    "time": "Time",
+    "delta": "Gap",
+    "dnf": "DNF",
+    "pieces_completed": "{n}/{total} pieces",
+    "no_completed_categories": "No completed categories yet.",
+    "started_at": "Started at",
+    "winner": "Winner",
+    "category_duration": "Category duration",
+    "puzzle": "Puzzle",
+    "pieces": "pieces"
+  },
+  "category_status": {
+    "not_started": "Not Started",
+    "in_progress": "In Progress",
+    "completed": "Completed"
   }
 }

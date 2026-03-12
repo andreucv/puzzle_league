@@ -8,13 +8,23 @@
     let currentPath = $derived(page.url.pathname);
 
     import { drawerState } from '../../shareds/drawer.svelte';
-    import { notificationState, refreshHasUnread } from '../../shareds/notifications.svelte';
+    import { useEventStream } from '$lib/events/client/use-event-stream.svelte';
+
+    let hasUnread = $state(false);
 
     $effect(() => {
         if (user) {
-            refreshHasUnread();
-            const interval = setInterval(refreshHasUnread, 30_000);
-            return () => clearInterval(interval);
+            const stream = useEventStream('notifications', { userId: user.id }, {
+                idleInterval: 15_000,
+                backgroundInterval: 30_000
+            });
+            // Reactive derivation in inner effect to track state changes
+            $effect(() => {
+                hasUnread = stream.state?.hasUnread ?? false;
+            });
+            return () => {
+                stream.destroy();
+            };
         }
     });
 </script>
@@ -41,7 +51,7 @@
                 <div class="flex items-center items-bottom relative gap-3">
                     <a href="/notifications" class="relative p-1 text-primary-600" aria-label="Notifications">
                         <BellOutlineIcon width="1.5rem" height="1.5rem" class="text-primary-600" />
-                        {#if notificationState.hasUnread}
+                        {#if hasUnread}
                             <span class="absolute top-1 right-1 w-2 h-2 rounded-full" style="background-color: #DD2200;"></span>
                         {/if}
                     </a>

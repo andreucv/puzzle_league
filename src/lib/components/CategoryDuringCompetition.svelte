@@ -189,7 +189,7 @@
             {/if}
         {:else if category.status === "completed"}
             <div class="flex justify-center">
-                <a href="/competitions/competition_details/{category.competitionId}/results/{category.id}">
+                <a href="/competitions/competition_details/{category.competitionId}/results#category-{category.id}">
                     <button class="btn bg-primary-500 btn-sm gap-2">
                         <Icon icon="mdi:format-list-bulleted" />
                         Go to Results

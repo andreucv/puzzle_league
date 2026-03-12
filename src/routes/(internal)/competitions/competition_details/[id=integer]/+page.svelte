@@ -9,6 +9,7 @@
     import { t } from '$lib/translations';
     import EndPageActionButton from '$lib/components/common/buttons/EndPageActionButton.svelte';
     import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
+    import { goto } from '$app/navigation';
 
     import MapMarkerIcon from '@iconify-svelte/mdi/map-marker';
     import EarthIcon from '@iconify-svelte/mdi/earth';
@@ -20,6 +21,8 @@
     const currentUser = $derived(data.user);
     const categoriesWithCounts = $derived(data.props.categoriesWithCounts);
     const userRecords = $derived(data.props.records);
+    const isJudge = $derived(data.props.isJudge);
+    const isOrganizer = $derived(data.props.isOrganizer);
 
     let competition = $derived(data.props.competition_and_categories);
     const competitionName = $derived(competition?.name);
@@ -32,6 +35,31 @@
 
     // Check if current user is the creator of the competition
     const isCreator = $derived(currentUser && competition?.creatorId === currentUser.id);
+    const canAccessDuringCompetition = $derived(isCreator || isOrganizer || isJudge);
+    const canCancel = $derived(
+        (isCreator || isOrganizer) &&
+        competition?.status !== 'CANCELLED' &&
+        competition?.status !== 'FINISHED'
+    );
+
+    // Cancel competition dialog state
+    let showCancelDialog = $state(false);
+    let isCancelling = $state(false);
+
+    async function handleCancelCompetition() {
+        isCancelling = true;
+        try {
+            const res = await fetch(`/api/competitions/${competition?.id}/cancel`, { method: 'POST' });
+            if (res.ok) {
+                showCancelDialog = false;
+                goto(`/competitions/competition_details/${competition?.id}`, { invalidateAll: true });
+            }
+        } catch (err) {
+            console.error('Failed to cancel competition:', err);
+        } finally {
+            isCancelling = false;
+        }
+    }
 </script>
 
 <div class="container mx-auto">
@@ -117,12 +145,71 @@
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
             <EndPageActionButton icon="mdi:account-plus" href="/competitions/competition_details/{competition?.id}/inscription" colorClass="preset-filled-success-500" disabled={!(currentUser && competition?.registrationOpen)} text={$t('competition_details.manage_inscription')} testId="signup-button" />
+            {#if canAccessDuringCompetition}
+                <EndPageActionButton icon="mdi:timer-play" href="/competition/{competition?.id}/during_competition" text={$t('during_competition.title')} />
+            {/if}
             {#if isCreator}
                 <EndPageActionButton icon="mdi:pencil" href="/competition/edit/{competition?.id}" text={$t('competition_details.edit_button')} />
-                <EndPageActionButton icon="mdi:play-circle-outline" href="/competition/{competition?.id}/during_competition" text={$t('competition_details.start_competition_button')} />
                 <EndPageActionButton icon="mdi:clipboard-check-outline" href="/competition/{competition?.id}/manage_inscriptions" text={$t('manage_inscriptions.title')} testId="manage-inscriptions-button" />
             {/if}
             <EndPageActionButton icon="mdi:arrow-left" href="/competitions/explore_competitions/" colorClass="preset-tonal" text={$t('competition_details.back_to_competitions_button')} />
         </div>
+
+        <!-- Cancel Competition Button -->
+        {#if canCancel}
+            <div class="flex justify-center pt-4">
+                <button
+                    class="btn preset-filled-error-500"
+                    onclick={() => showCancelDialog = true}
+                >
+                    <Icon icon="mdi:cancel" width="1.2rem" height="1.2rem" />
+                    {$t('during_competition.cancel_competition')}
+                </button>
+            </div>
+        {/if}
     </div>
 </div>
+
+<!-- Cancel Competition Confirmation Dialog -->
+{#if showCancelDialog}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        onclick={() => showCancelDialog = false}
+    >
+        <div
+            class="card preset-outlined-surface-200-800 p-6 m-4 max-w-md w-full space-y-4"
+            onclick={(e) => e.stopPropagation()}
+        >
+            <h3 class="h3 flex items-center gap-2">
+                <Icon icon="mdi:alert" class="text-error-500" width="1.5rem" />
+                {$t('during_competition.cancel_competition_confirm_title')}
+            </h3>
+
+            <p class="text-sm">
+                {$t('during_competition.cancel_competition_confirm_message')}
+            </p>
+
+            <div class="flex justify-end gap-2">
+                <button
+                    class="btn btn-sm preset-tonal"
+                    onclick={() => showCancelDialog = false}
+                    disabled={isCancelling}
+                >
+                    {$t('during_competition.cancel')}
+                </button>
+                <button
+                    class="btn btn-sm preset-filled-error-500"
+                    onclick={handleCancelCompetition}
+                    disabled={isCancelling}
+                >
+                    {#if isCancelling}
+                        <Icon icon="mdi:loading" class="animate-spin" width="1rem" />
+                    {/if}
+                    {$t('during_competition.cancel_competition_confirm')}
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}

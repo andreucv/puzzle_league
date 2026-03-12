@@ -1,7 +1,7 @@
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import type { Action, Actions, PageServerLoad } from '../$types';
 import { updateCompetition, getCompetitionWithCategories } from '$lib/database/database';
-import { CategoryType } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryType, CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
 import { auth } from '$lib/auth';
 import { z } from 'zod';
 
@@ -95,8 +95,18 @@ export const load: PageServerLoad = async (event) => {
                 throw new Error(`Invalid competition id or competition ${competitionId} not found`);
             }
 
-            if (competition.status !=  'NOT_STARTED') {
-                throw new Error(`Competition ${competitionId} cannot be edited if it is not in NOT_STARTED status`);
+            if (competition.status !== CompetitionStatus.NOT_STARTED) {
+                const categoryTypes = Object.values(CategoryType);
+                const form = await superValidate(null, zod4(CompetitionEditSchema as any));
+                return {
+                    form,
+                    props: { categoryTypes },
+                    notEditable: {
+                        competitionId,
+                        competitionName: competition.name,
+                        status: competition.status
+                    }
+                };
             }
 
             // Check if the user is the creator of the competition

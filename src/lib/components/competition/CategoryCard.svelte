@@ -6,6 +6,7 @@
     import type { Category, Puzzle } from '$lib/.prisma/generated/prisma/browser';
     import Card from '$lib/components/common/card/Card.svelte';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
+    import CategoryStatusChip from '$lib/components/category/CategoryStatusChip.svelte';
 
     import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
     import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
@@ -14,6 +15,7 @@
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import AccountPlusOutlineIcon from '@iconify-svelte/mdi/account-plus-outline';
     import AccountBoxPlusOutlineIcon from '@iconify-svelte/mdi/account-box-plus-outline';
+    import FormatListBulletedIcon from '@iconify-svelte/mdi/format-list-bulleted';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
     type PartyUser = { id: string; name: string; email: string; image: string | null };
@@ -71,8 +73,11 @@
 </script>
 
 <Card>
-    <!-- Header: Icon + Category type -->
-    <CategoryCardTitle type={category.type} subname={category.subname ?? ''} />
+    <!-- Header: Icon + Category type + Status badge -->
+    <div class="flex items-center justify-between gap-2">
+        <CategoryCardTitle type={category.type} subname={category.subname ?? ''} />
+        <CategoryStatusChip category_status={category.status}/>
+    </div>
 
     {#if category.description !== getCategoryTypeName(category.type).toUpperCase()}
         <p class="text-surface-600-400 text-sm">{category.description}</p>
@@ -124,6 +129,15 @@
     <!-- Footer: Registration status (optional) -->
     {#if showRegistration}
         <hr class="border-t border-surface-300 dark:border-surface-600" />
+        {#if category.status === 'completed'}
+            <a
+                href="/competitions/competition_details/{category.competitionId}/results#category-{category.id}"
+                class="btn btn-sm preset-tonal-primary gap-1.5 w-full"
+            >
+                <FormatListBulletedIcon width="1rem" height="1rem" />
+                {$t('during_competition.view_results')}
+            </a>
+        {:else}
         <a href="/competitions/competition_details/{category.competitionId}/inscription" class="block mt-auto -mb-0.5 hover:opacity-80 transition-opacity overflow-hidden">
             {#if normalizedRecords.some((record) => (record.users?.length ?? 0) > 0 || (record.userIntents?.length ?? 0) > 0)}
                 <div class="flex flex-col gap-2 overflow-hidden">
@@ -180,5 +194,6 @@
                 </div>
             {/if}
         </a>
+        {/if}
     {/if}
 </Card>

@@ -781,6 +781,22 @@
     <title>{isEdit? $t('edit_competition.title') : $t('competition.create.page_title')}</title>
 </svelte:head>
 
+{#if data.notEditable}
+    <div class="container mx-auto space-y-6 py-8">
+        <div class="card preset-outlined-surface-200-800 p-6 max-w-lg mx-auto space-y-4 text-center">
+            <Icon icon="mdi:lock-outline" width="3rem" class="mx-auto text-warning-500" />
+            <h3 class="h3">{$t('competition.edit.not_editable_title')}</h3>
+            <p class="text-surface-600-400">
+                {$t('competition.edit.not_editable_message', { name: data.notEditable.competitionName, status: data.notEditable.status })}
+            </p>
+            <a href="/competitions/competition_details/{data.notEditable.competitionId}" class="btn preset-filled-primary-500">
+                <Icon icon="mdi:arrow-left" width="1.2rem" />
+                {$t('competition_details.back_to_competitions_button')}
+            </a>
+        </div>
+    </div>
+{:else}
+
 <TitleBackButton href={isEdit ? `/competitions/competition_details/${$form.id}` : '/competitions/explore_competitions'} text={isEdit? $t('competition.edit.title') : $t('competition.create.title')} />
 <div class="container mx-auto relative">
     <!-- Header Section -->
@@ -1678,4 +1694,5 @@
             </div>
         </div>
     </div>
+{/if}
 {/if}

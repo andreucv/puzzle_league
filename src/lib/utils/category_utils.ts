@@ -66,3 +66,24 @@ export function calculateDuration(startTime: Date, endTime: Date) {
     const seconds = Math.floor((duration % 60000) / 1000);
     return `${minutes}m ${seconds}s`;
 }
+
+export function formatElapsedTime(startTime: Date, finishTime: Date): string {
+    const ms = new Date(finishTime).getTime() - new Date(startTime).getTime();
+    if (ms < 0) return '-';
+    const hours = Math.floor(ms / 3600000);
+    const minutes = Math.floor((ms % 3600000) / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+    return `${minutes}m ${seconds}s`;
+}
+
+export function formatTimeDelta(firstFinish: Date, otherFinish: Date): string {
+    const ms = new Date(otherFinish).getTime() - new Date(firstFinish).getTime();
+    if (ms <= 0) return '+0s';
+    const hours = Math.floor(ms / 3600000);
+    const minutes = Math.floor((ms % 3600000) / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    if (hours > 0) return `+${hours}h ${minutes}m ${seconds}s`;
+    if (minutes > 0) return `+${minutes}m ${seconds}s`;
+    return `+${seconds}s`;
+}

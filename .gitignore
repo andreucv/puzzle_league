@@ -43,5 +43,7 @@ com.chrome.devtools.json
 
 # Github related things
 .github/chatmodes/
+.github/prompts/
 .agents/
 skills-lock.json
+explanation/plans/

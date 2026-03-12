@@ -212,18 +212,19 @@ model Category {
 }
 
 model Record {
-  id           String            @id @default(cuid())
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  finishTime   DateTime?
-  tableNumber  Int?
-  status       InscriptionStatus @default(PENDING)
-  categoryId   Int
-  category     Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  users        User[]            @relation("RecordParticipants")
-  userIntents  UserIntent[]      @relation("RecordUserIntents")
-  creatorId    String
-  creator      User              @relation("RecordCreator", fields: [creatorId], references: [id], onDelete: SetDefault)
+  id                 String            @id @default(cuid())
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  finishTime         DateTime?
+  tableNumber        Int?
+  nPiecesCompleted   Int?
+  status             InscriptionStatus @default(PENDING)
+  categoryId         Int
+  category           Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  users              User[]            @relation("RecordParticipants")
+  userIntents        UserIntent[]      @relation("RecordUserIntents")
+  creatorId          String
+  creator            User              @relation("RecordCreator", fields: [creatorId], references: [id], onDelete: SetDefault)
 
   @@map("record")
 }

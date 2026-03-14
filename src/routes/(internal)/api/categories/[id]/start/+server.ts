@@ -1,7 +1,6 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { startCategory } from '$lib/database/database';
 import { prisma } from '$lib/database/create_prisma_client';
-import { requireCategoryJudge } from '$lib/utils/api_auth';
 import { createNotificationForUsers } from '$lib/notifications/notifications';
 import { CompetitionStatus, NotificationType } from '$lib/.prisma/generated/prisma/enums';
 
@@ -12,10 +11,6 @@ export const POST = async (event: RequestEvent) => {
     if (isNaN(categoryId)) {
       return json({ error: 'Invalid category ID' }, { status: 400 });
     }
-
-    // Authorization check
-    const auth = await requireCategoryJudge(event, categoryId);
-    if (!auth.authorized) return auth.response;
 
     const updatedCategory = await startCategory(categoryId);
 

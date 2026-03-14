@@ -1,6 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/database';
-import { requireRecordJudge } from '$lib/utils/api_auth';
 
 export const POST = async (event: RequestEvent) => {
 	try {
@@ -9,9 +8,6 @@ export const POST = async (event: RequestEvent) => {
 		if (!recordId) {
 			return json({ error: 'Invalid record ID' }, { status: 400 });
 		}
-
-		const auth = await requireRecordJudge(event, recordId);
-		if (!auth.authorized) return auth.response;
 
 		const body = await event.request.json();
 		const nPiecesCompleted = body.nPiecesCompleted;

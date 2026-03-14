@@ -1,18 +1,14 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { prisma } from '$lib/database/create_prisma_client';
-import { requireCompetitionRole } from '$lib/utils/api_auth';
-import { Role } from '$lib/.prisma/generated/prisma/enums';
 
 export const POST: RequestHandler = async (event) => {
-	const competitionId = parseInt(event.params.id as string);
+	try {
+		const competitionId = parseInt(event.params.id as string);
 
-	if (isNaN(competitionId)) {
-		return json({ error: 'Invalid competition ID' }, { status: 400 });
-	}
-
-	const auth = await requireCompetitionRole(event, competitionId, [Role.ORGANIZER]);
-	if (!auth.authorized) return auth.response;
+		if (isNaN(competitionId)) {
+			return json({ error: 'Invalid competition ID' }, { status: 400 });
+		}
 
 	const { sourceCategoryId } = await event.request.json();
 
@@ -53,4 +49,8 @@ export const POST: RequestHandler = async (event) => {
 	);
 
 	return json({ success: true });
+	} catch (error) {
+		console.error('Error copying judges:', error);
+		return json({ error: 'Failed to copy judges' }, { status: 500 });
+	}
 };

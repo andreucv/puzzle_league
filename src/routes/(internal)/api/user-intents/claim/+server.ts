@@ -1,13 +1,12 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { prisma } from '$lib/database/create_prisma_client';
-import { requireAuth } from '$lib/utils/api_auth';
+import { getAuthUserId } from '$lib/api_utils/api_auth';
 import { createNotification } from '$lib/notifications/notifications';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 
 export const POST: RequestHandler = async (event) => {
-    const auth = await requireAuth(event);
-    if (!auth.authorized) return auth.response;
+    const userId = getAuthUserId(event);
 
     try {
         const body = await event.request.json();
@@ -42,7 +41,7 @@ export const POST: RequestHandler = async (event) => {
             for (const intent of intents) {
                 await tx.userIntent.update({
                     where: { id: intent.id },
-                    data: { claimedById: auth.userId }
+                    data: { claimedById: userId }
                 });
 
                 // Connect the claiming user to all records associated with this intent
@@ -52,7 +51,7 @@ export const POST: RequestHandler = async (event) => {
                         where: { id: record.id },
                         data: {
                             users: {
-                                connect: { id: auth.userId }
+                                connect: { id: userId }
                             },
                             userIntents: {
                                 disconnect: { id: intent.id }

@@ -1,11 +1,10 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { prisma } from '$lib/database/create_prisma_client';
-import { requireAuth } from '$lib/utils/api_auth';
+import { getAuthUserId } from '$lib/api_utils/api_auth';
 
 export const GET: RequestHandler = async (event) => {
-    const auth = await requireAuth(event);
-    if (!auth.authorized) return auth.response;
+    const userId = getAuthUserId(event);
 
     const q = event.url.searchParams.get('q')?.trim() ?? '';
     if (q.length < 2) {
@@ -15,7 +14,7 @@ export const GET: RequestHandler = async (event) => {
     try {
         const userIntents = await prisma.userIntent.findMany({
             where: {
-                createdById: auth.userId,
+                createdById: userId,
                 claimedById: null,
                 name: {
                     contains: q,

@@ -1,6 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/database';
-import { requireCategoryJudge } from '$lib/utils/api_auth';
 import type { Prisma } from '$lib/.prisma/generated/prisma/client';
 
 export const GET = async (event: RequestEvent) => {
@@ -12,10 +11,6 @@ export const GET = async (event: RequestEvent) => {
     if (isNaN(categoryId)) {
       return json({ error: 'Invalid category ID' }, { status: 400 });
     }
-
-    // Authorization check
-    const auth = await requireCategoryJudge(event, categoryId);
-    if (!auth.authorized) return auth.response;
 
     // Build where clause with optional search filtering
     const where: Prisma.RecordWhereInput = { categoryId };

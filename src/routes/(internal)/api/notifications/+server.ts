@@ -1,5 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { requireAuth } from '$lib/utils/api_auth';
+import { getAuthUserId } from '$lib/api_utils/api_auth';
 import {
 	getNotificationsForUser,
 	markAllNotificationsAsRead,
@@ -7,11 +7,10 @@ import {
 
 /** GET – fetch all notifications for the current user */
 export const GET = async (event: RequestEvent) => {
-	const auth = await requireAuth(event);
-	if (!auth.authorized) return auth.response;
+	const userId = getAuthUserId(event);
 
 	try {
-		const notifications = await getNotificationsForUser(auth.userId);
+		const notifications = await getNotificationsForUser(userId);
 		return json({ notifications });
 	} catch (error) {
 		console.error('Error fetching notifications:', error);
@@ -21,11 +20,10 @@ export const GET = async (event: RequestEvent) => {
 
 /** POST – mark all notifications as read */
 export const POST = async (event: RequestEvent) => {
-	const auth = await requireAuth(event);
-	if (!auth.authorized) return auth.response;
+	const userId = getAuthUserId(event);
 
 	try {
-		await markAllNotificationsAsRead(auth.userId);
+		await markAllNotificationsAsRead(userId);
 		return json({ success: true });
 	} catch (error) {
 		console.error('Error marking notifications as read:', error);

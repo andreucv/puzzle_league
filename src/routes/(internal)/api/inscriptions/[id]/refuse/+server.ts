@@ -1,8 +1,7 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { refuseInscription } from '$lib/database/db_inscription_utils';
 import { prisma } from '$lib/database/create_prisma_client';
-import { Role, NotificationType } from '$lib/.prisma/generated/prisma/enums';
-import { requireCompetitionRole } from '$lib/utils/api_auth';
+import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 import { createNotificationForUsers } from '$lib/notifications/notifications';
 
 export const POST = async (event: RequestEvent) => {
@@ -13,7 +12,6 @@ export const POST = async (event: RequestEvent) => {
 			return json({ error: 'Invalid record ID' }, { status: 400 });
 		}
 
-		// Look up the record to get the competition ID for auth check
 		const record = await prisma.record.findUnique({
 			where: { id: recordId },
 			include: {
@@ -25,9 +23,6 @@ export const POST = async (event: RequestEvent) => {
 		if (!record) {
 			return json({ error: 'Record not found' }, { status: 404 });
 		}
-
-		const auth = await requireCompetitionRole(event, record.category.competitionId, [Role.ORGANIZER]);
-		if (!auth.authorized) return auth.response;
 
 		const result = await refuseInscription(recordId);
 

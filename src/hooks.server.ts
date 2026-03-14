@@ -3,6 +3,10 @@ import { svelteKitHandler } from "better-auth/svelte-kit";
 import { building } from "$app/environment";
 import { prisma } from "$lib/database/create_prisma_client";
 import { redirect } from "@sveltejs/kit";
+import { isPublicApiRoute } from "$lib/api_utils/api_whitelist";
+import { validateOrigin } from "$lib/api_utils/api_csrf";
+import { apiRateLimiter, searchRateLimiter, isSearchEndpoint } from "$lib/api_utils/rate-limit";
+import { enforceRouteGuard } from "$lib/api_utils/api_route_guards";
 
 // Track users who have been checked for claim redirect within this server lifecycle
 const checkedUsers = new Set<string>();
@@ -57,6 +61,35 @@ export async function handle({ event, resolve }) {
 				}
 			}
 		}
+	}
+
+	// -----------------------------------------------------------------------
+	// API Security Pipeline — runs for all /api/ routes
+	// -----------------------------------------------------------------------
+	const pathname = event.url.pathname;
+
+	if (pathname.startsWith('/api/') && !isPublicApiRoute(pathname)) {
+		// 1. CSRF: reject cross-origin mutating requests
+		const csrfError = validateOrigin(event);
+		if (csrfError) return csrfError;
+
+		// 2. Authentication: require a valid session
+		if (!event.locals.user) {
+			return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+				status: 401,
+				headers: { 'Content-Type': 'application/json' },
+			});
+		}
+
+		// 3. Rate limiting: stricter for search, general for everything else
+		const rateLimitResponse = isSearchEndpoint(pathname)
+			? await searchRateLimiter(event)
+			: await apiRateLimiter(event);
+		if (rateLimitResponse) return rateLimitResponse;
+
+		// 4. Role-based authorization: check route-specific guards
+		const guardResponse = await enforceRouteGuard(event);
+		if (guardResponse) return guardResponse;
 	}
 
 	return svelteKitHandler({ event, resolve, auth, building });

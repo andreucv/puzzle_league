@@ -1,7 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { getCompetition, updateCompetition } from '$lib/database/database';
-import { Role } from '$lib/.prisma/generated/prisma/enums';
-import { requireCompetitionRole } from '$lib/utils/api_auth';
 
 export const POST = async (event: RequestEvent) => {
 	try {
@@ -10,9 +8,6 @@ export const POST = async (event: RequestEvent) => {
 		if (isNaN(competitionId)) {
 			return json({ error: 'Invalid competition ID' }, { status: 400 });
 		}
-
-		const auth = await requireCompetitionRole(event, competitionId, [Role.ORGANIZER]);
-		if (!auth.authorized) return auth.response;
 
 		const competition = await getCompetition(competitionId);
 		if (!competition) {

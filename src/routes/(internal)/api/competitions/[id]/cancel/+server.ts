@@ -1,7 +1,6 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/database';
-import { Role, CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
-import { requireCompetitionRole } from '$lib/utils/api_auth';
+import { CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
 import { createNotificationForUsers } from '$lib/notifications/notifications';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 
@@ -12,10 +11,6 @@ export const POST = async (event: RequestEvent) => {
     if (isNaN(competitionId)) {
       return json({ error: 'Invalid competition ID' }, { status: 400 });
     }
-
-    // Authorization: only organizers/creators can cancel
-    const auth = await requireCompetitionRole(event, competitionId, [Role.ORGANIZER]);
-    if (!auth.authorized) return auth.response;
 
     // Only allow cancelling competitions that are NOT_STARTED or STARTED
     const competition = await prisma.competition.findUnique({

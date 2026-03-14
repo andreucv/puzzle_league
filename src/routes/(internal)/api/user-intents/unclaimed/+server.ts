@@ -1,12 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { prisma } from '$lib/database/create_prisma_client';
-import { requireAuth } from '$lib/utils/api_auth';
 
 export const GET: RequestHandler = async (event) => {
-    const auth = await requireAuth(event);
-    if (!auth.authorized) return auth.response;
-
     const user = event.locals.user;
     if (!user?.name) {
         return json({ userIntents: [] });

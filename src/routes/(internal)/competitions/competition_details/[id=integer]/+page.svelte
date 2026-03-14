@@ -34,10 +34,9 @@
     const categories = $derived(competition?.categories || []);
 
     // Check if current user is the creator of the competition
-    const isCreator = $derived(currentUser && competition?.creatorId === currentUser.id);
-    const canAccessDuringCompetition = $derived(isCreator || isOrganizer || isJudge);
+    const canAccessDuringCompetition = $derived(isOrganizer || isJudge);
     const canCancel = $derived(
-        (isCreator || isOrganizer) &&
+        (isOrganizer) &&
         competition?.status !== 'CANCELLED' &&
         competition?.status !== 'FINISHED'
     );
@@ -139,7 +138,7 @@
 
         <!-- Categories Section -->
         <div>
-            <CategoriesOverview {categories} {isCreator} {isMultiDay} {categoriesWithCounts} userRecords={userRecords ?? []} />
+            <CategoriesOverview {categories} {isOrganizer} {isMultiDay} {categoriesWithCounts} userRecords={userRecords ?? []} />
         </div>
 
         <!-- Action Buttons -->
@@ -148,7 +147,7 @@
             {#if canAccessDuringCompetition}
                 <EndPageActionButton icon="mdi:timer-play" href="/competition/{competition?.id}/during_competition" text={$t('during_competition.title')} />
             {/if}
-            {#if isCreator}
+            {#if isOrganizer}
                 <EndPageActionButton icon="mdi:pencil" href="/competition/edit/{competition?.id}" text={$t('competition_details.edit_button')} />
                 <EndPageActionButton icon="mdi:clipboard-check-outline" href="/competition/{competition?.id}/manage_inscriptions" text={$t('manage_inscriptions.title')} testId="manage-inscriptions-button" />
             {/if}

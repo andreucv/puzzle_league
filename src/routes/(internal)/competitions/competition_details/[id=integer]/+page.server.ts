@@ -2,8 +2,8 @@ import type { PageServerLoad, Actions } from "./$types";
 import { getCompetitionWithCategories, getCompetitionCategories} from "$lib/database/database";
 import { getCategoryEntriesFromCompetition, removeUserFromCategory } from "$lib/database/db_inscription_utils";
 import { auth } from "$lib/auth";
-import { prisma } from "$lib/database/create_prisma_client";
-import { Role } from "$lib/.prisma/generated/prisma/enums";
+import { getDuringCompetitionAccess } from "$lib/database/db_competition_utils";
+
 
 export const load: PageServerLoad = async ( event ) => {
     const competition_id = event.url.pathname.split('/')[3];
@@ -28,25 +28,10 @@ export const load: PageServerLoad = async ( event ) => {
         categoriesWithCounts = await getCompetitionCategories(parseInt(competition_id));
     }
 
-    // Check if user is a judge for this competition
     let isJudge = false;
-    if (session?.user) {
-        const judgedCats = await prisma.category.count({
-            where: {
-                competitionId: parseInt(competition_id),
-                judges: { some: { id: session.user.id } }
-            }
-        });
-        isJudge = judgedCats > 0;
-    }
-
-    // Check if user has organizer role
     let isOrganizer = false;
     if (session?.user) {
-        const hasRole = await prisma.roleAssignment.findFirst({
-            where: { userId: session.user.id, role: { in: [Role.ORGANIZER, Role.ADMIN] } }
-        });
-        isOrganizer = !!(hasRole || competition_and_categories?.creatorId === session.user.id);
+        ({ isOrganizer, isJudge } = await getDuringCompetitionAccess(parseInt(competition_id), session.user.id));
     }
 
     const competition_image_url = undefined; //await cloudinary.url(competition_and_categories.image);

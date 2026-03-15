@@ -65,7 +65,7 @@ test('WhenAccessingAdminPage_WhenLoggedInUserWithoutPermission_ThenAdminPageIsNo
     // Sometimes login flow sets cookies in the process of several redirects.
     // Wait for the final URL to ensure that the cookies are actually set.
     await page.waitForURL('/');
-    await expect(page.locator('a').filter({ hasText: 'Te' }).first()).toBeVisible();
+    await expect(page.getByTestId('profile-avatar')).toBeVisible();
 
     await page.goto('/admin/review_requests/');
     await expect(page.getByRole('heading', { name: 'Access Denied' })).toBeVisible();

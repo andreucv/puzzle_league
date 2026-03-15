@@ -55,7 +55,7 @@
                             <span class="absolute top-1 right-1 w-2 h-2 rounded-full" style="background-color: #DD2200;"></span>
                         {/if}
                     </a>
-                    <a href="/profile">
+                    <a href="/profile" data-testid="profile-avatar">
                         {#if user?.image === undefined}
                             <UserAltFillIcon width="1.5rem" height="1.5rem" class="mx-2"/>
                         {:else}

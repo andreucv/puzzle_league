@@ -1,8 +1,5 @@
 import { expect, test, devices } from '@playwright/test';
 
-// Use mobile viewport for all tests in this file
-test.use({ ...devices['iPhone 12'] });
-
 test.describe('Anonymous user mobile navigation', () => {
     test.use({ storageState: { cookies: [], origins: [] } });
 

@@ -44,29 +44,34 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
       dependencies: ['setup'],
+      testIgnore: /responsive\/mobile_navigation\.test\.ts/,
     },
 
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
       dependencies: ['setup'],
+      testIgnore: /responsive\/mobile_navigation\.test\.ts/,
     },
 
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
       dependencies: ['setup'],
+      testIgnore: /responsive\/mobile_navigation\.test\.ts/,
     },
 
     /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
+    {
+      name: 'mobile_chrome',
+      use: { ...devices['Pixel 7'] },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'mobile_safari',
+      use: { ...devices['iPhone 14'] },
+      dependencies: ['setup'],
+    },
 
     /* Test against branded browsers. */
     // {

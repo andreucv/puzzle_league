@@ -150,7 +150,7 @@
                     <a
                         href="#"
                         id="create-account-button"
-                        onclick={() => (action = "register")}
+                        onclick={(e) => { e.preventDefault(); action = "register"; }}
                         class="text-indigo-500 hover:text-indigo-700 font-semibold"
                         >Create an account</a
                     >
@@ -164,7 +164,7 @@
                     Already have an account?
                     <a
                         href="#"
-                        onclick={() => (action = "login")}
+                        onclick={(e) => { e.preventDefault(); action = "login"; }}
                         class="text-indigo-500 hover:text-indigo-700 font-semibold"
                         >Sign in</a
                     >

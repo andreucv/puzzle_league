@@ -2,6 +2,8 @@
     import { t } from '$lib/translations';
     import CompetitionList from '$lib/components/competition/CompetitionList.svelte';
     import ButtonLink from '$lib/components/landing_page/ButtonLink.svelte';
+    import NearCompetitionsCaroussel from '$lib/components/landing_page/NearCompetitionsCaroussel.svelte';
+    import LastResultsList from '$lib/components/landing_page/LastResultsList.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import { afterNavigate, invalidateAll } from '$app/navigation';
 
@@ -55,7 +57,7 @@
 </svelte:head>
 
 {#if data.user}
-    <div class="container mx-auto px-4 space-y-4">
+    <div class="container mx-auto px-4 space-y-4 mb-8">
         <section>
             {#if data.props.upcomingRegisteredCompetitions && data.props.upcomingRegisteredCompetitions.length === 0}
                 <GenericTitle text={$t('landing_page.no_upcoming_competitions')} />
@@ -69,6 +71,22 @@
                 <CompetitionList competitions={data.props.upcomingRegisteredCompetitions} n_show=2 currentUsedId={data.user.id} />
             {/if}
         </section>
+
+        <!-- Upcoming competitions carousel -->
+        {#if data.props.nearCompetitions && data.props.nearCompetitions.length > 0}
+            <section>
+                <GenericTitle text={$t('competitions.other_upcoming_competitions')} />
+                <NearCompetitionsCaroussel competitions={data.props.nearCompetitions} />
+            </section>
+        {/if}
+
+        <!-- Last results -->
+        {#if data.props.lastResults && data.props.lastResults.length > 0}
+            <section>
+                <GenericTitle text={$t('landing_page.your_last_results')} />
+                <LastResultsList results={data.props.lastResults} currentUserId={data.user.id} />
+            </section>
+        {/if}
     </div>
 {:else}
     <div class="landing-page-container">

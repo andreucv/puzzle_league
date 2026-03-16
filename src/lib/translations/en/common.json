@@ -21,7 +21,8 @@
     "your_upcoming_competitions": "Your upcoming competitions",
     "no_upcoming_competitions": "Not registered to any competition",
     "no_upcoming_competitions_detail": "Seems you are not registered to any upcoming competition. Look in the calendar and register for any category.",
-    "image_alt": "Puzzle image"
+    "image_alt": "Puzzle image",
+    "your_last_results": "Your last results"
   },
   "drawer_menu": {
     "explore_competitions": "Competitions",
@@ -32,6 +33,7 @@
   "competitions": {
     "explore_competitions": "Explore Competitions",
     "upcoming_competitions": "Upcoming Competitions",
+    "other_upcoming_competitions": "Other Upcoming Competitions",
     "past_competitions": "Past Competitions",
     "create_competition": "Create Competition",
     "my_organized_competitions": "My organized competitions",

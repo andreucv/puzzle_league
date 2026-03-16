@@ -21,7 +21,8 @@
     "your_upcoming_competitions": "Els teus pròxims concursos",
     "no_upcoming_competitions": "No estàs registrat a cap concurs",
     "no_upcoming_competitions_detail": "Sembla que no estàs registrat a cap proper concurs. Mira al calendari i registra't a qualsevol categoria!",
-    "image_alt": "Imatge de puzzles"
+    "image_alt": "Imatge de puzzles",
+    "your_last_results": "Els teus últims resultats"
   },
   "competitions": {
     "upcoming_competitions": "Pròxims Concursos",
@@ -37,7 +38,8 @@
     },
     "calendar_table": {},
     "no_upcoming_competitions": "No hi ha pròximes competicions",
-    "explore_competitions": "Explora Competicions"
+    "explore_competitions": "Explora Competicions",
+    "other_upcoming_competitions": "Altres competicions"
   },
   "drawer_menu": {
     "create_competition": "Crear Competició",
@@ -333,9 +335,9 @@
     "view_results": "Veure Resultats",
     "manage_judges": "Gestionar Jutges",
     "no_categories": "No hi ha categories disponibles per al teu rol",
-    "connection_error": "Connexi\u00f3 perduda \u2014 les actualitzacions poden retardar-se",
+    "connection_error": "Connexió perduda — les actualitzacions poden retardar-se",
     "stop_confirm_title": "Aturar Categoria?",
-    "stop_confirm_message": "Est\u00e0s segur que vols aturar",
+    "stop_confirm_message": "Estàs segur que vols aturar",
     "unfinished_warning": "registres encara no han acabat",
     "auto_complete_notice": "Els registres no finalitzats es completaran automàticament amb el temps màxim.",
     "stop_confirm": "Aturar Categoria",

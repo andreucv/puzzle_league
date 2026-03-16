@@ -1,5 +1,5 @@
 import type { Competition, Category } from '$lib/.prisma/generated/prisma/client';
-import { CompetitionStatus, Role } from '$lib/.prisma/generated/prisma/enums';
+import { CompetitionStatus, InscriptionStatus, Role } from '$lib/.prisma/generated/prisma/enums';
 import { prisma } from '$lib/database/database';
 
 /**
@@ -42,6 +42,9 @@ export async function getUpcomingCompetitions(n_objects: number, offset: number)
             status: {
                 in: [CompetitionStatus.NOT_STARTED, CompetitionStatus.STARTED]
             },
+            startDate: {
+                gte: new Date()
+            }
         },
         include: {
             categories: true
@@ -64,5 +67,107 @@ export async function getPastCompetitions(n_objects: number, offset: number) {
         orderBy: {
             startDate: 'desc'
         },
+    });
+}
+
+/**
+ * Returns the user's latest finished records across completed categories,
+ * including all sibling records in each category (for position computation),
+ * teammates, user intents, puzzle info, and competition details.
+ */
+export async function getLastUserResults(userId: string, limit: number = 5) {
+    // First, find the user's records in completed categories
+    const userRecords = await prisma.record.findMany({
+        where: {
+            users: { some: { id: userId } },
+            status: InscriptionStatus.ACCEPTED,
+            category: {
+                status: 'completed',
+                competition: {
+                    status: CompetitionStatus.FINISHED
+                }
+            }
+        },
+        take: limit,
+        orderBy: {
+            category: {
+                competition: {
+                    startDate: 'desc'
+                }
+            }
+        },
+        select: {
+            id: true,
+            finishTime: true,
+            nPiecesCompleted: true,
+            categoryId: true,
+            users: {
+                select: { id: true, name: true, image: true }
+            },
+            userIntents: {
+                select: { id: true, name: true }
+            },
+            category: {
+                select: {
+                    id: true,
+                    description: true,
+                    type: true,
+                    realStartTime: true,
+                    realEndTime: true,
+                    competitionId: true,
+                    puzzles: {
+                        select: { pieces: true, brand: true, name: true }
+                    },
+                    competition: {
+                        select: {
+                            id: true,
+                            name: true,
+                            startDate: true,
+                            image_cld_id: true
+                        }
+                    },
+                    // Include all accepted records for position computation
+                    records: {
+                        where: { status: InscriptionStatus.ACCEPTED },
+                        orderBy: [
+                            { finishTime: 'asc' },
+                            { tableNumber: 'asc' }
+                        ],
+                        select: {
+                            id: true,
+                            finishTime: true
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Compute position for each of the user's records
+    return userRecords.map((record) => {
+        const allRecords = record.category.records;
+        const finishedRecords = allRecords.filter((r) => r.finishTime != null);
+        const position = record.finishTime
+            ? finishedRecords.findIndex((r) => r.id === record.id) + 1
+            : null; // DNF
+
+        return {
+            id: record.id,
+            finishTime: record.finishTime,
+            nPiecesCompleted: record.nPiecesCompleted,
+            position,
+            totalFinished: finishedRecords.length,
+            totalRecords: allRecords.length,
+            users: record.users,
+            userIntents: record.userIntents,
+            category: {
+                id: record.category.id,
+                description: record.category.description,
+                type: record.category.type,
+                realStartTime: record.category.realStartTime,
+                puzzles: record.category.puzzles
+            },
+            competition: record.category.competition
+        };
     });
 }

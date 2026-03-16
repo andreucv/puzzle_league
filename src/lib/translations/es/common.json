@@ -21,7 +21,8 @@
     "your_upcoming_competitions": "Tus próximos concursos",
     "no_upcoming_competitions": "No estás registrado a ningún concurso",
     "no_upcoming_competitions_detail": "Parece que no estás registrado a ningun concurso. Mira el calendario y regístrate a cualquier categoría!",
-    "image_alt": "Imagen de puzzles"
+    "image_alt": "Imagen de puzzles",
+    "your_last_results": "Tus últimos resultados"
   },
   "competitions": {
     "upcoming_competitions": "Próximos Concursos",

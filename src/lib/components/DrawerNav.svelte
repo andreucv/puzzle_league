@@ -119,3 +119,42 @@
     </button>
 </div>
 {/if}
+
+<style>
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 0.75rem;
+        border-radius: 0.625rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: background-color 150ms ease, color 150ms ease;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .nav-item:hover {
+        background-color: rgb(var(--color-surface-200) / 1);
+    }
+
+    :global([data-mode="dark"]) .nav-item:hover {
+        background-color: rgb(var(--color-surface-800) / 1);
+    }
+
+    .nav-item.active {
+        background-color: rgb(var(--color-primary-500) / 0.12);
+        color: rgb(var(--color-primary-500));
+        font-weight: 600;
+    }
+
+    .section-label {
+        display: block;
+        padding: 0 0.75rem 0.35rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        opacity: 0.5;
+    }
+</style>

@@ -19,6 +19,7 @@ export default defineConfig({
 		alias: {
 			'$app/navigation': '/src/tests/mocks/app_navigation.ts',
 			'$app/environment': '/src/tests/mocks/app_environment.ts',
+			'$app/stores': '/src/tests/mocks/app_stores.ts',
 		},
 	},
     // To enable hot module reloading, we need to enable polling because of docker environment

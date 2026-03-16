@@ -1,32 +1,9 @@
 import { expect, test, type Page, type Locator } from '@playwright/test';
+import type { CompetitionData, CategoryData, MultiDayCategoryData } from '../types';
 
 test.use({ storageState: "playwright/.auth/organizer_user.json" });
 
 // ==================== TEST DATA ====================
-
-interface CompetitionData {
-    name: string;
-    location: string;
-    description: string;
-    country?: string;
-    postal_code?: string;
-    payment_method?: string;
-}
-
-interface CategoryData {
-    description: string;
-    type: string;
-    start_time: string;
-    end_time: string;
-    max_parties: string;
-    participants_per_party: string;
-    price: string;
-}
-
-interface MultiDayCategoryData extends CategoryData {
-    start_date: Date;
-    end_date: Date;
-}
 
 const competition_data: { competition: CompetitionData; categories: CategoryData[] } = {
     competition: {
@@ -211,7 +188,9 @@ async function addCategory(page: Page, index: number, category: CategoryData) {
     await page.getByTestId(`end-time-create-${index}`).fill(category.end_time);
     await page.getByTestId(`max-parties-create-${index}`).fill(category.max_parties);
     await page.getByTestId(`max-party-size-create-${index}`).fill(category.participants_per_party);
-    await page.getByTestId(`price-create-${index}`).fill(category.price);
+    if (category.price) {
+        await page.getByTestId(`price-create-${index}`).fill(category.price);
+    }
 }
 
 /**
@@ -233,7 +212,9 @@ async function addMultiDayCategory(page: Page, index: number, category: MultiDay
     await page.getByTestId(`end-time-create-${index}`).fill(category.end_time);
     await page.getByTestId(`max-parties-create-${index}`).fill(category.max_parties);
     await page.getByTestId(`max-party-size-create-${index}`).fill(category.participants_per_party);
-    await page.getByTestId(`price-create-${index}`).fill(category.price);
+    if (category.price) {
+        await page.getByTestId(`price-create-${index}`).fill(category.price);
+    }
 }
 
 /**
@@ -264,7 +245,9 @@ async function assertCompetitionCreated(page: Page, competition: CompetitionData
         // CategoryCard renders: "{type}" as h3 heading, "{description}" as paragraph, and "{startTime} – {endTime}" in a time block
         await expect(page.getByRole('heading', { name: cat.type, level: 3 }).first()).toBeVisible();
         // Verify price is displayed
-        await expect(page.getByText(`${cat.price} €`).first()).toBeVisible();
+        if (cat.price) {
+            await expect(page.getByText(`${cat.price} €`).first()).toBeVisible();
+        }
     }
 }
 
@@ -307,102 +290,9 @@ test('GivenCreateCompetitionPage_WhenOrganizerCreatesAndUpdatesCompetition_ThenO
     await assertCompetitionCreated(page, updated_competition_data.competition, updated_competition_data.categories);
 });
 
-// ==================== VALIDATION ERROR TESTS (Unhappy Paths) ====================
-
-test.describe('Create Competition Form Validation', () => {
-
-    test('GivenCreateCompetitionPage_WhenCompetitionNameIsEmpty_ThenShowsRequiredError', async ({ page }) => {
-        await navigateToCreateForm(page);
-
-        await submitCompetition(page);
-
-        await expect(page.getByText('Competition name is required')).toBeVisible();
-        await expect(page.getByRole('heading', { name: 'Create new competition' }).first()).toBeVisible();
-    });
-
-    test('GivenCreateCompetitionPage_WhenCompetitionNameIsTooShort_ThenShowsMinLengthError', async ({ page }) => {
-        await navigateToCreateForm(page);
-
-        await page.locator('input[name="competition_name"]').fill('AB');
-        await submitCompetition(page);
-
-        await expect(page.getByText('Competition name must be at least 3 characters')).toBeVisible();
-    });
-
-    test('GivenCreateCompetitionPage_WhenDateIsNotSelected_ThenShowsDateRequiredError', async ({ page }) => {
-        await navigateToCreateForm(page);
-
-        await page.locator('input[name="competition_name"]').fill('Valid Competition Name');
-        await submitCompetition(page);
-
-        await expect(page.getByText('Select a date')).toBeVisible();
-    });
-
-    test('GivenCreateCompetitionPage_WhenCategoryStartTimeIsMissing_ThenShowsStartTimeRequiredError', async ({ page }) => {
-        await navigateToCreateForm(page);
-        await page.locator('input[name="competition_name"]').fill('Valid Competition');
-        await selectTodaysDate(page);
-
-        await addCategoryWithType(page, 0, 'Individual');
-        await page.getByTestId('description-create-0').fill('Valid Category');
-        await page.getByTestId('end-time-create-0').fill('12:00');
-        await page.getByTestId('max-parties-create-0').fill('10');
-
-        await submitCompetition(page);
-
-        await expect(page.getByText('Start time is required')).toBeVisible();
-    });
-
-    test('GivenCreateCompetitionPage_WhenCategoryEndTimeIsMissing_ThenShowsEndTimeRequiredError', async ({ page }) => {
-        await navigateToCreateForm(page);
-        await page.locator('input[name="competition_name"]').fill('Valid Competition');
-        await selectTodaysDate(page);
-
-        await addCategoryWithType(page, 0, 'Individual');
-        await page.getByTestId('description-create-0').fill('Valid Category');
-        await page.getByTestId('start-time-create-0').fill('10:00');
-        await page.getByTestId('max-parties-create-0').fill('10');
-
-        await submitCompetition(page);
-
-        await expect(page.getByText('End time is required')).toBeVisible();
-    });
-
-    test('GivenCreateCompetitionPage_WhenCategoryMaxPartiesIsMissing_ThenShowsMaxPartiesRequiredError', async ({ page }) => {
-        await navigateToCreateForm(page);
-        await page.locator('input[name="competition_name"]').fill('Valid Competition');
-        await selectTodaysDate(page);
-
-        await addCategoryWithType(page, 0, 'Individual');
-        await page.getByTestId('description-create-0').fill('Valid Category');
-        await page.getByTestId('start-time-create-0').fill('10:00');
-        await page.getByTestId('end-time-create-0').fill('12:00');
-
-        await submitCompetition(page);
-
-        await expect(page.getByText('Max parties must be at least 1')).toBeVisible();
-    });
-
-    test('GivenCreateCompetitionPage_WhenMultipleFieldsAreMissing_ThenShowsFirstErrorAndFocusesField', async ({ page }) => {
-        await navigateToCreateForm(page);
-
-        await submitCompetition(page);
-
-        await expect(page.getByText('Competition name is required')).toBeVisible();
-        await expect(page.locator('input[name="competition_name"]')).toBeFocused();
-    });
-
-    test('GivenCreateCompetitionPage_WhenErrorIsFixedAndResubmitted_ThenErrorDisappears', async ({ page }) => {
-        await navigateToCreateForm(page);
-
-        await submitCompetition(page);
-        await expect(page.getByText('Competition name is required')).toBeVisible();
-
-        await page.locator('input[name="competition_name"]').fill('Valid Competition Name');
-        await expect(page.getByText('Competition name is required')).not.toBeVisible();
-    });
-
-});
+// ==================== VALIDATION ERROR TESTS ====================
+// Client-side validation tests have been migrated to unit tests:
+// src/lib/utils/competition_form_validation.test.ts
 
 // ==================== MULTI-DAY COMPETITION TESTS ====================
 

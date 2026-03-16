@@ -1,23 +1,5 @@
 import { expect, test, type Page, type BrowserContext } from '@playwright/test';
-
-// ==================== TEST DATA ====================
-
-interface CompetitionData {
-    name: string;
-    location: string;
-    description: string;
-    country?: string;
-    postal_code?: string;
-}
-
-interface CategoryData {
-    description: string;
-    type: string;
-    start_time: string;
-    end_time: string;
-    max_parties: string;
-    participants_per_party: string;
-}
+import type { CompetitionData, CategoryData } from '../types';
 
 // ==================== HELPER FUNCTIONS ====================
 

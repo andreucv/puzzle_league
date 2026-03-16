@@ -6,6 +6,7 @@
     import { superForm } from "sveltekit-superforms";
     import { CalendarDate, today, getLocalTimeZone, Time, fromDate, parseAbsolute, toCalendarDateTime} from "@internationalized/date";
     import { getCategoryTypeName, getPartySizeByCategoryType } from "$lib/utils/category_utils.js";
+    import { validateCompetitionForm } from "$lib/utils/competition_form_validation";
     import type { CategoryType } from '@prisma/client';
     import { FileUpload, Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
     import { CldImage } from 'svelte-cloudinary';
@@ -111,171 +112,19 @@
 
     // Comprehensive form validation before submit
     function validateFormBeforeSubmit(): boolean {
-        let isValid = true;
+        const result = validateCompetitionForm(
+            $form,
+            categories,
+            categories_times_obj_arr,
+            isMultiDay,
+            $t
+        );
 
-        // Reset errors
-        formErrors = {};
-        dateError = null;
+        formErrors = result.formErrors;
+        dateError = result.dateError;
+        categoryErrors = result.categoryErrors;
 
-        // Validate competition name (required, 3-80 chars)
-        if (!$form.name || $form.name.trim() === '') {
-            formErrors.name = $t('competition.form_error.required.competition_name');
-            isValid = false;
-        } else if ($form.name.length < 3) {
-            formErrors.name = $t('competition.form_error.min_length.competition_name');
-            isValid = false;
-        } else if ($form.name.length > 80) {
-            formErrors.name = $t('competition.form_error.max_length.competition_name');
-            isValid = false;
-        }
-
-        // Validate description (max 1000 chars)
-        if ($form.description && $form.description.length > 1000) {
-            formErrors.description = $t('competition.form_error.max_length.description');
-            isValid = false;
-        }
-
-        // Validate payment method (max 500 chars)
-        if ($form.paymentMethod && $form.paymentMethod.length > 500) {
-            formErrors.paymentMethod = $t('competition.form_error.max_length.payment_method');
-            isValid = false;
-        }
-
-        // Validate location (max 120 chars)
-        if ($form.location && $form.location.length > 200) {
-            formErrors.location = $t('competition.form_error.max_length.location');
-            isValid = false;
-        }
-
-        // Validate date (required)
-        if (!isMultiDay && !$form.startDate) {
-            dateError = $t('competition.form_error.required.date');
-            isValid = false;
-        }
-        if (isMultiDay && !$form.startDate) {
-            dateError = $t('competition.form_error.required.start_date');
-            isValid = false;
-        }
-        if (isMultiDay && !$form.endDate) {
-            dateError = $t('competition.form_error.required.end_date');
-            isValid = false;
-        }
-
-        // Validate categories
-        const createCategories = categories.create || [];
-        const updateCategories = categories.update || [];
-
-        // Reset category errors
-        categoryErrors.create = [];
-        categoryErrors.update = [];
-
-        // Validate create categories
-        for (let i = 0; i < createCategories.length; i++) {
-            const cat = createCategories[i];
-            categoryErrors.create[i] = {};
-
-            if (cat.description.length > 60) {
-                categoryErrors.create[i].description = $t('competition.form_error.max_length.category_description');
-                isValid = false;
-            }
-
-            if (!cat.type || cat.type === '') {
-                categoryErrors.create[i].type = $t('competition.form_error.required.category_type');
-                isValid = false;
-            }
-
-            if (cat.type) { // Only validate times if type is selected
-                if (isMultiDay && !categories_times_obj_arr.create[i]?.date) {
-                    categoryErrors.create[i].date = $t('competition.form_error.required.category_date');
-                    isValid = false;
-                }
-
-                if (!categories_times_obj_arr.create[i]?.startTime) {
-                    categoryErrors.create[i].startTime = $t('competition.form_error.required.start_time');
-                    isValid = false;
-                }
-
-                if (isMultiDay && !categories_times_obj_arr.create[i]?.endDate) {
-                    categoryErrors.create[i].endDate = $t('competition.form_error.required.category_end_date');
-                    isValid = false;
-                }
-
-                if (!categories_times_obj_arr.create[i]?.endTime) {
-                    categoryErrors.create[i].endTime = $t('competition.form_error.required.end_time');
-                    isValid = false;
-                }
-
-                if (!cat.maxParties || cat.maxParties < 1) {
-                    categoryErrors.create[i].maxParties = $t('competition.form_error.min_value.max_parties');
-                    isValid = false;
-                }
-
-                if (!cat.maxPartySize || cat.maxPartySize < 1) {
-                    categoryErrors.create[i].maxPartySize = $t('competition.form_error.min_value.max_party_size');
-                    isValid = false;
-                }
-
-                if (cat.price === null || cat.price === undefined || cat.price < 0) {
-                    categoryErrors.create[i].price = $t('competition.form_error.min_value.price');
-                    isValid = false;
-                }
-            }
-        }
-
-        // Validate update categories
-        for (let i = 0; i < updateCategories.length; i++) {
-            const cat = updateCategories[i].data;
-            categoryErrors.update[i] = {};
-
-            if (cat.description.length > 60) {
-                categoryErrors.update[i].description = $t('competition.form_error.max_length.category_description');
-                isValid = false;
-            }
-
-            if (!cat.type || cat.type === '') {
-                categoryErrors.update[i].type = $t('competition.form_error.required.category_type');
-                isValid = false;
-            }
-
-            if (cat.type) { // Only validate times if type is selected
-                if (isMultiDay && !categories_times_obj_arr.update[i]?.date) {
-                    categoryErrors.update[i].date = $t('competition.form_error.required.category_date');
-                    isValid = false;
-                }
-
-                if (!categories_times_obj_arr.update[i]?.startTime) {
-                    categoryErrors.update[i].startTime = $t('competition.form_error.required.start_time');
-                    isValid = false;
-                }
-
-                if (isMultiDay && !categories_times_obj_arr.update[i]?.endDate) {
-                    categoryErrors.update[i].endDate = $t('competition.form_error.required.category_end_date');
-                    isValid = false;
-                }
-
-                if (!categories_times_obj_arr.update[i]?.endTime) {
-                    categoryErrors.update[i].endTime = $t('competition.form_error.required.end_time');
-                    isValid = false;
-                }
-
-                if (!cat.maxParties || cat.maxParties < 1) {
-                    categoryErrors.update[i].maxParties = $t('competition.form_error.min_value.max_parties');
-                    isValid = false;
-                }
-
-                if (!cat.maxPartySize || cat.maxPartySize < 1) {
-                    categoryErrors.update[i].maxPartySize = $t('competition.form_error.min_value.max_party_size');
-                    isValid = false;
-                }
-
-                if (cat.price === null || cat.price === undefined || cat.price < 0) {
-                    categoryErrors.update[i].price = $t('competition.form_error.min_value.price');
-                    isValid = false;
-                }
-            }
-        }
-
-        return isValid;
+        return result.isValid;
     }
 
     async function focusFirstInvalidField() {

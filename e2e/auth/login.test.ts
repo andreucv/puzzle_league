@@ -2,32 +2,6 @@ import { expect, test } from '@playwright/test';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test('WhenAccessingLoginPage_MinimumIsVisible', async ({ page }) => {
-    await page.goto('/login');
-    await expect(page.locator('#login-button').first()).toBeHidden();
-    await expect(page.locator('#create-account-button').first()).toBeVisible();
-    await expect(page.locator('#login_submit').first()).toBeVisible();
-});
-
-test('WhenAccessingLoginPage_CreateAccount_PasswordConfirmationInputIsVisible', async ({ page }) => {
-    await page.goto('/login');
-    await page.click('#create-account-button');
-    await expect(page.locator('#input_password_confirm').first()).toBeVisible();
-});
-
-test('WhenAccessingLoginPage_Login_AfterSubmitWrongUserPassword_ErrorIsVisible', async ({ page }) => {
-    await page.goto('/login');
-
-    await page.locator('#input_email').fill('wrong@example.com');
-    await page.locator('#input_password').fill('wrongpassword');
-
-    const loginButton = page.locator('#login_submit');
-    await expect(loginButton).toBeVisible({ timeout: 10000 });
-    await loginButton.click();
-
-    await expect(page.locator('#login_error_message')).toBeVisible();
-});
-
 test('WhenAccessingLoginPage_Login_AfterSubmitCorrectUserPassword_RedirectsToHomePage', async ({ page }) => {
     await page.goto('/login');
     await page.locator('#input_email').fill(process.env.TEST_PARTICIPANT_USER_EMAIL!);

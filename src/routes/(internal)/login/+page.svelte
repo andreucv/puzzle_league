@@ -57,7 +57,7 @@
         class="w-full md:max-w-md lg:max-w-full md:mx-auto md:mx-0 md:w-1/2 xl:w-1/3 mt-4 lg:px-16 xl:px-12
           flex items-center justify-center">
         <div class="w-full h-100">
-            <h1 class="text-xl md:text-2xl font-bold leading-tight">
+            <h1 data-testid="login-title" class="text-xl md:text-2xl font-bold leading-tight">
                 {action === "register" ? $t('auth.register_title') : $t('auth.login_title')}
             </h1>
 
@@ -69,6 +69,7 @@
                             bind:value={email}
                             name="email"
                             id="input_email"
+                            data-testid="input-email"
                             placeholder="Enter Email"
                             class="w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 border text-black focus:border-indigo-500 focus:bg-white focus:outline-none"
                             required
@@ -81,6 +82,7 @@
                                 bind:value={name}
                                 name="name"
                                 id="input_name"
+                                data-testid="input-name"
                                 placeholder="Enter Name"
                                 class="w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 border text-black focus:border-indigo-500 focus:bg-white focus:outline-none"
                                 required
@@ -91,26 +93,26 @@
                         <div class="flex items-center justify-between">
                             <label for="input_password">Password</label>
                         </div>
-                        <input bind:value={password} type="password" name="password" id="input_password" placeholder="Enter Password" minlength="5" class="w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 border text-black focus:border-indigo-500
+                        <input bind:value={password} type="password" name="password" id="input_password" data-testid="input-password" placeholder="Enter Password" minlength="5" class="w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 border text-black focus:border-indigo-500
                             focus:bg-white focus:outline-none"
                             required />
                         {#if action == "register"}
                             <input bind:value={passwordConfirm} type="password" name="password_confirm" id="input_password_confirm"
-                                placeholder="Confirm Password" minlength="5" class="w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 border text-black focus:border-indigo-500
+                                data-testid="input-password-confirm" placeholder="Confirm Password" minlength="5" class="w-full px-4 py-3 rounded-lg bg-gray-200 mt-2 border text-black focus:border-indigo-500
                             focus:bg-white focus:outline-none" required />
                         {/if}
                     </div>
 
                     {#if errorMessage}
-                        <div id="login_error_message" class="text-red-500 mt-2 text-sm">{errorMessage}</div>
+                        <div id="login_error_message" data-testid="login-error-message" class="text-red-500 mt-2 text-sm">{errorMessage}</div>
                     {/if}
 
                     {#if action == "register"}
-                        <button id="login_submit" type="button" onclick={registerWithEmailAndPassword} class="w-full block bg-indigo-500 hover:bg-indigo-400 focus:bg-indigo-400 text-white font-semibold rounded-lg
+                        <button id="login_submit" data-testid="register-submit" type="button" onclick={registerWithEmailAndPassword} class="w-full block bg-indigo-500 hover:bg-indigo-400 focus:bg-indigo-400 text-white font-semibold rounded-lg
                           px-4 py-3 mt-4">Register</button>
                     {/if}
                     {#if action == "login"}
-                        <button id="login_submit" type="button" onclick={signInWithEmailAndPassword} class="w-full block bg-indigo-500 hover:bg-indigo-400 focus:bg-indigo-400 text-white font-semibold rounded-lg
+                        <button id="login_submit" data-testid="login-submit" type="button" onclick={signInWithEmailAndPassword} class="w-full block bg-indigo-500 hover:bg-indigo-400 focus:bg-indigo-400 text-white font-semibold rounded-lg
                             px-4 py-3 mt-4">Log In</button>
                     {/if}
                 </form>
@@ -150,6 +152,7 @@
                     <a
                         href="#"
                         id="create-account-button"
+                        data-testid="create-account-link"
                         onclick={(e) => { e.preventDefault(); action = "register"; }}
                         class="text-indigo-500 hover:text-indigo-700 font-semibold"
                         >Create an account</a
@@ -164,6 +167,7 @@
                     Already have an account?
                     <a
                         href="#"
+                        data-testid="sign-in-link"
                         onclick={(e) => { e.preventDefault(); action = "login"; }}
                         class="text-indigo-500 hover:text-indigo-700 font-semibold"
                         >Sign in</a

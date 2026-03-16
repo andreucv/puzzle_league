@@ -1,6 +1,6 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { enhancedImages } from '@sveltejs/enhanced-img';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
@@ -9,6 +9,18 @@ export default defineConfig({
 		tailwindcss(),
 		sveltekit()
 	],
+	resolve: process.env.VITEST
+		? { conditions: ['browser'] }
+		: undefined,
+	test: {
+		include: ['src/**/*.test.ts'],
+		environment: 'jsdom',
+		setupFiles: ['src/tests/setup.ts'],
+		alias: {
+			'$app/navigation': '/src/tests/mocks/app_navigation.ts',
+			'$app/environment': '/src/tests/mocks/app_environment.ts',
+		},
+	},
     // To enable hot module reloading, we need to enable polling because of docker environment
 	server: {
 		watch: {

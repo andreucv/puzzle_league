@@ -55,6 +55,62 @@ export async function getUpcomingCompetitions(n_objects: number, offset: number)
     });
 }
 
+export async function getNearCompetitions(n_objects: number, country?: string, postalCode?: string, includeInscribed?: boolean, userId?: string) {
+
+    if (country == undefined || postalCode == undefined) {
+        // If no location info, return empty list
+        console.warn('No country or postal code provided for getNearCompetitions, returning empty list');
+        return [];
+    }
+
+    const whereClause: any = {
+        status: {
+            in: [CompetitionStatus.NOT_STARTED, CompetitionStatus.STARTED]
+        },
+        startDate: {
+            gte: new Date()
+        }
+    };
+
+    if (country) {
+        whereClause.country = country;
+    }
+
+    if (postalCode) {
+        whereClause.postalCode = {
+            startsWith: postalCode.slice(0, 2)
+        };
+    }
+
+    if (!includeInscribed && userId) {
+        whereClause.NOT = {
+            categories: {
+                some: {
+                    records: {
+                        some: {
+                            OR: [
+                                { users: { some: { id: userId } } },
+                                { creatorId: userId }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    return prisma.competition.findMany({
+        take: n_objects,
+        where: whereClause,
+        include: {
+            categories: true
+        },
+        orderBy: {
+            startDate: 'asc'
+        },
+    });
+}
+
 export async function getPastCompetitions(n_objects: number, offset: number) {
     return prisma.competition.findMany({
         take: n_objects,

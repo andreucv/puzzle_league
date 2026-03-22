@@ -6,7 +6,7 @@
     import ThemeLightSwitch from './ThemeLightSwitch.svelte';
     import { countries, getCountryFlag } from '$lib/utils/country_utils';
 
-    let { user, roleAssignments, account } = $props();
+    let { user, account } = $props();
 
     let displayName = $state(user.name || "Pending name...");
     let countryValue = $state(user.country ? [user.country] : []);
@@ -239,13 +239,13 @@
     <div class="grid grid-cols-2 gap-2 pb-4">
         <div>{$t('profile.roles')}</div>
         <div class="flex justify-end gap-2">
-        {#if roleAssignments?.some((role: RoleAssignment) => role.role === "PARTICIPANT")}
+        {#if user.roleAssignments?.some((role: RoleAssignment) => role.role === "PARTICIPANT")}
             <span class="badge preset-filled-surface-500">Participant</span>
         {/if}
-        {#if roleAssignments?.some((role: RoleAssignment) => role.role === "ORGANIZER")}
+        {#if user.roleAssignments?.some((role: RoleAssignment) => role.role === "ORGANIZER")}
             <span class="badge preset-filled-primary-500">Organizer</span>
         {/if}
-        {#if roleAssignments?.some((role: RoleAssignment) => role.role === "ADMIN")}
+        {#if user.roleAssignments?.some((role: RoleAssignment) => role.role === "ADMIN")}
             <span class="badge preset-filled-secondary-500">Admin</span>
         {/if}
         </div>

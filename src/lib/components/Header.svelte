@@ -12,6 +12,8 @@
 
     let hasUnread = $state(false);
 
+    console.log("Header component: user from page data is ", user);
+
     $effect(() => {
         if (user) {
             const stream = useEventStream('notifications', { userId: user.id }, {
@@ -43,7 +45,7 @@
             </div>
         </AppBar.Headline>
         <AppBar.Trail>
-            {#if user === null}
+            {#if user === undefined}
                 <button id="login-button" type="button" class="btn btn-sm preset-filled" style:visibility="{currentPath === '/login' ? 'hidden' : 'visible'}">
                     <a href="/login">Log in</a>
                 </button>
@@ -56,7 +58,7 @@
                         {/if}
                     </a>
                     <a href="/profile" data-testid="profile-avatar">
-                        {#if user?.image === undefined}
+                        {#if user && user?.image === undefined}
                             <UserAltFillIcon width="1.5rem" height="1.5rem" class="mx-2"/>
                         {:else}
                             <Avatar class="w-8 h-8">

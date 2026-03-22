@@ -16,7 +16,7 @@
     import { authClient } from '$lib/auth_client';
     import { goto } from '$app/navigation';
 
-    let { user = null, roleAssignments = [] }: { user: any; roleAssignments: any[] } = $props();
+    let { user = null }: { user: any } = $props();
 
     let currentPath = $derived($page.url.pathname);
 
@@ -72,7 +72,7 @@
     </li>
     {/if}
 
-    {#if roleAssignments?.some((role: any) => role.role === "ORGANIZER")}
+    {#if user?.roleAssignments?.some((role: any) => role.role === "ORGANIZER")}
     <li class="pt-3">
         <span class="section-label">Organizer</span>
     </li>
@@ -96,7 +96,7 @@
     </li>
     {/if}
 
-    {#if roleAssignments?.some((role: any) => role.role === "ADMIN")}
+    {#if user?.roleAssignments?.some((role: any) => role.role === "ADMIN")}
     <li class="pt-3">
         <span class="section-label">Admin</span>
     </li>

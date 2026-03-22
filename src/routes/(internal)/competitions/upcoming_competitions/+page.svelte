@@ -19,7 +19,7 @@
     <SearchInput placeholder={$t('list_competitions.look_for_competition')} bind:filter />
     <div class="pt-2">
         <div class="flex items-center justify-end">
-            {#if data.roleAssignments?.some((role: { role: string }) => role.role === 'ORGANIZER')}
+            {#if data.user.roleAssignments?.some((role: { role: string }) => role.role === 'ORGANIZER')}
                 <a class="btn btn-sm preset-filled-primary-500" href="/competition/edit">
                     <Icon icon="mdi:plus" class="mr-1" />
                     {$t('competitions.create_competition')}

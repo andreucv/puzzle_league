@@ -28,7 +28,7 @@
                         </Dialog.CloseTrigger>
                     </div>
 
-                    <DrawerNav user={data.user} roleAssignments={data.roleAssignments} />
+                    <DrawerNav user={data.user} />
                 </nav>
             </Dialog.Content>
         </Dialog.Positioner>

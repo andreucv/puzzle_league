@@ -2,34 +2,17 @@ import type { PageServerLoad, Actions } from './$types';
 import { prisma } from '$lib/database/database';
 import { error, fail } from '@sveltejs/kit';
 
-export const load: PageServerLoad = async ({ locals }) => {
-    if (!locals.user) {
-        return { user: null, account: null };
-    }
+export const load: PageServerLoad = async ({ parent }) => {
+
+	const { user } = await parent();
 
     try {
-        const user = await prisma.user.findUnique({
-            where: { id: locals.user.id },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                emailVerified: true,
-                image: true,
-                country: true,
-                postalCode: true,
-                createdAt: true,
-                updatedAt: true
-            }
-        });
-
         const account = await prisma.account.findFirst({
-            where: { userId: locals.user.id },
+            where: { userId: user.id },
             select: { providerId: true }
         });
-
+        console.log('Loaded account for user:', { user: user, account });
         return {
-            user,
             account: account ? { provider: account.providerId } : { provider: 'credential' }
         };
     } catch (err) {

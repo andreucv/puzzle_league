@@ -7,13 +7,12 @@
     import SmartPresetChips from "$lib/components/SmartPresetChips.svelte";
     import CompetitionCard from "$lib/components/competition/CompetitionCard.svelte";
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
-    import type { RoleAssignment } from "@prisma/client";
+    import type { RoleAssignment } from '$lib/.prisma/generated/prisma/browser';
 
     let { data } = $props();
 
     const competitions = $derived(data.competitions);
     const user = $derived(data.user);
-    const roleAssignments = $derived(data.roleAssignments as RoleAssignment[] | undefined);
     const registeredCategoryIds = $derived(data.registeredCategoryIds as number[]);
 
     // User has location set if both country and postal code are present
@@ -134,7 +133,7 @@
                 <span class="text-surface-500"> of {totalCount}</span>
             {/if}
         </span>
-        {#if roleAssignments?.some((role: RoleAssignment) => role.role === 'ORGANIZER')}
+        {#if user.roleAssignments?.some((role: RoleAssignment) => role.role === 'ORGANIZER')}
             <a class="btn btn-sm preset-filled-primary-500" href="/competition/edit">
                 <PlusIcon width="1rem" height="1rem" class="mr-1" />
                 {$t('competitions.create_competition')}

@@ -23,6 +23,35 @@ export async function getRoleAssignments(userId: string) {
     }
 }
 
+export async function getUserWithRoles(authUser: { id: string }) {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: authUser.id },
+            select: {
+                country: true,
+                postalCode: true,
+                roleAssignments: true
+            }
+        });
+
+        // Hydrate the auth user with additional data from the database
+        if (user) {
+            return {
+                ...authUser,
+                country: user.country,
+                postalCode: user.postalCode,
+                roleAssignments: user.roleAssignments
+            };
+        }
+
+        return { ...authUser, country: null, postalCode: null, roleAssignments: [] };
+    }
+    catch (error) {
+        console.error('Error getting user with roles:', error);
+        throw error;
+    }
+}
+
 // Helper function to get competitions where user is registered
 async function getUserRegisteredCompetitions(userId: string, statusFilter?: CompetitionStatus) {
     const whereClause: any = {

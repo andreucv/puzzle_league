@@ -1,11 +1,8 @@
 import type { LayoutServerLoad } from "./$types";
 import { loadTranslations, locales, translations } from "$lib/translations";
-import { getRoleAssignments, prisma } from "$lib/database/database";
+import { getUserWithRoles } from "$lib/database/database";
 
 export const load: LayoutServerLoad = async ({ url, cookies, locals, request }) => {
-    // Use session already resolved by hooks.server.ts — avoids a duplicate auth round-trip
-    const sessionUser = locals.user ?? null;
-
     // Get the locales and translations for the current route
     const { pathname } = url;
     let locale = "es";
@@ -24,30 +21,20 @@ export const load: LayoutServerLoad = async ({ url, cookies, locals, request }) 
 
     loadTranslations(locale, pathname);
 
-    if (!sessionUser) {
-        return {
-            translations: translations.get(),
-            i18n: { locale, route: pathname },
-            user: null,
-            roleAssignments: [],
-        };
+    let layoutData = {
+        translations: translations.get(),
+        i18n: { locale, route: pathname }
+    };
+
+    if (!locals.user) {
+        return layoutData;
     }
 
-    // Run both DB queries in parallel — no sequential waterfall here
-    const [assignments, dbUser] = await Promise.all([
-        getRoleAssignments(sessionUser.id),
-        prisma.user.findUnique({
-            where: { id: sessionUser.id },
-            select: { country: true, postalCode: true }
-        })
-    ]);
-
-    const fullUser = dbUser ? { ...sessionUser, ...dbUser } : sessionUser;
+    // Single DB query: fetch country, postalCode and roleAssignments together
+    const user = await getUserWithRoles(locals.user);
 
     return {
-        translations: translations.get(),
-        i18n: { locale, route: pathname },
-        user: fullUser,
-        roleAssignments: assignments ?? [],
-    };
+        ...layoutData,
+        user
+    }
 };

@@ -5,7 +5,7 @@ import { getNearCompetitions, getLastUserResults } from "$lib/database/db_compet
 export const load: PageServerLoad = async ({ parent }) => {
 	// Wait for layout data to avoid Prisma connection pool contention
 	const { user } = await parent();
-
+	console.log("Dashboard load: user from parent layout is ", user);
 	if (!user) {
 		return {
 			props: {

@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { PageData } from "./$types";
-    import type { RoleAssignment } from "@prisma/client";
+    import type { RoleAssignment } from '$lib/.prisma/generated/prisma/browser';
     import { authClient } from "$lib/auth_client";
     import { goto } from "$app/navigation";
     import UserCard from "$lib/components/UserCard.svelte";
@@ -11,10 +11,8 @@
     let { data }: { data: PageData } = $props();
 
     // user and account come from page load (includes DB fields like country, postalCode)
-    // roleAssignments comes from layout
     const user = $derived(data.user);
     const account = $derived(data.account);
-    const roleAssignments = $derived(data.roleAssignments);
     // Handle logout
     async function signOut() {
         await authClient.signOut({
@@ -30,9 +28,9 @@
 <GenericTitle text={$t('profile.my_profile')} />
 <div class="container">
     <div class="space-y-6">
-        <UserCard {user} {roleAssignments} {account}/>
+        <UserCard {user} {account}/>
         <div class="flex justify-start gap-4">
-            {#if !roleAssignments?.some((role: RoleAssignment) => role.role === "ORGANIZER")}
+            {#if !user.roleAssignments?.some((role: RoleAssignment) => role.role === "ORGANIZER")}
                 <button
                     type="button"
                     class="btn preset-filled-primary-500"

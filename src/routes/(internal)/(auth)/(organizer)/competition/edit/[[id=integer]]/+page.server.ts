@@ -1,4 +1,4 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import type { Action, Actions, PageServerLoad } from '../$types';
 import { updateCompetition, getCompetitionWithCategories } from '$lib/database/database';
 import { CategoryType, CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
@@ -83,7 +83,7 @@ export const load: PageServerLoad = async (event) => {
         // Get the current session
         const session = await auth.api.getSession(event.request);
         if (!session?.user) {
-            throw new Error('User not authenticated');
+            throw error(401, { message: 'You need to be signed in to edit competitions.', code: 'AUTH_REQUIRED' });
         }
 
         let competition = null;
@@ -92,7 +92,7 @@ export const load: PageServerLoad = async (event) => {
             competition = await getCompetitionWithCategories(competitionId);
 
             if (!competition || isNaN(competitionId) || competitionId === undefined) {
-                throw new Error(`Invalid competition id or competition ${competitionId} not found`);
+                throw error(404, { message: `Competition not found.`, code: 'NOT_FOUND' });
             }
 
             if (competition.status !== CompetitionStatus.NOT_STARTED) {
@@ -112,7 +112,7 @@ export const load: PageServerLoad = async (event) => {
             // Check if the user is the creator of the competition
             if (competition.creatorId !== session.user.id) {
                 console.error("competition/edit/+page.server.ts creatorId:", competition.creatorId, "!= session.user.id:", session.user.id);
-                throw new Error('Not authorized to edit this competition');
+                throw error(403, { message: 'You are not authorized to edit this competition.', code: 'FORBIDDEN' });
             }
 
             // Convert Date objects to ISO strings for the form
@@ -139,9 +139,10 @@ export const load: PageServerLoad = async (event) => {
             }
         };
 
-    } catch (error) {
-        console.error('Error loading competition for edit:', error);
-        return fail(404, { error_message: error instanceof Error ? error.message : "Competition not found" });
+    } catch (err) {
+        if (err && typeof err === 'object' && 'status' in err) throw err;
+        console.error('Error loading competition for edit:', err);
+        throw error(500, { message: 'Unable to load competition. Please try again later.', code: 'DB_ERROR' });
     }
 }
 

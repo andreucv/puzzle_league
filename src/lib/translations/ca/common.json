@@ -237,7 +237,20 @@
     "title": "Sol·licita Permisos"
   },
   "error_pages": {
-    "access_denied": "Accés Denegat"
+    "access_denied": "Accés Denegat",
+    "sign_in_required": "Cal Iniciar Sessió",
+    "not_found": "Pàgina No Trobada",
+    "something_wrong": "Alguna Cosa Ha Anat Malament",
+    "error": "Error",
+    "sign_in_message": "Has d'iniciar sessió per accedir a aquesta pàgina.",
+    "access_denied_message": "No tens permís per accedir a aquesta pàgina.",
+    "not_found_message": "La pàgina que busques no existeix o s'ha mogut.",
+    "something_wrong_message": "S'ha produït un error inesperat. Torna-ho a provar més tard.",
+    "generic_message": "Ha passat quelcom inesperat.",
+    "sign_in": "Inicia Sessió",
+    "go_back": "Torna Enrere",
+    "go_home": "Anar a l'Inici",
+    "try_again": "Torna-ho a Provar"
   },
   "auth": {
     "login_title": "Inicia sessió al teu compte",

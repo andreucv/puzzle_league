@@ -1,36 +1,41 @@
 import type { PageServerLoad, Actions } from './$types';
 import { prisma } from '$lib/database/database';
-import { fail } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals }) => {
     if (!locals.user) {
         return { user: null, account: null };
     }
 
-    const user = await prisma.user.findUnique({
-        where: { id: locals.user.id },
-        select: {
-            id: true,
-            name: true,
-            email: true,
-            emailVerified: true,
-            image: true,
-            country: true,
-            postalCode: true,
-            createdAt: true,
-            updatedAt: true
-        }
-    });
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: locals.user.id },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                emailVerified: true,
+                image: true,
+                country: true,
+                postalCode: true,
+                createdAt: true,
+                updatedAt: true
+            }
+        });
 
-    const account = await prisma.account.findFirst({
-        where: { userId: locals.user.id },
-        select: { providerId: true }
-    });
+        const account = await prisma.account.findFirst({
+            where: { userId: locals.user.id },
+            select: { providerId: true }
+        });
 
-    return {
-        user,
-        account: account ? { provider: account.providerId } : { provider: 'credential' }
-    };
+        return {
+            user,
+            account: account ? { provider: account.providerId } : { provider: 'credential' }
+        };
+    } catch (err) {
+        console.error('Error loading profile:', err);
+        throw error(500, { message: 'Unable to load your profile. Please try again later.', code: 'DB_ERROR' });
+    }
 };
 
 export const actions: Actions = {
@@ -51,9 +56,9 @@ export const actions: Actions = {
             });
 
             return { success: true };
-        } catch (error) {
-            console.error('Error updating location:', error);
-            return fail(500, { message: 'Failed to update location' });
+        } catch (err) {
+            console.error('Error updating location:', err);
+            return fail(500, { message: 'Unable to save your location. Please try again.' });
         }
     }
 };

@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({ request }) => {
         };
     } catch (err) {
         console.error('Error loading pending requests:', err);
-        throw error(500, 'Failed to load requests');
+        throw error(500, { message: 'Unable to load permission requests. Please try again later.', code: 'DB_ERROR' });
     }
 };
 
@@ -48,7 +48,7 @@ export const actions: Actions = {
             return { success: true, message: 'Request approved successfully' };
         } catch (err) {
             console.error('Error accepting request:', err);
-            return fail(500, { error: 'Failed to approve request' });
+            return fail(500, { error: 'Unable to approve this request. Please try again.' });
         }
     },
 
@@ -82,7 +82,7 @@ export const actions: Actions = {
             return { success: true, message: 'Request rejected successfully' };
         } catch (err) {
             console.error('Error rejecting request:', err);
-            return fail(500, { error: 'Failed to reject request' });
+            return fail(500, { error: 'Unable to reject this request. Please try again.' });
         }
     }
 };

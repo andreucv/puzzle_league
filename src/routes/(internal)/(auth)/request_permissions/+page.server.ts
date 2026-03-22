@@ -2,7 +2,7 @@ import { auth } from "$lib/auth";
 import type { PageServerLoad } from "./$types";
 import { prisma, createRequest, getRequestsByUserId } from '$lib/database/database';
 import { Role } from '$lib/.prisma/generated/prisma/enums';
-import { fail } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
 
 export const load: PageServerLoad = async ({ request }) => {
@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ request }) => {
     const filteredRoles = rolesAvailable.filter(role => role !== Role.ADMIN && role !== Role.PARTICIPANT);
 
     if (!session?.user) {
-        return fail(401, { error: 'User not authenticated' });
+        throw error(401, { message: 'You need to be signed in to request permissions.', code: 'AUTH_REQUIRED' });
     }
 
     const requests = await getRequestsByUserId(session.user.id);
@@ -60,7 +60,7 @@ export const actions: Actions = {
         } catch (error) {
             console.error('Error processing request:', error);
             return fail(500, {
-                error: 'Failed to create request'
+                error: 'Unable to submit your request. Please try again later.'
             });
         }
     }

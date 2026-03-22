@@ -1,5 +1,5 @@
 import type { LayoutServerLoad } from "./$types";
-import { redirect } from "@sveltejs/kit";
+import { error, redirect } from "@sveltejs/kit";
 import { auth } from "$lib/auth";
 import { getRoleAssignments } from "$lib/database/database";
 import { Role } from '$lib/.prisma/generated/prisma/enums';
@@ -16,8 +16,9 @@ export const load: LayoutServerLoad = async ({ request }) => {
         session = await auth.api.getSession({
             headers: request.headers,
         });
-    } catch (error) {
-        console.error('(organizer) Error fetching session:', error);
+    } catch (err) {
+        console.error('(organizer) Error fetching session:', err);
+        throw error(500, { message: 'Unable to verify your session. Please try again.', code: 'AUTH_REQUIRED' });
     }
 
   /**

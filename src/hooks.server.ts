@@ -7,6 +7,7 @@ import { isPublicApiRoute } from "$lib/api_utils/api_whitelist";
 import { validateOrigin } from "$lib/api_utils/api_csrf";
 import { apiRateLimiter, searchRateLimiter, isSearchEndpoint } from "$lib/api_utils/rate-limit";
 import { enforceRouteGuard } from "$lib/api_utils/api_route_guards";
+import type { HandleServerError } from "@sveltejs/kit";
 
 // Track users who have been checked for claim redirect within this server lifecycle
 const checkedUsers = new Set<string>();
@@ -94,3 +95,24 @@ export async function handle({ event, resolve }) {
 
 	return svelteKitHandler({ event, resolve, auth, building });
 }
+
+export const handleError: HandleServerError = async ({ error, event, status, message }) => {
+	console.error(`[${event.route.id}] Unhandled error (${status}):`, error);
+
+	// Map known error types to error codes
+	let code: App.Error['code'] = 'UNKNOWN';
+	if (error instanceof Error) {
+		const name = error.constructor.name;
+		if (name.includes('Prisma') || name.includes('Database')) {
+			code = 'DB_ERROR';
+		}
+	}
+	if (status === 401) code = 'AUTH_REQUIRED';
+	if (status === 403) code = 'FORBIDDEN';
+	if (status === 404) code = 'NOT_FOUND';
+
+	return {
+		message: message || 'An unexpected error occurred.',
+		code,
+	};
+};

@@ -19,7 +19,7 @@ export const POST = async (event: RequestEvent) => {
 		});
 
 		if (!result.success) {
-			return json({ error: result.message }, { status: 500 });
+			return json({ error: result.message }, { status: 400 });
 		}
 
 		return json({ id: competitionId, registrationOpen: result.data?.competition?.registrationOpen });

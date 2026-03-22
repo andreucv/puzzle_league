@@ -236,7 +236,20 @@
     "title": "Solicitar Permisos"
   },
   "error_pages": {
-    "access_denied": "Acceso Denegado"
+    "access_denied": "Acceso Denegado",
+    "sign_in_required": "Inicio de Sesión Requerido",
+    "not_found": "Página No Encontrada",
+    "something_wrong": "Algo Salió Mal",
+    "error": "Error",
+    "sign_in_message": "Necesitas iniciar sesión para acceder a esta página.",
+    "access_denied_message": "No tienes permiso para acceder a esta página.",
+    "not_found_message": "La página que buscas no existe o ha sido movida.",
+    "something_wrong_message": "Ha ocurrido un error inesperado. Inténtalo de nuevo más tarde.",
+    "generic_message": "Ha ocurrido algo inesperado.",
+    "sign_in": "Iniciar Sesión",
+    "go_back": "Volver",
+    "go_home": "Ir al Inicio",
+    "try_again": "Intentar de Nuevo"
   },
   "auth": {
     "login_title": "Inicia sesión en tu cuenta",

@@ -1,4 +1,4 @@
-import { fail } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { getPuzzleById, createPuzzle, updatePuzzle, deletePuzzle } from '$lib/database/database';
 import { auth } from '$lib/auth';
@@ -31,14 +31,14 @@ type PuzzleEditData = z.infer<typeof PuzzleEditSchema>;
 export const load: PageServerLoad = async (event) => {
     const session = await auth.api.getSession(event.request);
     if (!session?.user) {
-        throw fail(401, { error_message: 'User not authenticated' });
+        throw error(401, { message: 'You need to be signed in to edit puzzles.', code: 'AUTH_REQUIRED' });
     }
 
     let puzzleData = null;
     if (event.params.id) {
         const puzzle = await getPuzzleById(event.params.id);
         if (!puzzle) {
-            throw fail(404, { error_message: 'Puzzle not found' });
+            throw error(404, { message: 'Puzzle not found.', code: 'NOT_FOUND' });
         }
         puzzleData = puzzle;
     }

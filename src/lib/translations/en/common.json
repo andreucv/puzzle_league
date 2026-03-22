@@ -283,7 +283,20 @@
     "title": "Request Permissions"
   },
   "error_pages": {
-    "access_denied": "Access Denied"
+    "access_denied": "Access Denied",
+    "sign_in_required": "Sign In Required",
+    "not_found": "Page Not Found",
+    "something_wrong": "Something Went Wrong",
+    "error": "Error",
+    "sign_in_message": "You need to be signed in to access this page.",
+    "access_denied_message": "You don't have permission to access this page.",
+    "not_found_message": "The page you're looking for doesn't exist or has been moved.",
+    "something_wrong_message": "An unexpected error occurred. Please try again later.",
+    "generic_message": "Something unexpected happened.",
+    "sign_in": "Sign In",
+    "go_back": "Go Back",
+    "go_home": "Go Home",
+    "try_again": "Try Again"
   },
   "auth": {
     "login_title": "Log in to your account",

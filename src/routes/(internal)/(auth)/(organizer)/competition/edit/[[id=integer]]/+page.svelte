@@ -7,7 +7,7 @@
     import { CalendarDate, today, getLocalTimeZone, Time, fromDate, parseAbsolute, toCalendarDateTime} from "@internationalized/date";
     import { getCategoryTypeName, getPartySizeByCategoryType } from "$lib/utils/category_utils.js";
     import { validateCompetitionForm } from "$lib/utils/competition_form_validation";
-    import type { CategoryType } from '@prisma/client';
+    import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
     import { FileUpload, Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
     import { CldImage } from 'svelte-cloudinary';
     import { countries, getCountryFlag } from '$lib/utils/country_utils';

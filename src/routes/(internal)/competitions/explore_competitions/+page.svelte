@@ -133,7 +133,7 @@
                 <span class="text-surface-500"> of {totalCount}</span>
             {/if}
         </span>
-        {#if user.roleAssignments?.some((role: RoleAssignment) => role.role === 'ORGANIZER')}
+        {#if user?.roleAssignments?.some((role: RoleAssignment) => role.role === 'ORGANIZER')}
             <a class="btn btn-sm preset-filled-primary-500" href="/competition/edit">
                 <PlusIcon width="1rem" height="1rem" class="mr-1" />
                 {$t('competitions.create_competition')}

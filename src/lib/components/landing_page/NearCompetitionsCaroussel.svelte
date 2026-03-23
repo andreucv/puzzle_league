@@ -3,7 +3,7 @@
     import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
     import { Carousel } from '@skeletonlabs/skeleton-svelte';
     import { CldImage } from 'svelte-cloudinary';
-    import Icon from '@iconify/svelte';
+    import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import { getCategoryTypeName, getCategoryTypeIcon } from '$lib/utils/category_utils';
     import CalendarIcon from '@iconify-svelte/mdi/calendar';
     import MapMarkerIcon from '@iconify-svelte/mdi/map-marker';
@@ -75,7 +75,7 @@
                                     />
                                 {:else}
                                     <div class="w-full h-full bg-linear-to-br from-primary-200 via-primary-300 to-primary-500 dark:from-primary-800 dark:via-primary-700 dark:to-primary-900 flex items-center justify-center">
-                                        <Icon icon="mdi:puzzle" class="w-20 h-20 text-white/30" />
+                                        <PuzzleOutlineIcon class="w-20 h-20 text-white/30" />
                                     </div>
                                 {/if}
 

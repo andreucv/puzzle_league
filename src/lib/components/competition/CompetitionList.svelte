@@ -3,6 +3,7 @@
     import type { Competition } from "@prisma/client";
     import ButtonLink from "$lib/components/landing_page/ButtonLink.svelte";
     import { t } from '$lib/translations';
+    import CalendarIcon from '@iconify-svelte/mdi/calendar';
 
     interface Props {
         competitions: Competition[];
@@ -27,5 +28,5 @@
     <ButtonLink href="/competitions/explore_competitions"
             title={$t('landing_page.explore_title')}
             subtitle={$t('landing_page.explore_subtitle')}
-            icon="mdi:calendar" />
+            icon={CalendarIcon} />
 </div>

@@ -2,7 +2,16 @@
     import { t } from '$lib/translations';
     import { formatElapsedTime } from '$lib/utils/category_utils';
     import Card from '$lib/components/common/card/Card.svelte';
-    import Icon from '@iconify/svelte';
+    import CloseCircleOutlineIcon from '@iconify-svelte/mdi/close-circle-outline';
+    import TrophyIcon from '@iconify-svelte/mdi/trophy';
+    import MedalIcon from '@iconify-svelte/mdi/medal';
+    import Numeric4CircleOutlineIcon from '@iconify-svelte/mdi/numeric-4-circle-outline';
+    import Numeric5CircleOutlineIcon from '@iconify-svelte/mdi/numeric-5-circle-outline';
+    import Numeric6CircleOutlineIcon from '@iconify-svelte/mdi/numeric-6-circle-outline';
+    import Numeric7CircleOutlineIcon from '@iconify-svelte/mdi/numeric-7-circle-outline';
+    import Numeric8CircleOutlineIcon from '@iconify-svelte/mdi/numeric-8-circle-outline';
+    import Numeric9CircleOutlineIcon from '@iconify-svelte/mdi/numeric-9-circle-outline';
+    import AccountGroupOutlineIcon from '@iconify-svelte/mdi/account-group-outline';
 
     interface ResultUser {
         id: string;
@@ -52,12 +61,21 @@
 
     let { results, currentUserId }: Props = $props();
 
-    function getPositionIcon(position: number | null): { icon: string; color: string } {
-        if (position === null) return { icon: 'mdi:close-circle-outline', color: 'text-surface-400' };
-        if (position === 1) return { icon: 'mdi:trophy', color: 'text-yellow-500' };
-        if (position === 2) return { icon: 'mdi:medal', color: 'text-gray-400' };
-        if (position === 3) return { icon: 'mdi:medal', color: 'text-amber-700' };
-        return { icon: 'mdi:numeric-' + Math.min(position, 9) + '-circle-outline', color: 'text-surface-500' };
+    const numericIcons: Record<number, any> = {
+        4: Numeric4CircleOutlineIcon,
+        5: Numeric5CircleOutlineIcon,
+        6: Numeric6CircleOutlineIcon,
+        7: Numeric7CircleOutlineIcon,
+        8: Numeric8CircleOutlineIcon,
+        9: Numeric9CircleOutlineIcon,
+    };
+
+    function getPositionIcon(position: number | null): { icon: any; color: string } {
+        if (position === null) return { icon: CloseCircleOutlineIcon, color: 'text-surface-400' };
+        if (position === 1) return { icon: TrophyIcon, color: 'text-yellow-500' };
+        if (position === 2) return { icon: MedalIcon, color: 'text-gray-400' };
+        if (position === 3) return { icon: MedalIcon, color: 'text-amber-700' };
+        return { icon: numericIcons[Math.min(position, 9)] ?? Numeric9CircleOutlineIcon, color: 'text-surface-500' };
     }
 
     function getElapsedTime(result: UserResult): string {
@@ -98,6 +116,7 @@
 <div class="space-y-3">
     {#each results as result (result.id)}
         {@const posInfo = getPositionIcon(result.position)}
+        {@const PosIcon = posInfo.icon}
         {@const teammates = getTeammates(result)}
         {@const puzzleInfo = getPuzzleInfo(result)}
 
@@ -106,7 +125,7 @@
                 <div class="flex items-start gap-3">
                     <!-- Position badge -->
                     <div class="shrink-0 flex flex-col items-center justify-center w-12">
-                        <Icon icon={posInfo.icon} class="w-7 h-7 {posInfo.color}" />
+                        <PosIcon class="w-7 h-7 {posInfo.color}" />
                         {#if result.position}
                             <span class="text-xs font-bold {posInfo.color}">
                                 {result.position}/{result.totalFinished}
@@ -139,7 +158,7 @@
 
                         {#if teammates.length > 0}
                             <div class="flex flex-wrap items-center gap-1 pt-0.5">
-                                <Icon icon="mdi:account-group-outline" class="w-4 h-4 text-surface-400" />
+                                <AccountGroupOutlineIcon class="w-4 h-4 text-surface-400" />
                                 {#each teammates as name (name)}
                                     <span class="badge preset-filled-surface-200-800 text-xs px-1.5 py-0.5">{name}</span>
                                 {/each}

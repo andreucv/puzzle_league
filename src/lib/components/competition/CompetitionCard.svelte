@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { Competition } from "@prisma/client";
     import { CldImage } from 'svelte-cloudinary';
-    import Icon from '@iconify/svelte';
+    import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import { getCategoryTypeName } from "$lib/utils/category_utils";
     import MapMarkerRadiusIcon from '@iconify-svelte/mdi/map-marker-radius';
     import AccountIcon from '@iconify-svelte/mdi/account';
@@ -132,7 +132,7 @@
                     />
                 {:else}
                     <div class="w-full h-full flex items-center justify-center bg-surface-100 dark:bg-surface-800">
-                        <Icon icon="mdi:puzzle" class="w-12 h-12 text-surface-400 dark:text-surface-600" />
+                        <PuzzleOutlineIcon class="w-12 h-12 text-surface-400 dark:text-surface-600" />
                     </div>
                 {/if}
             </div>

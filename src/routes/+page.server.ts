@@ -3,9 +3,7 @@ import { getUpcomingRegisteredCompetitions, getParticipatedCompetitions } from "
 import { getNearCompetitions, getLastUserResults } from "$lib/database/db_competition_utils";
 
 export const load: PageServerLoad = async ({ parent }) => {
-	// Wait for layout data to avoid Prisma connection pool contention
 	const { user } = await parent();
-	console.log("Dashboard load: user from parent layout is ", user);
 	if (!user) {
 		return {
 			props: {
@@ -17,7 +15,6 @@ export const load: PageServerLoad = async ({ parent }) => {
 		};
 	}
 
-	console.log("Loading dashboard data for user ", user.id, " with country ", user.country, " and postal code ", user.postalCode);
 	const [upcomingRegisteredCompetitions, participatedCompetitions, nearCompetitions, lastResults] = await Promise.all([
 		getUpcomingRegisteredCompetitions(user.id),
 		getParticipatedCompetitions(user.id),

@@ -6,6 +6,7 @@
     import LastResultsList from '$lib/components/landing_page/LastResultsList.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import { afterNavigate, invalidateAll } from '$app/navigation';
+    import CalendarIcon from '@iconify-svelte/mdi/calendar';
 
     let { data } = $props();
     console.log('routes/+page.svelte data: ', data);
@@ -65,7 +66,7 @@
                 <ButtonLink href="/competitions/explore_competitions"
                         title={$t('landing_page.explore_title')}
                         subtitle={$t('landing_page.explore_subtitle')}
-                        icon="mdi:calendar" />
+                        icon={CalendarIcon} />
             {:else}
                 <GenericTitle text={$t('landing_page.your_upcoming_competitions')} />
                 <CompetitionList competitions={data.props.upcomingRegisteredCompetitions} n_show=2 currentUsedId={data.user.id} />
@@ -113,7 +114,7 @@
             <ButtonLink href="/competitions/explore_competitions"
                         title={$t('landing_page.explore_title')}
                         subtitle={$t('landing_page.explore_subtitle')}
-                        icon="mdi:calendar" />
+                        icon={CalendarIcon} />
         </div>
         <section class="pt-12 px-4 bg-surface-100-800-token" bind:this={featuresRef}>
             <div class="container mx-auto">

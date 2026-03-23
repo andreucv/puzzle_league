@@ -1,5 +1,4 @@
 <script lang="ts">
-    import Icon from '@iconify/svelte';
     import { getCompetitionStatusLabel } from '$lib/utils/competition_utils';
     import { getCountryFlag, getCountryNameFromCode } from '$lib/utils/country_utils';
     import CategoriesOverview from '$lib/components/competition/CategoriesOverview.svelte';
@@ -15,6 +14,14 @@
     import EarthIcon from '@iconify-svelte/mdi/earth';
     import CalendarClockIcon from '@iconify-svelte/mdi/calendar-clock';
     import CreditCardOutlineIcon from '@iconify-svelte/mdi/credit-card-outline';
+    import CancelIcon from '@iconify-svelte/mdi/cancel';
+    import AlertIcon from '@iconify-svelte/mdi/alert';
+    import LoadingIcon from '@iconify-svelte/mdi/loading';
+    import AccountPlusIcon from '@iconify-svelte/mdi/account-plus';
+    import TimerPlayIcon from '@iconify-svelte/mdi/timer-play';
+    import PencilIcon from '@iconify-svelte/mdi/pencil';
+    import ClipboardCheckOutlineIcon from '@iconify-svelte/mdi/clipboard-check-outline';
+    import ArrowLeftIcon from '@iconify-svelte/mdi/arrow-left';
 
     let { data } = $props();
 
@@ -130,6 +137,7 @@
                     alt={competitionName}
                     crop="fill"
                     gravity="auto"
+                    loading="lazy"
                     class="rounded-lg shadow-lg w-full object-cover max-h-96"
                 />
         </div>
@@ -143,15 +151,15 @@
 
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <EndPageActionButton icon="mdi:account-plus" href="/competitions/competition_details/{competition?.id}/inscription" colorClass="preset-filled-success-500" disabled={!(currentUser && competition?.registrationOpen)} text={$t('competition_details.manage_inscription')} testId="signup-button" />
+            <EndPageActionButton icon={AccountPlusIcon} href="/competitions/competition_details/{competition?.id}/inscription" colorClass="preset-filled-success-500" disabled={!(currentUser && competition?.registrationOpen)} text={$t('competition_details.manage_inscription')} testId="signup-button" />
             {#if canAccessDuringCompetition}
-                <EndPageActionButton icon="mdi:timer-play" href="/competition/{competition?.id}/during_competition" text={$t('during_competition.title')} />
+                <EndPageActionButton icon={TimerPlayIcon} href="/competition/{competition?.id}/during_competition" text={$t('during_competition.title')} />
             {/if}
             {#if isOrganizer}
-                <EndPageActionButton icon="mdi:pencil" href="/competition/edit/{competition?.id}" text={$t('competition_details.edit_button')} />
-                <EndPageActionButton icon="mdi:clipboard-check-outline" href="/competition/{competition?.id}/manage_inscriptions" text={$t('manage_inscriptions.title')} testId="manage-inscriptions-button" />
+                <EndPageActionButton icon={PencilIcon} href="/competition/edit/{competition?.id}" text={$t('competition_details.edit_button')} />
+                <EndPageActionButton icon={ClipboardCheckOutlineIcon} href="/competition/{competition?.id}/manage_inscriptions" text={$t('manage_inscriptions.title')} testId="manage-inscriptions-button" />
             {/if}
-            <EndPageActionButton icon="mdi:arrow-left" href="/competitions/explore_competitions/" colorClass="preset-tonal" text={$t('competition_details.back_to_competitions_button')} />
+            <EndPageActionButton icon={ArrowLeftIcon} href="/competitions/explore_competitions/" colorClass="preset-tonal" text={$t('competition_details.back_to_competitions_button')} />
         </div>
 
         <!-- Cancel Competition Button -->
@@ -161,7 +169,7 @@
                     class="btn preset-filled-error-500"
                     onclick={() => showCancelDialog = true}
                 >
-                    <Icon icon="mdi:cancel" width="1.2rem" height="1.2rem" />
+                    <CancelIcon width="1.2rem" height="1.2rem" />
                     {$t('during_competition.cancel_competition')}
                 </button>
             </div>
@@ -182,7 +190,7 @@
             onclick={(e) => e.stopPropagation()}
         >
             <h3 class="h3 flex items-center gap-2">
-                <Icon icon="mdi:alert" class="text-error-500" width="1.5rem" />
+                <AlertIcon class="text-error-500" width="1.5rem" height="1.5rem" />
                 {$t('during_competition.cancel_competition_confirm_title')}
             </h3>
 
@@ -204,7 +212,7 @@
                     disabled={isCancelling}
                 >
                     {#if isCancelling}
-                        <Icon icon="mdi:loading" class="animate-spin" width="1rem" />
+                        <LoadingIcon class="animate-spin" width="1rem" height="1rem" />
                     {/if}
                     {$t('during_competition.cancel_competition_confirm')}
                 </button>

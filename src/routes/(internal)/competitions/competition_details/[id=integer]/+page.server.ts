@@ -1,49 +1,41 @@
 import type { PageServerLoad, Actions } from "./$types";
 import { getCompetitionWithCategories, getCompetitionCategories} from "$lib/database/database";
 import { getCategoryEntriesFromCompetition, removeUserFromCategory } from "$lib/database/db_inscription_utils";
-import { auth } from "$lib/auth";
 import { getDuringCompetitionAccess } from "$lib/database/db_competition_utils";
 
 
 export const load: PageServerLoad = async ( event ) => {
     const competition_id = event.url.pathname.split('/')[3];
-    const competition_and_categories = await getCompetitionWithCategories(parseInt(competition_id));
+    const competitionId = parseInt(competition_id);
+    const competition_and_categories = await getCompetitionWithCategories(competitionId);
 
-    let records = undefined;
-    let session = undefined;
-    try {
-        session = await auth.api.getSession(event.request);
-    } catch (e) {
-        console.log(`competitions/competition_details/id=${competition_id} error while getting session`, e);
-    }
+    // Use session from hooks (event.locals) instead of calling auth.api.getSession() again
+    const user = event.locals.user;
 
-    if (session != undefined && session?.user && competition_and_categories) {
-        const user_id = session.user.id;
-        records = await getCategoryEntriesFromCompetition(parseInt(competition_id), user_id);
-    }
+    // Run independent queries in parallel
+    const [records, categoriesWithCounts, access] = await Promise.all([
+        // User records (only if authenticated and competition exists)
+        (user && competition_and_categories)
+            ? getCategoryEntriesFromCompetition(competitionId, user.id)
+            : Promise.resolve(undefined),
+        // Category counts (always if competition exists)
+        competition_and_categories
+            ? getCompetitionCategories(competitionId)
+            : Promise.resolve(undefined),
+        // Organizer/judge access (only if authenticated)
+        user
+            ? getDuringCompetitionAccess(competitionId, user.id)
+            : Promise.resolve({ isOrganizer: false, isJudge: false, judgedCategoryIds: [] }),
+    ]);
 
-    // Load categories with record counts for all authenticated users
-    let categoriesWithCounts = undefined;
-    if (competition_and_categories) {
-        categoriesWithCounts = await getCompetitionCategories(parseInt(competition_id));
-    }
-
-    let isJudge = false;
-    let isOrganizer = false;
-    if (session?.user) {
-        ({ isOrganizer, isJudge } = await getDuringCompetitionAccess(parseInt(competition_id), session.user.id));
-    }
-
-    const competition_image_url = undefined; //await cloudinary.url(competition_and_categories.image);
     return {
         props:
         {
             competition_and_categories,
             records,
-            competition_image_url,
             categoriesWithCounts,
-            isJudge,
-            isOrganizer,
+            isJudge: access.isJudge,
+            isOrganizer: access.isOrganizer,
         }
     }
 }
@@ -90,12 +82,11 @@ export const actions: Actions = {
         }
     },
 
-    save_entries: async ({ request }) => {
+    save_entries: async ({ request, locals }) => {
         try {
-            // Get the current user session
-            const session = await auth.api.getSession(request);
+            const user = locals.user;
 
-            if (!session?.user) {
+            if (!user) {
                 return {
                     success: false,
                     message: 'You must be logged in to create entries'

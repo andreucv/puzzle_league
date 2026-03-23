@@ -274,42 +274,51 @@ export async function getCompetitionCategories(
     competitionId: number
 ): Promise<Array<Category & { totalRecords: number; finishedRecords: number; pendingRecords: number; acceptedRecords: number }>> {
     try {
-        // Fetch categories with total records count
-        const categories = await prisma.category.findMany({
-            where: { competitionId },
-            orderBy: { startTime: 'asc' }
-        });
-
-        // Count records in category by status
-        const enriched = await Promise.all(
-            categories.map(async (category) => {
-                const categoryId = category.id;
-                const [totalRecords, finishedRecords, pendingRecords, acceptedRecords] = await Promise.all([
-                    prisma.record.count({
-                        where: { categoryId, status: InscriptionStatus.ACCEPTED }
-                    }),
-                    prisma.record.count({
-                        where: { categoryId, finishTime: { not: null }, status: InscriptionStatus.ACCEPTED }
-                    }),
-                    prisma.record.count({
-                        where: { categoryId, status: InscriptionStatus.PENDING }
-                    }),
-                    prisma.record.count({
-                        where: { categoryId, status: InscriptionStatus.ACCEPTED }
-                    })
-                ]);
-
-                return {
-                    ...(category as unknown as Category),
-                    totalRecords,
-                    finishedRecords,
-                    pendingRecords,
-                    acceptedRecords
-                };
+        // Fetch categories and all record counts in parallel (2 queries instead of 4N+1)
+        const [categories, statusCounts, finishedCounts] = await Promise.all([
+            prisma.category.findMany({
+                where: { competitionId },
+                orderBy: { startTime: 'asc' }
+            }),
+            // Group record counts by categoryId and status in a single query
+            prisma.record.groupBy({
+                by: ['categoryId', 'status'],
+                _count: true,
+                where: { category: { competitionId } }
+            }),
+            // Count finished (accepted + has finishTime) per category
+            prisma.record.groupBy({
+                by: ['categoryId'],
+                _count: true,
+                where: {
+                    category: { competitionId },
+                    status: InscriptionStatus.ACCEPTED,
+                    finishTime: { not: null }
+                }
             })
-        );
+        ]);
 
-        return enriched;
+        // Build lookup maps for O(1) access
+        const finishedMap = new Map(finishedCounts.map(r => [r.categoryId, r._count]));
+
+        const statusMap = new Map<number, { accepted: number; pending: number }>();
+        for (const row of statusCounts) {
+            const entry = statusMap.get(row.categoryId) ?? { accepted: 0, pending: 0 };
+            if (row.status === InscriptionStatus.ACCEPTED) entry.accepted = row._count;
+            if (row.status === InscriptionStatus.PENDING) entry.pending = row._count;
+            statusMap.set(row.categoryId, entry);
+        }
+
+        return categories.map((category) => {
+            const counts = statusMap.get(category.id) ?? { accepted: 0, pending: 0 };
+            return {
+                ...(category as unknown as Category),
+                totalRecords: counts.accepted,
+                finishedRecords: finishedMap.get(category.id) ?? 0,
+                pendingRecords: counts.pending,
+                acceptedRecords: counts.accepted,
+            };
+        });
     } catch (error) {
         console.error('Error getting competition categories:', error);
         throw error;

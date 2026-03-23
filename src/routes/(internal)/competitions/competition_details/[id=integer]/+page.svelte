@@ -2,7 +2,7 @@
     import { getCompetitionStatusLabel } from '$lib/utils/competition_utils';
     import { getCountryFlag, getCountryNameFromCode } from '$lib/utils/country_utils';
     import CategoriesOverview from '$lib/components/competition/CategoriesOverview.svelte';
-    import { Avatar } from '@skeletonlabs/skeleton-svelte';
+    import { Avatar, Dialog, Portal } from '@skeletonlabs/skeleton-svelte';
 
     import { CldImage } from 'svelte-cloudinary';
     import { t } from '$lib/translations';
@@ -22,6 +22,7 @@
     import PencilIcon from '@iconify-svelte/mdi/pencil';
     import ClipboardCheckOutlineIcon from '@iconify-svelte/mdi/clipboard-check-outline';
     import ArrowLeftIcon from '@iconify-svelte/mdi/arrow-left';
+    import CloseIcon from '@iconify-svelte/mdi/close';
 
     let { data } = $props();
 
@@ -51,6 +52,7 @@
     // Cancel competition dialog state
     let showCancelDialog = $state(false);
     let isCancelling = $state(false);
+    let showImageDialog = $state(false);
 
     async function handleCancelCompetition() {
         isCancelling = true;
@@ -129,8 +131,13 @@
             {/if}
         </div>
         {#if competition?.image_cld_id}
-        <div class="w-full">
-            <CldImage
+            <button
+                type="button"
+                class="w-full block cursor-zoom-in bg-transparent border-0 p-0 text-left"
+                onclick={() => showImageDialog = true}
+                aria-label={`Open image for ${competitionName}`}
+            >
+                <CldImage
                     src={competition.image_cld_id}
                     width="800"
                     height="400"
@@ -140,7 +147,7 @@
                     loading="lazy"
                     class="rounded-lg shadow-lg w-full object-cover max-h-96"
                 />
-        </div>
+            </button>
         {/if}
 
 
@@ -176,6 +183,35 @@
         {/if}
     </div>
 </div>
+
+{#if competition?.image_cld_id}
+    <Dialog open={showImageDialog} onOpenChange={(e) => showImageDialog = e.open}>
+        <Portal>
+            <Dialog.Backdrop class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm" />
+            <Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-1 sm:p-2">
+                <Dialog.Content class="relative flex items-center justify-center max-w-[98vw] max-h-[98vh] bg-transparent p-0 border-0 shadow-none outline-none overflow-visible">
+                    <Dialog.CloseTrigger
+                        class="btn-icon preset-tonal absolute top-2 right-2 z-10 bg-surface-100/90 dark:bg-surface-900/90"
+                        aria-label="Close image preview"
+                    >
+                        <CloseIcon width="1.2rem" height="1.2rem" />
+                    </Dialog.CloseTrigger>
+
+                    <CldImage
+                        src={competition.image_cld_id}
+                        width="auto"
+                        height="auto"
+                        alt={competitionName}
+                        crop="limit"
+                        gravity="auto"
+                        loading="eager"
+                        class="max-w-[98vw] max-h-[95vh] w-auto h-auto object-contain rounded-md"
+                    />
+                </Dialog.Content>
+            </Dialog.Positioner>
+        </Portal>
+    </Dialog>
+{/if}
 
 <!-- Cancel Competition Confirmation Dialog -->
 {#if showCancelDialog}

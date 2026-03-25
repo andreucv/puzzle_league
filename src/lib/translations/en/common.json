@@ -22,7 +22,16 @@
     "no_upcoming_competitions": "Not registered to any competition",
     "no_upcoming_competitions_detail": "Seems you are not registered to any upcoming competition. Look in the calendar and register for any category.",
     "image_alt": "Puzzle image",
-    "your_last_results": "Your last results"
+    "your_last_results": "Your last results",
+    "my_inscriptions": "My Inscriptions",
+    "live_now": "Live Now",
+    "inscription_status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "waitlisted": "Waitlisted",
+      "registration_open": "Registration open",
+      "registration_closed": "Inscription closed"
+    }
   },
   "drawer_menu": {
     "explore_competitions": "Competitions",
@@ -377,7 +386,8 @@
     "winner": "Winner",
     "category_duration": "Category duration",
     "puzzle": "Puzzle",
-    "pieces": "pieces"
+    "pieces": "pieces",
+    "dns": "DNS"
   },
   "category_status": {
     "not_started": "Not Started",

@@ -119,6 +119,16 @@ export async function getUpcomingRegisteredCompetitions(userId: string) {
     }
 }
 
+export async function getStartedRegisteredCompetitions(userId: string) {
+    try {
+        const competitions = await getUserRegisteredCompetitions(userId, CompetitionStatus.STARTED);
+        return competitions;
+    } catch (error) {
+        console.error('Error getting started registered competitions:', error);
+        throw error;
+    }
+}
+
 export async function getParticipatedCompetitions(userId: string) {
     try {
         const competitions = await getUserRegisteredCompetitions(userId, CompetitionStatus.FINISHED);

@@ -227,3 +227,47 @@ export async function getLastUserResults(userId: string, limit: number = 5) {
         };
     });
 }
+
+export async function getUserInscriptionStatuses(userId: string) {
+    const competitions = await prisma.competition.findMany({
+        where: {
+            status: { in: [CompetitionStatus.NOT_STARTED, CompetitionStatus.STARTED] },
+            startDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+            categories: {
+                some: {
+                    records: { some: { users: { some: { id: userId } } } }
+                }
+            }
+        },
+        select: {
+            id: true,
+            name: true,
+            startDate: true,
+            registrationOpen: true,
+            status: true,
+            categories: {
+                orderBy: { startTime: 'asc' },
+                select: {
+                    type: true,
+                    records: {
+                        where: { users: { some: { id: userId } } },
+                        select: { status: true }
+                    }
+                }
+            }
+        },
+        orderBy: { startDate: 'asc' }
+    });
+
+    return competitions.map((competition) => ({
+        id: competition.id,
+        name: competition.name,
+        startDate: competition.startDate,
+        registrationOpen: competition.registrationOpen,
+        status: competition.status,
+        categories: competition.categories.map((category) => ({
+            type: category.type,
+            recordStatus: category.records[0]?.status ?? null
+        }))
+    }));
+}

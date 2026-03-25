@@ -22,7 +22,16 @@
     "no_upcoming_competitions": "No estàs registrat a cap concurs",
     "no_upcoming_competitions_detail": "Sembla que no estàs registrat a cap proper concurs. Mira al calendari i registra't a qualsevol categoria!",
     "image_alt": "Imatge de puzzles",
-    "your_last_results": "Els teus últims resultats"
+    "your_last_results": "Els teus últims resultats",
+    "my_inscriptions": "Les meves Inscripcions",
+    "live_now": "En Directe",
+    "inscription_status": {
+      "pending": "Pendent",
+      "accepted": "Acceptada",
+      "waitlisted": "En espera",
+      "registration_open": "Registre obert",
+      "registration_closed": "Inscripció tancada"
+    }
   },
   "competitions": {
     "upcoming_competitions": "Pròxims Concursos",
@@ -374,7 +383,8 @@
     "winner": "Guanyador/a",
     "category_duration": "Duració de la categoria",
     "puzzle": "Puzzle",
-    "pieces": "peces"
+    "pieces": "peces",
+    "dns": "DNS"
   },
   "category_status": {
     "not_started": "No Iniciada",

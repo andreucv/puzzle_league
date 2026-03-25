@@ -22,7 +22,16 @@
     "no_upcoming_competitions": "No estás registrado a ningún concurso",
     "no_upcoming_competitions_detail": "Parece que no estás registrado a ningun concurso. Mira el calendario y regístrate a cualquier categoría!",
     "image_alt": "Imagen de puzzles",
-    "your_last_results": "Tus últimos resultados"
+    "your_last_results": "Tus últimos resultados",
+    "my_inscriptions": "Mis Inscripciones",
+    "live_now": "En Directo",
+    "inscription_status": {
+      "pending": "Pendiente",
+      "accepted": "Aceptada",
+      "waitlisted": "En espera",
+      "registration_open": "Registro abierto",
+      "registration_closed": "Inscripción cerrada"
+    }
   },
   "competitions": {
     "upcoming_competitions": "Próximos Concursos",
@@ -373,7 +382,8 @@
     "winner": "Ganador/a",
     "category_duration": "Duración de la categoría",
     "puzzle": "Puzzle",
-    "pieces": "piezas"
+    "pieces": "piezas",
+    "dns": "DNS"
   },
   "category_status": {
     "not_started": "No Iniciada",

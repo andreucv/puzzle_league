@@ -4,6 +4,7 @@
     import ButtonLink from '$lib/components/landing_page/ButtonLink.svelte';
     import NearCompetitionsCaroussel from '$lib/components/landing_page/NearCompetitionsCaroussel.svelte';
     import LastResultsList from '$lib/components/landing_page/LastResultsList.svelte';
+    import InscriptionStatusCard from '$lib/components/landing_page/InscriptionStatusCard.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import { afterNavigate, invalidateAll } from '$app/navigation';
     import CalendarIcon from '@iconify-svelte/mdi/calendar';
@@ -58,7 +59,25 @@
 </svelte:head>
 
 {#if data.user}
-    <div class="container mx-auto px-4 space-y-4 mb-8">
+    <div class="container mx-auto px-4 space-y-6 mb-8">
+
+        <!-- Inscription statuses -->
+        {#if data.props.inscriptionStatuses && data.props.inscriptionStatuses.length > 0}
+            <section>
+                <GenericTitle text={$t('landing_page.my_inscriptions')} />
+                <InscriptionStatusCard inscriptions={data.props.inscriptionStatuses} />
+            </section>
+        {/if}
+
+        <!-- Live now: competitions that have started -->
+        {#if data.props.startedCompetitions && data.props.startedCompetitions.length > 0}
+            <section>
+                <GenericTitle text={$t('landing_page.live_now')} />
+                <CompetitionList competitions={data.props.startedCompetitions ?? []} n_show={2} currentUsedId={data.user.id} />
+            </section>
+        {/if}
+
+        <!-- Upcoming registered competitions -->
         <section>
             {#if data.props.upcomingRegisteredCompetitions && data.props.upcomingRegisteredCompetitions.length === 0}
                 <GenericTitle text={$t('landing_page.no_upcoming_competitions')} />
@@ -69,7 +88,7 @@
                         icon={CalendarIcon} />
             {:else}
                 <GenericTitle text={$t('landing_page.your_upcoming_competitions')} />
-                <CompetitionList competitions={data.props.upcomingRegisteredCompetitions} n_show=2 currentUsedId={data.user.id} />
+                <CompetitionList competitions={data.props.upcomingRegisteredCompetitions ?? []} n_show={2} currentUsedId={data.user.id} />
             {/if}
         </section>
 

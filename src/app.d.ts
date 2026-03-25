@@ -2,6 +2,7 @@
 // for information about these interfaces
 
 import type { User, Session } from '@prisma/client';
+import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
 
 declare global {
     namespace App {
@@ -35,6 +36,42 @@ declare global {
             createdAt: Date;
             updatedAt: Date;
             rolesAssigned: string[];
+        }
+
+        // Competition results page interfaces
+        interface ResultPuzzleData {
+            id: string;
+            name: string | null;
+            pieces: number;
+            brand: string;
+            image_cld_id: string | null;
+        }
+        interface ResultRecordUser {
+            id: string;
+            name: string;
+            image: string | null;
+        }
+        interface ResultUserIntent {
+            id: string;
+            name: string;
+        }
+        interface ResultRecord {
+            id: string;
+            finishTime: Date | null;
+            tableNumber: number | null;
+            nPiecesCompleted: number | null;
+            users: ResultRecordUser[];
+            userIntents: ResultUserIntent[];
+        }
+        interface ResultCategory {
+            id: number;
+            description: string;
+            subname: string | null;
+            type: CategoryType;
+            realStartTime: Date | null;
+            realEndTime: Date | null;
+            puzzles: ResultPuzzleData[];
+            records: ResultRecord[];
         }
     }
 }

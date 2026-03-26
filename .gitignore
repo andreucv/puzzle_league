@@ -47,3 +47,10 @@ com.chrome.devtools.json
 .agents/
 skills-lock.json
 explanations/plans/
+
+# GSD files
+.planning/
+.github/gsd*
+.github/agents/gsd*
+.github/get-shit-done
+.github/skills/gsd*

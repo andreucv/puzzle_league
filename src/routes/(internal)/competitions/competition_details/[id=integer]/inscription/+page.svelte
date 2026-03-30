@@ -801,13 +801,17 @@
                             </button>
                         {:else}
                             {@const hasExisting = slots.length > 0 || records.length > 0}
+                            {@const isPairs = category.type === 'PAIRS' || category.type === 'JUNIOR_PAIRS'}
                             <button
                                 type="button"
                                 class="btn {hasExisting ? 'preset-tonal-success' : 'preset-filled-success-500'} w-full sm:w-auto"
                                 onclick={() => addGroupSlot(category.id)}
+                                data-testid="signup-category-{category.id}"
                             >
-                                <Icon icon="mdi:account-group" width="1.2rem" height="1.2rem" />
-                                {hasExisting ? $t('inscription.build_another_team') : $t('inscription.build_team')}
+                                <Icon icon={isPairs ? "mdi:account-multiple" : "mdi:account-group"} width="1.2rem" height="1.2rem" />
+                                {hasExisting
+                                    ? (isPairs ? $t('inscription.build_another_pair') : $t('inscription.build_another_team'))
+                                    : (isPairs ? $t('inscription.build_pair') : $t('inscription.build_team'))}
                             </button>
                         {/if}
                     {:else}

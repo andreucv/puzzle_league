@@ -1410,6 +1410,18 @@
                             {$t('competition.create.add_category')}
                         </button>
                     </div>
+                {:else}
+                    <div class="flex justify-center pt-2">
+                        <button
+                            type="button"
+                            class="btn preset-filled-primary-500 rounded-lg"
+                            onclick={addCategory}
+                            disabled={!isMultiDay && !$form.startDate}
+                        >
+                            <Icon icon="mdi:plus" width="1.2rem" height="1.2rem" />
+                            {$t('competition.create.add_category')}
+                        </button>
+                    </div>
                 {/if}
             </div>
         </div>

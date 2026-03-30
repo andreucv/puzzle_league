@@ -303,12 +303,12 @@ test.describe('Group Category — Build Team with UserIntent', () => {
     test('Participant builds a pairs team with self + UserIntent and submits', async () => {
         await participantPage.goto(`/competitions/competition_details/${competitionId}/inscription`);
 
-        // 1. Click "Build Team"
-        await participantPage.getByText('Build Team', { exact: true }).first().click();
+        // 1. Click "Build Pair" (pairs category)
+        await participantPage.locator('[data-testid^="signup-category-"]').first().click();
 
         // 2. Current user should be auto-added; team progress should show 1/2
         await expect(participantPage.getByText('Team').first()).toBeVisible();
-        await expect(participantPage.getByText('/2 Your registrations')).toBeVisible();
+        await expect(participantPage.getByText('/2 inscriptions you can submit')).toBeVisible();
 
         // 3. Search and add a UserIntent as the second team member
         const searchInput = participantPage.locator('input.input[placeholder*="Search"]');
@@ -696,13 +696,13 @@ test.describe('Multi-Category Batch Submission', () => {
         await participantPage.goto(`/competitions/competition_details/${competitionId}/inscription`);
 
         // 1. Sign up for the individual category
-        await participantPage.getByText('Sign Up', { exact: true }).first().click();
+        await participantPage.locator('[data-testid^="signup-category-"]').first().click();
 
         // 2. Build a team for the pairs category
-        await participantPage.getByText('Build Team', { exact: true }).first().click();
+        await participantPage.locator('[data-testid^="signup-category-"]').first().click();
 
         // 3. Should see team progress 1/2 (current user auto-added)
-        await expect(participantPage.getByText('/2 Your registrations')).toBeVisible();
+        await expect(participantPage.getByText('/2 inscriptions you can submit')).toBeVisible();
 
         // 4. Add a UserIntent as teammate
         const searchInput = participantPage.locator('input.input[placeholder*="Search"]');

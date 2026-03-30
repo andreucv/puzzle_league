@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { calculateDuration } from '$lib/utils/category_utils';
+    import { calculateDuration, getCategoryTypeName } from '$lib/utils/category_utils';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
     import Card from '$lib/components/common/card/Card.svelte';
     import RecordSearchResults from './RecordSearchResults.svelte';
@@ -24,11 +24,13 @@
 
     let {
         category,
+        competitionName,
         isOrganizer,
         onRecordFinish,
         onCategoryUpdate
     }: {
         category: CategoryData;
+        competitionName: string;
         isOrganizer: boolean;
         onRecordFinish: (recordId: string) => void;
         onCategoryUpdate: (category: CategoryData) => void;
@@ -179,7 +181,10 @@
 
     // Stop category dialog
     let showStopDialog = $state(false);
-    let unfinishedCount = $derived(category.totalRecords - category.finishedRecords);
+    // Use locally-fetched pending records (more up-to-date than event stream counts)
+    let unfinishedCount = $derived(
+        pendingRecords.filter((r: any) => r.status === 'ACCEPTED').length
+    );
 
     async function handleStopCategory() {
         try {
@@ -401,7 +406,8 @@
 
 {#if showStopDialog}
     <StopCategoryConfirmDialog
-        categoryName={category.description}
+        categoryName={getCategoryTypeName(category.type)}
+        {competitionName}
         {unfinishedCount}
         onConfirm={handleStopCategory}
         onCancel={() => showStopDialog = false}

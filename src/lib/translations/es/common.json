@@ -211,6 +211,7 @@
     "unregister": "Desinscribirse",
     "sign_up": "Inscribirse",
     "build_team": "Formar equipo",
+    "build_pair": "Formar pareja",
     "cancel": "Cancelar",
     "team_progress": "Equipo",
     "you": "tú",
@@ -231,12 +232,13 @@
     "previously_registered": "Registrado anteriormente",
     "add_another": "Añadir otra inscripción",
     "build_another_team": "Formar otro equipo",
+    "build_another_pair": "Formar otra pareja",
     "queued": "En cola",
     "new_registrations_summary": "nueva(s) inscripción(es)",
     "created_by_you": "Inscrito por ti",
     "limit_reached": "Máximo de inscripciones alcanzado",
     "registrations_count": "{current}/{max} registros",
-    "your_registrations": "Tus inscripciones"
+    "your_registrations": "inscripciones que puedes enviar"
   },
   "puzzles": {
     "catalog_title": "Catálogo de Puzzles",
@@ -363,7 +365,8 @@
     "no_categories": "No hay categorías disponibles para tu rol",
     "connection_error": "Conexión perdida — las actualizaciones pueden retrasarse",
     "stop_confirm_title": "¿Detener Categoría?",
-    "stop_confirm_message": "¿Estás seguro de que quieres detener",
+    "stop_confirm_message": "¿Estás seguro de que quieres finalizar la categoría",
+    "stop_confirm_of": "de la competición",
     "unfinished_warning": "registros aún no han terminado",
     "auto_complete_notice": "Los registros no finalizados se completarán automáticamente con el tiempo máximo.",
     "stop_confirm": "Detener Categoría",

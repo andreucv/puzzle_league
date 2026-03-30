@@ -112,6 +112,7 @@
             {#each activeCategories as cat (cat.id)}
                 <ActiveCategoryCard
                     category={cat}
+                    competitionName={competition?.name ?? ''}
                     {isOrganizer}
                     onRecordFinish={handleRecordFinish}
                     onCategoryUpdate={handleCategoryUpdate}

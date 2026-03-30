@@ -110,6 +110,7 @@
     "unregister": "Desinscriure's",
     "sign_up": "Inscriure's",
     "build_team": "Formar equip",
+    "build_pair": "Formar parella",
     "cancel": "Cancel·lar",
     "team_progress": "Equip",
     "you": "tu",
@@ -130,12 +131,13 @@
     "previously_registered": "Registrat anteriorment",
     "add_another": "Afegeix una altra inscripció",
     "build_another_team": "Forma un altre equip",
+    "build_another_pair": "Forma una altra parella",
     "queued": "En cua",
     "new_registrations_summary": "nova/es inscripció/ns",
     "created_by_you": "Inscrit per tu",
     "limit_reached": "S'ha arribat al màxim d'inscripcions",
     "registrations_count": "{current}/{max} registres",
-    "your_registrations": "Les teves inscripcions"
+    "your_registrations": "inscripcions que pots enviar"
   },
   "puzzles": {
     "catalog_title": "Catàleg de Puzzles",
@@ -363,7 +365,8 @@
     "no_categories": "No hi ha categories disponibles per al teu rol",
     "connection_error": "Connexió perduda — les actualitzacions poden retardar-se",
     "stop_confirm_title": "Aturar Categoria?",
-    "stop_confirm_message": "Estàs segur que vols aturar",
+    "stop_confirm_message": "Estàs segur que vols finalitzar la categoria",
+    "stop_confirm_of": "de la competició",
     "unfinished_warning": "registres encara no han acabat",
     "auto_complete_notice": "Els registres no finalitzats es completaran automàticament amb el temps màxim.",
     "stop_confirm": "Aturar Categoria",

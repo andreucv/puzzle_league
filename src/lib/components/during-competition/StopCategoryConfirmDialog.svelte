@@ -4,11 +4,13 @@
 
     let {
         categoryName,
+        competitionName,
         unfinishedCount,
         onConfirm,
         onCancel
     }: {
         categoryName: string;
+        competitionName: string;
         unfinishedCount: number;
         onConfirm: () => void;
         onCancel: () => void;
@@ -38,7 +40,7 @@
         </h3>
 
         <p class="text-sm">
-            {$t('during_competition.stop_confirm_message')} "{categoryName}"?
+            {$t('during_competition.stop_confirm_message')} '{categoryName}' {$t('during_competition.stop_confirm_of')} '{competitionName}'?
         </p>
 
         {#if unfinishedCount > 0}

@@ -232,7 +232,7 @@
     "registrations_count": "{current}/{max} registrations",
     "limit_reached": "Maximum registrations reached",
     "your_registrations": "Your registrations",
-    "created_by_you": "Created by you",
+    "created_by_you": "Inscribed by you",
     "add_another": "Add another inscription",
     "build_another_team": "Build another team",
     "queued": "Queued",
@@ -278,7 +278,8 @@
     "7-days": "7 days",
     "past": "Past",
     "live": "Live",
-    "soon": "Soon"
+    "soon": "Soon",
+    "no-competitions-found": "No competitions found"
   },
   "puzzles": {
     "catalog_title": "Puzzle Catalog",
@@ -360,7 +361,7 @@
     "view_results": "View Results",
     "manage_judges": "Manage Judges",
     "no_categories": "No categories available for your role",
-    "connection_error": "Connection lost \u2014 updates may be delayed",
+    "connection_error": "Connection lost — updates may be delayed",
     "stop_confirm_title": "Stop Category?",
     "stop_confirm_message": "Are you sure you want to stop",
     "unfinished_warning": "records are still unfinished",

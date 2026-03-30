@@ -47,7 +47,8 @@
     },
     "calendar_table": {},
     "no_upcoming_competitions": "No hay próximas competiciones",
-    "explore_competitions": "Explora Competiciones"
+    "explore_competitions": "Explora Competiciones",
+    "other_upcoming_competitions": "Otras competiciones"
   },
   "drawer_menu": {
     "create_competition": "Crear Competición",
@@ -231,7 +232,11 @@
     "add_another": "Añadir otra inscripción",
     "build_another_team": "Formar otro equipo",
     "queued": "En cola",
-    "new_registrations_summary": "nueva(s) inscripción(es)"
+    "new_registrations_summary": "nueva(s) inscripción(es)",
+    "created_by_you": "Inscrito por ti",
+    "limit_reached": "Máximo de inscripciones alcanzado",
+    "registrations_count": "{current}/{max} registros",
+    "your_registrations": "Tus inscripciones"
   },
   "puzzles": {
     "catalog_title": "Catálogo de Puzzles",

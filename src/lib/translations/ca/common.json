@@ -131,7 +131,11 @@
     "add_another": "Afegeix una altra inscripció",
     "build_another_team": "Forma un altre equip",
     "queued": "En cua",
-    "new_registrations_summary": "nova/es inscripció/ns"
+    "new_registrations_summary": "nova/es inscripció/ns",
+    "created_by_you": "Inscrit per tu",
+    "limit_reached": "S'ha arribat al màxim d'inscripcions",
+    "registrations_count": "{current}/{max} registres",
+    "your_registrations": "Les teves inscripcions"
   },
   "puzzles": {
     "catalog_title": "Catàleg de Puzzles",

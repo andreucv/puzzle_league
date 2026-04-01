@@ -23,8 +23,11 @@
     "no_upcoming_competitions_detail": "Seems you are not registered to any upcoming competition. Look in the calendar and register for any category.",
     "image_alt": "Puzzle image",
     "your_last_results": "Your last results",
+    "no_last_results": "No results yet",
     "my_inscriptions": "My Inscriptions",
     "live_now": "Live Now",
+    "no_live_competitions": "No live competitions right now",
+    "no_near_competitions": "No upcoming competitions near you",
     "inscription_status": {
       "pending": "Pending",
       "accepted": "Accepted",

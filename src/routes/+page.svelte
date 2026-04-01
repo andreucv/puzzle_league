@@ -10,31 +10,11 @@
     import CalendarIcon from '@iconify-svelte/mdi/calendar';
 
     let { data } = $props();
-    console.log('routes/+page.svelte data: ', data);
     // Re-fetch data when navigating back to the home page (e.g. after inscription)
     afterNavigate(({ from }) => {
         if (from) {
             invalidateAll();
         }
-    });
-
-    // Lazy-load below-fold features section
-    let featuresVisible = $state(false);
-    let featuresRef: HTMLElement | undefined = $state();
-
-    $effect(() => {
-        if (!featuresRef) return;
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    featuresVisible = true;
-                    observer.disconnect();
-                }
-            },
-            { rootMargin: '200px' }
-        );
-        observer.observe(featuresRef);
-        return () => observer.disconnect();
     });
 </script>
 
@@ -70,10 +50,14 @@
         {/if}
 
         <!-- Live now: competitions that have started -->
-        {#if data.props.startedCompetitions && data.props.startedCompetitions.length > 0}
+        {#if data.props.startedCompetitions}
             <section>
                 <GenericTitle text={$t('landing_page.live_now')} />
-                <CompetitionList competitions={data.props.startedCompetitions ?? []} n_show={2} currentUsedId={data.user.id} />
+                {#if data.props.startedCompetitions.length > 0}
+                    <CompetitionList competitions={data.props.startedCompetitions} n_show={2} currentUsedId={data.user.id} />
+                {:else}
+                    <p class="text-surface-500">{$t('landing_page.no_live_competitions')}</p>
+                {/if}
             </section>
         {/if}
 
@@ -81,7 +65,7 @@
         <section>
             {#if data.props.upcomingRegisteredCompetitions && data.props.upcomingRegisteredCompetitions.length === 0}
                 <GenericTitle text={$t('landing_page.no_upcoming_competitions')} />
-                <p class="mb-2">{$t('landing_page.no_upcoming_competitions_detail')}</p>
+                <p class="text-surface-500">{$t('landing_page.no_upcoming_competitions_detail')}</p>
             {:else}
                 <GenericTitle text={$t('landing_page.your_upcoming_competitions')} />
                 <CompetitionList competitions={data.props.upcomingRegisteredCompetitions ?? []} n_show={2} currentUsedId={data.user.id} />
@@ -89,18 +73,26 @@
         </section>
 
         <!-- Upcoming competitions carousel -->
-        {#if data.props.nearCompetitions && data.props.nearCompetitions.length > 0}
+        {#if data.props.nearCompetitions}
             <section>
                 <GenericTitle text={$t('competitions.other_upcoming_competitions')} />
-                <NearCompetitionsCaroussel competitions={data.props.nearCompetitions} />
+                {#if data.props.nearCompetitions.length > 0}
+                    <NearCompetitionsCaroussel competitions={data.props.nearCompetitions} />
+                {:else}
+                    <p class="text-surface-500">{$t('landing_page.no_near_competitions')}</p>
+                {/if}
             </section>
         {/if}
 
         <!-- Last results -->
-        {#if data.props.lastResults && data.props.lastResults.length > 0}
+        {#if data.props.lastResults}
             <section>
                 <GenericTitle text={$t('landing_page.your_last_results')} />
-                <LastResultsList results={data.props.lastResults} currentUserId={data.user.id} />
+                {#if data.props.lastResults.length > 0}
+                    <LastResultsList results={data.props.lastResults} currentUserId={data.user.id} />
+                {:else}
+                    <p class="text-surface-500">{$t('landing_page.no_last_results')}</p>
+                {/if}
             </section>
         {/if}
     </div>
@@ -132,10 +124,9 @@
                     icon={CalendarIcon}
                     data-testid="explore-competitions-button" />
         </div>
-        <section class="pt-12 px-4 bg-surface-100-800-token" bind:this={featuresRef}>
+        <section class="pt-12 px-4 bg-surface-100-800-token">
             <div class="container mx-auto">
                 <h2 class="font-sans text-center mb-2">{$t('landing_page.why_choose')}</h2>
-                {#if featuresVisible}
                 <div class="grid md:grid-cols-3 gap-8">
                     <div class="text-center space-y-2">
                         <div class="w-12 h-12 mx-auto">
@@ -165,7 +156,6 @@
                         <p>{$t('landing_page.features.get_calendar_description')}</p>
                     </div>
                 </div>
-                {/if}
             </div>
         </section>
     </div>

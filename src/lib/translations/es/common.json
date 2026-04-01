@@ -23,8 +23,11 @@
     "no_upcoming_competitions_detail": "Parece que no estás registrado a ningun concurso. Mira el calendario y regístrate a cualquier categoría!",
     "image_alt": "Imagen de puzzles",
     "your_last_results": "Tus últimos resultados",
+    "no_last_results": "Aún no tienes resultados",
     "my_inscriptions": "Mis Inscripciones",
     "live_now": "En Directo",
+    "no_live_competitions": "No hay competiciones en directo ahora",
+    "no_near_competitions": "No hay próximas competiciones cerca de ti",
     "inscription_status": {
       "pending": "Pendiente",
       "accepted": "Aceptada",

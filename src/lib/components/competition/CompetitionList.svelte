@@ -1,9 +1,6 @@
 <script lang="ts">
     import CompetitionCard from "./CompetitionCard.svelte";
     import type { Competition } from "@prisma/client";
-    import ButtonLink from "$lib/components/landing_page/ButtonLink.svelte";
-    import { t } from '$lib/translations';
-    import CalendarIcon from '@iconify-svelte/mdi/calendar';
 
     interface Props {
         competitions: Competition[];
@@ -25,8 +22,4 @@
     {#each shownCompetitions as competition}
         <CompetitionCard competition={competition} currentUserId={currentUsedId} />
     {/each}
-    <ButtonLink href="/competitions/explore_competitions"
-            title={$t('landing_page.explore_title')}
-            subtitle={$t('landing_page.explore_subtitle')}
-            icon={CalendarIcon} />
 </div>

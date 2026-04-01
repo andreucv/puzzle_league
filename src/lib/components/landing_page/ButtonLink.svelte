@@ -1,13 +1,14 @@
 <script lang="ts">
-    let { title, subtitle, icon: Icon, href}: {
+    let { title, subtitle, icon: Icon, href, ...restProps}: {
         title: string;
         subtitle: string;
         icon: any;
         href: string;
+        [key: string]: any;
     } = $props();
 </script>
 
-<a href={href}>
+<a href={href} {...restProps}>
     <div class="card preset-filled-200-800 w-full card-hover shadow-lg">
         <div class="flex items-center gap-4 p-4">
             <div class="w-8 h-8 flex-shrink-0">

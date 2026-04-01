@@ -82,10 +82,6 @@
             {#if data.props.upcomingRegisteredCompetitions && data.props.upcomingRegisteredCompetitions.length === 0}
                 <GenericTitle text={$t('landing_page.no_upcoming_competitions')} />
                 <p class="mb-2">{$t('landing_page.no_upcoming_competitions_detail')}</p>
-                <ButtonLink href="/competitions/explore_competitions"
-                        title={$t('landing_page.explore_title')}
-                        subtitle={$t('landing_page.explore_subtitle')}
-                        icon={CalendarIcon} />
             {:else}
                 <GenericTitle text={$t('landing_page.your_upcoming_competitions')} />
                 <CompetitionList competitions={data.props.upcomingRegisteredCompetitions ?? []} n_show={2} currentUsedId={data.user.id} />
@@ -133,7 +129,8 @@
             <ButtonLink href="/competitions/explore_competitions"
                         title={$t('landing_page.explore_title')}
                         subtitle={$t('landing_page.explore_subtitle')}
-                        icon={CalendarIcon} />
+                    icon={CalendarIcon}
+                    data-testid="explore-competitions-button" />
         </div>
         <section class="pt-12 px-4 bg-surface-100-800-token" bind:this={featuresRef}>
             <div class="container mx-auto">

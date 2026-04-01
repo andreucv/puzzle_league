@@ -67,6 +67,20 @@ async function signUpIndividualAndSubmit(page: Page, competitionId: string): Pro
     await expect(page.getByTestId('inscription-status-badge')).toBeVisible({ timeout: 10000 });
 }
 
+/** Extracts category IDs from the inscription page by reading signup button data-testid attributes. */
+async function extractCategoryIds(page: Page, competitionId: string): Promise<string[]> {
+    await page.goto(`/competitions/competition_details/${competitionId}/inscription`);
+    const buttons = page.locator('[data-testid^="signup-category-"]');
+    const count = await buttons.count();
+    const ids: string[] = [];
+    for (let i = 0; i < count; i++) {
+        const testid = await buttons.nth(i).getAttribute('data-testid');
+        const match = testid?.match(/signup-category-(\d+)$/);
+        if (match) ids.push(match[1]);
+    }
+    return ids;
+}
+
 /** Accepts the first pending inscription on the manage inscriptions page. */
 async function acceptFirstInscription(page: Page, competitionId: string): Promise<void> {
     await page.goto(`/competition/${competitionId}/manage_inscriptions`);
@@ -676,6 +690,8 @@ test.describe('Multi-Category Batch Submission', () => {
     ];
 
     const pairsIntentName = 'Charlie NonPlatform';
+    let individualCategoryId: string;
+    let pairsCategoryId: string;
 
     test.beforeAll(async ({ browser }) => {
         organizerContext = await browser.newContext({
@@ -690,16 +706,21 @@ test.describe('Multi-Category Batch Submission', () => {
         const url = await createCompetition(organizerPage, competition, categories);
         competitionId = extractCompetitionId(url);
         await openRegistration(organizerPage, competitionId);
+
+        // Extract category IDs so we can target specific signup buttons
+        const categoryIds = await extractCategoryIds(participantPage, competitionId);
+        individualCategoryId = categoryIds[0];
+        pairsCategoryId = categoryIds[1];
     });
 
     test('Register for individual + build pairs team, submit all at once', async () => {
         await participantPage.goto(`/competitions/competition_details/${competitionId}/inscription`);
 
         // 1. Sign up for the individual category
-        await participantPage.locator('[data-testid^="signup-category-"]').first().click();
+        await participantPage.getByTestId(`signup-category-${individualCategoryId}`).click();
 
         // 2. Build a team for the pairs category
-        await participantPage.locator('[data-testid^="signup-category-"]').first().click();
+        await participantPage.getByTestId(`signup-category-${pairsCategoryId}`).click();
 
         // 3. Should see team progress 1/2 (current user auto-added)
         await expect(participantPage.getByText('/2 inscriptions you can submit')).toBeVisible();

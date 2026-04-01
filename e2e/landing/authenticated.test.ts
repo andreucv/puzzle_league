@@ -10,7 +10,7 @@ test.use({ storageState: "playwright/.auth/participant_user.json" });
 
 test('GivenHomePage_WhenAccessingLandingPage_ThenUserSeeUpcomingAndRegisteredCompetitions', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('link', { name: 'Explore the calendar Check' })).toBeVisible();
+    await expect(page.getByTestId("explore-competitions-button")).not.toBeVisible();
     await openDrawer(page);
     await expect(page.getByText('Organizer', { exact: true })).not.toBeVisible();
 });

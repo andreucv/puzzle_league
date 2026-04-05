@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Icon from '@iconify/svelte';
+    import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
     import { t } from '$lib/translations';
     import CollapsibleSection from './CollapsibleSection.svelte';
     import InscriptionRow from './InscriptionRow.svelte';
@@ -11,6 +11,12 @@
         onAccept: (id: string) => void;
         onRefuse: (id: string) => void;
     } = $props();
+
+    let selectedRecordId: string | null = $state(null);
+
+    function toggleSelect(id: string) {
+        selectedRecordId = selectedRecordId === id ? null : id;
+    }
 
     function filterBySearch(recs: any[]): any[] {
         if (!searchFilter.trim()) return recs;
@@ -41,8 +47,10 @@
                 {showAccept}
                 {showRefuse}
                 processing={processingRecordId === record.id}
+                selected={selectedRecordId === record.id}
                 {onAccept}
                 {onRefuse}
+                onSelect={toggleSelect}
             />
         {/each}
     </div>
@@ -58,7 +66,7 @@
         {#if pendingRecords.length > 0}
             <div>
                 <div class="flex items-center gap-2 mb-1">
-                    <Icon icon="mdi:clock-outline" width="1rem" height="1rem" />
+                    <ClockOutlineIcon width="1rem" height="1rem" />
                     <span class="text-sm font-semibold" data-testid="record-status-badge">{$t('manage_inscriptions.pending')}</span>
                     <span class="badge preset-tonal-warning text-xs">{pendingRecords.length}</span>
                 </div>

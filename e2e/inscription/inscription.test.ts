@@ -84,8 +84,20 @@ async function extractCategoryIds(page: Page, competitionId: string): Promise<st
 /** Accepts the first pending inscription on the manage inscriptions page. */
 async function acceptFirstInscription(page: Page, competitionId: string): Promise<void> {
     await page.goto(`/competition/${competitionId}/manage_inscriptions`);
+
+    // Click the first inscription row to reveal action buttons
+    const firstRow = page.locator('[data-testid^="inscription-record-"]').first();
+    await expect(firstRow).toBeVisible();
+    await firstRow.click();
+
+    // Click the accept button (now visible after selecting the row)
     await expect(page.getByTestId('accept-inscription').first()).toBeVisible();
     await page.getByTestId('accept-inscription').first().click();
+
+    // Confirm in the popover
+    await expect(page.getByTestId('confirm-popover-action')).toBeVisible();
+    await page.getByTestId('confirm-popover-action').click();
+
     await expect(page.getByText('Inscription accepted successfully')).toBeVisible({ timeout: 5000 });
 }
 
@@ -258,8 +270,8 @@ test.describe('Individual — Register Non-Platform User (UserIntent)', () => {
         // Should see the UserIntent name in the inscription list
         await expect(organizerPage.getByText(userIntentName, { exact: true })).toBeVisible();
 
-        // Should see 2 pending records (the participant self + the UserIntent one)
-        await expect(organizerPage.getByTestId('accept-inscription')).toHaveCount(2);
+        // Should see 2 pending inscription records
+        await expect(organizerPage.locator('[data-testid^="inscription-record-"]')).toHaveCount(2);
     });
 });
 
@@ -352,8 +364,18 @@ test.describe('Group Category — Build Team with UserIntent', () => {
         // The teammate UserIntent name should be visible
         await expect(organizerPage.getByText(teammateIntentName)).toBeVisible();
 
+        // Click the row to reveal action buttons
+        const firstRow = organizerPage.locator('[data-testid^="inscription-record-"]').first();
+        await firstRow.click();
+
         // Accept the inscription
+        await expect(organizerPage.getByTestId('accept-inscription').first()).toBeVisible();
         await organizerPage.getByTestId('accept-inscription').first().click();
+
+        // Confirm in the popover
+        await expect(organizerPage.getByTestId('confirm-popover-action')).toBeVisible();
+        await organizerPage.getByTestId('confirm-popover-action').click();
+
         await expect(organizerPage.getByText('Inscription accepted successfully')).toBeVisible({ timeout: 5000 });
     });
 
@@ -491,8 +513,19 @@ test.describe('Organizer Refuses Inscription', () => {
     test('Organizer refuses the inscription', async () => {
         await organizerPage.goto(`/competition/${competitionId}/manage_inscriptions`);
 
+        // Click the first inscription row to reveal action buttons
+        const firstRow = organizerPage.locator('[data-testid^="inscription-record-"]').first();
+        await expect(firstRow).toBeVisible();
+        await firstRow.click();
+
+        // Click the refuse button
         await expect(organizerPage.getByTestId('refuse-inscription').first()).toBeVisible();
         await organizerPage.getByTestId('refuse-inscription').first().click();
+
+        // Confirm in the popover
+        await expect(organizerPage.getByTestId('confirm-popover-action')).toBeVisible();
+        await organizerPage.getByTestId('confirm-popover-action').click();
+
         await expect(organizerPage.getByText('Inscription refused successfully')).toBeVisible({ timeout: 5000 });
     });
 
@@ -749,7 +782,7 @@ test.describe('Multi-Category Batch Submission', () => {
         // Should see the UserIntent name from the pairs registration
         await expect(organizerPage.getByText(pairsIntentName)).toBeVisible();
 
-        // Should see accept buttons for both categories' pending records
-        await expect(organizerPage.getByTestId('accept-inscription')).toHaveCount(2);
+        // Should see 2 pending inscription records across categories
+        await expect(organizerPage.locator('[data-testid^="inscription-record-"]')).toHaveCount(2);
     });
 });

@@ -1,18 +1,34 @@
 <script lang="ts">
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
-    import Icon from '@iconify/svelte';
+    import { t } from '$lib/translations';
+    import AccountQuestionIcon from '@iconify-svelte/mdi/account-question';
+    import AccountEditOutlineIcon from '@iconify-svelte/mdi/account-edit-outline';
+    import CheckIcon from '@iconify-svelte/mdi/check';
+    import CloseIcon from '@iconify-svelte/mdi/close';
+    import ChevronRightIcon from '@iconify-svelte/mdi/chevron-right';
+    import ConfirmActionButton from '$lib/components/common/buttons/ConfirmActionButton.svelte';
 
-    let { record, showAccept = false, showRefuse = false, processing = false, onAccept, onRefuse }: {
+    let { record, showAccept = false, showRefuse = false, processing = false, selected = false, onAccept, onRefuse, onSelect }: {
         record: any;
         showAccept?: boolean;
         showRefuse?: boolean;
         processing?: boolean;
+        selected?: boolean;
         onAccept?: (id: string) => void;
         onRefuse?: (id: string) => void;
+        onSelect?: (id: string) => void;
     } = $props();
+
+    let hasActions = $derived(showAccept || showRefuse);
 </script>
 
-<div class="flex items-center gap-2 py-2 px-1 w-full border-b border-surface-200 dark:border-surface-700 last:border-b-0 {processing ? 'opacity-50' : ''}" data-testid="inscription-record-{record.id}">
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+    class="flex items-center gap-2 py-2 px-1 w-full border-b border-surface-200 dark:border-surface-700 last:border-b-0 {processing ? 'opacity-50' : ''} {hasActions ? 'cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 rounded-md transition-colors' : ''}"
+    data-testid="inscription-record-{record.id}"
+    onclick={() => hasActions && onSelect?.(record.id)}
+>
     <!-- Stacked avatars -->
     <div class="flex items-center shrink-0">
         {#each record.users as user, i}
@@ -23,7 +39,7 @@
         {/each}
         {#each record.userIntents || [] as intent, i}
             <div class="w-7 h-7 shrink-0 ring-2 ring-surface-50 dark:ring-surface-800 rounded-full bg-warning-200 dark:bg-warning-800 flex items-center justify-center {(record.users.length + i) > 0 ? '-ml-4' : ''}">
-                <Icon icon="mdi:account-question" width="0.9rem" height="0.9rem" class="text-warning-700 dark:text-warning-300" />
+                <AccountQuestionIcon width="0.9rem" height="0.9rem" class="text-warning-700 dark:text-warning-300" />
             </div>
         {/each}
     </div>
@@ -37,35 +53,44 @@
         </div>
         {#if record.creator}
             <span class="text-[0.65rem] text-surface-500 dark:text-surface-400 truncate block">
-                <Icon icon="mdi:account-edit-outline" width="0.75rem" height="0.75rem" class="inline-block align-text-bottom" />
+                <AccountEditOutlineIcon width="0.75rem" height="0.75rem" class="inline-block align-text-bottom" />
                 {record.creator.name ?? record.creator.email}
             </span>
         {/if}
     </div>
 
-    <!-- Actions: always same fixed width so buttons align across all rows -->
-    <div class="flex items-center gap-1.5 shrink-0 ml-auto" style="width: 4.5rem; justify-content: flex-end;">
-        {#if showAccept}
-            <button
-                type="button"
-                class="btn-icon btn-icon-sm preset-filled-success-500 rounded-full"
-                disabled={processing}
-                onclick={() => onAccept?.(record.id)}
-                data-testid="accept-inscription"
-            >
-                <Icon icon="mdi:check" width="1.2rem" height="1.2rem" />
-            </button>
-        {/if}
-        {#if showRefuse}
-            <button
-                type="button"
-                class="btn-icon btn-icon-sm preset-filled-error-500 rounded-full"
-                disabled={processing}
-                onclick={() => onRefuse?.(record.id)}
-                data-testid="refuse-inscription"
-            >
-                <Icon icon="mdi:close" width="1.2rem" height="1.2rem" />
-            </button>
+    <!-- Actions: slide in from right when selected -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+        class="flex items-center shrink-0 ml-auto transition-all duration-200 {selected ? 'max-w-32 gap-3 opacity-100' : hasActions ? 'max-w-5 opacity-60 overflow-hidden' : 'max-w-0 opacity-0 overflow-hidden'}"
+        onclick={(e) => e.stopPropagation()}
+    >
+        {#if selected}
+            {#if showAccept}
+                <ConfirmActionButton
+                    icon={CheckIcon}
+                    colorClass="preset-filled-success-500"
+                    confirmTitle={$t('manage_inscriptions.confirm_accept_title')}
+                    confirmMessage={$t('manage_inscriptions.confirm_accept_message')}
+                    onConfirm={() => onAccept?.(record.id)}
+                    disabled={processing}
+                    testId="accept-inscription"
+                />
+            {/if}
+            {#if showRefuse}
+                <ConfirmActionButton
+                    icon={CloseIcon}
+                    colorClass="preset-filled-error-500"
+                    confirmTitle={$t('manage_inscriptions.confirm_refuse_title')}
+                    confirmMessage={$t('manage_inscriptions.confirm_refuse_message')}
+                    onConfirm={() => onRefuse?.(record.id)}
+                    disabled={processing}
+                    testId="refuse-inscription"
+                />
+            {/if}
+        {:else if hasActions}
+            <ChevronRightIcon width="1.1rem" height="1.1rem" class="text-surface-400" />
         {/if}
     </div>
 </div>

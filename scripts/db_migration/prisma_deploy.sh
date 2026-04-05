@@ -33,6 +33,7 @@ usage() {
     echo "  --clean          Erase all data from the database"
     echo "  --seed           Insert data from seed_data.json"
     echo "  --seed-custom-users  Restore real users from real_seed_data.json (roles included)"
+    echo "  --seed-local-users   Create test users from .env (dev only)"
     echo "  --admin <email>      Grant ADMIN role to the given user"
     echo "  --organizer <email>  Grant ORGANIZER role to the given user"
     echo ""
@@ -57,6 +58,7 @@ DO_GENERATE_SEED=false
 DO_CLEAN=false
 DO_SEED=false
 DO_SEED_CUSTOM_USERS=false
+DO_SEED_LOCAL_USERS=false
 ADMIN_EMAIL=""
 ORGANIZER_EMAIL=""
 LOCATION="west-virginia"
@@ -85,6 +87,10 @@ while [ $# -gt 0 ]; do
             ;;
         --seed-custom-users)
             DO_SEED_CUSTOM_USERS=true
+            shift
+            ;;
+        --seed-local-users)
+            DO_SEED_LOCAL_USERS=true
             shift
             ;;
         --admin)
@@ -200,6 +206,15 @@ fi
 if [ "$DO_SEED_CUSTOM_USERS" = true ]; then
     echo "👤 Restoring custom users from real_seed_data.json..."
     DATABASE_URL=$DATABASE_URL npx tsx "$SCRIPT_DIR/action_seed_custom_users.ts"
+fi
+
+if [ "$DO_SEED_LOCAL_USERS" = true ]; then
+    if [ "$ENV" != "dev" ]; then
+        echo "❌ --seed-local-users is only allowed for the dev environment."
+        exit 1
+    fi
+    echo "👤 Seeding local test users from .env..."
+    DATABASE_URL=$DATABASE_URL npx tsx "$SCRIPT_DIR/action_seed_local_users.ts"
 fi
 
 if [ -n "$ADMIN_EMAIL" ]; then

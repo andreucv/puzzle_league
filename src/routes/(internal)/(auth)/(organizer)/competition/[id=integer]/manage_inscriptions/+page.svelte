@@ -1,5 +1,9 @@
 <script lang="ts">
-    import Icon from '@iconify/svelte';
+    import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
+    import AlertCircleIcon from '@iconify-svelte/mdi/alert-circle';
+    import CloseIcon from '@iconify-svelte/mdi/close';
+    import SeatOutlineIcon from '@iconify-svelte/mdi/seat-outline';
+    import InboxOutlineIcon from '@iconify-svelte/mdi/inbox-outline';
     import { invalidateAll } from '$app/navigation';
     import { t } from '$lib/translations';
     import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
@@ -102,11 +106,15 @@
         <div class="rounded-lg overflow-hidden {resultMessage.success ? 'preset-filled-success-500' : 'preset-filled-error-500'}">
             <div class="p-4 flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
-                    <Icon icon={resultMessage.success ? 'mdi:check-circle' : 'mdi:alert-circle'} width="1.2rem" height="1.2rem" />
+                    {#if resultMessage.success}
+                        <CheckCircleIcon width="1.2rem" height="1.2rem" />
+                    {:else}
+                        <AlertCircleIcon width="1.2rem" height="1.2rem" />
+                    {/if}
                     <span>{resultMessage.message}</span>
                 </div>
                 <button type="button" class="opacity-70 hover:opacity-100" onclick={() => { resultMessage = null; if (messageDismissTimer) { clearTimeout(messageDismissTimer); messageDismissTimer = null; } }}>
-                    <Icon icon="mdi:close" width="1rem" height="1rem" />
+                    <CloseIcon width="1rem" height="1rem" />
                 </button>
             </div>
             {#key messageProgressKey}
@@ -126,7 +134,7 @@
                     {#if category.maxParties}
                         {@const remaining = category.maxParties - category.records.filter((r: any) => r.status === 'ACCEPTED').length}
                         <span class="text-sm {remaining > 0 ? 'text-surface-600 dark:text-surface-400' : 'text-error-600 dark:text-error-400'}">
-                            <Icon icon="mdi:seat-outline" width="1rem" height="1rem" class="inline-block align-text-bottom mr-1" />
+                            <SeatOutlineIcon width="1rem" height="1rem" class="inline-block align-text-bottom mr-1" />
                             {remaining} {$t('manage_inscriptions.seats_remaining')}
                         </span>
                     {/if}
@@ -145,7 +153,7 @@
 
     {#if categoriesWithInscriptions.length === 0}
         <div class="card p-8 text-center">
-            <Icon icon="mdi:inbox-outline" class="text-6xl text-surface-400 mx-auto mb-4" />
+            <InboxOutlineIcon class="text-6xl text-surface-400 mx-auto mb-4" />
             <h3 class="text-xl font-semibold mb-2">{$t('manage_inscriptions.no_categories')}</h3>
         </div>
     {/if}

@@ -128,6 +128,8 @@
       "remove_category": "Remove Category",
       "payment_method": "Payment Method",
       "payment_method_placeholder": "Describe how participants should pay (e.g. bank transfer, cash at the door...)",
+      "show_payment_warning": "Show payment warning on inscription",
+      "show_payment_warning_help": "When enabled, participants must acknowledge the fee before completing their inscription",
       "price": "Price (€)",
       "price_placeholder": "Category price in euros"
     },
@@ -241,7 +243,12 @@
     "build_another_team": "Build another team",
     "build_another_pair": "Build another pair",
     "queued": "Queued",
-    "new_registrations_summary": "new registration(s)"
+    "new_registrations_summary": "new registration(s)",
+    "payment_warning_title": "Payment required",
+    "payment_warning_message": "As the organization indicates, the fee payment is external to the platform. In such case, the organization will confirm your inscription once the payment is confirmed.",
+    "payment_warning_total": "Total",
+    "payment_warning_confirm": "I understand, submit",
+    "payment_warning_cancel": "Cancel"
   },
   "manage_judges": {
     "title": "Manage Judges",

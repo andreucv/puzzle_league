@@ -51,6 +51,7 @@ const CompetitionEditSchema = z.object({
     endDate: z.string().min(1, "End date is required"),
     status: z.string(),
     registrationOpen: z.boolean().optional(),
+    showPaymentWarning: z.boolean().optional(),
     categories: z.object({
         create: z.array(CategorySchema).optional(),
         update: z.array(CategoryUpdateSchema).optional(),

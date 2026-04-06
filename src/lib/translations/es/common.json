@@ -122,6 +122,8 @@
       "start_time": "Hora de inicio",
       "payment_method": "Método de pago",
       "payment_method_placeholder": "Describe cómo deben pagar los participantes (ej. transferencia bancaria, efectivo en puerta...)",
+      "show_payment_warning": "Mostrar aviso de pago en la inscripción",
+      "show_payment_warning_help": "Cuando está activado, los participantes deben confirmar la cuota antes de completar su inscripción",
       "price": "Precio (€)",
       "price_placeholder": "Precio de la categoría en euros"
     },
@@ -241,7 +243,12 @@
     "created_by_you": "Inscrito por ti",
     "limit_reached": "Máximo de inscripciones alcanzado",
     "registrations_count": "{current}/{max} registros",
-    "your_registrations": "inscripciones que puedes enviar"
+    "your_registrations": "inscripciones que puedes enviar",
+    "payment_warning_title": "Pago requerido",
+    "payment_warning_message": "Tal y como indica la organización, el pago de la tasa es externo a la plataforma. \nEn este caso, la organización confirmará su inscripción una vez confirmado el pago.",
+    "payment_warning_total": "Total",
+    "payment_warning_confirm": "Entendido, enviar",
+    "payment_warning_cancel": "Cancelar"
   },
   "puzzles": {
     "catalog_title": "Catálogo de Puzzles",

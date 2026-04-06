@@ -835,6 +835,30 @@
                     {/if}
                 </div>
 
+                <!-- Show payment warning toggle -->
+                <div class="label lg:col-span-2">
+                    <div class="flex items-center gap-3">
+                        <button
+                            type="button"
+                            role="switch"
+                            aria-checked={$form.showPaymentWarning}
+                            aria-label={$t('competition.create.show_payment_warning')}
+                            class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 {$form.showPaymentWarning ? 'bg-primary-500' : 'bg-surface-300 dark:bg-surface-600'}"
+                            onclick={() => { $form.showPaymentWarning = !$form.showPaymentWarning; }}
+                            data-testid="show-payment-warning-toggle"
+                        >
+                            <span
+                                aria-hidden="true"
+                                class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {$form.showPaymentWarning ? 'translate-x-5' : 'translate-x-0'}"
+                            ></span>
+                        </button>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium">{$t('competition.create.show_payment_warning')}</span>
+                            <span class="text-xs text-surface-500">{$t('competition.create.show_payment_warning_help')}</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="label">
                     <span>{$t('competition.create.image')}</span>
                     {#if selected_image_src === undefined}

@@ -140,7 +140,12 @@
     "created_by_you": "Inscrit per tu",
     "limit_reached": "S'ha arribat al màxim d'inscripcions",
     "registrations_count": "{current}/{max} registres",
-    "your_registrations": "inscripcions que pots enviar"
+    "your_registrations": "inscripcions que pots enviar",
+    "payment_warning_title": "Pagament requerit",
+    "payment_warning_message": "Així com ha indicat la organització, el pagament és extern a la plataforma. En aquest cas, la organització confirmarà la inscripció un cop hagi confirmat el vostre pagament.",
+    "payment_warning_total": "Total",
+    "payment_warning_confirm": "Entesos, envia",
+    "payment_warning_cancel": "Cancel·la"
   },
   "puzzles": {
     "catalog_title": "Catàleg de Puzzles",
@@ -195,6 +200,8 @@
       "start_time": "Hora d'inici",
       "payment_method": "Mètode de pagament",
       "payment_method_placeholder": "Descriu com han de pagar els participants (ex. transferència bancària, efectiu a la porta...)",
+      "show_payment_warning": "Mostra avís de pagament a la inscripció",
+      "show_payment_warning_help": "Quan està activat, els participants han de confirmar la quota abans de completar la seva inscripció",
       "price": "Preu (€)",
       "price_placeholder": "Preu de la categoria en euros"
     },

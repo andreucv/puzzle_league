@@ -53,6 +53,8 @@
     let resultMessage = $state<{ success: boolean; message: string } | null>(null);
     let messageDismissTimer: ReturnType<typeof setTimeout> | null = null;
     let messageProgressKey = $state(0);
+    let showPaymentPopover = $state(false);
+    let submitFormEl = $state<HTMLFormElement | null>(null);
 
     function showResultMessage(msg: { success: boolean; message: string }) {
         if (messageDismissTimer) clearTimeout(messageDismissTimer);
@@ -327,6 +329,34 @@
     });
 
     let canSubmit = $derived(hasNewSignups && allPartiesComplete());
+
+    // Payment warning: compute whether to show and the itemized fee breakdown
+    let shouldShowPaymentWarning = $derived(() => {
+        if (!competition?.showPaymentWarning) return false;
+        // Only show if at least one queued category has a price > 0
+        for (const [categoryId] of pendingSignups) {
+            const category = categories.find((c: Category) => c.id === categoryId);
+            if (category && (category as any).price > 0) return true;
+        }
+        return false;
+    });
+
+    let paymentFeeBreakdown = $derived(() => {
+        const items: { name: string; count: number; unitPrice: number }[] = [];
+        let total = 0;
+        for (const [categoryId, slots] of pendingSignups) {
+            const category = categories.find((c: Category) => c.id === categoryId);
+            if (!category) continue;
+            const price = (category as any).price ?? 0;
+            if (price > 0) {
+                const typeName = getCategoryTypeName(category.type);
+                const description = category.description ? `${typeName} (${category.description})` : typeName;
+                items.push({ name: description, count: slots.length, unitPrice: price });
+                total += price * slots.length;
+            }
+        }
+        return { items, total };
+    });
 
     // Build summary for submit bar
     let signupSummary = $derived(() => {
@@ -803,7 +833,7 @@
     <!-- Submit all signups -->
     {#if hasNewSignups}
         <div class="sticky bottom-4 mt-6 z-30" transition:slide={{ duration: 200 }}>
-            <form method="POST" action="?/signup" use:enhance={() => {
+            <form bind:this={submitFormEl} method="POST" action="?/signup" use:enhance={() => {
                 isSubmitting = true;
                 resultMessage = null;
                 const minLoadingTime = new Promise(resolve => setTimeout(resolve, 2000));
@@ -824,7 +854,7 @@
                 };
             }}>
                 <input type="hidden" name="signups" value={JSON.stringify(buildSignupPayload())} />
-                <div class="bg-surface-50 dark:bg-surface-900 rounded-xl shadow-xl border border-surface-200 dark:border-surface-700 p-4 space-y-3">
+                <div class="bg-surface-50 dark:bg-surface-900 rounded-xl shadow-xl border border-surface-200 dark:border-surface-700 p-4 space-y-3 relative">
                     <!-- Summary -->
                     <div class="flex flex-wrap items-center gap-2 text-sm">
                         <Icon icon="mdi:clipboard-check-outline" width="1.1rem" height="1.1rem" class="text-primary-500" />
@@ -835,10 +865,16 @@
                         {/each}
                     </div>
                     <button
-                        type="submit"
+                        type={shouldShowPaymentWarning() ? 'button' : 'submit'}
                         class="btn preset-filled-primary-500 w-full shadow-lg"
                         disabled={!canSubmit || isSubmitting}
                         data-testid="submit-all-registrations"
+                        onclick={(e) => {
+                            if (shouldShowPaymentWarning()) {
+                                e.preventDefault();
+                                showPaymentPopover = true;
+                            }
+                        }}
                     >
                         <Icon icon="mdi:check-all" width="1.2rem" height="1.2rem" />
                         {$t('inscription.submit_all')}
@@ -846,6 +882,60 @@
                             <span class="text-xs opacity-75">({$t('inscription.incomplete_parties')})</span>
                         {/if}
                     </button>
+
+                    <!-- Payment warning popover -->
+                    {#if showPaymentPopover}
+                        {@const breakdown = paymentFeeBreakdown()}
+                        <div
+                            role="dialog"
+                            aria-modal="true"
+                            class="absolute bottom-full left-0 right-0 mb-2 z-50 card bg-warning-50 dark:bg-warning-950 border-2 border-warning-300 dark:border-warning-700 shadow-xl overflow-hidden"
+                            transition:slide={{ duration: 200 }}
+                        >
+                            <div class="h-1 w-full preset-filled-warning-500"></div>
+                            <div class="p-4 space-y-3">
+                                <div class="flex items-center gap-2">
+                                    <Icon icon="mdi:alert-circle" width="1.3rem" height="1.3rem" class="text-warning-500" />
+                                    <p class="text-sm font-semibold">{$t('inscription.payment_warning_title')}</p>
+                                </div>
+                                <p class="text-xs text-surface-600 dark:text-surface-400">
+                                    {$t('inscription.payment_warning_message')}
+                                </p>
+                                <!-- Itemized fees -->
+                                <div class="space-y-1 text-sm">
+                                    {#each breakdown.items as item}
+                                        <div class="flex justify-between items-center">
+                                            <span>{item.count}× {item.name}</span>
+                                            <span class="font-medium">{item.unitPrice * item.count}€</span>
+                                        </div>
+                                    {/each}
+                                    <div class="flex justify-between items-center border-t border-surface-300 dark:border-surface-600 pt-1 font-semibold">
+                                        <span>{$t('inscription.payment_warning_total')}</span>
+                                        <span>{breakdown.total}€</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-end gap-2 pt-1">
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm preset-tonal"
+                                        onclick={() => { showPaymentPopover = false; }}
+                                    >
+                                        <Icon icon="mdi:close" width="1rem" height="1rem" />
+                                        {$t('inscription.payment_warning_cancel')}
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        class="btn btn-sm preset-filled-warning-500"
+                                        onclick={() => { showPaymentPopover = false; }}
+                                        data-testid="payment-warning-confirm"
+                                    >
+                                        <Icon icon="mdi:check" width="1rem" height="1rem" />
+                                        {$t('inscription.payment_warning_confirm')}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {/if}
                 </div>
             </form>
         </div>

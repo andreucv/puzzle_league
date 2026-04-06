@@ -37,27 +37,20 @@ export async function handle({ event, resolve }) {
 				// Check if there are unclaimed UserIntents matching this user's name
 				const userName = session.user.name;
 				if (userName) {
-					const matchCount = await prisma.userIntent.count({
-						where: {
-							claimedById: null
-						}
+					// Single query: fetch only unclaimed intent names (avoids redundant count + findMany)
+					const unclaimed = await prisma.userIntent.findMany({
+						where: { claimedById: null },
+						select: { name: true },
+						take: 100
+					});
+					const userNameLower = userName.toLowerCase();
+					const hasMatch = unclaimed.some(ui => {
+						const intentNameLower = ui.name.toLowerCase();
+						return intentNameLower.includes(userNameLower) || userNameLower.includes(intentNameLower);
 					});
 
-					if (matchCount > 0) {
-						// Check with fuzzy name matching
-						const unclaimed = await prisma.userIntent.findMany({
-							where: { claimedById: null },
-							select: { name: true }
-						});
-						const userNameLower = userName.toLowerCase();
-						const hasMatch = unclaimed.some(ui => {
-							const intentNameLower = ui.name.toLowerCase();
-							return intentNameLower.includes(userNameLower) || userNameLower.includes(intentNameLower);
-						});
-
-						if (hasMatch) {
-							throw redirect(302, '/claim-participations');
-						}
+					if (hasMatch) {
+						throw redirect(302, '/claim-participations');
 					}
 				}
 			}

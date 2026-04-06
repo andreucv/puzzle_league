@@ -12,8 +12,6 @@
 
     let hasUnread = $state(false);
 
-    console.log("Header component: user from page data is ", user);
-
     $effect(() => {
         if (user) {
             const stream = useEventStream('notifications', { userId: user.id }, {

@@ -37,25 +37,24 @@
         }, 5000);
     }
 
-    async function handleAccept(recordId: string) {
+    async function handleConfirm(recordId: string) {
         processingRecordId = recordId;
         const minLoadingTime = new Promise(resolve => setTimeout(resolve, 500));
-
         try {
-            const response = await fetch(`/api/inscriptions/${recordId}/accept`, {
+            const response = await fetch(`/api/inscriptions/${recordId}/confirm`, {
                 method: 'POST'
             });
             const result = await response.json();
             await minLoadingTime;
 
             if (response.ok && result.success) {
-                showResultMessage({ success: true, message: $t('manage_inscriptions.accepted_success') });
+                showResultMessage({ success: true, message: $t('manage_inscriptions.confirmed_success') });
                 await invalidateAll();
             } else {
-                showResultMessage({ success: false, message: result.error || $t('manage_inscriptions.accept_error') });
+                showResultMessage({ success: false, message: result.error || $t('manage_inscriptions.confirm_error') });
             }
         } catch {
-            showResultMessage({ success: false, message: $t('manage_inscriptions.accept_error') });
+            showResultMessage({ success: false, message: $t('manage_inscriptions.confirm_error') });
         } finally {
             processingRecordId = null;
         }
@@ -132,7 +131,7 @@
                 <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
                     <CategoryCardTitle type={category.type} subname={category.subname ?? ''}/>
                     {#if category.maxParties}
-                        {@const remaining = category.maxParties - category.records.filter((r: any) => r.status === 'ACCEPTED').length}
+                        {@const remaining = category.maxParties - category.records.filter((r: any) => r.status === 'CONFIRMED').length}
                         <span class="text-sm {remaining > 0 ? 'text-surface-600 dark:text-surface-400' : 'text-error-600 dark:text-error-400'}">
                             <SeatOutlineIcon width="1rem" height="1rem" class="inline-block align-text-bottom mr-1" />
                             {remaining} {$t('manage_inscriptions.seats_remaining')}
@@ -144,7 +143,7 @@
                     records={category.records}
                     {processingRecordId}
                     {searchFilter}
-                    onAccept={handleAccept}
+                    onConfirm={handleConfirm}
                     onRefuse={handleRefuse}
                 />
             </Card>

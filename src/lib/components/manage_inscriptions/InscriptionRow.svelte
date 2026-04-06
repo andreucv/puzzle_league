@@ -8,18 +8,18 @@
     import ChevronRightIcon from '@iconify-svelte/mdi/chevron-right';
     import ConfirmActionButton from '$lib/components/common/buttons/ConfirmActionButton.svelte';
 
-    let { record, showAccept = false, showRefuse = false, processing = false, selected = false, onAccept, onRefuse, onSelect }: {
+    let { record, showConfirm = false, showRefuse = false, processing = false, selected = false, onConfirm, onRefuse, onSelect }: {
         record: any;
-        showAccept?: boolean;
+        showConfirm?: boolean;
         showRefuse?: boolean;
         processing?: boolean;
         selected?: boolean;
-        onAccept?: (id: string) => void;
+        onConfirm?: (id: string) => void;
         onRefuse?: (id: string) => void;
         onSelect?: (id: string) => void;
     } = $props();
 
-    let hasActions = $derived(showAccept || showRefuse);
+    let hasActions = $derived(showConfirm || showRefuse);
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -52,10 +52,10 @@
             {/each}
         </div>
         {#if record.creator}
-            <span class="text-[0.65rem] text-surface-500 dark:text-surface-400 truncate block">
-                <AccountEditOutlineIcon width="0.75rem" height="0.75rem" class="inline-block align-text-bottom" />
+            <a href="/public_profile/{record.creator.id}" class="inline-flex items-center gap-0.5 text-[0.65rem] text-surface-500 dark:text-surface-400 hover:text-primary-500 hover:underline transition-colors truncate max-w-full">
+                <AccountEditOutlineIcon width="0.75rem" height="0.75rem" class="shrink-0" />
                 {record.creator.name ?? record.creator.email}
-            </span>
+            </a>
         {/if}
     </div>
 
@@ -67,15 +67,15 @@
         onclick={(e) => e.stopPropagation()}
     >
         {#if selected}
-            {#if showAccept}
+            {#if showConfirm}
                 <ConfirmActionButton
                     icon={CheckIcon}
                     colorClass="preset-filled-success-500"
                     confirmTitle={$t('manage_inscriptions.confirm_accept_title')}
                     confirmMessage={$t('manage_inscriptions.confirm_accept_message')}
-                    onConfirm={() => onAccept?.(record.id)}
+                    onConfirm={() => onConfirm?.(record.id)}
                     disabled={processing}
-                    testId="accept-inscription"
+                    testId="confirm-inscription"
                 />
             {/if}
             {#if showRefuse}

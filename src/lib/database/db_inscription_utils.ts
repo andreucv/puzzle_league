@@ -63,8 +63,7 @@ export async function signUpUsersToCompetition(
                 const existingCount = await tx.record.count({
                     where: {
                         categoryId: catId,
-                        creatorId: currentUserId,
-                        status: { in: [InscriptionStatus.PENDING, InscriptionStatus.ACCEPTED, InscriptionStatus.WAITLISTED] }
+                        creatorId: currentUserId
                     }
                 });
                 if (existingCount + batchCount > maxRecords) {
@@ -102,7 +101,6 @@ export async function signUpUsersToCompetition(
                     const alreadyInscribed = await tx.record.findMany({
                         where: {
                             categoryId: signup.categoryId,
-                            status: { in: [InscriptionStatus.PENDING, InscriptionStatus.ACCEPTED, InscriptionStatus.WAITLISTED] },
                             users: { some: { id: { in: allPartyUserIds } } }
                         },
                         include: {
@@ -137,15 +135,15 @@ export async function signUpUsersToCompetition(
                 }
 
                 // Determine initial status: WAITLISTED when category is already full
-                let initialStatus = InscriptionStatus.PENDING;
+                let initialStatus = InscriptionStatus.PENDING_CONFIRMATION as InscriptionStatus;
                 if (category.maxParties) {
-                    const acceptedCount = await tx.record.count({
+                    const confirmedCount = await tx.record.count({
                         where: {
                             categoryId: signup.categoryId,
-                            status: InscriptionStatus.ACCEPTED
+                            status: InscriptionStatus.CONFIRMED
                         }
                     });
-                    if (acceptedCount >= category.maxParties) {
+                    if (confirmedCount >= category.maxParties) {
                         initialStatus = InscriptionStatus.WAITLISTED;
                     }
                 }
@@ -349,7 +347,6 @@ export async function removeUserFromCategory(categoryId: number, userId: string)
         const result = await prisma.record.deleteMany({
             where: {
                 categoryId,
-                status: { in: [InscriptionStatus.PENDING, InscriptionStatus.ACCEPTED, InscriptionStatus.WAITLISTED] },
                 users: {
                     some: {
                         id: userId
@@ -383,8 +380,8 @@ export async function removeRecordById(recordId: string, userId: string) {
             throw new Error('Not authorized to delete this record');
         }
 
-        if (record.status !== InscriptionStatus.PENDING && record.status !== InscriptionStatus.ACCEPTED && record.status !== InscriptionStatus.WAITLISTED) {
-            throw new Error('Cannot unregister a record that is not pending, accepted, or waitlisted');
+        if (record.status !== InscriptionStatus.PENDING_CONFIRMATION && record.status !== InscriptionStatus.CONFIRMED && record.status !== InscriptionStatus.WAITLISTED) {
+            throw new Error('Cannot unregister a record that is not pending confirmation, confirmed, or waitlisted');
         }
 
         await prisma.record.delete({ where: { id: recordId } });
@@ -399,7 +396,7 @@ export async function removeRecordById(recordId: string, userId: string) {
 // Accept / Refuse inscriptions (organizer actions)
 // ---------------------------------------------------------------------------
 
-export async function acceptInscription(recordId: string) {
+export async function confirmInscription(recordId: string) {
     try {
         const result = await prisma.$transaction(async (tx) => {
             const record = await tx.record.findUnique({
@@ -415,26 +412,26 @@ export async function acceptInscription(recordId: string) {
                 throw new Error('Record not found');
             }
 
-            if (record.status !== InscriptionStatus.PENDING && record.status !== InscriptionStatus.WAITLISTED) {
-                throw new Error('Only pending or waitlisted inscriptions can be accepted');
+            if (record.status !== InscriptionStatus.PENDING_CONFIRMATION && record.status !== InscriptionStatus.WAITLISTED) {
+                throw new Error('Only pending or waitlisted inscriptions can be confirmed');
             }
 
             if (record.category.maxParties) {
-                const acceptedCount = await tx.record.count({
+                const confirmedCount = await tx.record.count({
                     where: {
                         categoryId: record.categoryId,
-                        status: InscriptionStatus.ACCEPTED
+                        status: InscriptionStatus.CONFIRMED
                     }
                 });
 
-                if (acceptedCount >= record.category.maxParties) {
-                    throw new Error('Category is full — maximum number of accepted inscriptions reached');
+                if (confirmedCount >= record.category.maxParties) {
+                    throw new Error('Category is full — maximum number of confirmed inscriptions reached');
                 }
             }
 
             const updatedRecord = await tx.record.update({
                 where: { id: recordId },
-                data: { status: InscriptionStatus.ACCEPTED },
+                data: { status: InscriptionStatus.CONFIRMED },
                 include: {
                     users: {
                         select: { id: true, name: true, email: true, image: true }
@@ -463,7 +460,6 @@ export async function getInscribedUserIdsByCategory(competitionId: number): Prom
     const records = await prisma.record.findMany({
         where: {
             category: { competitionId },
-            status: { in: [InscriptionStatus.PENDING, InscriptionStatus.ACCEPTED, InscriptionStatus.WAITLISTED] }
         },
         select: {
             categoryId: true,
@@ -504,8 +500,8 @@ export async function refuseInscription(recordId: string) {
             throw new Error('Record not found');
         }
 
-        if (record.status !== InscriptionStatus.PENDING && record.status !== InscriptionStatus.WAITLISTED) {
-            throw new Error('Only pending or waitlisted inscriptions can be refused');
+        if (record.status !== InscriptionStatus.PENDING_CONFIRMATION && record.status !== InscriptionStatus.WAITLISTED) {
+            throw new Error('Only pending confirmation or waitlisted inscriptions can be refused');
         }
 
         // Delete the record from the database

@@ -183,7 +183,7 @@
     let showStopDialog = $state(false);
     // Use locally-fetched pending records (more up-to-date than event stream counts)
     let unfinishedCount = $derived(
-        pendingRecords.filter((r: any) => r.status === 'ACCEPTED').length
+        pendingRecords.filter((r: any) => r.status === 'CONFIRMED').length
     );
 
     async function handleStopCategory() {

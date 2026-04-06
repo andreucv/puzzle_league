@@ -6,6 +6,7 @@
     import { invalidateAll } from '$app/navigation';
     import { t } from '$lib/translations';
     import { getCategoryTypeName, getCategoryTypeIcon, getMaxRecordsPerCategory } from '$lib/utils/category_utils';
+    import { getInscriptionStatusBadgeClass as getStatusBadgeClasses, getInscriptionStatusIconName as getStatusIcon, getInscriptionStatusBorderClass as getStatusBorderClass, getInscriptionStatusIconColor } from '$lib/utils/inscription_utils';
     import { formatTime } from '$lib/utils/datetime_utils';
     import { slide } from 'svelte/transition';
     import LoadingOverlay from '$lib/components/LoadingOverlay.svelte';
@@ -70,7 +71,7 @@
     function getExistingRecords(categoryId: number) {
         return existingRecords.filter((r: any) =>
             r.categoryId === categoryId &&
-            (r.status === 'PENDING' || r.status === 'ACCEPTED' || r.status === 'WAITLISTED')
+            (r.status === 'PENDING_CONFIRMATION' || r.status === 'CONFIRMED' || r.status === 'WAITLISTED')
         );
     }
 
@@ -81,34 +82,6 @@
         const queuedCount = getSlots(category.id).length;
         const maxRecords = getMaxRecordsPerCategory(category.type);
         return (createdByUser + queuedCount) < maxRecords;
-    }
-
-    // Get status badge classes
-    function getStatusBadgeClasses(status: string): string {
-        switch (status) {
-            case 'ACCEPTED': return 'preset-filled-success-500';
-            case 'PENDING': return 'preset-filled-warning-500';
-            case 'WAITLISTED': return 'preset-filled-secondary-500';
-            default: return 'preset-tonal';
-        }
-    }
-
-    function getStatusIcon(status: string): string {
-        switch (status) {
-            case 'ACCEPTED': return 'mdi:check-circle';
-            case 'PENDING': return 'mdi:clock-outline';
-            case 'WAITLISTED': return 'mdi:clock-alert-outline';
-            default: return 'mdi:help-circle';
-        }
-    }
-
-    function getStatusBorderClass(status: string): string {
-        switch (status) {
-            case 'ACCEPTED': return 'border-success-300 dark:border-success-700 bg-success-50/50 dark:bg-success-900/10';
-            case 'PENDING': return 'border-warning-300 dark:border-warning-700 bg-warning-50/50 dark:bg-warning-900/10';
-            case 'WAITLISTED': return 'border-secondary-300 dark:border-secondary-700 bg-secondary-50/50 dark:bg-secondary-900/10';
-            default: return 'border-surface-300 dark:border-surface-700';
-        }
     }
 
     // ---------------------------------------------------------------------------
@@ -521,7 +494,7 @@
                                 <div class="flex items-center gap-3 flex-wrap min-w-0">
                                     <!-- Status -->
                                     <div class="flex items-center gap-1.5 shrink-0">
-                                        <Icon icon={getStatusIcon(record.status)} width="1.1rem" height="1.1rem" class={record.status === 'ACCEPTED' ? 'text-success-600' : record.status === 'WAITLISTED' ? 'text-secondary-600' : 'text-warning-600'} />
+                                        <Icon icon={getStatusIcon(record.status)} width="1.1rem" height="1.1rem" class={getInscriptionStatusIconColor(record.status)} />
                                         <span class="badge {getStatusBadgeClasses(record.status)} text-xs" data-testid="inscription-status-badge">
                                             {$t(`inscription.status_${record.status.toLowerCase()}`)}
                                         </span>

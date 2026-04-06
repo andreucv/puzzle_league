@@ -25,9 +25,7 @@
     import CheckAllIcon from '@iconify-svelte/mdi/check-all';
     import DoorOpenIcon from '@iconify-svelte/mdi/door-open';
     import DoorClosedLockIcon from '@iconify-svelte/mdi/door-closed-lock';
-    import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
-    import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
-    import ClockAlertOutlineIcon from '@iconify-svelte/mdi/clock-alert-outline';
+    import { getInscriptionStatusChipClass, getInscriptionStatusIcon } from '$lib/utils/inscription_utils';
 
     interface Props {
         competition: Competition & {
@@ -194,22 +192,13 @@
                             {@const registered = isUserInCategory(category)}
                             {@const status = getUserInscriptionStatus(category)}
                             {@const CategoryIcon = categoryTypeIcons[category.type] ?? ShapeIcon}
+                            {@const StatusIcon = registered && status ? getInscriptionStatusIcon(status) : null}
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs
-                                {registered && status === 'ACCEPTED'
-                                    ? 'bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 font-semibold'
-                                    : registered && status === 'PENDING'
-                                    ? 'bg-warning-100 text-warning-700 dark:bg-warning-900/50 dark:text-warning-300 font-semibold'
-                                    : registered && status === 'WAITLISTED'
-                                    ? 'bg-secondary-100 text-secondary-700 dark:bg-secondary-900/50 dark:text-secondary-300 font-semibold'
-                                    : 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'}">
+                                {registered ? getInscriptionStatusChipClass(status) : 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'}">
                                 <CategoryIcon width="0.8rem" height="0.8rem" />
                                 {getCategoryTypeName(category.type as any)}
-                                {#if status === 'ACCEPTED'}
-                                    <CheckCircleIcon width="0.8rem" height="0.8rem" class="text-success-600 dark:text-success-400" />
-                                {:else if status === 'PENDING'}
-                                    <ClockOutlineIcon width="0.8rem" height="0.8rem" class="text-warning-600 dark:text-warning-400" />
-                                {:else if status === 'WAITLISTED'}
-                                    <ClockAlertOutlineIcon width="0.8rem" height="0.8rem" class="text-secondary-600 dark:text-secondary-400" />
+                                {#if StatusIcon}
+                                    <StatusIcon width="0.8rem" height="0.8rem" />
                                 {/if}
                             </span>
                         {/each}

@@ -29,8 +29,8 @@
     "no_live_competitions": "No hay competiciones en directo ahora",
     "no_near_competitions": "No hay próximas competiciones cerca de ti",
     "inscription_status": {
-      "pending": "Pendiente",
-      "accepted": "Aceptada",
+      "pending_confirmation": "Pendiente de confirmación",
+      "confirmed": "Confirmada",
       "waitlisted": "En espera",
       "registration_open": "Registro abierto",
       "registration_closed": "Inscripción cerrada"
@@ -224,8 +224,8 @@
     "submit_all": "Enviar todas las inscripciones",
     "incomplete_parties": "algunos equipos están incompletos",
     "registration_not_available": "Las inscripciones no están disponibles para esta categoría.",
-    "status_accepted": "Aceptado",
-    "status_pending": "Pendiente",
+    "status_confirmed": "Confirmado",
+    "status_pending_confirmation": "Pendiente de confirmación",
     "status_waitlisted": "En lista de espera",
     "sign_up_again": "Regístrese nuevamente",
     "add_non_registered": "Añadir como participante no registrado",
@@ -301,9 +301,9 @@
     "error": "Ha ocurrido un error. Inténtalo de nuevo."
   },
   "manage_inscriptions": {
-    "accept_error": "Error al aceptar la inscripción",
-    "accepted": "Aceptada",
-    "accepted_success": "Inscripción aceptada con éxito.",
+    "confirm_error": "Error al confirmar la inscripción",
+    "confirmed": "Confirmada",
+    "confirmed_success": "Inscripción confirmada con éxito.",
     "no_categories": "No hay categorías en esta competición.",
     "max_slots": "Sitios",
     "seats_remaining": "plazas disponibles",
@@ -320,10 +320,10 @@
     "confirm_button": "Confirmar",
     "cancel_button": "Cancelar",
     "waitlisted": "En lista de espera",
-    "pending": "Pendiente",
+    "pending_confirmation": "Pendiente de confirmación",
     "refused_success": "Inscripción rechazada con éxito.",
-    "status_pending": "Pendiente",
-    "status_accepted": "Aceptada",
+    "status_pending_confirmation": "Pendiente de confirmación",
+    "status_confirmed": "Confirmada",
     "status_waitlisted": "En lista de espera",
     "title": "Gestiona Inscripciones",
     "30-days": "30 días",
@@ -406,5 +406,10 @@
     "not_started": "No Iniciada",
     "in_progress": "En Curso",
     "completed": "Completada"
+  },
+  "public_profile": {
+    "title": "Perfil del usuario",
+    "contact_info": "Información de contacto",
+    "member_since": "Miembro desde"
   }
 }

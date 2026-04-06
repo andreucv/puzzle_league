@@ -118,14 +118,14 @@ enum RequestStatus {
 }
 
 enum InscriptionStatus {
-  PENDING
-  ACCEPTED
+  PENDING_CONFIRMATION
+  CONFIRMED
   WAITLISTED
 }
 
 enum NotificationType {
   INSCRIPTION_CREATED
-  INSCRIPTION_ACCEPTED
+  INSCRIPTION_CONFIRMED
   INSCRIPTION_REFUSED
   INSCRIPTION_WAITLISTED
   COMPETITION_STARTED
@@ -218,7 +218,7 @@ model Record {
   finishTime         DateTime?
   tableNumber        Int?
   nPiecesCompleted   Int?
-  status             InscriptionStatus @default(PENDING)
+  status             InscriptionStatus @default(PENDING_CONFIRMATION)
   categoryId         Int
   category           Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   users              User[]            @relation("RecordParticipants")

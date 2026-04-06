@@ -14,7 +14,7 @@ export async function resolveCompetitionState(params: { id: number }): Promise<C
 			realEndTime: true,
 			_count: {
 				select: {
-					records: { where: { status: InscriptionStatus.ACCEPTED } }
+					records: { where: { status: InscriptionStatus.CONFIRMED } }
 				}
 			}
 		}
@@ -26,7 +26,7 @@ export async function resolveCompetitionState(params: { id: number }): Promise<C
 			const finishedRecords = await prisma.record.count({
 				where: {
 					categoryId: cat.id,
-					status: InscriptionStatus.ACCEPTED,
+					status: InscriptionStatus.CONFIRMED,
 					finishTime: { not: null }
 				}
 			});

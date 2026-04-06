@@ -186,7 +186,7 @@ async function main() {
                     data: {
                         categoryId,
                         creatorId: creatorDbId,
-                        status: 'PENDING' as InscriptionStatus,
+                        status: 'PENDING_CONFIRMATION' as InscriptionStatus,
                         users: { connect: { id: creatorDbId } }
                     }
                 });

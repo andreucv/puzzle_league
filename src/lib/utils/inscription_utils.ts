@@ -1,0 +1,82 @@
+import { InscriptionStatus } from '$lib/.prisma/generated/prisma/enums';
+import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
+import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
+import ClockAlertOutlineIcon from '@iconify-svelte/mdi/clock-alert-outline';
+import HelpCircleIcon from '@iconify-svelte/mdi/help-circle';
+
+/**
+ * Single source of truth: maps an InscriptionStatus enum value to its i18n key.
+ * Use with the `$t()` function to get the translated display name.
+ */
+const STATUS_TRANSLATION_KEYS: Record<InscriptionStatus, string> = {
+	[InscriptionStatus.PENDING_CONFIRMATION]: 'inscription.status_pending_confirmation',
+	[InscriptionStatus.CONFIRMED]: 'inscription.status_confirmed',
+	[InscriptionStatus.WAITLISTED]: 'inscription.status_waitlisted',
+};
+
+export function getInscriptionStatusLabel(status: string | undefined, t: (key: string) => string): string {
+	const key = STATUS_TRANSLATION_KEYS[status as InscriptionStatus];
+	if (!key) return '';
+	return t(key) ?? status ?? '';
+}
+
+export function getInscriptionStatusIcon(status: string | undefined): typeof CheckCircleIcon {
+	switch (status) {
+		case 'CONFIRMED': return CheckCircleIcon;
+		case 'PENDING_CONFIRMATION': return ClockOutlineIcon;
+		case 'WAITLISTED': return ClockAlertOutlineIcon;
+		default: return HelpCircleIcon;
+	}
+}
+
+export function getInscriptionStatusIconName(status: string | undefined ): string {
+	switch (status) {
+		case 'CONFIRMED': return 'mdi:check-circle';
+		case 'PENDING_CONFIRMATION': return 'mdi:clock-outline';
+		case 'WAITLISTED': return 'mdi:clock-alert-outline';
+		default: return 'mdi:help-circle';
+	}
+}
+
+export function getInscriptionStatusBadgeClass(status: string): string {
+	switch (status) {
+		case 'CONFIRMED': return 'preset-filled-success-500';
+		case 'PENDING_CONFIRMATION': return 'preset-filled-warning-500';
+		case 'WAITLISTED': return 'preset-filled-secondary-500';
+		default: return 'preset-tonal';
+	}
+}
+
+export function getInscriptionStatusTonalClass(status: string | undefined): string {
+	switch (status) {
+		case 'CONFIRMED': return 'preset-tonal-success';
+		case 'PENDING_CONFIRMATION': return 'preset-tonal-warning';
+		case 'WAITLISTED': return 'preset-tonal-secondary';
+		default: return 'preset-tonal-surface';
+	}
+}
+
+export function getInscriptionStatusBorderClass(status: string): string {
+	switch (status) {
+		case 'CONFIRMED': return 'border-success-300 dark:border-success-700 bg-success-50/50 dark:bg-success-900/10';
+		case 'PENDING_CONFIRMATION': return 'border-warning-300 dark:border-warning-700 bg-warning-50/50 dark:bg-warning-900/10';
+		case 'WAITLISTED': return 'border-secondary-300 dark:border-secondary-700 bg-secondary-50/50 dark:bg-secondary-900/10';
+		default: return 'border-surface-300 dark:border-surface-700';
+	}
+}
+
+export function getInscriptionStatusChipClass(status: string | null): string {
+	if (status === 'CONFIRMED') return 'bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 font-semibold';
+	if (status === 'PENDING_CONFIRMATION') return 'bg-warning-100 text-warning-700 dark:bg-warning-900/50 dark:text-warning-300 font-semibold';
+	if (status === 'WAITLISTED') return 'bg-secondary-100 text-secondary-700 dark:bg-secondary-900/50 dark:text-secondary-300 font-semibold';
+	return 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400';
+}
+
+export function getInscriptionStatusIconColor(status: string): string {
+	switch (status) {
+		case 'CONFIRMED': return 'text-success-600';
+		case 'PENDING_CONFIRMATION': return 'text-warning-600';
+		case 'WAITLISTED': return 'text-secondary-600';
+		default: return 'text-surface-600';
+	}
+}

@@ -52,8 +52,8 @@ The workflow supports three kinds of participants in a single record (registrati
 
 | Term | Definition |
 |------|-----------|
-| **Category** | A competition subdivision with its own type (Individual, Pairs, Team, etc.), time window, max party size, and max number of accepted entries. |
-| **Record** | A single registration entry linking participants to a category. Has a status (PENDING, ACCEPTED, WAITLISTED) and tracks who created it. |
+| **Category** | A competition subdivision with its own type (Individual, Pairs, Team, etc.), time window, max party size, and max number of confirmed entries. |
+| **Record** | A single registration entry linking participants to a category. Has a status (PENDING_CONFIRMATION, CONFIRMED, WAITLISTED) and tracks who created it. |
 | **UserIntent** | A placeholder for a non-platform participant. Stores a name and can later be claimed by a real user when they create an account. |
 | **Slot** | A client-side concept representing an in-progress signup being assembled before submission. Each slot tracks its users, new UserIntent names, and existing UserIntent references. |
 | **Party** | The group of participants in a single Record. For Individual categories the party size is 1; for Pairs it's 2; for Team it varies. |
@@ -135,7 +135,7 @@ This layered dropdown was chosen to keep the flow fast and contextual — the us
 
 ### 8. Waitlisting is automatic and server-side
 
-When a category has reached its `maxParties` of ACCEPTED records, new signups are created with status `WAITLISTED` instead of `PENDING`. The user is notified via the in-app notification system. This decision was made because waitlisting should be deterministic and not depend on client-side state.
+When a category has reached its `maxParties` of ACCEPTED records, new signups are created with status `WAITLISTED` instead of `PENDING_CONFIRMATION`. The user is notified via the in-app notification system. This decision was made because waitlisting should be deterministic and not depend on client-side state.
 
 ---
 

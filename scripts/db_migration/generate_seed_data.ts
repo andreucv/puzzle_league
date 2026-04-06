@@ -164,7 +164,7 @@ function generateCategories(competitions: SeedCompetition[]): SeedCategory[] {
 
 // ── Record (inscription) generation ──
 
-const STATUSES = ['ACCEPTED', 'PENDING', 'WAITLISTED'];
+const STATUSES = ['CONFIRMED', 'PENDING_CONFIRMATION', 'WAITLISTED'];
 
 function generateRecords(categories: SeedCategory[], totalUsers: number, startUserIndex = 0): SeedRecord[] {
     const records: SeedRecord[] = [];

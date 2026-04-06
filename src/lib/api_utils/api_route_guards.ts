@@ -63,7 +63,7 @@ const ROUTE_GUARDS: [RegExp, RouteGuard][] = [
   [/^\/api\/events\/competition\/[^/]+$/, { guard: 'competitionJudgeOrOrganizer' }],
 
   // ---- Inscription endpoints (recordId → competition → ORGANIZER) ----
-  [/^\/api\/inscriptions\/[^/]+\/accept$/, { guard: 'inscriptionOrganizer' }],
+  [/^\/api\/inscriptions\/[^/]+\/confirm$/, { guard: 'inscriptionOrganizer' }],
   [/^\/api\/inscriptions\/[^/]+\/refuse$/, { guard: 'inscriptionOrganizer' }],
 
   // ---- Category-scoped: ORGANIZER on parent competition (for judge management) ----

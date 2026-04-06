@@ -12,7 +12,7 @@
 
     const typeIcons: Record<string, string> = {
         INSCRIPTION_CREATED: 'mdi:account-plus-outline',
-        INSCRIPTION_ACCEPTED: 'mdi:check-circle-outline',
+        INSCRIPTION_CONFIRMED: 'mdi:check-circle-outline',
         INSCRIPTION_REFUSED: 'mdi:close-circle-outline',
         INSCRIPTION_WAITLISTED: 'mdi:clock-alert-outline',
         COMPETITION_STARTED: 'mdi:play-circle-outline',
@@ -25,7 +25,7 @@
 
     const typeColors: Record<string, string> = {
         INSCRIPTION_CREATED: 'text-primary-500',
-        INSCRIPTION_ACCEPTED: 'text-success-500',
+        INSCRIPTION_CONFIRMED: 'text-success-500',
         INSCRIPTION_REFUSED: 'text-error-500',
         INSCRIPTION_WAITLISTED: 'text-secondary-500',
         COMPETITION_STARTED: 'text-primary-500',

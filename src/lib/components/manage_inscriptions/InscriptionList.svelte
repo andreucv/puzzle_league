@@ -1,14 +1,16 @@
 <script lang="ts">
     import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
+    import ClockAlertOutlineIcon from '@iconify-svelte/mdi/clock-alert-outline';
+    import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
     import { t } from '$lib/translations';
     import CollapsibleSection from './CollapsibleSection.svelte';
     import InscriptionRow from './InscriptionRow.svelte';
 
-    let { records, processingRecordId = null, searchFilter = '', onAccept, onRefuse }: {
+    let { records, processingRecordId = null, searchFilter = '', onConfirm, onRefuse }: {
         records: any[];
         processingRecordId?: string | null;
         searchFilter?: string;
-        onAccept: (id: string) => void;
+        onConfirm: (id: string) => void;
         onRefuse: (id: string) => void;
     } = $props();
 
@@ -34,21 +36,21 @@
     }
 
     let filteredRecords = $derived(filterBySearch(records));
-    let pendingRecords = $derived(byStatus(filteredRecords, 'PENDING'));
+    let pendingRecords = $derived(byStatus(filteredRecords, 'PENDING_CONFIRMATION'));
     let waitlistedRecords = $derived(byStatus(filteredRecords, 'WAITLISTED'));
-    let acceptedRecords = $derived(byStatus(filteredRecords, 'ACCEPTED'));
+    let confirmedRecords = $derived(byStatus(filteredRecords, 'CONFIRMED'));
 </script>
 
-{#snippet recordList(recs: any[], showAccept: boolean, showRefuse: boolean)}
+{#snippet recordList(recs: any[], showConfirm: boolean, showRefuse: boolean)}
     <div>
         {#each recs as record (record.id)}
             <InscriptionRow
                 {record}
-                {showAccept}
+                {showConfirm}
                 {showRefuse}
                 processing={processingRecordId === record.id}
                 selected={selectedRecordId === record.id}
-                {onAccept}
+                {onConfirm}
                 {onRefuse}
                 onSelect={toggleSelect}
             />
@@ -67,7 +69,7 @@
             <div>
                 <div class="flex items-center gap-2 mb-1">
                     <ClockOutlineIcon width="1rem" height="1rem" />
-                    <span class="text-sm font-semibold" data-testid="record-status-badge">{$t('manage_inscriptions.pending')}</span>
+                    <span class="text-sm font-semibold" data-testid="record-status-badge">{$t('manage_inscriptions.pending_confirmation')}</span>
                     <span class="badge preset-tonal-warning text-xs">{pendingRecords.length}</span>
                 </div>
                 {@render recordList(pendingRecords, true, true)}
@@ -77,24 +79,26 @@
         <!-- Waitlisted section (collapsible) -->
         {#if waitlistedRecords.length > 0}
             <CollapsibleSection
-                icon="mdi:clock-alert-outline"
+                icon={ClockAlertOutlineIcon}
                 label={$t('manage_inscriptions.waitlisted')}
                 count={waitlistedRecords.length}
                 badgeClass="preset-tonal-secondary"
+                testId="toggle-section-waitlisted"
             >
                 {@render recordList(waitlistedRecords, true, true)}
             </CollapsibleSection>
         {/if}
 
-        <!-- Accepted section (collapsible) -->
-        {#if acceptedRecords.length > 0}
+        <!-- Confirmed section (collapsible) -->
+        {#if confirmedRecords.length > 0}
             <CollapsibleSection
-                icon="mdi:check-circle"
-                label={$t('manage_inscriptions.accepted')}
-                count={acceptedRecords.length}
+                icon={CheckCircleIcon}
+                label={$t('manage_inscriptions.confirmed')}
+                count={confirmedRecords.length}
                 badgeClass="preset-tonal-success"
+                testId="toggle-section-confirmed"
             >
-                {@render recordList(acceptedRecords, false, true)}
+                {@render recordList(confirmedRecords, false, true)}
             </CollapsibleSection>
         {/if}
     </div>

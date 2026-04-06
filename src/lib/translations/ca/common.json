@@ -29,8 +29,8 @@
     "no_live_competitions": "No hi ha competicions en directe ara",
     "no_near_competitions": "No hi ha pròximes competicions a prop teu",
     "inscription_status": {
-      "pending": "Pendent",
-      "accepted": "Acceptada",
+      "pending_confirmation": "Pendent de confirmació",
+      "confirmed": "Confirmada",
       "waitlisted": "En espera",
       "registration_open": "Registre obert",
       "registration_closed": "Inscripció tancada"
@@ -123,8 +123,8 @@
     "submit_all": "Enviar totes les inscripcions",
     "incomplete_parties": "alguns equips estan incomplets",
     "registration_not_available": "Les inscripcions no estan disponibles per aquesta categoria.",
-    "status_accepted": "Aceptat",
-    "status_pending": "Pendent",
+    "status_confirmed": "Confirmat",
+    "status_pending_confirmation": "Pendent de confirmació",
     "status_waitlisted": "En llista d'espera",
     "sign_up_again": "Registra't de nou",
     "add_non_registered": "Afegeix com a participant no registrat",
@@ -301,9 +301,9 @@
     "error": "S'ha produït un error. Torna-ho a provar."
   },
   "manage_inscriptions": {
-    "accept_error": "Error al acceptar la inscripció",
-    "accepted": "Acceptada",
-    "accepted_success": "Inscripció acceptada correctament.",
+    "confirm_error": "Error al confirmar la inscripció",
+    "confirmed": "Confirmada",
+    "confirmed_success": "Inscripció confirmada correctament.",
     "no_categories": "No hi ha categories en aquesta competició.",
     "max_slots": "Llocs",
     "seats_remaining": "llocs disponibles",
@@ -320,10 +320,10 @@
     "confirm_button": "Confirmar",
     "cancel_button": "Cancel·lar",
     "waitlisted": "En llista d'espera",
-    "pending": "Pendent",
+    "pending_confirmation": "Pendent de confirmació",
     "refused_success": "Inscripció rebutjada amb èxit.",
-    "status_pending": "Pendent",
-    "status_accepted": "Acceptada",
+    "status_pending_confirmation": "Pendent de confirmació",
+    "status_confirmed": "Confirmada",
     "status_waitlisted": "En llista d'espera",
     "title": "Gestiona Inscripcions",
     "30-days": "30 dies",
@@ -406,5 +406,10 @@
     "not_started": "No Iniciada",
     "in_progress": "En Curs",
     "completed": "Completada"
+  },
+  "public_profile": {
+    "title": "Perfil de l'usuari",
+    "contact_info": "Informació de contacte",
+    "member_since": "Membre des de"
   }
 }

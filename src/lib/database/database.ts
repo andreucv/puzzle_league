@@ -5,7 +5,7 @@ import type { Competition, Category } from '$lib/.prisma/generated/prisma/browse
 import { prisma } from '$lib/database/create_prisma_client';
 
 // Re-export inscription helpers from dedicated module
-export { signUpUsersToCompetition, getCategoryEntriesFromCompetition, removeUserFromCategory, removeRecordById, getInscriptionsForCompetition, acceptInscription, refuseInscription } from '$lib/database/db_inscription_utils';
+export { signUpUsersToCompetition, getCategoryEntriesFromCompetition, removeUserFromCategory, removeRecordById, getInscriptionsForCompetition, confirmInscription, refuseInscription } from '$lib/database/db_inscription_utils';
 
 // User related functions
 export async function getRoleAssignments(userId: string) {
@@ -282,7 +282,7 @@ export async function getCompetition(competitionId: number) {
 
 export async function getCompetitionCategories(
     competitionId: number
-): Promise<Array<Category & { totalRecords: number; finishedRecords: number; pendingRecords: number; acceptedRecords: number }>> {
+): Promise<Array<Category & { totalRecords: number; finishedRecords: number; pendingRecords: number; confirmedRecords: number }>> {
     try {
         // Fetch categories and all record counts in parallel (2 queries instead of 4N+1)
         const [categories, statusCounts, finishedCounts] = await Promise.all([
@@ -296,13 +296,13 @@ export async function getCompetitionCategories(
                 _count: true,
                 where: { category: { competitionId } }
             }),
-            // Count finished (accepted + has finishTime) per category
+            // Count finished (confirmed + has finishTime) per category
             prisma.record.groupBy({
                 by: ['categoryId'],
                 _count: true,
                 where: {
                     category: { competitionId },
-                    status: InscriptionStatus.ACCEPTED,
+                    status: InscriptionStatus.CONFIRMED,
                     finishTime: { not: null }
                 }
             })
@@ -311,22 +311,22 @@ export async function getCompetitionCategories(
         // Build lookup maps for O(1) access
         const finishedMap = new Map(finishedCounts.map(r => [r.categoryId, r._count]));
 
-        const statusMap = new Map<number, { accepted: number; pending: number }>();
+        const statusMap = new Map<number, { confirmed: number; pending: number }>();
         for (const row of statusCounts) {
-            const entry = statusMap.get(row.categoryId) ?? { accepted: 0, pending: 0 };
-            if (row.status === InscriptionStatus.ACCEPTED) entry.accepted = row._count;
-            if (row.status === InscriptionStatus.PENDING) entry.pending = row._count;
+            const entry = statusMap.get(row.categoryId) ?? { confirmed: 0, pending: 0 };
+            if (row.status === InscriptionStatus.CONFIRMED) entry.confirmed = row._count;
+            if (row.status === InscriptionStatus.PENDING_CONFIRMATION) entry.pending = row._count;
             statusMap.set(row.categoryId, entry);
         }
 
         return categories.map((category) => {
-            const counts = statusMap.get(category.id) ?? { accepted: 0, pending: 0 };
+            const counts = statusMap.get(category.id) ?? { confirmed: 0, pending: 0 };
             return {
                 ...(category as unknown as Category),
-                totalRecords: counts.accepted,
+                totalRecords: counts.confirmed,
                 finishedRecords: finishedMap.get(category.id) ?? 0,
                 pendingRecords: counts.pending,
-                acceptedRecords: counts.accepted,
+                confirmedRecords: counts.confirmed,
             };
         });
     } catch (error) {
@@ -338,10 +338,10 @@ export async function getCompetitionCategories(
 export async function startCategory(categoryId: number) {
     const [totalRecords, finishedRecords] = await Promise.all([
         prisma.record.count({
-            where: { categoryId, status: InscriptionStatus.ACCEPTED }
+            where: { categoryId, status: InscriptionStatus.CONFIRMED }
         }),
         prisma.record.count({
-            where: { categoryId, finishTime: { not: null }, status: InscriptionStatus.ACCEPTED }
+            where: { categoryId, finishTime: { not: null }, status: InscriptionStatus.CONFIRMED }
         })
     ]);
 
@@ -811,7 +811,7 @@ export async function getCompetitionResults(competitionId: number) {
                             }
                         },
                         records: {
-                            where: { status: InscriptionStatus.ACCEPTED },
+                            where: { status: InscriptionStatus.CONFIRMED },
                             orderBy: [
                                 { finishTime: 'asc' },
                                 { tableNumber: 'asc' }

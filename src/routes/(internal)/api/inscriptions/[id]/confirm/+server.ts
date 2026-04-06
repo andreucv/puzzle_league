@@ -1,5 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { acceptInscription } from '$lib/database/db_inscription_utils';
+import { confirmInscription } from '$lib/database/db_inscription_utils';
 import { prisma } from '$lib/database/create_prisma_client';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 import { createNotification, createNotificationForUsers } from '$lib/notifications/notifications';
@@ -33,7 +33,7 @@ export const POST = async (event: RequestEvent) => {
 			return json({ error: 'Record not found' }, { status: 404 });
 		}
 
-		const result = await acceptInscription(recordId);
+		const result = await confirmInscription(recordId);
 
 		if (!result.success) {
 			return json({ error: result.error }, { status: 400 });
@@ -52,9 +52,9 @@ export const POST = async (event: RequestEvent) => {
 		const userIds = record.users.map((u) => u.id);
 		await createNotificationForUsers(
 			userIds,
-			NotificationType.INSCRIPTION_ACCEPTED,
-			'Inscription accepted',
-			`Your inscription for the '${categoryTypeName}' category in the '${competitionName}' competition has been accepted.`,
+			NotificationType.INSCRIPTION_CONFIRMED,
+			'Inscription confirmed',
+			`Your inscription for the '${categoryTypeName}' category in the '${competitionName}' competition has been confirmed.`,
 			link
 		);
 
@@ -65,16 +65,16 @@ export const POST = async (event: RequestEvent) => {
 			const nonPlatformNames = record.userIntents.map((ui) => ui.name).join(', ');
 			await createNotification({
 				userId: record.creatorId,
-				type: NotificationType.INSCRIPTION_ACCEPTED,
-				title: 'Inscription accepted',
-				message: `The inscription for '${nonPlatformNames}' in the '${categoryTypeName}' category of the '${competitionName}' competition has been accepted.`,
+				type: NotificationType.INSCRIPTION_CONFIRMED,
+				title: 'Inscription confirmed',
+				message: `The inscription for '${nonPlatformNames}' in the '${categoryTypeName}' category of the '${competitionName}' competition has been confirmed.`,
 				link
 			});
 		}
 
 		return json({ success: true, data: result.data });
 	} catch (error) {
-		console.error('Error accepting inscription:', error);
-		return json({ error: 'Failed to accept inscription' }, { status: 500 });
+		console.error('Error confirming inscription:', error);
+		return json({ error: 'Failed to confirm inscription' }, { status: 500 });
 	}
 };

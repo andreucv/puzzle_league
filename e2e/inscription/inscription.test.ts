@@ -56,7 +56,7 @@ async function openRegistration(page: Page, competitionId: string): Promise<void
     await page.goto(`/competition/${competitionId}/manage_inscriptions`);
     await expect(page.getByText('closed')).toBeVisible();
     await page.getByTestId('toggle-registration').click();
-    await expect(page.getByText('open')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('registration-status')).toHaveText('open', { timeout: 10000 });
 }
 
 /** Signs up the current user for the first individual category and submits. */
@@ -81,8 +81,8 @@ async function extractCategoryIds(page: Page, competitionId: string): Promise<st
     return ids;
 }
 
-/** Accepts the first pending inscription on the manage inscriptions page. */
-async function acceptFirstInscription(page: Page, competitionId: string): Promise<void> {
+/** Confirms the first pending inscription on the manage inscriptions page. */
+async function confirmFirstInscription(page: Page, competitionId: string): Promise<void> {
     await page.goto(`/competition/${competitionId}/manage_inscriptions`);
 
     // Click the first inscription row to reveal action buttons
@@ -91,14 +91,20 @@ async function acceptFirstInscription(page: Page, competitionId: string): Promis
     await firstRow.click();
 
     // Click the accept button (now visible after selecting the row)
-    await expect(page.getByTestId('accept-inscription').first()).toBeVisible();
-    await page.getByTestId('accept-inscription').first().click();
+    await expect(page.getByTestId('confirm-inscription').first()).toBeVisible();
+    await page.getByTestId('confirm-inscription').first().click();
 
     // Confirm in the popover
     await expect(page.getByTestId('confirm-popover-action')).toBeVisible();
     await page.getByTestId('confirm-popover-action').click();
 
-    await expect(page.getByText('Inscription accepted successfully')).toBeVisible({ timeout: 5000 });
+    // Wait for the Confirmed section to appear (data reloaded after action)
+    const confirmedToggle = page.getByTestId('toggle-section-confirmed');
+    await expect(confirmedToggle).toBeVisible({ timeout: 5000 });
+
+    // Expand the Confirmed section and verify a record is inside
+    await confirmedToggle.click();
+    await expect(page.locator('[data-testid^="inscription-record-"]')).toBeVisible({ timeout: 3000 });
 }
 
 // ==================== TESTS ====================
@@ -161,25 +167,25 @@ test.describe('Inscription Happy Path', () => {
         await openRegistration(organizerPage, competitionId);
     });
 
-    test('Step 3: Participant registers and status is Pending', async () => {
+    test('Step 3: Participant registers and status is Pending Confirmation', async () => {
         await signUpIndividualAndSubmit(participantPage, competitionId);
-        await expect(participantPage.getByTestId('inscription-status-badge')).toHaveText('Pending');
+        await expect(participantPage.getByTestId('inscription-status-badge')).toHaveText('Pending Confirmation');
     });
 
-    test('Step 4: Organizer accepts the inscription', async () => {
-        await acceptFirstInscription(organizerPage, competitionId);
+    test('Step 4: Organizer confirms the inscription', async () => {
+        await confirmFirstInscription(organizerPage, competitionId);
     });
 
-    test('Step 5a: Participant sees Accepted status on inscription page', async () => {
+    test('Step 5a: Participant sees Confirmed status on inscription page', async () => {
         await participantPage.goto(`/competitions/competition_details/${competitionId}/inscription`);
         await expect(participantPage.getByTestId('inscription-status-badge')).toBeVisible();
-        await expect(participantPage.getByTestId('inscription-status-badge')).toHaveText('Accepted');
+        await expect(participantPage.getByTestId('inscription-status-badge')).toHaveText('Confirmed');
     });
 
-    test('Step 5b: Participant sees Accepted status on competition details page', async () => {
+    test('Step 5b: Participant sees Confirmed status on competition details page', async () => {
         await participantPage.goto(`/competitions/competition_details/${competitionId}`);
         await expect(participantPage.getByTestId('category-status-badge')).toBeVisible();
-        await expect(participantPage.getByTestId('category-status-badge')).toHaveText(/Accepted/);
+        await expect(participantPage.getByTestId('category-status-badge')).toHaveText(/Confirmed/);
     });
 });
 
@@ -350,9 +356,9 @@ test.describe('Group Category — Build Team with UserIntent', () => {
         // 5. Submit
         await participantPage.getByTestId('submit-all-registrations').click();
 
-        // 6. Verify the record appears with Pending status
+        // 6. Verify the record appears with Pending Confirmation status
         await expect(participantPage.getByTestId('inscription-status-badge').first()).toBeVisible({ timeout: 10000 });
-        await expect(participantPage.getByTestId('inscription-status-badge').first()).toHaveText('Pending');
+        await expect(participantPage.getByTestId('inscription-status-badge').first()).toHaveText('Pending Confirmation');
 
         // 7. Verify the UserIntent name is visible in the record
         await expect(participantPage.getByText(teammateIntentName)).toBeVisible();
@@ -369,21 +375,25 @@ test.describe('Group Category — Build Team with UserIntent', () => {
         await firstRow.click();
 
         // Accept the inscription
-        await expect(organizerPage.getByTestId('accept-inscription').first()).toBeVisible();
-        await organizerPage.getByTestId('accept-inscription').first().click();
+        await expect(organizerPage.getByTestId('confirm-inscription').first()).toBeVisible();
+        await organizerPage.getByTestId('confirm-inscription').first().click();
 
         // Confirm in the popover
         await expect(organizerPage.getByTestId('confirm-popover-action')).toBeVisible();
         await organizerPage.getByTestId('confirm-popover-action').click();
 
-        await expect(organizerPage.getByText('Inscription accepted successfully')).toBeVisible({ timeout: 5000 });
+        // Wait for the Confirmed section to appear and expand it
+        const confirmedToggle = organizerPage.getByTestId('toggle-section-confirmed');
+        await expect(confirmedToggle).toBeVisible({ timeout: 5000 });
+        await confirmedToggle.click();
+        await expect(organizerPage.getByText(teammateIntentName)).toBeVisible({ timeout: 3000 });
     });
 
-    test('Participant receives acceptance notification', async () => {
+    test('Participant receives confirmation notification', async () => {
         await participantPage.goto('/notifications');
 
-        // Should see an "Inscription accepted" notification
-        await expect(participantPage.getByText('Inscription accepted').first()).toBeVisible({ timeout: 5000 });
+        // Should see an "Inscription confirmed" notification
+        await expect(participantPage.getByText('Inscription confirmed').first()).toBeVisible({ timeout: 5000 });
     });
 });
 
@@ -439,7 +449,7 @@ test.describe('Unregister from Existing Record', () => {
     test('Participant registers, then unregisters', async () => {
         // Register
         await signUpIndividualAndSubmit(participantPage, competitionId);
-        await expect(participantPage.getByTestId('inscription-status-badge')).toHaveText('Pending');
+        await expect(participantPage.getByTestId('inscription-status-badge')).toHaveText('Pending Confirmation');
 
         // Click the unregister button (red ✕ next to the record)
         const unregisterButton = participantPage.locator('form[action="?/unregister"] button[type="submit"]');
@@ -507,7 +517,7 @@ test.describe('Organizer Refuses Inscription', () => {
 
     test('Participant registers for the category', async () => {
         await signUpIndividualAndSubmit(participantPage, competitionId);
-        await expect(participantPage.getByTestId('inscription-status-badge')).toHaveText('Pending');
+        await expect(participantPage.getByTestId('inscription-status-badge')).toHaveText('Pending Confirmation');
     });
 
     test('Organizer refuses the inscription', async () => {
@@ -526,7 +536,8 @@ test.describe('Organizer Refuses Inscription', () => {
         await expect(organizerPage.getByTestId('confirm-popover-action')).toBeVisible();
         await organizerPage.getByTestId('confirm-popover-action').click();
 
-        await expect(organizerPage.getByText('Inscription refused successfully')).toBeVisible({ timeout: 5000 });
+        // After refusing, no more inscription records should be visible
+        await expect(organizerPage.locator('[data-testid^="inscription-record-"]')).toHaveCount(0, { timeout: 5000 });
     });
 
     test('Participant sees refusal notification', async () => {
@@ -536,7 +547,7 @@ test.describe('Organizer Refuses Inscription', () => {
 
     test('Participant no longer sees the inscription on the inscription page', async () => {
         await participantPage.goto(`/competitions/competition_details/${competitionId}/inscription`);
-        // Refused records are not shown (only PENDING, ACCEPTED, WAITLISTED)
+        // Refused records are not shown (only PENDING_CONFIRMATION, CONFIRMED, WAITLISTED)
         await expect(participantPage.getByTestId('inscription-status-badge')).toHaveCount(0);
     });
 });
@@ -584,13 +595,13 @@ test.describe('Waitlisting', () => {
         await openRegistration(organizerPage, competitionId);
     });
 
-    test('Participant registers → Pending, organizer accepts → fills the category', async () => {
+    test('Participant registers → Pending Confirmation, organizer confirms → fills the category', async () => {
         // Participant registers
         await signUpIndividualAndSubmit(participantPage, competitionId);
-        await expect(participantPage.getByTestId('inscription-status-badge')).toHaveText('Pending');
+        await expect(participantPage.getByTestId('inscription-status-badge')).toHaveText('Pending Confirmation');
 
-        // Organizer accepts → category now has 1/1 ACCEPTED = full
-        await acceptFirstInscription(organizerPage, competitionId);
+        // Organizer confirms → category now has 1/1 CONFIRMED = full
+        await confirmFirstInscription(organizerPage, competitionId);
     });
 
     test('Organizer registers themselves → automatically Waitlisted', async () => {
@@ -603,8 +614,8 @@ test.describe('Waitlisting', () => {
         // The Waitlisted section should appear with 1 record
         await expect(organizerPage.getByText('Waitlisted')).toBeVisible();
 
-        // The Accepted section should also be visible with the participant's record
-        await expect(organizerPage.getByText('Accepted')).toBeVisible();
+        // The Confirmed section should also be visible with the participant's record
+        await expect(organizerPage.getByText('Confirmed')).toBeVisible();
     });
 
     test('Organizer sees waitlisted notification', async () => {
@@ -770,7 +781,7 @@ test.describe('Multi-Category Batch Submission', () => {
         // 6. Submit all at once
         await participantPage.getByTestId('submit-all-registrations').click();
 
-        // 7. Verify both records appear with Pending status
+        // 7. Verify both records appear with Pending Confirmation status
         await expect(participantPage.getByTestId('inscription-status-badge').first()).toBeVisible({ timeout: 10000 });
         const badges = participantPage.getByTestId('inscription-status-badge');
         await expect(badges).toHaveCount(2);

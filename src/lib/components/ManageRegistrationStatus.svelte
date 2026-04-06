@@ -55,7 +55,7 @@
 			<Icon icon={competition_registration_status ? 'mdi:lock-open-variant' : 'mdi:lock'} width="1.2rem" height="1.2rem" class={competition_registration_status ? 'text-success-500' : 'text-error-500'} />
 			<p class="text-sm">
 				Registration is
-				<span class="font-semibold" class:text-success-500={competition_registration_status} class:text-error-500={!competition_registration_status}>
+				<span class="font-semibold" class:text-success-500={competition_registration_status} class:text-error-500={!competition_registration_status} data-testid="registration-status">
 					{competition_registration_status ? 'open' : 'closed'}
 				</span>
 			</p>

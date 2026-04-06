@@ -11,9 +11,7 @@
     import AccountChildIcon from '@iconify-svelte/mdi/account-child';
     import ChessKnightIcon from '@iconify-svelte/mdi/chess-knight';
     import ShapeIcon from '@iconify-svelte/mdi/shape';
-    import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
-    import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
-    import ClockAlertOutlineIcon from '@iconify-svelte/mdi/clock-alert-outline';
+    import { getInscriptionStatusChipClass, getInscriptionStatusIcon } from '$lib/utils/inscription_utils';
 
     const categoryTypeIcons: Record<string, typeof ShapeIcon> = {
         INDIVIDUAL: AccountIcon,
@@ -40,13 +38,6 @@
     }
 
     let { inscriptions }: { inscriptions: CompetitionEntry[] } = $props();
-
-    function chipClass(status: string | null): string {
-        if (status === 'ACCEPTED') return 'bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 font-semibold';
-        if (status === 'PENDING') return 'bg-warning-100 text-warning-700 dark:bg-warning-900/50 dark:text-warning-300 font-semibold';
-        if (status === 'WAITLISTED') return 'bg-secondary-100 text-secondary-700 dark:bg-secondary-900/50 dark:text-secondary-300 font-semibold';
-        return 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400';
-    }
 
     function formatDate(date: Date): string {
         return new Date(date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
@@ -82,15 +73,12 @@
                 <div class="flex flex-wrap gap-1 mt-1.5">
                     {#each competition.categories as category}
                         {@const CategoryIcon = categoryTypeIcons[category.type] ?? ShapeIcon}
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs {chipClass(category.recordStatus)}">
+                        {@const StatusIcon = category.recordStatus ? getInscriptionStatusIcon(category.recordStatus) : null}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs {getInscriptionStatusChipClass(category.recordStatus)}">
                             <CategoryIcon width="0.8rem" height="0.8rem" />
                             {getCategoryTypeName(category.type as CategoryType)}
-                            {#if category.recordStatus === 'ACCEPTED'}
-                                <CheckCircleIcon width="0.8rem" height="0.8rem" class="text-success-600 dark:text-success-400" />
-                            {:else if category.recordStatus === 'PENDING'}
-                                <ClockOutlineIcon width="0.8rem" height="0.8rem" class="text-warning-600 dark:text-warning-400" />
-                            {:else if category.recordStatus === 'WAITLISTED'}
-                                <ClockAlertOutlineIcon width="0.8rem" height="0.8rem" class="text-secondary-600 dark:text-secondary-400" />
+                            {#if StatusIcon}
+                                <StatusIcon width="0.8rem" height="0.8rem" />
                             {/if}
                         </span>
                     {/each}

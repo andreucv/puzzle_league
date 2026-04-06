@@ -136,7 +136,7 @@ export async function getLastUserResults(userId: string, limit: number = 5) {
     const userRecords = await prisma.record.findMany({
         where: {
             users: { some: { id: userId } },
-            status: InscriptionStatus.ACCEPTED,
+            status: InscriptionStatus.CONFIRMED,
             category: {
                 status: 'completed',
                 competition: {
@@ -182,9 +182,9 @@ export async function getLastUserResults(userId: string, limit: number = 5) {
                             image_cld_id: true
                         }
                     },
-                    // Include all accepted records for position computation
+                    // Include all confirmed records for position computation
                     records: {
-                        where: { status: InscriptionStatus.ACCEPTED },
+                        where: { status: InscriptionStatus.CONFIRMED },
                         orderBy: [
                             { finishTime: 'asc' },
                             { tableNumber: 'asc' }

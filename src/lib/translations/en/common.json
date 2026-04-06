@@ -29,8 +29,8 @@
     "no_live_competitions": "No live competitions right now",
     "no_near_competitions": "No upcoming competitions near you",
     "inscription_status": {
-      "pending": "Pending",
-      "accepted": "Accepted",
+      "pending_confirmation": "Pending Confirmation",
+      "confirmed": "Confirmed",
       "waitlisted": "Waitlisted",
       "registration_open": "Registration open",
       "registration_closed": "Inscription closed"
@@ -225,8 +225,8 @@
     "submit_all": "Submit All Registrations",
     "incomplete_parties": "some teams are incomplete",
     "registration_not_available": "Registration is not available for this category.",
-    "status_pending": "Pending",
-    "status_accepted": "Accepted",
+    "status_pending_confirmation": "Pending Confirmation",
+    "status_confirmed": "Confirmed",
     "status_waitlisted": "Waitlisted",
     "add_non_registered": "Add as non-registered participant",
     "already_inscribed": "Already inscribed in this category",
@@ -258,8 +258,8 @@
   },
   "manage_inscriptions": {
     "title": "Manage Inscriptions",
-    "pending": "Pending",
-    "accepted": "Accepted",
+    "pending_confirmation": "Pending Confirmation",
+    "confirmed": "Confirmed",
     "waitlisted": "Waitlisted",
     "max_slots": "Slots",
     "seats_remaining": "seats remaining",
@@ -269,9 +269,9 @@
     "no_inscriptions": "No inscriptions for this category.",
     "no_inscriptions_for_filter": "No inscriptions match the selected filter.",
     "no_categories": "No categories in this competition.",
-    "accepted_success": "Inscription accepted successfully.",
+    "confirmed_success": "Inscription confirmed successfully.",
     "refused_success": "Inscription refused successfully.",
-    "accept_error": "Failed to accept inscription.",
+    "confirm_error": "Failed to confirm inscription.",
     "refuse_error": "Failed to refuse inscription.",
     "confirm_accept_title": "Accept inscription",
     "confirm_accept_message": "Are you sure you want to accept this inscription?",
@@ -406,5 +406,10 @@
     "not_started": "Not Started",
     "in_progress": "In Progress",
     "completed": "Completed"
+  },
+  "public_profile": {
+    "title": "User Profile",
+    "contact_info": "Contact Information",
+    "member_since": "Member since"
   }
 }

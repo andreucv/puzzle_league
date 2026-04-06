@@ -12,11 +12,11 @@ export const POST = async (event: RequestEvent) => {
 
     const now = new Date();
 
-    // Find all accepted records without finishTime (unfinished)
+    // Find all confirmed records without finishTime (unfinished)
     const unfinishedRecords = await prisma.record.findMany({
       where: {
         categoryId,
-        status: InscriptionStatus.ACCEPTED,
+        status: InscriptionStatus.CONFIRMED,
         finishTime: null
       },
       select: { id: true }
@@ -39,7 +39,7 @@ export const POST = async (event: RequestEvent) => {
     const finishedOnTime = await prisma.record.count({
       where: {
         categoryId,
-        status: InscriptionStatus.ACCEPTED,
+        status: InscriptionStatus.CONFIRMED,
         finishTime: { not: null },
         id: { notIn: unfinishedRecords.map(r => r.id) }
       }

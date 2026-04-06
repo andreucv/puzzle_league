@@ -9,13 +9,12 @@
     import CategoryStatusChip from '$lib/components/category/CategoryStatusChip.svelte';
 
     import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
-    import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
-    import ClockAlertOutlineIcon from '@iconify-svelte/mdi/clock-alert-outline';
     import CurrencyEurIcon from '@iconify-svelte/mdi/currency-eur';
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import AccountPlusOutlineIcon from '@iconify-svelte/mdi/account-plus-outline';
     import AccountBoxPlusOutlineIcon from '@iconify-svelte/mdi/account-box-plus-outline';
     import FormatListBulletedIcon from '@iconify-svelte/mdi/format-list-bulleted';
+    import { getInscriptionStatusTonalClass, getInscriptionStatusIcon, getInscriptionStatusLabel } from '$lib/utils/inscription_utils';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
     type PartyUser = { id: string; name: string; email: string; image: string | null };
@@ -49,27 +48,6 @@
             ? records
             : [{ status: inscriptionStatus, users: party ?? [], userIntents: userIntents ?? [] }]
     );
-
-    function getStatusTone(status: string | undefined): string {
-        if (status === 'ACCEPTED') return 'preset-tonal-success';
-        if (status === 'PENDING') return 'preset-tonal-warning';
-        if (status === 'WAITLISTED') return 'preset-tonal-secondary';
-        return 'preset-tonal-surface';
-    }
-
-    function getStatusTranslationKey(status: string | undefined): string | null {
-        if (status === 'ACCEPTED') return 'inscription.status_accepted';
-        if (status === 'PENDING') return 'inscription.status_pending';
-        if (status === 'WAITLISTED') return 'inscription.status_waitlisted';
-        return null;
-    }
-
-    function getStatusIcon(status: string | undefined): typeof AccountPlusOutlineIcon {
-        if (status === 'ACCEPTED') return CheckCircleIcon;
-        if (status === 'PENDING') return ClockOutlineIcon;
-        if (status === 'WAITLISTED') return ClockAlertOutlineIcon;
-        return AccountPlusOutlineIcon;
-    }
 </script>
 
 <Card>
@@ -144,7 +122,7 @@
                     {#each normalizedRecords as record, index (record.id ?? `${category.id}-${index}`)}
                         {@const recordUsers = record.users ?? []}
                         {@const recordIntents = record.userIntents ?? []}
-                        {@const StatusIcon = getStatusIcon(record.status)}
+                        {@const StatusIcon = getInscriptionStatusIcon(record.status)}
                         {#if recordUsers.length > 0 || recordIntents.length > 0}
                             <div class="flex items-center gap-2 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-50/70 dark:bg-surface-800/60 px-2 py-1 overflow-hidden">
                                 <div class="flex items-center gap-2 min-w-0 flex-1">
@@ -165,13 +143,9 @@
                                         {[...recordUsers.map(u => u.name), ...recordIntents.map(i => i.name)].join(', ')}
                                     </span>
                                 </div>
-                                <span class={`badge text-xs flex items-center gap-1 shrink-0 ${getStatusTone(record.status)}`} data-testid="category-status-badge">
+                                <span class={`badge text-xs flex items-center gap-1 shrink-0 ${getInscriptionStatusTonalClass(record.status)}`} data-testid="category-status-badge">
                                     <StatusIcon width="0.8rem" height="0.8rem" />
-                                    {#if getStatusTranslationKey(record.status)}
-                                        {$t(getStatusTranslationKey(record.status) ?? '')}
-                                    {:else}
-                                        Open
-                                    {/if}
+                                    {getInscriptionStatusLabel(record.status, $t) || 'Open'}
                                 </span>
                             </div>
                         {/if}

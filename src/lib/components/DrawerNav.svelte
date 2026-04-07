@@ -1,6 +1,5 @@
 <script lang="ts">
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
-    import { page } from '$app/stores';
     import AccountIcon from '@iconify-svelte/mdi/account';
     import HomeOutlineIcon from '@iconify-svelte/mdi/home-outline';
     import TrophyOutlineIcon from '@iconify-svelte/mdi/trophy-outline';
@@ -9,21 +8,11 @@
     import ClipboardListOutlineIcon from '@iconify-svelte/mdi/clipboard-list-outline';
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import ShieldCheckOutlineIcon from '@iconify-svelte/mdi/shield-check-outline';
-    import LogoutIcon from '@iconify-svelte/mdi/logout';
 
     import { drawerState } from '../../shareds/drawer.svelte';
     import { t } from '$lib/translations';
-    import { authClient } from '$lib/auth_client';
-    import { goto } from '$app/navigation';
 
     let { user = null }: { user: any } = $props();
-
-    let currentPath = $derived($page.url.pathname);
-
-    function isActive(href: string) {
-        if (href === '/') return currentPath === '/';
-        return currentPath.startsWith(href);
-    }
 
     function navigate() {
         drawerState.open = false;
@@ -109,17 +98,6 @@
     {/if}
 </ul>
 
-<!-- Sign out -->
-{#if user}
-<div class="px-3 pb-5 pt-2">
-    <hr class="mb-3 border-surface-300-700" />
-    <button data-testid="nav-drawer-signout" onclick={async () => { drawerState.open = false; await authClient.signOut({ fetchOptions: { onSuccess: () => goto('/login') } }); }} class="nav-item w-full text-error-500 hover:bg-error-500/10">
-        <LogoutIcon width="1.25rem" height="1.25rem" />
-        <span>Sign out</span>
-    </button>
-</div>
-{/if}
-
 <style>
     .nav-item {
         display: flex;
@@ -140,12 +118,6 @@
 
     :global([data-mode="dark"]) .nav-item:hover {
         background-color: rgb(var(--color-surface-800) / 1);
-    }
-
-    .nav-item.active {
-        background-color: rgb(var(--color-primary-500) / 0.12);
-        color: rgb(var(--color-primary-500));
-        font-weight: 600;
     }
 
     .section-label {

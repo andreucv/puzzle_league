@@ -245,10 +245,11 @@
     "registrations_count": "{current}/{max} registros",
     "your_registrations": "inscripciones que puedes enviar",
     "payment_warning_title": "Pago requerido",
-    "payment_warning_message": "Tal y como indica la organización, el pago de la tasa es externo a la plataforma. \nEn este caso, la organización confirmará su inscripción una vez confirmado el pago.",
+    "payment_warning_message": "Las inscripciones quedarán confirmadas cuando la organización compruebe que se ha cumplido con el pago.",
     "payment_warning_total": "Total",
     "payment_warning_confirm": "Entendido, enviar",
-    "payment_warning_cancel": "Cancelar"
+    "payment_warning_cancel": "Cancelar",
+    "pending_confirmation_is_not_guaranteed_inscription": "Las inscripciones pendientes de confirmación no garantizan la participación en el concurso."
   },
   "puzzles": {
     "catalog_title": "Catálogo de Puzzles",

@@ -142,10 +142,11 @@
     "registrations_count": "{current}/{max} registres",
     "your_registrations": "inscripcions que pots enviar",
     "payment_warning_title": "Pagament requerit",
-    "payment_warning_message": "Així com ha indicat la organització, el pagament és extern a la plataforma. En aquest cas, la organització confirmarà la inscripció un cop hagi confirmat el vostre pagament.",
+    "payment_warning_message": "La/les inscripcion/s es confirmaran quan l'organització comprovi que s'ha acomplert el pagament.",
     "payment_warning_total": "Total",
     "payment_warning_confirm": "Entesos, envia",
-    "payment_warning_cancel": "Cancel·la"
+    "payment_warning_cancel": "Cancel·la",
+    "pending_confirmation_is_not_guaranteed_inscription": "Les inscripcions pendents de confirmació no garanteixen la participació al concurs."
   },
   "puzzles": {
     "catalog_title": "Catàleg de Puzzles",

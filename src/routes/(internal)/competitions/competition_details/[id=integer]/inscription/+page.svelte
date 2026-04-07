@@ -14,6 +14,8 @@
     import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
     import Card from '$lib/components/common/card/Card.svelte';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
+    import CheckAllIcon from '@iconify-svelte/mdi/check-all';
+    import ClipboardCheckOutlineIcon from '@iconify-svelte/mdi/clipboard-check-outline';
 
     let { data } = $props();
 
@@ -857,7 +859,7 @@
                 <div class="bg-surface-50 dark:bg-surface-900 rounded-xl shadow-xl border border-surface-200 dark:border-surface-700 p-4 space-y-3 relative">
                     <!-- Summary -->
                     <div class="flex flex-wrap items-center gap-2 text-sm">
-                        <Icon icon="mdi:clipboard-check-outline" width="1.1rem" height="1.1rem" class="text-primary-500" />
+                        <ClipboardCheckOutlineIcon width="1.1rem" height="1.1rem" class="text-primary-500" />
                         <span class="font-medium">{totalNewSignups()} {$t('inscription.new_registrations_summary')}</span>
                         <span class="text-surface-400">—</span>
                         {#each signupSummary() as item}
@@ -866,7 +868,7 @@
                     </div>
                     <button
                         type={shouldShowPaymentWarning() ? 'button' : 'submit'}
-                        class="btn preset-filled-primary-500 w-full shadow-lg"
+                        class="btn preset-filled-primary-500 w-full shadow-lg flex-wrap justify-center"
                         disabled={!canSubmit || isSubmitting}
                         data-testid="submit-all-registrations"
                         onclick={(e) => {
@@ -876,7 +878,7 @@
                             }
                         }}
                     >
-                        <Icon icon="mdi:check-all" width="1.2rem" height="1.2rem" />
+                        <CheckAllIcon width="1.2rem" height="1.2rem" />
                         {$t('inscription.submit_all')}
                         {#if !allPartiesComplete()}
                             <span class="text-xs opacity-75">({$t('inscription.incomplete_parties')})</span>
@@ -898,6 +900,9 @@
                                     <Icon icon="mdi:alert-circle" width="1.3rem" height="1.3rem" class="text-warning-500" />
                                     <p class="text-sm font-semibold">{$t('inscription.payment_warning_title')}</p>
                                 </div>
+                                <p class="text-xs text-warning-600 dark:text-warning-400">
+                                    {$t('inscription.pending_confirmation_is_not_guaranteed_inscription')}
+                                </p>
                                 <p class="text-xs text-surface-600 dark:text-surface-400">
                                     {$t('inscription.payment_warning_message')}
                                 </p>

@@ -3,12 +3,12 @@
     import { authClient } from "$lib/auth_client";
     import { t } from '$lib/translations';
 
-    let action = "login";
-    let email = "";
-    let name = "";
-    let password = "";
-    let passwordConfirm = "";
-    let errorMessage : string = "";
+    let action = $state("login");
+    let email = $state("");
+    let name = $state("");
+    let password = $state("");
+    let passwordConfirm = $state("");
+    let errorMessage = $state("");
     let isLoading = $state(false);
 
     async function signInWithEmailAndPassword() {
@@ -76,7 +76,7 @@
 
 <section class="flex flex-col md:mt-40 h-screen">
     <div
-        class="w-full md:max-w-md lg:max-w-full md:mx-auto md:mx-0 md:w-1/2 xl:w-1/3 mt-4 lg:px-16 xl:px-12
+        class="w-full md:max-w-md lg:max-w-full md:mx-auto md:w-1/2 xl:w-1/3 mt-4 lg:px-16 xl:px-12
           flex items-center justify-center">
         <div class="w-full h-100">
             <h1 data-testid="login-title" class="text-xl md:text-2xl font-bold leading-tight">
@@ -173,7 +173,7 @@
                 <p class="mt-4">
                     Not registered yet?
                     <a
-                        href="#"
+                        href="#top"
                         id="create-account-button"
                         data-testid="create-account-link"
                         onclick={(e) => { e.preventDefault(); action = "register"; }}
@@ -182,14 +182,14 @@
                     >
                 </p>
                 <p class="mt-2">
-                    <a href="#" class="text-indigo-500 hover:text-indigo-700 font-semibold"
+                    <a href="#top" class="text-indigo-500 hover:text-indigo-700 font-semibold"
                         >Forgot Password?</a>
                 </p>
             {:else}
                 <p class="mt-4">
                     Already have an account?
                     <a
-                        href="#"
+                        href="#top"
                         data-testid="sign-in-link"
                         onclick={(e) => { e.preventDefault(); action = "login"; }}
                         class="text-indigo-500 hover:text-indigo-700 font-semibold"

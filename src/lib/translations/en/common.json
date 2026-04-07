@@ -245,10 +245,11 @@
     "queued": "Queued",
     "new_registrations_summary": "new registration(s)",
     "payment_warning_title": "Payment required",
-    "payment_warning_message": "As the organization indicates, the fee payment is external to the platform. In such case, the organization will confirm your inscription once the payment is confirmed.",
+    "payment_warning_message": "The inscriptions will be confirmed when organization checks the fee payment is fulfilled.",
     "payment_warning_total": "Total",
     "payment_warning_confirm": "I understand, submit",
-    "payment_warning_cancel": "Cancel"
+    "payment_warning_cancel": "Cancel",
+    "pending_confirmation_is_not_guaranteed_inscription": "The inscriptions in pending confirmation do not guarantee a participation into the competition."
   },
   "manage_judges": {
     "title": "Manage Judges",

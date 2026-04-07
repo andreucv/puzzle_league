@@ -41,20 +41,20 @@
 <!-- Navigation links -->
 <ul class="flex-1 px-3 py-2 space-y-0.5">
     <li>
-        <a data-testid="nav-drawer-home" href="/" onclick={navigate} class="nav-item" class:active={isActive('/')}>
+        <a data-testid="nav-drawer-home" href="/" onclick={navigate} class="nav-item">
             <HomeOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('drawer_menu.home')}</span>
         </a>
     </li>
     <li>
-        <a data-testid="nav-drawer-competitions" href="/competitions/explore_competitions" onclick={navigate} class="nav-item" class:active={isActive('/competitions')}>
+        <a data-testid="nav-drawer-competitions" href="/competitions/explore_competitions" onclick={navigate} class="nav-item">
             <TrophyOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('drawer_menu.explore_competitions')}</span>
         </a>
     </li>
     {#if user}
     <li>
-        <a data-testid="nav-drawer-notifications" href="/notifications" onclick={navigate} class="nav-item" class:active={isActive('/notifications')}>
+        <a data-testid="nav-drawer-notifications" href="/notifications" onclick={navigate} class="nav-item">
             <BellOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('notifications.title')}</span>
         </a>
@@ -66,19 +66,19 @@
         <span class="section-label">Organizer</span>
     </li>
     <li>
-        <a data-testid="nav-drawer-create-competition" href="/competition/edit/" onclick={navigate} class="nav-item" class:active={isActive('/competition/edit')}>
+        <a data-testid="nav-drawer-create-competition" href="/competition/edit/" onclick={navigate} class="nav-item">
             <PlusCircleOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('drawer_menu.create_competition')}</span>
         </a>
     </li>
     <li>
-        <a data-testid="nav-drawer-my-organized-competitions" href="/my_organized_competitions" onclick={navigate} class="nav-item" class:active={isActive('/my_organized_competitions')}>
+        <a data-testid="nav-drawer-my-organized-competitions" href="/my_organized_competitions" onclick={navigate} class="nav-item">
             <ClipboardListOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('competitions.my_organized_competitions')}</span>
         </a>
     </li>
     <li>
-        <a data-testid="nav-drawer-puzzles" href="/puzzles" onclick={navigate} class="nav-item" class:active={isActive('/puzzles')}>
+        <a data-testid="nav-drawer-puzzles" href="/puzzles" onclick={navigate} class="nav-item">
             <PuzzleOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('drawer_menu.puzzles')}</span>
         </a>
@@ -90,7 +90,7 @@
         <span class="section-label">Admin</span>
     </li>
     <li>
-        <a data-testid="nav-drawer-review-permissions-requests" href="/admin/review_requests" onclick={navigate} class="nav-item" class:active={isActive('/admin')}>
+        <a data-testid="nav-drawer-review-permissions-requests" href="/admin/review_requests" onclick={navigate} class="nav-item">
             <ShieldCheckOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('landing_page.review_requests')}</span>
         </a>

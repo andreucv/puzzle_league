@@ -42,59 +42,146 @@
     <div class="container mx-auto px-4 space-y-6 mb-8">
 
         <!-- Inscription statuses -->
-        {#if data.props.inscriptionStatuses && data.props.inscriptionStatuses.length > 0}
+        {#await data.props.inscriptionStatuses}
             <section>
                 <GenericTitle text={$t('landing_page.my_inscriptions')} />
-                <InscriptionStatusCard inscriptions={data.props.inscriptionStatuses} />
+                <div class="space-y-2">
+                    {#each { length: 1 } as _}
+                        <div class="card p-3 placeholder animate-pulse">
+                            <div class="h-4 w-3/5 rounded bg-surface-100-700"></div>
+                            <div class="mt-2 flex gap-2">
+                                <div class="h-3 w-16 rounded-full bg-surface-100-700"></div>
+                                <div class="h-3 w-16 rounded-full bg-surface-100-700"></div>
+                            </div>
+                        </div>
+                    {/each}
+                </div>
             </section>
-        {/if}
+        {:then inscriptionStatuses}
+            {#if inscriptionStatuses && inscriptionStatuses.length > 0}
+                <section>
+                    <GenericTitle text={$t('landing_page.my_inscriptions')} />
+                    <InscriptionStatusCard inscriptions={inscriptionStatuses} />
+                </section>
+            {/if}
+        {/await}
 
         <!-- Live now: competitions that have started -->
-        {#if data.props.startedCompetitions}
+        {#await data.props.startedCompetitions}
             <section>
                 <GenericTitle text={$t('landing_page.live_now')} />
-                {#if data.props.startedCompetitions.length > 0}
-                    <CompetitionList competitions={data.props.startedCompetitions} n_show={2} currentUsedId={data.user.id} />
-                {:else}
-                    <p class="text-surface-500">{$t('landing_page.no_live_competitions')}</p>
-                {/if}
+                <div class="space-y-2">
+                    {#each { length: 1 } as _}
+                        <div class="card flex placeholder animate-pulse p-2 gap-3">
+                            <div class="w-28 sm:w-36 h-24 rounded-xl bg-surface-100-700 shrink-0"></div>
+                            <div class="flex-1 space-y-2 py-1">
+                                <div class="h-4 w-4/5 rounded bg-surface-100-700"></div>
+                                <div class="h-3 w-2/5 rounded bg-surface-100-700"></div>
+                                <div class="flex gap-2 mt-1">
+                                    <div class="h-3 w-14 rounded-full bg-surface-100-700"></div>
+                                    <div class="h-3 w-14 rounded-full bg-surface-100-700"></div>
+                                </div>
+                            </div>
+                        </div>
+                    {/each}
+                </div>
             </section>
-        {/if}
+        {:then startedCompetitions}
+            {#if startedCompetitions}
+                <section>
+                    <GenericTitle text={$t('landing_page.live_now')} />
+                    {#if startedCompetitions.length > 0}
+                        <CompetitionList competitions={startedCompetitions} n_show={2} currentUsedId={data.user.id} />
+                    {:else}
+                        <p class="text-surface-500">{$t('landing_page.no_live_competitions')}</p>
+                    {/if}
+                </section>
+            {/if}
+        {/await}
 
         <!-- Upcoming registered competitions -->
-        <section>
-            {#if data.props.upcomingRegisteredCompetitions && data.props.upcomingRegisteredCompetitions.length === 0}
-                <GenericTitle text={$t('landing_page.no_upcoming_competitions')} />
-                <p class="text-surface-500">{$t('landing_page.no_upcoming_competitions_detail')}</p>
-            {:else}
+        {#await data.props.upcomingRegisteredCompetitions}
+            <section>
                 <GenericTitle text={$t('landing_page.your_upcoming_competitions')} />
-                <CompetitionList competitions={data.props.upcomingRegisteredCompetitions ?? []} n_show={2} currentUsedId={data.user.id} />
-            {/if}
-        </section>
+                <div class="space-y-2">
+                    {#each { length: 1 } as _}
+                        <div class="card flex placeholder animate-pulse p-2 gap-3">
+                            <div class="w-28 sm:w-36 h-24 rounded-xl bg-surface-100-700 shrink-0"></div>
+                            <div class="flex-1 space-y-2 py-1">
+                                <div class="h-4 w-4/5 rounded bg-surface-100-700"></div>
+                                <div class="h-3 w-2/5 rounded bg-surface-100-700"></div>
+                                <div class="flex gap-2 mt-1">
+                                    <div class="h-3 w-14 rounded-full bg-surface-100-700"></div>
+                                    <div class="h-3 w-14 rounded-full bg-surface-100-700"></div>
+                                </div>
+                            </div>
+                        </div>
+                    {/each}
+                </div>
+            </section>
+        {:then upcomingRegisteredCompetitions}
+            <section>
+                {#if upcomingRegisteredCompetitions && upcomingRegisteredCompetitions.length === 0}
+                    <GenericTitle text={$t('landing_page.no_upcoming_competitions')} />
+                    <p class="text-surface-500">{$t('landing_page.no_upcoming_competitions_detail')}</p>
+                {:else}
+                    <GenericTitle text={$t('landing_page.your_upcoming_competitions')} />
+                    <CompetitionList competitions={upcomingRegisteredCompetitions ?? []} n_show={2} currentUsedId={data.user.id} />
+                {/if}
+            </section>
+        {/await}
 
         <!-- Upcoming competitions carousel -->
-        {#if data.props.nearCompetitions}
+        {#await data.props.nearCompetitions}
             <section>
                 <GenericTitle text={$t('competitions.other_upcoming_competitions')} />
-                {#if data.props.nearCompetitions.length > 0}
-                    <NearCompetitionsCaroussel competitions={data.props.nearCompetitions} />
-                {:else}
-                    <p class="text-surface-500">{$t('landing_page.no_near_competitions')}</p>
-                {/if}
+                <div class="flex gap-3 overflow-hidden">
+                    {#each { length: 2 } as _}
+                        <div class="h-72 sm:h-80 min-w-[60%] lg:min-w-[32%] rounded-2xl bg-surface-100-700 animate-pulse shrink-0"></div>
+                    {/each}
+                </div>
             </section>
-        {/if}
+        {:then nearCompetitions}
+            {#if nearCompetitions}
+                <section>
+                    <GenericTitle text={$t('competitions.other_upcoming_competitions')} />
+                    {#if nearCompetitions.length > 0}
+                        <NearCompetitionsCaroussel competitions={nearCompetitions} />
+                    {:else}
+                        <p class="text-surface-500">{$t('landing_page.no_near_competitions')}</p>
+                    {/if}
+                </section>
+            {/if}
+        {/await}
 
         <!-- Last results -->
-        {#if data.props.lastResults}
+        {#await data.props.lastResults}
             <section>
                 <GenericTitle text={$t('landing_page.your_last_results')} />
-                {#if data.props.lastResults.length > 0}
-                    <LastResultsList results={data.props.lastResults} currentUserId={data.user.id} />
-                {:else}
-                    <p class="text-surface-500">{$t('landing_page.no_last_results')}</p>
-                {/if}
+                <div class="space-y-3">
+                    {#each { length: 3 } as _}
+                        <div class="card flex animate-pulse p-3 gap-3">
+                            <div class="w-12 h-12 rounded-full bg-surface-100-700 shrink-0"></div>
+                            <div class="flex-1 space-y-2 py-1">
+                                <div class="h-4 w-3/5 rounded bg-surface-100-700"></div>
+                                <div class="h-3 w-2/5 rounded bg-surface-100-700"></div>
+                            </div>
+                        </div>
+                    {/each}
+                </div>
             </section>
-        {/if}
+        {:then lastResults}
+            {#if lastResults}
+                <section>
+                    <GenericTitle text={$t('landing_page.your_last_results')} />
+                    {#if lastResults.length > 0}
+                        <LastResultsList results={lastResults} currentUserId={data.user.id} />
+                    {:else}
+                        <p class="text-surface-500">{$t('landing_page.no_last_results')}</p>
+                    {/if}
+                </section>
+            {/if}
+        {/await}
     </div>
 {:else}
     <div class="landing-page-container">

@@ -17,23 +17,14 @@ export const load: PageServerLoad = async ({ parent }) => {
 		};
 	}
 
-	const [upcomingRegisteredCompetitions, participatedCompetitions, nearCompetitions, lastResults, startedCompetitions, inscriptionStatuses] = await Promise.all([
-		getUpcomingRegisteredCompetitions(user.id),
-		getParticipatedCompetitions(user.id),
-		getNearCompetitions(6, user.country ?? undefined, user?.postalCode ?? undefined, false, user.id),
-		getLastUserResults(user.id, 5),
-		getStartedRegisteredCompetitions(user.id),
-		getUserInscriptionStatuses(user.id),
-	]);
-
 	return {
 		props: {
-			upcomingRegisteredCompetitions: upcomingRegisteredCompetitions || null,
-			participatedCompetitions: participatedCompetitions || null,
-			nearCompetitions: nearCompetitions || null,
-			lastResults: lastResults || null,
-			startedCompetitions: startedCompetitions || null,
-			inscriptionStatuses: inscriptionStatuses || null,
+			upcomingRegisteredCompetitions: getUpcomingRegisteredCompetitions(user.id),
+			participatedCompetitions: getParticipatedCompetitions(user.id),
+			nearCompetitions: getNearCompetitions(6, user.country ?? undefined, user?.postalCode ?? undefined, false, user.id),
+			lastResults: getLastUserResults(user.id, 5),
+			startedCompetitions: getStartedRegisteredCompetitions(user.id),
+			inscriptionStatuses: getUserInscriptionStatuses(user.id),
 		}
 	};
 };

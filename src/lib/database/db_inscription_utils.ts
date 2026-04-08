@@ -130,8 +130,8 @@ export async function signUpUsersToCompetition(
                     throw new Error(`Party size (${totalPartySize}) exceeds maximum for category ${category.description || category.type} (${category.maxPartySize})`);
                 }
 
-                if (category.competition.status !== 'NOT_STARTED') {
-                    throw new Error(`Registration closed for competition: ${category.competition.name}`);
+                if (category.status !== 'not_started') {
+                    throw new Error(`Registration closed for category: ${category.description || category.type}`);
                 }
 
                 // Determine initial status: WAITLISTED when category is already full

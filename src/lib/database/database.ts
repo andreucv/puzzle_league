@@ -609,9 +609,9 @@ export async function createEntries(recordsData: Prisma.RecordCreateInput[]) {
                     throw new Error(`Party size (${userIds.length}) exceeds maximum for category ${category.description || category.type} (${category.maxPartySize})`);
                 }
 
-                // Check if competition is still accepting registrations
-                if (category.competition.status !== 'NOT_STARTED') {
-                    throw new Error(`Registration closed for competition: ${category.competition.name}`);
+                // Check if category is still accepting registrations
+                if (category.status !== 'not_started') {
+                    throw new Error(`Registration closed for category: ${category.description || category.type}`);
                 }
 
                 // Check if competition registration is not complete

@@ -20,6 +20,16 @@
     } = $props();
 
     let hasActions = $derived(showConfirm || showRefuse);
+
+    function formatDateTime(date: string | Date): { time: string; date: string } {
+        const d = new Date(date);
+        return {
+            time: d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+            date: d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
+        };
+    }
+
+    let inscriptionDate = $derived(record.createdAt ? formatDateTime(record.createdAt) : null);
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -59,38 +69,54 @@
         {/if}
     </div>
 
-    <!-- Actions: slide in from right when selected -->
+    <!-- Right side: date + actions -->
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-        class="flex items-center shrink-0 ml-auto transition-all duration-200 {selected ? 'max-w-32 gap-3 opacity-100' : hasActions ? 'max-w-5 opacity-60 overflow-hidden' : 'max-w-0 opacity-0 overflow-hidden'}"
-        onclick={(e) => e.stopPropagation()}
+        class="relative flex items-center shrink-0 ml-auto"
     >
+        <!-- Date (always visible, sits behind buttons when selected) -->
+        {#if inscriptionDate}
+            <span class="text-[0.7rem] leading-tight text-surface-400 dark:text-surface-500 text-right whitespace-nowrap">
+                {inscriptionDate.date} · {inscriptionDate.time}
+            </span>
+        {/if}
+
+        <!-- Chevron (always rendered when hasActions to keep layout stable) -->
+        {#if hasActions}
+            <ChevronRightIcon width="1.1rem" height="1.1rem" class="text-surface-400 ml-1 {selected ? 'invisible' : ''}" />
+        {/if}
+
+        <!-- Action buttons overlay when selected -->
         {#if selected}
-            {#if showConfirm}
-                <ConfirmActionButton
-                    icon={CheckIcon}
-                    colorClass="preset-filled-success-500"
-                    confirmTitle={$t('manage_inscriptions.confirm_accept_title')}
-                    confirmMessage={$t('manage_inscriptions.confirm_accept_message')}
-                    onConfirm={() => onConfirm?.(record.id)}
-                    disabled={processing}
-                    testId="confirm-inscription"
-                />
-            {/if}
-            {#if showRefuse}
-                <ConfirmActionButton
-                    icon={CloseIcon}
-                    colorClass="preset-filled-error-500"
-                    confirmTitle={$t('manage_inscriptions.confirm_refuse_title')}
-                    confirmMessage={$t('manage_inscriptions.confirm_refuse_message')}
-                    onConfirm={() => onRefuse?.(record.id)}
-                    disabled={processing}
-                    testId="refuse-inscription"
-                />
-            {/if}
-        {:else if hasActions}
-            <ChevronRightIcon width="1.1rem" height="1.1rem" class="text-surface-400" />
+            <div class="absolute inset-0 flex items-center justify-end gap-3 z-10 pointer-events-none">
+                {#if showConfirm}
+                    <div class="pointer-events-auto" onclick={(e) => e.stopPropagation()}>
+                    <ConfirmActionButton
+                        icon={CheckIcon}
+                        colorClass="preset-filled-success-500"
+                        confirmTitle={$t('manage_inscriptions.confirm_accept_title')}
+                        confirmMessage={$t('manage_inscriptions.confirm_accept_message')}
+                        onConfirm={() => onConfirm?.(record.id)}
+                        disabled={processing}
+                        testId="confirm-inscription"
+                    />
+                    </div>
+                {/if}
+                {#if showRefuse}
+                    <div class="pointer-events-auto" onclick={(e) => e.stopPropagation()}>
+                    <ConfirmActionButton
+                        icon={CloseIcon}
+                        colorClass="preset-filled-error-500"
+                        confirmTitle={$t('manage_inscriptions.confirm_refuse_title')}
+                        confirmMessage={$t('manage_inscriptions.confirm_refuse_message')}
+                        onConfirm={() => onRefuse?.(record.id)}
+                        disabled={processing}
+                        testId="refuse-inscription"
+                    />
+                    </div>
+                {/if}
+            </div>
         {/if}
     </div>
 </div>

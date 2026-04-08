@@ -25,7 +25,11 @@
     let existingRecords = $derived(data.existingRecords || []);
     let inscribedUserIds = $derived(data.inscribedUserIds as Record<number, string[]> || {});
 
-    let canRegister = $derived(competition?.registrationOpen && competition?.status === 'NOT_STARTED');
+    let canRegister = $derived(competition?.registrationOpen);
+
+    function canRegisterForCategory(category: Category): boolean {
+        return !!canRegister && category.status === 'not_started';
+    }
 
     // ---------------------------------------------------------------------------
     // Types
@@ -432,13 +436,7 @@
         {#if !canRegister}
             <div class="alert preset-filled-warning-500 p-4 rounded-lg" data-testid="registration-closed-warning">
                 <Icon icon="mdi:alert" width="1.5rem" height="1.5rem" />
-                <span>
-                    {#if !competition?.registrationOpen}
-                        {$t('inscription.registration_closed')}
-                    {:else}
-                        {$t('inscription.competition_not_open')}
-                    {/if}
-                </span>
+                <span>{$t('inscription.registration_closed')}</span>
             </div>
         {/if}
     </div>
@@ -555,7 +553,7 @@
                                     {/if}
                                 </div>
                                 <!-- Unregister button -->
-                                {#if canRegister}
+                                {#if canRegisterForCategory(category)}
                                     <form method="POST" action="?/unregister" class="shrink-0" use:enhance={() => {
                                         return async ({ update }) => {
                                             await update();
@@ -791,7 +789,7 @@
                 {/each}
 
                 <!-- Add another / Initial signup button -->
-                {#if canRegister}
+                {#if canRegisterForCategory(category)}
                     {#if !limitReached}
                         {#if individual}
                             {@const hasExisting = slots.length > 0 || records.length > 0}

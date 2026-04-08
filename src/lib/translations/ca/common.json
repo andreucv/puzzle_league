@@ -364,14 +364,14 @@
       "general": "Notificació"
     },
     "messages": {
-      "inscription_created": "Has estat registrat a \"{{categoryName}}\" a \"{{competitionName}}\" per {{registeredBy}}.",
-      "inscription_confirmed": "La teva inscripció per a la categoria '{{categoryName}}' a la competició '{{competitionName}}' ha estat confirmada.",
-      "inscription_confirmed_nonplatform": "La inscripció de '{{nonPlatformNames}}' a la categoria '{{categoryName}}' de la competició '{{competitionName}}' ha estat confirmada.",
-      "inscription_refused": "La teva inscripció per a \"{{categoryName}}\" ha estat rebutjada.",
-      "inscription_waitlisted": "La teva inscripció per a \"{{categoryName}}\" està en llista d'espera. La categoria està plena.",
-      "competition_started": "La competició \"{{competitionName}}\" ha començat!",
-      "competition_cancelled": "La competició \"{{competitionName}}\" ha estat cancel·lada.",
-      "user_intent_claimed": "\"{{intentName}}\" ha estat reclamat per un usuari registrat i ara està vinculat al seu compte.",
+      "inscription_created": "Has estat registrat a {{categoryName}} a {{competitionName}} per {{registeredBy}}.",
+      "inscription_confirmed": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} ha estat confirmada.",
+      "inscription_confirmed_nonplatform": "La inscripció de {{nonPlatformNames}} a la categoria {{categoryName}} de la competició {{competitionName}} ha estat confirmada.",
+      "inscription_refused": "La teva inscripció per a {{categoryName}} ha estat rebutjada.",
+      "inscription_waitlisted": "La teva inscripció per a {{categoryName}} està en llista d'espera. La categoria està plena.",
+      "competition_started": "La competició {{competitionName}} ha començat!",
+      "competition_cancelled": "La competició {{competitionName}} ha estat cancel·lada.",
+      "user_intent_claimed": "{{intentName}} ha estat reclamat per un usuari registrat i ara està vinculat al seu compte.",
       "role_request_approved": "La teva sol·licitud per al rol {{roleName}} ha estat aprovada.",
       "role_request_rejected": "La teva sol·licitud per al rol {{roleName}} ha estat rebutjada.",
       "general": "Tens una nova notificació."

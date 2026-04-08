@@ -364,14 +364,14 @@
       "general": "Notificación"
     },
     "messages": {
-      "inscription_created": "Has sido registrado en \"{{categoryName}}\" en \"{{competitionName}}\" por {{registeredBy}}.",
-      "inscription_confirmed": "Tu inscripción para la categoría '{{categoryName}}' en la competición '{{competitionName}}' ha sido confirmada.",
-      "inscription_confirmed_nonplatform": "La inscripción de '{{nonPlatformNames}}' en la categoría '{{categoryName}}' de la competición '{{competitionName}}' ha sido confirmada.",
-      "inscription_refused": "Tu inscripción para \"{{categoryName}}\" ha sido rechazada.",
-      "inscription_waitlisted": "Tu inscripción para \"{{categoryName}}\" está en lista de espera. La categoría está llena.",
-      "competition_started": "¡La competición \"{{competitionName}}\" ha comenzado!",
-      "competition_cancelled": "La competición \"{{competitionName}}\" ha sido cancelada.",
-      "user_intent_claimed": "\"{{intentName}}\" ha sido reclamado por un usuario registrado y ahora está vinculado a su cuenta.",
+      "inscription_created": "Has sido registrado en {{categoryName}} en {{competitionName}} por {{registeredBy}}.",
+      "inscription_confirmed": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} ha sido confirmada.",
+      "inscription_confirmed_nonplatform": "La inscripción de {{nonPlatformNames}} en la categoría {{categoryName}} de la competición {{competitionName}} ha sido confirmada.",
+      "inscription_refused": "Tu inscripción para {{categoryName}} ha sido rechazada.",
+      "inscription_waitlisted": "Tu inscripción para {{categoryName}} está en lista de espera. La categoría está llena.",
+      "competition_started": "¡La competición {{competitionName}} ha comenzado!",
+      "competition_cancelled": "La competición {{competitionName}} ha sido cancelada.",
+      "user_intent_claimed": "{{intentName}} ha sido reclamado por un usuario registrado y ahora está vinculado a su cuenta.",
       "role_request_approved": "Tu solicitud para el rol {{roleName}} ha sido aprobada.",
       "role_request_rejected": "Tu solicitud para el rol {{roleName}} ha sido rechazada.",
       "general": "Tienes una nueva notificación."

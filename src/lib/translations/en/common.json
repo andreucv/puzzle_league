@@ -364,14 +364,14 @@
       "general": "Notification"
     },
     "messages": {
-      "inscription_created": "You have been registered for \"{{categoryName}}\" in \"{{competitionName}}\" by {{registeredBy}}.",
-      "inscription_confirmed": "Your inscription for the '{{categoryName}}' category in the '{{competitionName}}' competition has been confirmed.",
-      "inscription_confirmed_nonplatform": "The inscription for '{{nonPlatformNames}}' in the '{{categoryName}}' category of the '{{competitionName}}' competition has been confirmed.",
-      "inscription_refused": "Your inscription for \"{{categoryName}}\" has been refused.",
-      "inscription_waitlisted": "Your inscription for \"{{categoryName}}\" has been waitlisted. The category is currently full.",
-      "competition_started": "The competition \"{{competitionName}}\" has started!",
-      "competition_cancelled": "The competition \"{{competitionName}}\" has been cancelled.",
-      "user_intent_claimed": "\"{{intentName}}\" has been claimed by a registered user and is now linked to their account.",
+      "inscription_created": "You have been registered for {{categoryName}} in {{competitionName}} by {{registeredBy}}.",
+      "inscription_confirmed": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition has been confirmed.",
+      "inscription_confirmed_nonplatform": "The inscription for {{nonPlatformNames}} in the {{categoryName}} category of the {{competitionName}} competition has been confirmed.",
+      "inscription_refused": "Your inscription for {{categoryName}} has been refused.",
+      "inscription_waitlisted": "Your inscription for {{categoryName}} has been waitlisted. The category is currently full.",
+      "competition_started": "The competition {{competitionName}} has started!",
+      "competition_cancelled": "The competition {{competitionName}} has been cancelled.",
+      "user_intent_claimed": "{{intentName}} has been claimed by a registered user and is now linked to their account.",
       "role_request_approved": "Your request for the {{roleName}} role has been approved.",
       "role_request_rejected": "Your request for the {{roleName}} role has been rejected.",
       "general": "You have a new notification."

@@ -177,7 +177,7 @@
                                         <span class="flex-shrink-0 w-2 h-2 rounded-full bg-primary-500"></span>
                                     {/if}
                                 </div>
-                                <p class="text-sm text-surface-500 mt-0.5 line-clamp-2">
+                                <p class="text-sm text-surface-500 mt-0.5">
                                     {resolveText(notification.message, notification.data as Record<string, unknown>)}
                                 </p>
                                 <div class="flex items-center gap-2 mt-1.5">

@@ -74,11 +74,9 @@ export async function handle({ event, resolve }) {
 				}
 
 				// Phone onboarding redirect — show once for users without phone data
+				// Note: phonePromptLastChecked is set by the /add-phone page actions (save/skip),
+				// not here, to avoid conflicting with the page's own redirect guard.
 				if (!isAddPhonePage && !dbUser.phonePromptLastChecked && !dbUser.phoneNumber) {
-					await prisma.user.update({
-						where: { id: session.user.id },
-						data: { phonePromptLastChecked: new Date() }
-					});
 					throw redirect(302, '/add-phone');
 				}
 			}

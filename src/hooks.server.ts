@@ -24,58 +24,64 @@ export async function handle({ event, resolve }) {
 		const path = event.url.pathname;
 		const isPageRequest = !path.startsWith('/api/') && !path.startsWith('/auth/');
 		const isClaimPage = path === '/claim-participations';
+		const isAddPhonePage = path === '/add-phone';
 
-		// Check DB flag — only run the user intents check if never checked before
-		const dbUser = await prisma.user.findUnique({
-			where: { id: session.user.id },
-			select: { userIntentsLastChecked: true, phonePromptLastChecked: true, phoneNumber: true }
-		});
-
-		// TODO: In the future, we may want to re-check user intents periodically (e.g. every 30 days)
-		// in case new unclaimed intents appear that match the user's name.
-		// For now, we only check once on first login to avoid complexity of re-checking logic and
-		// potential edge cases around claiming after multiple checks.
-
-		if (isPageRequest && !isClaimPage && dbUser && !dbUser.userIntentsLastChecked) {
-			// Mark as checked immediately so we never re-check
-			await prisma.user.update({
+		if (isPageRequest && !isClaimPage) {
+			// Check DB flags — only query when on a page that may trigger redirects
+			const dbUser = await prisma.user.findUnique({
 				where: { id: session.user.id },
-				data: { userIntentsLastChecked: new Date() }
+				select: { userIntentsLastChecked: true, phonePromptLastChecked: true, phoneNumber: true }
 			});
 
-			// Check if user was created recently (within last 5 minutes)
-			const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-			if (new Date(session.user.createdAt) > fiveMinutesAgo) {
-				// Check if there are unclaimed UserIntents matching this user's name
-				const userName = session.user.name;
-				if (userName) {
-					// Single query: fetch only unclaimed intent names (avoids redundant count + findMany)
-					const unclaimed = await prisma.userIntent.findMany({
-						where: { claimedById: null },
-						select: { name: true },
-						take: 100
-					});
-					const userNameLower = userName.toLowerCase();
-					const hasMatch = unclaimed.some(ui => {
-						const intentNameLower = ui.name.toLowerCase();
-						return intentNameLower.includes(userNameLower) || userNameLower.includes(intentNameLower);
+			if (!dbUser) {
+				console.warn(`[hooks] Session references unknown user ${session.user.id}, skipping redirect checks`);
+			} else {
+				// TODO: In the future, we may want to re-check user intents periodically (e.g. every 30 days)
+				// in case new unclaimed intents appear that match the user's name.
+				// For now, we only check once on first login to avoid complexity of re-checking logic and
+				// potential edge cases around claiming after multiple checks.
+
+				if (!dbUser.userIntentsLastChecked) {
+					// Mark as checked immediately so we never re-check
+					await prisma.user.update({
+						where: { id: session.user.id },
+						data: { userIntentsLastChecked: new Date() }
 					});
 
-					if (hasMatch) {
-						throw redirect(302, '/claim-participations');
+					// Check if user was created recently (within last 5 minutes)
+					const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+					if (new Date(session.user.createdAt) > fiveMinutesAgo) {
+						// Check if there are unclaimed UserIntents matching this user's name
+						const userName = session.user.name;
+						if (userName) {
+							// Single query: fetch only unclaimed intent names (avoids redundant count + findMany)
+							const unclaimed = await prisma.userIntent.findMany({
+								where: { claimedById: null },
+								select: { name: true },
+								take: 100
+							});
+							const userNameLower = userName.toLowerCase();
+							const hasMatch = unclaimed.some(ui => {
+								const intentNameLower = ui.name.toLowerCase();
+								return intentNameLower.includes(userNameLower) || userNameLower.includes(intentNameLower);
+							});
+
+							if (hasMatch) {
+								throw redirect(302, '/claim-participations');
+							}
+						}
 					}
 				}
-			}
-		}
 
-		// Phone onboarding redirect — show once for users without phone data
-		const isAddPhonePage = path === '/add-phone';
-		if (isPageRequest && !isClaimPage && !isAddPhonePage && dbUser && !dbUser.phonePromptLastChecked && !dbUser.phoneNumber) {
-			await prisma.user.update({
-				where: { id: session.user.id },
-				data: { phonePromptLastChecked: new Date() }
-			});
-			throw redirect(302, '/add-phone');
+				// Phone onboarding redirect — show once for users without phone data
+				if (!isAddPhonePage && !dbUser.phonePromptLastChecked && !dbUser.phoneNumber) {
+					await prisma.user.update({
+						where: { id: session.user.id },
+						data: { phonePromptLastChecked: new Date() }
+					});
+					throw redirect(302, '/add-phone');
+				}
+			}
 		}
 	}
 

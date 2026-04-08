@@ -349,7 +349,33 @@
     "mark_all_read": "Mark all as read",
     "empty": "No notifications yet",
     "empty_detail": "You'll be notified here when something important happens.",
-    "just_now": "just now"
+    "just_now": "just now",
+    "titles": {
+      "inscription_created": "New inscription",
+      "inscription_confirmed": "Inscription confirmed",
+      "inscription_confirmed_nonplatform": "Inscription confirmed",
+      "inscription_refused": "Inscription refused",
+      "inscription_waitlisted": "Inscription waitlisted",
+      "competition_started": "Competition started",
+      "competition_cancelled": "Competition cancelled",
+      "user_intent_claimed": "Participant claimed",
+      "role_request_approved": "Role request approved",
+      "role_request_rejected": "Role request rejected",
+      "general": "Notification"
+    },
+    "messages": {
+      "inscription_created": "You have been registered for \"{{categoryName}}\" in \"{{competitionName}}\" by {{registeredBy}}.",
+      "inscription_confirmed": "Your inscription for the '{{categoryName}}' category in the '{{competitionName}}' competition has been confirmed.",
+      "inscription_confirmed_nonplatform": "The inscription for '{{nonPlatformNames}}' in the '{{categoryName}}' category of the '{{competitionName}}' competition has been confirmed.",
+      "inscription_refused": "Your inscription for \"{{categoryName}}\" has been refused.",
+      "inscription_waitlisted": "Your inscription for \"{{categoryName}}\" has been waitlisted. The category is currently full.",
+      "competition_started": "The competition \"{{competitionName}}\" has started!",
+      "competition_cancelled": "The competition \"{{competitionName}}\" has been cancelled.",
+      "user_intent_claimed": "\"{{intentName}}\" has been claimed by a registered user and is now linked to their account.",
+      "role_request_approved": "Your request for the {{roleName}} role has been approved.",
+      "role_request_rejected": "Your request for the {{roleName}} role has been rejected.",
+      "general": "You have a new notification."
+    }
   },
   "during_competition": {
     "title": "During Competition",

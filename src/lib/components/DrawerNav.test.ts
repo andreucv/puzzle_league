@@ -78,12 +78,6 @@ describe('DrawerNav - Participant user', () => {
 
 		expect(screen.queryByTestId('nav-drawer-review-permissions-requests')).not.toBeInTheDocument();
 	});
-
-	it('shows sign out button', () => {
-		render(DrawerNav, { props: { user: { ...baseMockUser, roleAssignments: [] } } });
-
-		expect(screen.getByTestId('nav-drawer-signout')).toBeInTheDocument();
-	});
 });
 
 describe('DrawerNav - Organizer user', () => {

@@ -69,9 +69,10 @@ export const POST: RequestHandler = async (event) => {
             await createNotification({
                 userId: intent.createdById,
                 type: NotificationType.USER_INTENT_CLAIMED,
-                title: 'Participant claimed',
-                message: `"${intent.name}" has been claimed by a registered user and is now linked to their account.`,
-                link: '/competitions/explore_competitions'
+                title: 'notifications.titles.user_intent_claimed',
+                message: 'notifications.messages.user_intent_claimed',
+                link: '/competitions/explore_competitions',
+                data: { intentName: intent.name },
             });
         }
 

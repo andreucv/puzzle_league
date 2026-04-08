@@ -217,9 +217,14 @@ export async function signUpUsersToCompetition(
                     createNotification({
                         userId,
                         type: NotificationType.INSCRIPTION_CREATED,
-                        title: 'New inscription',
-                        message: `You have been registered for "${categoryDesc}" in "${competitionName}" by ${record.users.find(u => u.id === currentUserId)?.name || 'a teammate'}.`,
+                        title: 'notifications.titles.inscription_created',
+                        message: 'notifications.messages.inscription_created',
                         link,
+                        data: {
+                            categoryName: categoryDesc,
+                            competitionName,
+                            registeredBy: record.users.find(u => u.id === currentUserId)?.name || 'a teammate',
+                        },
                     })
                 )
             );

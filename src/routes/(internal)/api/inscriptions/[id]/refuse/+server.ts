@@ -35,9 +35,10 @@ export const POST = async (event: RequestEvent) => {
 		await createNotificationForUsers(
 			userIds,
 			NotificationType.INSCRIPTION_REFUSED,
-			'Inscription refused',
-			`Your inscription for "${record.category.description}" has been refused.`,
-			`/competitions/competition_details/${record.category.competitionId}`
+			'notifications.titles.inscription_refused',
+			'notifications.messages.inscription_refused',
+			`/competitions/competition_details/${record.category.competitionId}`,
+			{ categoryName: record.category.description },
 		);
 
 		return json({ success: true, data: result.data });

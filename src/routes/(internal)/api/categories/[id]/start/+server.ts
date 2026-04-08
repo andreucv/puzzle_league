@@ -41,9 +41,10 @@ export const POST = async (event: RequestEvent) => {
         await createNotificationForUsers(
           uniqueUserIds,
           NotificationType.COMPETITION_STARTED,
-          'Competition started',
-          `The competition "${competition.name}" has started!`,
+          'notifications.titles.competition_started',
+          'notifications.messages.competition_started',
           `/competitions/competition_details/${updatedCategory.competitionId}`,
+          { competitionName: competition.name },
         );
       }
     }

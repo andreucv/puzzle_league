@@ -65,9 +65,10 @@ export const actions: Actions = {
                             await createNotificationForUsers(
                                 userIds,
                                 NotificationType.INSCRIPTION_WAITLISTED,
-                                'Inscription waitlisted',
-                                `Your inscription for "${record.category.description ?? record.category.type}" has been waitlisted. The category is currently full.`,
-                                `/competitions/competition_details/${record.category.competition.id}`
+                                'notifications.titles.inscription_waitlisted',
+                                'notifications.messages.inscription_waitlisted',
+                                `/competitions/competition_details/${record.category.competition.id}`,
+                                { categoryName: record.category.description ?? record.category.type },
                             );
                         }
                     }

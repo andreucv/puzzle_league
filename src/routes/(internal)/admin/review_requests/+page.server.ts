@@ -2,6 +2,8 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { getPendingRequests, acceptRequest, rejectRequest, getRoleAssignments } from '$lib/database/database';
 import { auth } from '$lib/auth';
+import { createNotification } from '$lib/notifications/notifications';
+import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 
 export const load: PageServerLoad = async ({ request }) => {
     try {
@@ -44,7 +46,15 @@ export const actions: Actions = {
         }
 
         try {
-            await acceptRequest(requestId, session.user.id);
+            const result = await acceptRequest(requestId, session.user.id);
+            await createNotification({
+                userId: result.updatedRequest.userId,
+                type: NotificationType.ROLE_REQUEST_APPROVED,
+                title: 'notifications.titles.role_request_approved',
+                message: 'notifications.messages.role_request_approved',
+                link: '/request_permissions',
+                data: { roleName: result.updatedRequest.role },
+            });
             return { success: true, message: 'Request approved successfully' };
         } catch (err) {
             console.error('Error accepting request:', err);
@@ -78,7 +88,15 @@ export const actions: Actions = {
         }
 
         try {
-            await rejectRequest(requestId, session.user.id);
+            const result = await rejectRequest(requestId, session.user.id);
+            await createNotification({
+                userId: result.userId,
+                type: NotificationType.ROLE_REQUEST_REJECTED,
+                title: 'notifications.titles.role_request_rejected',
+                message: 'notifications.messages.role_request_rejected',
+                link: '/request_permissions',
+                data: { roleName: result.role },
+            });
             return { success: true, message: 'Request rejected successfully' };
         } catch (err) {
             console.error('Error rejecting request:', err);

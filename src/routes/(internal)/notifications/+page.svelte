@@ -10,6 +10,19 @@
     let loading = $state(true);
     let error = $state('');
 
+    /**
+     * Resolves a notification field that may be a translation key or plain text.
+     * Translation keys start with 'notifications.' — older notifications stored plain text.
+     */
+    function resolveText(key: string, data?: Record<string, unknown>): string {
+        if (key.startsWith('notifications.')) {
+            const resolved = $t(key, data ?? {});
+            // sveltekit-i18n returns the key itself if not found
+            return resolved !== key ? resolved : key;
+        }
+        return key;
+    }
+
     const typeIcons: Record<string, string> = {
         INSCRIPTION_CREATED: 'mdi:account-plus-outline',
         INSCRIPTION_CONFIRMED: 'mdi:check-circle-outline',
@@ -158,14 +171,14 @@
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2">
                                     <span class="font-semibold text-sm truncate {notification.read ? '' : 'text-surface-900 dark:text-surface-50'}">
-                                        {notification.title}
+                                        {resolveText(notification.title, notification.data as Record<string, unknown>)}
                                     </span>
                                     {#if !notification.read}
                                         <span class="flex-shrink-0 w-2 h-2 rounded-full bg-primary-500"></span>
                                     {/if}
                                 </div>
                                 <p class="text-sm text-surface-500 mt-0.5 line-clamp-2">
-                                    {notification.message}
+                                    {resolveText(notification.message, notification.data as Record<string, unknown>)}
                                 </p>
                                 <div class="flex items-center gap-2 mt-1.5">
                                     <span class="text-xs text-surface-400">

@@ -291,6 +291,7 @@ model Notification {
   title     String
   message   String
   link      String?
+  data      Json?
   read      Boolean          @default(false)
   userId    String
   user      User             @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)

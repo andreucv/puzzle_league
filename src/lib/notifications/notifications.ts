@@ -29,15 +29,17 @@ export async function createNotification({
 	title,
 	message,
 	link,
+	data,
 }: {
 	userId: string;
 	type: NotificationType;
 	title: string;
 	message: string;
 	link?: string;
+	data?: Record<string, string | number | boolean>;
 }) {
 	const notification = await prisma.notification.create({
-		data: { userId, type, title, message, link },
+		data: { userId, type, title, message, link, data: data ?? undefined },
 	});
 
 	if (shouldSendMail(type)) {
@@ -53,9 +55,10 @@ export async function createNotificationForUsers(
 	title: string,
 	message: string,
 	link?: string,
+	data?: Record<string, string | number | boolean>,
 ) {
 	const notifications = await prisma.notification.createMany({
-		data: userIds.map((userId) => ({ userId, type, title, message, link })),
+		data: userIds.map((userId) => ({ userId, type, title, message, link, data: data ?? undefined })),
 	});
 
 	if (shouldSendMail(type)) {

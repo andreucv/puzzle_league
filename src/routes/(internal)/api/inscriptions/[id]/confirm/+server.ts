@@ -53,9 +53,10 @@ export const POST = async (event: RequestEvent) => {
 		await createNotificationForUsers(
 			userIds,
 			NotificationType.INSCRIPTION_CONFIRMED,
-			'Inscription confirmed',
-			`Your inscription for the '${categoryTypeName}' category in the '${competitionName}' competition has been confirmed.`,
-			link
+			'notifications.titles.inscription_confirmed',
+			'notifications.messages.inscription_confirmed',
+			link,
+			{ categoryName: categoryTypeName, competitionName },
 		);
 
 		// If non-platform users were inscribed, also notify the creator (if not already a participant)
@@ -66,9 +67,10 @@ export const POST = async (event: RequestEvent) => {
 			await createNotification({
 				userId: record.creatorId,
 				type: NotificationType.INSCRIPTION_CONFIRMED,
-				title: 'Inscription confirmed',
-				message: `The inscription for '${nonPlatformNames}' in the '${categoryTypeName}' category of the '${competitionName}' competition has been confirmed.`,
-				link
+				title: 'notifications.titles.inscription_confirmed_nonplatform',
+				message: 'notifications.messages.inscription_confirmed_nonplatform',
+				link,
+				data: { nonPlatformNames, categoryName: categoryTypeName, competitionName },
 			});
 		}
 

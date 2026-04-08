@@ -52,9 +52,10 @@ export const POST = async (event: RequestEvent) => {
       await createNotificationForUsers(
         uniqueUserIds,
         NotificationType.COMPETITION_CANCELLED,
-        'Competition cancelled',
-        `The competition "${competition.name}" has been cancelled.`,
+        'notifications.titles.competition_cancelled',
+        'notifications.messages.competition_cancelled',
         `/competitions/competition_details/${competitionId}`,
+        { competitionName: competition.name },
       );
     }
 

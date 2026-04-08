@@ -6,7 +6,7 @@ export const load: PageServerLoad = async ({ parent }) => {
     const { user } = await parent();
 
     // If user already handled the prompt or has phone data, redirect to home
-    if (user.phonePromptSeenAt || (user.phonePrefix && user.phoneNumber)) {
+    if (user.phonePromptLastChecked || (user.phonePrefix && user.phoneNumber)) {
         throw redirect(302, '/');
     }
 

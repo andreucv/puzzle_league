@@ -9,12 +9,6 @@ import { apiRateLimiter, searchRateLimiter, isSearchEndpoint } from "$lib/api_ut
 import { enforceRouteGuard } from "$lib/api_utils/api_route_guards";
 import type { HandleServerError } from "@sveltejs/kit";
 
-// TODO: consider relying on servers livecycle memory to track if user has been checked for redirects.
-// Track users who have been checked for claim redirect within this server lifecycle
-const checkedUsers = new Set<string>();
-// Track users who have been checked for phone prompt redirect within this server lifecycle
-const phonePromptCheckedUsers = new Set<string>();
-
 // Auth handler
 export async function handle({ event, resolve }) {
 	// Fetch current session from Better Auth
@@ -31,8 +25,23 @@ export async function handle({ event, resolve }) {
 		const isPageRequest = !path.startsWith('/api/') && !path.startsWith('/auth/');
 		const isClaimPage = path === '/claim-participations';
 
-		if (isPageRequest && !isClaimPage && !checkedUsers.has(session.user.id)) {
-			checkedUsers.add(session.user.id);
+		// Check DB flag — only run the user intents check if never checked before
+		const dbUser = await prisma.user.findUnique({
+			where: { id: session.user.id },
+			select: { userIntentsLastChecked: true, phonePromptLastChecked: true, phoneNumber: true }
+		});
+
+		// TODO: In the future, we may want to re-check user intents periodically (e.g. every 30 days)
+		// in case new unclaimed intents appear that match the user's name.
+		// For now, we only check once on first login to avoid complexity of re-checking logic and
+		// potential edge cases around claiming after multiple checks.
+
+		if (isPageRequest && !isClaimPage && dbUser && !dbUser.userIntentsLastChecked) {
+			// Mark as checked immediately so we never re-check
+			await prisma.user.update({
+				where: { id: session.user.id },
+				data: { userIntentsLastChecked: new Date() }
+			});
 
 			// Check if user was created recently (within last 5 minutes)
 			const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
@@ -61,11 +70,12 @@ export async function handle({ event, resolve }) {
 
 		// Phone onboarding redirect — show once for users without phone data
 		const isAddPhonePage = path === '/add-phone';
-		if (isPageRequest && !isClaimPage && !isAddPhonePage && !phonePromptCheckedUsers.has(session.user.id)) {
-			phonePromptCheckedUsers.add(session.user.id);
-			if (!event.locals.user.phonePromptSeenAt && !event.locals.user.phoneNumber) {
-				throw redirect(302, '/add-phone');
-			}
+		if (isPageRequest && !isClaimPage && !isAddPhonePage && dbUser && !dbUser.phonePromptLastChecked && !dbUser.phoneNumber) {
+			await prisma.user.update({
+				where: { id: session.user.id },
+				data: { phonePromptLastChecked: new Date() }
+			});
+			throw redirect(302, '/add-phone');
 		}
 	}
 

@@ -93,7 +93,7 @@ async function main() {
             data: {
                 phonePrefix: '+99',
                 phoneNumber: '99999',
-                phonePromptSeenAt: new Date(),
+                phonePromptLastChecked: new Date(),
             },
         });
         console.log(`   📱 Phone set for ${tu.email}`);

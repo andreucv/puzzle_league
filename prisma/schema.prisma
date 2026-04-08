@@ -23,7 +23,8 @@ model User {
   postalCode            String?
   phonePrefix           String?
   phoneNumber           String?
-  phonePromptSeenAt     DateTime?
+  phonePromptLastChecked DateTime?
+  userIntentsLastChecked DateTime?
   createdAt             DateTime
   updatedAt             DateTime
   sessions              Session[]

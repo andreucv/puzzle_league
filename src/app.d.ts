@@ -21,7 +21,7 @@ declare global {
                 postalCode?: string | null;
                 phonePrefix?: string | null;
                 phoneNumber?: string | null;
-                phonePromptSeenAt?: Date | null;
+                phonePromptLastChecked?: Date | null;
                 createdAt: Date;
                 updatedAt: Date;
             };

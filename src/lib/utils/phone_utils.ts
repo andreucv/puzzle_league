@@ -52,7 +52,7 @@ export async function savePhoneForUser(
         data: {
             phonePrefix: phonePrefix || null,
             phoneNumber: phoneNumber || null,
-            phonePromptSeenAt: new Date(),
+            phonePromptLastChecked: new Date(),
             updatedAt: new Date()
         }
     });
@@ -68,7 +68,7 @@ export async function deletePhoneForUser(userId: string) {
         data: {
             phonePrefix: null,
             phoneNumber: null,
-            phonePromptSeenAt: null,
+            phonePromptLastChecked: null,
             updatedAt: new Date()
         }
     });

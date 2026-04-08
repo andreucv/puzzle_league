@@ -30,6 +30,9 @@ export async function getUserWithRoles(authUser: { id: string }) {
             select: {
                 country: true,
                 postalCode: true,
+                phonePrefix: true,
+                phoneNumber: true,
+                phonePromptSeenAt: true,
                 roleAssignments: true
             }
         });
@@ -40,11 +43,14 @@ export async function getUserWithRoles(authUser: { id: string }) {
                 ...authUser,
                 country: user.country,
                 postalCode: user.postalCode,
+                phonePrefix: user.phonePrefix,
+                phoneNumber: user.phoneNumber,
+                phonePromptSeenAt: user.phonePromptSeenAt,
                 roleAssignments: user.roleAssignments
             };
         }
 
-        return { ...authUser, country: null, postalCode: null, roleAssignments: [] };
+        return { ...authUser, country: null, postalCode: null, phonePrefix: null, phoneNumber: null, phonePromptSeenAt: null, roleAssignments: [] };
     }
     catch (error) {
         console.error('Error getting user with roles:', error);

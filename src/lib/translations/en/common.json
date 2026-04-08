@@ -66,7 +66,11 @@
     "my_profile": "My profile",
     "roles": "Roles",
     "preferences": "Profile preferences",
-    "data": "Profile data"
+    "data": "Profile data",
+    "phone": "Phone",
+    "phone_prefix_placeholder": "e.g. +34",
+    "phone_number_placeholder": "e.g. 612345678",
+    "phone_not_set": "Not set"
   },
   "admin": {
     "review_requests": {
@@ -444,6 +448,20 @@
   "public_profile": {
     "title": "User Profile",
     "contact_info": "Contact Information",
+    "phone": "Phone",
     "member_since": "Member since"
+  },
+  "add_phone": {
+    "title": "Add your phone number",
+    "description": "Add your phone number so organizers can contact you if there is a problem with your registration.",
+    "skip_hint": "You can skip this step and update it later from your profile.",
+    "save_button": "Save phone number",
+    "skip_button": "Skip for now",
+    "prefix_placeholder": "e.g. +34",
+    "number_placeholder": "e.g. 612345678",
+    "validation_prefix_required": "Phone prefix is required when number is provided",
+    "validation_number_required": "Phone number is required when prefix is provided",
+    "validation_prefix_format": "Prefix must start with + followed by 1-4 digits",
+    "validation_number_format": "Enter a valid phone number"
   }
 }

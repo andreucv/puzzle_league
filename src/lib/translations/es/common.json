@@ -66,7 +66,11 @@
     "my_profile": "Mi perfil",
     "roles": "Permisos",
     "preferences": "Preferencias",
-    "data": "Datos del perfil"
+    "data": "Datos del perfil",
+    "phone": "Teléfono",
+    "phone_prefix_placeholder": "ej. +34",
+    "phone_number_placeholder": "ej. 612345678",
+    "phone_not_set": "No configurado"
   },
   "admin": {
     "review_requests": {
@@ -444,6 +448,20 @@
   "public_profile": {
     "title": "Perfil del usuario",
     "contact_info": "Información de contacto",
+    "phone": "Teléfono",
     "member_since": "Miembro desde"
+  },
+  "add_phone": {
+    "title": "Añade tu número de teléfono",
+    "description": "Añade tu número de teléfono para que los organizadores puedan contactarte si hay un problema con tu inscripción.",
+    "skip_hint": "Puedes saltar este paso y actualizarlo más tarde desde tu perfil.",
+    "save_button": "Guardar teléfono",
+    "skip_button": "Saltar por ahora",
+    "prefix_placeholder": "ej. +34",
+    "number_placeholder": "ej. 612345678",
+    "validation_prefix_required": "El prefijo es obligatorio si se proporciona un número",
+    "validation_number_required": "El número es obligatorio si se proporciona un prefijo",
+    "validation_prefix_format": "El prefijo debe empezar con + seguido de 1-4 dígitos",
+    "validation_number_format": "Introduce un número de teléfono válido"
   }
 }

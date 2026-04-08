@@ -66,7 +66,11 @@
     "my_profile": "El meu perfil",
     "roles": "Permisos",
     "preferences": "Preferències",
-    "data": "Dades del perfil"
+    "data": "Dades del perfil",
+    "phone": "Telèfon",
+    "phone_prefix_placeholder": "ex. +34",
+    "phone_number_placeholder": "ex. 612345678",
+    "phone_not_set": "No configurat"
   },
   "admin": {
     "review_requests": {
@@ -444,6 +448,20 @@
   "public_profile": {
     "title": "Perfil de l'usuari",
     "contact_info": "Informació de contacte",
+    "phone": "Telèfon",
     "member_since": "Membre des de"
+  },
+  "add_phone": {
+    "title": "Afegeix el teu número de telèfon",
+    "description": "Afegeix el teu número de telèfon perquè els organitzadors puguin contactar-te si hi ha un problema amb la teva inscripció.",
+    "skip_hint": "Pots saltar aquest pas i actualitzar-lo més tard des del teu perfil.",
+    "save_button": "Desa el telèfon",
+    "skip_button": "Salta per ara",
+    "prefix_placeholder": "ex. +34",
+    "number_placeholder": "ex. 612345678",
+    "validation_prefix_required": "El prefix és obligatori si es proporciona un número",
+    "validation_number_required": "El número és obligatori si es proporciona un prefix",
+    "validation_prefix_format": "El prefix ha de començar amb + seguit d'1-4 dígits",
+    "validation_number_format": "Introdueix un número de telèfon vàlid"
   }
 }

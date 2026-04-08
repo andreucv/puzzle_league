@@ -1,6 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { prisma } from '$lib/database/database';
 import { error, fail } from '@sveltejs/kit';
+import { validatePhone, savePhoneForUser, deletePhoneForUser } from '$lib/utils/phone_utils';
 
 export const load: PageServerLoad = async ({ parent }) => {
 
@@ -42,6 +43,43 @@ export const actions: Actions = {
         } catch (err) {
             console.error('Error updating location:', err);
             return fail(500, { message: 'Unable to save your location. Please try again.' });
+        }
+    },
+
+    updatePhone: async ({ request, locals }) => {
+        const user = locals.user;
+        if (!user) {
+            return fail(401, { message: 'Unauthorized' });
+        }
+
+        const formData = await request.formData();
+        const result = validatePhone(formData, false);
+
+        if (!result.valid) {
+            return fail(400, { phoneError: result.error });
+        }
+
+        try {
+            await savePhoneForUser(user.id, result.phonePrefix, result.phoneNumber);
+            return { success: true };
+        } catch (err) {
+            console.error('Error updating phone:', err);
+            return fail(500, { message: 'Unable to save your phone. Please try again.' });
+        }
+    },
+
+    deletePhone: async ({ locals }) => {
+        const user = locals.user;
+        if (!user) {
+            return fail(401, { message: 'Unauthorized' });
+        }
+
+        try {
+            await deletePhoneForUser(user.id);
+            return { success: true };
+        } catch (err) {
+            console.error('Error deleting phone:', err);
+            return fail(500, { message: 'Unable to delete your phone. Please try again.' });
         }
     }
 };

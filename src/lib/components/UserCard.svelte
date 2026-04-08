@@ -4,16 +4,56 @@
     import { t } from '$lib/translations';
     import { enhance } from '$app/forms';
     import ThemeLightSwitch from './ThemeLightSwitch.svelte';
-    import { countries, getCountryFlag } from '$lib/utils/country_utils';
+    import { countries, getCountryFlag, getFlagFromPhonePrefix } from '$lib/utils/country_utils';
 
     let { user, account } = $props();
 
-    let displayName = $state(user.name || "Pending name...");
-    let countryValue = $state(user.country ? [user.country] : []);
-    let countryInputValue = $state(user.country ? (countries.find(c => c.code === user.country)?.name || '') : '');
-    let postalCodeValue = $state(user.postalCode || '');
+    let displayName = $derived(user.name || "Pending name...");
+    let countryValue = $derived(user.country ? [user.country] : []);
+    let countryInputValue = $derived(user.country ? (countries.find(c => c.code === user.country)?.name || '') : '');
+    let postalCodeValue = $derived(user.postalCode || '');
     let isEditingLocation = $state(false);
     let isSavingLocation = $state(false);
+    let isEditingPhone = $state(false);
+    let isSavingPhone = $state(false);
+    let isDeletingPhone = $state(false);
+    let phonePrefixValue = $derived(user.phonePrefix ? [user.phonePrefix] : []);
+    let phonePrefixInputValue = $derived(user.phonePrefix || '');
+    let phoneNumberValue = $derived(user.phoneNumber || '');
+
+    // Prepare phone prefix data from countries (deduplicated, sorted)
+    const getPhonePrefixData = () => {
+        const seen = new Set<string>();
+        const prefixes: { label: string; value: string; emoji: string }[] = [];
+        for (const c of countries) {
+            if (c.phonePrefix && !seen.has(c.phonePrefix)) {
+                seen.add(c.phonePrefix);
+                prefixes.push({
+                    label: `${getCountryFlag(c.code)} ${c.phonePrefix}`,
+                    value: c.phonePrefix,
+                    emoji: getCountryFlag(c.code)
+                });
+            }
+        }
+        // Put current user's prefix at the top if it exists
+        if (user.phonePrefix) {
+            const current = prefixes.find(p => p.value === user.phonePrefix);
+            if (current) {
+                const rest = prefixes.filter(p => p.value !== user.phonePrefix);
+                return [current, ...rest];
+            }
+        }
+        return prefixes;
+    };
+
+    const phonePrefixData = getPhonePrefixData();
+    let filteredPrefixes = $state(phonePrefixData);
+
+    const phonePrefixCollection = $derived(useListCollection({
+        items: filteredPrefixes,
+        itemToString: (item) => item.label,
+        itemToValue: (item) => item.value,
+    }));
 
     // Prepare country data for Combobox with current country at the top
     const getCountryData = () => {
@@ -47,6 +87,9 @@
         countryValue = user.country ? [user.country] : [];
         countryInputValue = user.country ? (countries.find(c => c.code === user.country)?.name || '') : '';
         postalCodeValue = user.postalCode || '';
+        phonePrefixValue = user.phonePrefix ? [user.phonePrefix] : [];
+        phonePrefixInputValue = user.phonePrefix || '';
+        phoneNumberValue = user.phoneNumber || '';
     });
 
     // Get country name from code
@@ -219,6 +262,137 @@
             {/if}
         </div>
 
+        <!-- Phone Setting -->
+        <div class="space-y-2">
+            <span class="text-sm font-semibold text-surface-500">{$t('profile.phone')}</span>
+            {#if isEditingPhone}
+                <form
+                    method="POST"
+                    action="?/updatePhone"
+                    use:enhance={() => {
+                        isSavingPhone = true;
+                        return async ({ update }) => {
+                            isSavingPhone = false;
+                            isEditingPhone = false;
+                            await update();
+                        };
+                    }}
+                    class="space-y-2"
+                >
+                    <div class="grid grid-cols-[7rem_1fr] gap-2">
+                        <input type="hidden" name="phonePrefix" value={phonePrefixValue[0] || ''} />
+                        <div class="border border-surface-300 bg-white rounded-lg overflow-hidden">
+                            <Combobox
+                                collection={phonePrefixCollection}
+                                value={phonePrefixValue}
+                                inputValue={phonePrefixInputValue}
+                                onValueChange={(e) => (phonePrefixValue = e.value)}
+                                onInputValueChange={(e) => {
+                                    phonePrefixInputValue = e.inputValue;
+                                    filteredPrefixes = phonePrefixData.filter((item) =>
+                                        item.label.toLowerCase().includes(e.inputValue.toLowerCase()) ||
+                                        item.value.includes(e.inputValue)
+                                    );
+                                }}
+                                onOpenChange={() => { filteredPrefixes = phonePrefixData; }}
+                                placeholder="{$t('profile.phone_prefix_placeholder')}"
+                            >
+                                <Combobox.Control>
+                                    <Combobox.Input
+                                        class="input text-sm px-3 py-2 bg-transparent border-none w-full"
+                                        data-testid="phone-prefix-input"
+                                    />
+                                    <Combobox.Trigger />
+                                </Combobox.Control>
+                                <Portal>
+                                    <Combobox.Positioner>
+                                        <Combobox.Content class="card bg-surface-50 p-2 shadow-xl max-h-48 overflow-y-auto rounded-lg">
+                                            {#each phonePrefixCollection.items as item}
+                                                <Combobox.Item {item}>
+                                                    <Combobox.ItemText>
+                                                        <div class="flex items-center gap-2 p-1">
+                                                            <span>{item.label}</span>
+                                                        </div>
+                                                    </Combobox.ItemText>
+                                                    <Combobox.ItemIndicator>✓</Combobox.ItemIndicator>
+                                                </Combobox.Item>
+                                            {/each}
+                                        </Combobox.Content>
+                                    </Combobox.Positioner>
+                                </Portal>
+                            </Combobox>
+                        </div>
+                        <input
+                            name="phoneNumber"
+                            type="text"
+                            class="input text-sm px-3 py-2 border rounded-lg border-surface-300 bg-white"
+                            placeholder="{$t('profile.phone_number_placeholder')}"
+                            bind:value={phoneNumberValue}
+                            data-testid="phone-number-input"
+                        />
+                    </div>
+                    <div class="flex gap-2">
+                        <button
+                            type="submit"
+                            class="btn btn-sm preset-filled-primary-500"
+                            disabled={isSavingPhone}
+                            data-testid="phone-save-button"
+                        >
+                            {isSavingPhone ? '...' : 'Save'}
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-sm preset-outlined-surface-500"
+                            onclick={() => { isEditingPhone = false; phonePrefixValue = user.phonePrefix ? [user.phonePrefix] : []; phonePrefixInputValue = user.phonePrefix || ''; phoneNumberValue = user.phoneNumber || ''; }}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            {:else}
+                <div class="flex items-center justify-between">
+                    <p class="text-sm">
+                        {#if user.phonePrefix && user.phoneNumber}
+                            {getFlagFromPhonePrefix(user.phonePrefix)} {user.phonePrefix} {user.phoneNumber}
+                        {:else}
+                            {$t('profile.phone_not_set')}
+                        {/if}
+                    </p>
+                    <div class="flex gap-2">
+                        <button
+                            class="btn btn-sm preset-outlined-surface-500"
+                            onclick={() => isEditingPhone = true}
+                            data-testid="phone-edit-button"
+                        >
+                            Change
+                        </button>
+                        {#if user.phonePrefix && user.phoneNumber}
+                            <form
+                                method="POST"
+                                action="?/deletePhone"
+                                use:enhance={() => {
+                                    isDeletingPhone = true;
+                                    return async ({ update }) => {
+                                        isDeletingPhone = false;
+                                        await update();
+                                    };
+                                }}
+                            >
+                                <button
+                                    type="submit"
+                                    class="btn btn-sm preset-outlined-error-500"
+                                    disabled={isDeletingPhone}
+                                    data-testid="phone-delete-button"
+                                >
+                                    {isDeletingPhone ? '...' : 'Delete'}
+                                </button>
+                            </form>
+                        {/if}
+                    </div>
+                </div>
+            {/if}
+        </div>
+
         <!-- Email/Verification Setting -->
         <span class="text-sm font-semibold text-surface-500">Email</span>
         <div class="grid grid-cols-2 md:grid-cols-2 gap-4 items-center">
@@ -240,13 +414,13 @@
         <div>{$t('profile.roles')}</div>
         <div class="flex justify-end gap-2">
         {#if user.roleAssignments?.some((role: RoleAssignment) => role.role === "PARTICIPANT")}
-            <span class="badge preset-filled-surface-500">Participant</span>
+            <span class="badge preset-filled-surface-500" data-testid="profile-participant-role-chip">Participant</span>
         {/if}
         {#if user.roleAssignments?.some((role: RoleAssignment) => role.role === "ORGANIZER")}
-            <span class="badge preset-filled-primary-500">Organizer</span>
+            <span class="badge preset-filled-primary-500" data-testid="profile-organizer-role-chip">Organizer</span>
         {/if}
         {#if user.roleAssignments?.some((role: RoleAssignment) => role.role === "ADMIN")}
-            <span class="badge preset-filled-secondary-500">Admin</span>
+            <span class="badge preset-filled-secondary-500" data-testid="profile-admin-role-chip">Admin</span>
         {/if}
         </div>
     </div>

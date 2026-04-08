@@ -118,7 +118,7 @@
                             <Avatar.Fallback>{competition?.creator.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
                         </Avatar>
                         <span class="text-sm text-surface-600-400">
-                            {$t('competition_details.organized_by')} {competition.creator.name}
+                            {$t('competition_details.organized_by')} <a href="/public_profile/{competition.creator.id}" class="text-primary-900-100 underline transition-colors">{competition.creator.name}</a>
                         </span>
                     </div>
                 {/if}

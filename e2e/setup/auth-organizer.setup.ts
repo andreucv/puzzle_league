@@ -19,8 +19,9 @@ setup('authenticate_organizer', async ({ page }) => {
     // Sometimes login flow sets cookies in the process of several redirects.
     // Wait for the final URL to ensure that the cookies are actually set.
     await page.waitForURL('/');
+
     await page.goto('/profile');
-    await expect(page.getByText('Organizer', { exact: true }).first()).toBeVisible();
+    await expect(page.getByTestId("profile-organizer-role-chip")).toBeVisible();
     await page.goto('/');
     await page.waitForURL('/');
     await page.context().storageState({ path: authFile });

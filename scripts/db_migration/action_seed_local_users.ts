@@ -87,6 +87,16 @@ async function main() {
             create: { userId: user.id, role: tu.role },
         });
         console.log(`   👤 Role ${tu.role} assigned to ${tu.email}`);
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                phonePrefix: '+99',
+                phoneNumber: '99999',
+                phonePromptSeenAt: new Date(),
+            },
+        });
+        console.log(`   📱 Phone set for ${tu.email}`);
     }
 
     console.log('\n✅ Local test users seeded successfully!');

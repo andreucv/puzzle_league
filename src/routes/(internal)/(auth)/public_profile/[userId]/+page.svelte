@@ -7,7 +7,8 @@
     import EmailOutlineIcon from '@iconify-svelte/mdi/email-outline';
     import MapMarkerOutlineIcon from '@iconify-svelte/mdi/map-marker-outline';
     import CalendarIcon from '@iconify-svelte/mdi/calendar';
-    import { getCountryNameFromCode, getCountryFlag } from '$lib/utils/country_utils';
+    import PhoneOutlineIcon from '@iconify-svelte/mdi/phone-outline';
+    import { getCountryNameFromCode, getCountryFlag, getFlagFromPhonePrefix } from '$lib/utils/country_utils';
 
     let { data } = $props();
     let profile = $derived(data.profile);
@@ -69,6 +70,14 @@
                 <div class="flex items-center gap-3 text-surface-700 dark:text-surface-300">
                     <MapMarkerOutlineIcon width="1.1rem" height="1.1rem" class="shrink-0 text-surface-500" />
                     <span>{getCountryFlag(profile.country)} {getCountryNameFromCode(profile.country)}</span>
+                </div>
+            {/if}
+
+            <!-- Phone -->
+            {#if profile.phonePrefix && profile.phoneNumber}
+                <div class="flex items-center gap-3 text-surface-700 dark:text-surface-300">
+                    <PhoneOutlineIcon width="1.1rem" height="1.1rem" class="shrink-0 text-surface-500" />
+                    <span>{getFlagFromPhonePrefix(profile.phonePrefix)} {profile.phonePrefix} {profile.phoneNumber}</span>
                 </div>
             {/if}
 

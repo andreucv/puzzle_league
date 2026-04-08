@@ -29,3 +29,21 @@ test.describe('GivenProfilePageOrganizer_WhenClickingOnHambugerMenu_ThenCreateCo
         await expect(page.getByRole('link', { name: 'Create Competition' }).first()).toBeVisible();
     });
 });
+
+test('GivenProfilePage_WhenEditingPhone_ThenPhoneIsSaved', async ({ page }) => {
+    await page.goto('/profile');
+
+    // Click Change button for phone
+    await page.getByTestId('phone-edit-button').click();
+
+    // Fill prefix and number
+    await page.getByTestId('phone-prefix-input').fill('+34');
+    await page.getByRole('option', { name: /\+34/ }).first().click();
+    await page.getByTestId('phone-number-input').fill('612345678');
+
+    // Save
+    await page.getByTestId('phone-save-button').click();
+
+    // Verify the phone is displayed
+    await expect(page.getByText('+34 612345678')).toBeVisible();
+});

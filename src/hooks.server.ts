@@ -9,8 +9,11 @@ import { apiRateLimiter, searchRateLimiter, isSearchEndpoint } from "$lib/api_ut
 import { enforceRouteGuard } from "$lib/api_utils/api_route_guards";
 import type { HandleServerError } from "@sveltejs/kit";
 
+// TODO: consider relying on servers livecycle memory to track if user has been checked for redirects.
 // Track users who have been checked for claim redirect within this server lifecycle
 const checkedUsers = new Set<string>();
+// Track users who have been checked for phone prompt redirect within this server lifecycle
+const phonePromptCheckedUsers = new Set<string>();
 
 // Auth handler
 export async function handle({ event, resolve }) {
@@ -53,6 +56,15 @@ export async function handle({ event, resolve }) {
 						throw redirect(302, '/claim-participations');
 					}
 				}
+			}
+		}
+
+		// Phone onboarding redirect — show once for users without phone data
+		const isAddPhonePage = path === '/add-phone';
+		if (isPageRequest && !isClaimPage && !isAddPhonePage && !phonePromptCheckedUsers.has(session.user.id)) {
+			phonePromptCheckedUsers.add(session.user.id);
+			if (!event.locals.user.phonePromptSeenAt && !event.locals.user.phoneNumber) {
+				throw redirect(302, '/add-phone');
 			}
 		}
 	}

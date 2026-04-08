@@ -19,6 +19,9 @@ declare global {
                 image?: string | null;
                 country?: string | null;
                 postalCode?: string | null;
+                phonePrefix?: string | null;
+                phoneNumber?: string | null;
+                phonePromptSeenAt?: Date | null;
                 createdAt: Date;
                 updatedAt: Date;
             };

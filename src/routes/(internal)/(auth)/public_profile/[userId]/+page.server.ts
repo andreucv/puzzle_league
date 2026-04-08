@@ -13,6 +13,8 @@ export const load: PageServerLoad = async ({ params }) => {
             email: true,
             image: true,
             country: true,
+            phonePrefix: true,
+            phoneNumber: true,
             createdAt: true
         }
     });

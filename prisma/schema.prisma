@@ -21,6 +21,9 @@ model User {
   image                 String?
   country               String?
   postalCode            String?
+  phonePrefix           String?
+  phoneNumber           String?
+  phonePromptSeenAt     DateTime?
   createdAt             DateTime
   updatedAt             DateTime
   sessions              Session[]

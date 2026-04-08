@@ -7,8 +7,9 @@ injectAnalytics({ mode: dev ? 'development' : 'production' });
 injectSpeedInsights();
 
 import * as Swetrix from 'swetrix'
+import { PUBLIC_SWETRIX_API_ID } from '$env/static/public';
 
-Swetrix.init(process.env.SWETRIX_API_ID!);
+Swetrix.init(PUBLIC_SWETRIX_API_ID);
 Swetrix.trackViews()
 
 /** @type {import('@sveltejs/kit').Load} */

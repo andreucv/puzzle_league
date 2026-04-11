@@ -37,6 +37,7 @@ scripts/db_migration/*seed_data.json
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+/playwright/.test-server-state.json
 
 # Chrome devtools files
 com.chrome.devtools.json

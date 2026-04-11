@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Icon from '@iconify/svelte';
+    import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import { t } from '$lib/translations';
     import CategoryCard from '$lib/components/competition/CategoryCard.svelte';
     import type { Category, Puzzle } from '$lib/.prisma/generated/prisma/browser';
@@ -49,7 +49,7 @@
     </div>
 {:else}
     <div class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-surface-300 dark:border-surface-600 bg-surface-50 dark:bg-surface-800/50 p-8 text-center">
-        <Icon icon="mdi:puzzle-outline" width="2.5rem" height="2.5rem" class="text-surface-400 dark:text-surface-500" />
+        <PuzzleOutlineIcon width="2.5rem" height="2.5rem" class="text-surface-400 dark:text-surface-500" />
         <p class="text-surface-500 dark:text-surface-400 text-sm font-medium">{$t('competition_details.no_categories')}</p>
     </div>
 {/if}

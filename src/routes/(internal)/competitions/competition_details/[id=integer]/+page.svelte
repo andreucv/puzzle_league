@@ -27,40 +27,20 @@
     let { data } = $props();
 
     const currentUser = $derived(data.user);
-    const categoriesWithCounts = $derived(data.props.categoriesWithCounts);
-    const userRecords = $derived(data.props.records);
-    const isJudge = $derived(data.props.isJudge);
-    const isOrganizer = $derived(data.props.isOrganizer);
-
-    let competition = $derived(data.props.competition_and_categories);
-    const competitionName = $derived(competition?.name);
-
-	const startDate = $derived(new Date(competition?.startDate ?? new Date()));
-	const endDate = $derived(new Date(competition?.endDate ?? new Date()));
-	const isMultiDay = $derived(startDate.toDateString() !== endDate.toDateString());
-
-    const categories = $derived(competition?.categories || []);
-
-    // Check if current user is the creator of the competition
-    const canAccessDuringCompetition = $derived(isOrganizer || isJudge);
-    const canCancel = $derived(
-        (isOrganizer) &&
-        competition?.status !== 'CANCELLED' &&
-        competition?.status !== 'FINISHED'
-    );
 
     // Cancel competition dialog state
     let showCancelDialog = $state(false);
     let isCancelling = $state(false);
     let showImageDialog = $state(false);
+    let cancelCompetitionId: number | undefined = $state(undefined);
 
     async function handleCancelCompetition() {
         isCancelling = true;
         try {
-            const res = await fetch(`/api/competitions/${competition?.id}/cancel`, { method: 'POST' });
+            const res = await fetch(`/api/competitions/${cancelCompetitionId}/cancel`, { method: 'POST' });
             if (res.ok) {
                 showCancelDialog = false;
-                goto(`/competitions/competition_details/${competition?.id}`, { invalidateAll: true });
+                goto(`/competitions/competition_details/${cancelCompetitionId}`, { invalidateAll: true });
             }
         } catch (err) {
             console.error('Failed to cancel competition:', err);
@@ -71,147 +51,210 @@
 </script>
 
 <div class="container mx-auto">
-    <!-- Header Section -->
-    <div class="space-y-3">
-        <div class="space-y-4 mb-6">
-            <div class="flex justify-between items-start gap-2">
-                <CompetitionTitle title={competition.name} />
-            </div>
-
-            {#if competition.description}
-                <p class="text-sm text-surface-600 dark:text-surface-400 break-words">{competition.description}</p>
-            {/if}
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                {#if competition.location}
-                    <div class="flex items-center gap-2">
-                        <MapMarkerIcon width="1.2rem" height="1.2rem" class="text-primary-500" />
-                        <span>{competition.location}</span>
-                    </div>
-                {/if}
-                {#if competition.country}
-                    <div class="flex items-center gap-2">
-                        <EarthIcon width="1.2rem" height="1.2rem" class="text-primary-500" />
-                        <span>{getCountryNameFromCode(competition.country)} {getCountryFlag(competition.country)} {competition.postalCode ? ` - ${competition.postalCode}` : ''}</span>
-                    </div>
-                {/if}
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <CalendarClockIcon width="1.2rem" height="1.2rem" class="text-primary-500" />
-                        <span>
-                            {startDate.toLocaleDateString('default', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            {#if isMultiDay}
-                            - {endDate.toLocaleDateString('default', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            {/if}
-                        </span>
-                    </div>
-                    <span class="badge preset-filled-primary-500 shrink-0">
-                        {getCompetitionStatusLabel(competition.status) || competition.status}
-                    </span>
+    {#await data.props.competition_and_categories}
+        <!-- Full-page skeleton placeholder -->
+        <div class="space-y-3">
+            <div class="space-y-4 mb-6 animate-pulse">
+                <div class="card h-8 w-3/5 rounded bg-surface-100-700"></div>
+                <div class="card h-4 w-4/5 rounded bg-surface-100-700"></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="card h-4 w-2/3 rounded bg-surface-100-700"></div>
+                    <div class="card h-4 w-1/2 rounded bg-surface-100-700"></div>
+                    <div class="card h-4 w-3/4 rounded bg-surface-100-700"></div>
                 </div>
             </div>
-            <div class="space-x-3 flex items-center justify-between w-full">
-                <!-- Creator Info -->
-                {#if competition?.creator}
-                    <div class="flex items-center gap-2">
-                        <Avatar class="w-6 h-6">
-                            <Avatar.Fallback>{competition?.creator.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
-                        </Avatar>
-                        <span class="text-sm text-surface-600-400">
-                            {$t('competition_details.organized_by')} <a href="/public_profile/{competition.creator.id}" class="text-primary-900-100 underline transition-colors">{competition.creator.name}</a>
+            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {#each { length: 3 } as _}
+                    <div class="card preset-outlined-surface-200-800 p-4 space-y-3 animate-pulse">
+                        <div class="h-5 w-3/5 rounded bg-surface-100-700"></div>
+                        <div class="h-3 w-2/5 rounded bg-surface-100-700"></div>
+                        <div class="flex gap-2 mt-2">
+                            <div class="h-6 w-16 rounded-full bg-surface-100-700"></div>
+                            <div class="h-6 w-20 rounded-full bg-surface-100-700"></div>
+                        </div>
+                    </div>
+                {/each}
+            </div>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                {#each { length: 3 } as _}
+                    <div class="h-10 w-40 rounded-lg bg-surface-100-700 animate-pulse"></div>
+                {/each}
+            </div>
+        </div>
+    {:then competition}
+        {@const competitionName = competition?.name}
+        {@const startDate = new Date(competition?.startDate ?? new Date())}
+        {@const endDate = new Date(competition?.endDate ?? new Date())}
+        {@const isMultiDay = startDate.toDateString() !== endDate.toDateString()}
+        {@const categories = competition?.categories || []}
+
+        <!-- Header Section -->
+        <div class="space-y-3">
+            <div class="space-y-4 mb-6">
+                <div class="flex justify-between items-start gap-2">
+                    <CompetitionTitle title={competition.name} />
+                </div>
+
+                {#if competition.description}
+                    <p class="text-sm text-surface-600 dark:text-surface-400 break-words">{competition.description}</p>
+                {/if}
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    {#if competition.location}
+                        <div class="flex items-center gap-2">
+                            <MapMarkerIcon width="1.2rem" height="1.2rem" class="text-primary-500" />
+                            <span>{competition.location}</span>
+                        </div>
+                    {/if}
+                    {#if competition.country}
+                        <div class="flex items-center gap-2">
+                            <EarthIcon width="1.2rem" height="1.2rem" class="text-primary-500" />
+                            <span>{getCountryNameFromCode(competition.country)} {getCountryFlag(competition.country)} {competition.postalCode ? ` - ${competition.postalCode}` : ''}</span>
+                        </div>
+                    {/if}
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <CalendarClockIcon width="1.2rem" height="1.2rem" class="text-primary-500" />
+                            <span>
+                                {startDate.toLocaleDateString('default', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                {#if isMultiDay}
+                                - {endDate.toLocaleDateString('default', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                {/if}
+                            </span>
+                        </div>
+                        <span class="badge preset-filled-primary-500 shrink-0">
+                            {getCompetitionStatusLabel(competition.status) || competition.status}
                         </span>
+                    </div>
+                </div>
+                <div class="space-x-3 flex items-center justify-between w-full">
+                    <!-- Creator Info -->
+                    {#if competition?.creator}
+                        <div class="flex items-center gap-2">
+                            <Avatar class="w-6 h-6">
+                                <Avatar.Fallback>{competition?.creator.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
+                            </Avatar>
+                            <span class="text-sm text-surface-600-400">
+                                {$t('competition_details.organized_by')} <a href="/public_profile/{competition.creator.id}" class="text-primary-900-100 underline transition-colors">{competition.creator.name}</a>
+                            </span>
+                        </div>
+                    {/if}
+                </div>
+                {#if competition?.paymentMethod}
+                    <div class="flex items-start gap-2 text-sm">
+                        <CreditCardOutlineIcon width="1.2rem" height="1.2rem" class="text-primary-500 shrink-0 mt-0.5" />
+                        <span class="text-surface-600 dark:text-surface-400 whitespace-pre-line">{competition.paymentMethod}</span>
                     </div>
                 {/if}
             </div>
-            {#if competition?.paymentMethod}
-                <div class="flex items-start gap-2 text-sm">
-                    <CreditCardOutlineIcon width="1.2rem" height="1.2rem" class="text-primary-500 shrink-0 mt-0.5" />
-                    <span class="text-surface-600 dark:text-surface-400 whitespace-pre-line">{competition.paymentMethod}</span>
-                </div>
-            {/if}
-        </div>
-        {#if competition?.image_cld_id}
-            <button
-                type="button"
-                class="w-full block cursor-zoom-in bg-transparent border-0 p-0 text-left"
-                onclick={() => showImageDialog = true}
-                aria-label={`Open image for ${competitionName}`}
-            >
-                <CldImage
-                    src={competition.image_cld_id}
-                    width="800"
-                    height="400"
-                    alt={competitionName}
-                    crop="fill"
-                    gravity="auto"
-                    loading="lazy"
-                    class="rounded-lg shadow-lg w-full object-cover max-h-96"
-                />
-            </button>
-        {/if}
-
-
-        <!-- Categories Section -->
-        <div>
-            <CategoriesOverview {categories} {isOrganizer} {isMultiDay} {categoriesWithCounts} userRecords={userRecords ?? []} />
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <EndPageActionButton icon={AccountPlusIcon} href="/competitions/competition_details/{competition?.id}/inscription" colorClass="preset-filled-success-500" disabled={!(currentUser && competition?.registrationOpen)} text={$t('competition_details.manage_inscription')} testId="signup-button" />
-            {#if canAccessDuringCompetition}
-                <EndPageActionButton icon={TimerPlayIcon} href="/competition/{competition?.id}/during_competition" text={$t('during_competition.title')} />
-            {/if}
-            {#if isOrganizer}
-                <EndPageActionButton icon={PencilIcon} href="/competition/edit/{competition?.id}" text={$t('competition_details.edit_button')} />
-                <EndPageActionButton icon={ClipboardCheckOutlineIcon} href="/competition/{competition?.id}/manage_inscriptions" text={$t('manage_inscriptions.title')} testId="manage-inscriptions-button" />
-            {/if}
-            <EndPageActionButton icon={ArrowLeftIcon} href="/competitions/explore_competitions/" colorClass="preset-tonal" text={$t('competition_details.back_to_competitions_button')} />
-        </div>
-
-        <!-- Cancel Competition Button -->
-        {#if canCancel}
-            <div class="flex justify-center pt-4">
+            {#if competition?.image_cld_id}
                 <button
-                    class="btn preset-filled-error-500"
-                    onclick={() => showCancelDialog = true}
+                    type="button"
+                    class="w-full block cursor-zoom-in bg-transparent border-0 p-0 text-left"
+                    onclick={() => showImageDialog = true}
+                    aria-label={`Open image for ${competitionName}`}
                 >
-                    <CancelIcon width="1.2rem" height="1.2rem" />
-                    {$t('during_competition.cancel_competition')}
-                </button>
-            </div>
-        {/if}
-    </div>
-</div>
-
-{#if competition?.image_cld_id}
-    <Dialog open={showImageDialog} onOpenChange={(e) => showImageDialog = e.open}>
-        <Portal>
-            <Dialog.Backdrop class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm" />
-            <Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-1 sm:p-2">
-                <Dialog.Content class="relative flex items-center justify-center max-w-[98vw] max-h-[98vh] bg-transparent p-0 border-0 shadow-none outline-none overflow-visible">
-                    <Dialog.CloseTrigger
-                        class="btn-icon preset-tonal absolute top-2 right-2 z-10 bg-surface-100/90 dark:bg-surface-900/90"
-                        aria-label="Close image preview"
-                    >
-                        <CloseIcon width="1.2rem" height="1.2rem" />
-                    </Dialog.CloseTrigger>
-
                     <CldImage
                         src={competition.image_cld_id}
-                        width="auto"
-                        height="auto"
+                        width="800"
+                        height="400"
                         alt={competitionName}
-                        crop="limit"
+                        crop="fill"
                         gravity="auto"
-                        loading="eager"
-                        class="max-w-[98vw] max-h-[95vh] w-auto h-auto object-contain rounded-md"
+                        loading="lazy"
+                        class="rounded-lg shadow-lg w-full object-cover max-h-96"
                     />
-                </Dialog.Content>
-            </Dialog.Positioner>
-        </Portal>
-    </Dialog>
-{/if}
+                </button>
+            {/if}
+
+
+            <!-- Categories & Actions Section -->
+            {#await Promise.all([data.props.records, data.props.categoriesWithCounts, data.props.access])}
+                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {#each { length: 3 } as _}
+                        <div class="card preset-outlined-surface-200-800 p-4 space-y-3 animate-pulse">
+                            <div class="h-5 w-3/5 rounded bg-surface-100-700"></div>
+                            <div class="h-3 w-2/5 rounded bg-surface-100-700"></div>
+                            <div class="flex gap-2 mt-2">
+                                <div class="h-6 w-16 rounded-full bg-surface-100-700"></div>
+                                <div class="h-6 w-20 rounded-full bg-surface-100-700"></div>
+                            </div>
+                        </div>
+                    {/each}
+                </div>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    {#each { length: 3 } as _}
+                        <div class="h-10 w-40 rounded-lg bg-surface-100-700 animate-pulse"></div>
+                    {/each}
+                </div>
+            {:then [userRecords, categoriesWithCounts, access]}
+                {@const isOrganizer = access.isOrganizer}
+                {@const isJudge = access.isJudge}
+                {@const canAccessDuringCompetition = isOrganizer || isJudge}
+                {@const canCancel = isOrganizer && competition?.status !== 'CANCELLED' && competition?.status !== 'FINISHED'}
+
+                <div>
+                    <CategoriesOverview {categories} isCreator={isOrganizer} {isMultiDay} {categoriesWithCounts} userRecords={userRecords ?? []} />
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <EndPageActionButton icon={AccountPlusIcon} href="/competitions/competition_details/{competition?.id}/inscription" colorClass="preset-filled-success-500" disabled={!(currentUser && competition?.registrationOpen)} text={$t('competition_details.manage_inscription')} testId="signup-button" />
+                    {#if canAccessDuringCompetition}
+                        <EndPageActionButton icon={TimerPlayIcon} href="/competition/{competition?.id}/during_competition" text={$t('during_competition.title')} />
+                    {/if}
+                    {#if isOrganizer}
+                        <EndPageActionButton icon={PencilIcon} href="/competition/edit/{competition?.id}" text={$t('competition_details.edit_button')} />
+                        <EndPageActionButton icon={ClipboardCheckOutlineIcon} href="/competition/{competition?.id}/manage_inscriptions" text={$t('manage_inscriptions.title')} testId="manage-inscriptions-button" />
+                    {/if}
+                    <EndPageActionButton icon={ArrowLeftIcon} href="/competitions/explore_competitions/" colorClass="preset-tonal" text={$t('competition_details.back_to_competitions_button')} />
+                </div>
+
+                <!-- Cancel Competition Button -->
+                {#if canCancel}
+                    <div class="flex justify-center pt-4">
+                        <button
+                            class="btn preset-filled-error-500"
+                            onclick={() => { cancelCompetitionId = competition?.id; showCancelDialog = true; }}
+                        >
+                            <CancelIcon width="1.2rem" height="1.2rem" />
+                            {$t('during_competition.cancel_competition')}
+                        </button>
+                    </div>
+                {/if}
+            {/await}
+        </div>
+
+        {#if competition?.image_cld_id}
+            <Dialog open={showImageDialog} onOpenChange={(e) => showImageDialog = e.open}>
+                <Portal>
+                    <Dialog.Backdrop class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm" />
+                    <Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-1 sm:p-2">
+                        <Dialog.Content class="relative flex items-center justify-center max-w-[98vw] max-h-[98vh] bg-transparent p-0 border-0 shadow-none outline-none overflow-visible">
+                            <Dialog.CloseTrigger
+                                class="btn-icon preset-tonal absolute top-2 right-2 z-10 bg-surface-100/90 dark:bg-surface-900/90"
+                                aria-label="Close image preview"
+                            >
+                                <CloseIcon width="1.2rem" height="1.2rem" />
+                            </Dialog.CloseTrigger>
+
+                            <CldImage
+                                src={competition.image_cld_id}
+                                width="auto"
+                                height="auto"
+                                alt={competitionName}
+                                crop="limit"
+                                gravity="auto"
+                                loading="eager"
+                                class="max-w-[98vw] max-h-[95vh] w-auto h-auto object-contain rounded-md"
+                            />
+                        </Dialog.Content>
+                    </Dialog.Positioner>
+                </Portal>
+            </Dialog>
+        {/if}
+    {/await}
+</div>
 
 <!-- Cancel Competition Confirmation Dialog -->
 {#if showCancelDialog}

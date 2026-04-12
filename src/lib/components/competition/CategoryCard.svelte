@@ -107,7 +107,7 @@
     <!-- Footer: Registration status (optional) -->
     {#if showRegistration}
         <hr class="border-t border-surface-300 dark:border-surface-600" />
-        {#if category.status === 'completed'}
+        {#if category.status === 'COMPLETE'}
             <a
                 href="/competitions/competition_details/{category.competitionId}/results#category-{category.id}"
                 class="btn btn-sm preset-tonal-primary gap-1.5 w-full"

@@ -1,10 +1,17 @@
 <script lang="ts">
-    import { calculateDuration, getCategoryTypeName } from '$lib/utils/category_utils';
+    import { calculateDuration } from '$lib/utils/category_utils';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
     import Card from '$lib/components/common/card/Card.svelte';
-    import RecordSearchResults from './RecordSearchResults.svelte';
-    import StopCategoryConfirmDialog from './StopCategoryConfirmDialog.svelte';
-    import Icon from '@iconify/svelte';
+    import RecordList from './RecordList.svelte';
+    import ConfirmActionButton from '$lib/components/common/buttons/ConfirmActionButton.svelte';
+    import StopIcon from '@iconify-svelte/mdi/stop';
+    import DotsVerticalIcon from '@iconify-svelte/mdi/dots-vertical';
+    import CancelIcon from '@iconify-svelte/mdi/cancel';
+    import MagnifyIcon from '@iconify-svelte/mdi/magnify';
+    import TimerSandIcon from '@iconify-svelte/mdi/timer-sand';
+    import FlagCheckeredIcon from '@iconify-svelte/mdi/flag-checkered';
+    import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
+    import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
     import { t } from '$lib/translations';
 
     import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
@@ -27,19 +34,21 @@
         competitionName,
         isOrganizer,
         onRecordFinish,
-        onCategoryUpdate
+        onCategoryUpdate,
+        onCancelCategory
     }: {
         category: CategoryData;
         competitionName: string;
         isOrganizer: boolean;
         onRecordFinish: (recordId: string) => void;
         onCategoryUpdate: (category: CategoryData) => void;
+        onCancelCategory: (categoryId: number) => void;
     } = $props();
 
     // Live elapsed timer
     let currentTime = $state(new Date());
     $effect(() => {
-        if (category.status === 'in_progress') {
+        if (category.status === 'LIVE') {
             const interval = setInterval(() => {
                 currentTime = new Date();
             }, 1000);
@@ -47,63 +56,46 @@
         }
     });
 
-    // Search state
+    // Search state (client-side filtering)
     let searchQuery = $state('');
-    let searchResults = $state<any[]>([]);
-    let isSearching = $state(false);
-    let searchTimeout: ReturnType<typeof setTimeout> | null = null;
-    let selectedRecord = $state<any | null>(null);
 
     // Records state
     let finishedRecords = $state<any[]>([]);
-    let showFinishedRecords = $state(false);
     let loadingFinishedRecords = $state(false);
 
     let pendingRecords = $state<any[]>([]);
-    let showPendingRecords = $state(false);
     let loadingPendingRecords = $state(false);
 
-    let allRecords = $state<any[]>([]);
-    let showAllRecords = $state(false);
-    let loadingAllRecords = $state(false);
+    // Local count overrides for optimistic updates (null = use category prop)
+    let localFinishedCount = $state<number | null>(null);
 
-    function handleSearchInput() {
-        if (searchTimeout) clearTimeout(searchTimeout);
-        if (!searchQuery.trim() || searchQuery.trim().length < 2) {
-            searchResults = [];
-            return;
-        }
-        searchTimeout = setTimeout(handleSearch, 300);
+    // Overflow menu state
+    let showOverflowMenu = $state(false);
+
+    // Selected record for tap-to-finish/undo in lists
+    let selectedPendingRecord = $state<string | null>(null);
+    let selectedFinishedRecord = $state<string | null>(null);
+
+    // Client-side search filtering
+    function matchesSearch(record: any, query: string): boolean {
+        const q = query.toLowerCase();
+        if (record.tableNumber != null && String(record.tableNumber).includes(q)) return true;
+        if (record.users?.some((u: any) => u.name?.toLowerCase().includes(q))) return true;
+        if (record.userIntents?.some((ui: any) => ui.name?.toLowerCase().includes(q))) return true;
+        return false;
     }
 
-    async function handleSearch() {
-        if (!searchQuery.trim()) {
-            searchResults = [];
-            return;
-        }
-        isSearching = true;
-        try {
-            const res = await fetch(`/api/categories/${category.id}/records?search=${encodeURIComponent(searchQuery.trim())}`);
-            if (res.ok) {
-                const data = await res.json();
-                searchResults = data.records ?? [];
-            }
-        } catch (err) {
-            console.error('Search failed:', err);
-        } finally {
-            isSearching = false;
-        }
-    }
+    let filteredPendingRecords = $derived(
+        searchQuery.trim()
+            ? pendingRecords.filter(r => matchesSearch(r, searchQuery.trim()))
+            : pendingRecords
+    );
 
-    function selectRecord(record: any) {
-        selectedRecord = record;
-        searchQuery = '';
-        searchResults = [];
-    }
-
-    function clearSelectedRecord() {
-        selectedRecord = null;
-    }
+    let filteredFinishedRecords = $derived(
+        searchQuery.trim()
+            ? finishedRecords.filter(r => matchesSearch(r, searchQuery.trim()))
+            : finishedRecords
+    );
 
     async function handleRecordFinish(recordId: string) {
         try {
@@ -113,13 +105,42 @@
                 body: JSON.stringify({ finishTime: new Date().toISOString() })
             });
             if (response.ok) {
-                selectedRecord = null;
+                // Optimistic update: move record from pending to finished
+                const finishedRecord = pendingRecords.find(r => r.id === recordId);
+                if (finishedRecord) {
+                    pendingRecords = pendingRecords.filter(r => r.id !== recordId);
+                    finishedRecords = [...finishedRecords, { ...finishedRecord, finishTime: new Date().toISOString() }];
+                    localFinishedCount = finishedRecords.length;
+                }
+                selectedPendingRecord = null;
                 onRecordFinish(recordId);
-                // Refresh all records lists
+                // Confirm from server in background
                 refreshAllLists();
             }
         } catch (err) {
             console.error('Failed to record finish:', err);
+        }
+    }
+
+    async function handleRecordUndoFinish(recordId: string) {
+        try {
+            const response = await fetch(`/api/records/${recordId}/result`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                // Optimistic update: move record from finished to pending
+                const record = finishedRecords.find(r => r.id === recordId);
+                if (record) {
+                    finishedRecords = finishedRecords.filter(r => r.id !== recordId);
+                    pendingRecords = [...pendingRecords, { ...record, finishTime: null }];
+                    localFinishedCount = finishedRecords.length;
+                }
+                selectedFinishedRecord = null;
+                onRecordFinish(recordId);
+                refreshAllLists();
+            }
+        } catch (err) {
+            console.error('Failed to undo record finish:', err);
         }
     }
 
@@ -153,25 +174,9 @@
         }
     }
 
-    async function fetchAllRecords() {
-        loadingAllRecords = true;
-        try {
-            const res = await fetch(`/api/categories/${category.id}/records`);
-            if (res.ok) {
-                const data = await res.json();
-                allRecords = data.records ?? [];
-            }
-        } catch (err) {
-            console.error('Failed to fetch all records:', err);
-        } finally {
-            loadingAllRecords = false;
-        }
-    }
-
     function refreshAllLists() {
         fetchFinishedRecords();
         fetchPendingRecords();
-        fetchAllRecords();
     }
 
     // Load records on mount
@@ -179,19 +184,12 @@
         refreshAllLists();
     });
 
-    // Stop category dialog
-    let showStopDialog = $state(false);
-    // Use locally-fetched pending records (more up-to-date than event stream counts)
-    let unfinishedCount = $derived(
-        pendingRecords.filter((r: any) => r.status === 'CONFIRMED').length
-    );
-
+    // Stop category handler (called by ConfirmActionButton)
     async function handleStopCategory() {
         try {
             const res = await fetch(`/api/categories/${category.id}/stop`, { method: 'POST' });
             if (res.ok) {
                 const data = await res.json();
-                showStopDialog = false;
                 onCategoryUpdate(data.category);
             }
         } catch (err) {
@@ -199,119 +197,107 @@
         }
     }
 
+    // Reset local counts when category props change (event stream delivered fresh data)
+    $effect(() => {
+        // Access category.finishedRecords to track it
+        category.finishedRecords;
+        localFinishedCount = null;
+    });
+
+    // Effective counts: use local overrides if available, else category props
+    let effectiveFinishedCount = $derived(localFinishedCount ?? category.finishedRecords);
+    let effectivePendingCount = $derived(category.totalRecords - effectiveFinishedCount);
+
     let progressPercent = $derived(
         category.totalRecords > 0
-            ? Math.round((category.finishedRecords / category.totalRecords) * 100)
+            ? Math.round((effectiveFinishedCount / category.totalRecords) * 100)
             : 0
     );
+
+    function toggleOverflowMenu() {
+        showOverflowMenu = !showOverflowMenu;
+    }
+
+    function closeOverflowMenu() {
+        showOverflowMenu = false;
+    }
 </script>
 
 <Card>
     <div class="border-t-4 border-success-500 -mx-4 -mt-4 px-4 pt-4 rounded-t-lg">
     <div class="space-y-3">
-        <!-- Header: category name + stop button -->
+        <!-- Header: category name + action buttons -->
         <div class="flex items-center justify-between gap-2">
             <CategoryCardTitle type={category.type} subname={category.subname ?? category.description} />
             {#if isOrganizer}
-                <button
-                    class="btn-icon btn-icon-sm preset-filled-error-500"
-                    onclick={() => showStopDialog = true}
-                    title={$t('during_competition.stop')}
-                >
-                    <Icon icon="mdi:stop" width="1rem" />
-                </button>
-            {/if}
-        </div>
-
-        <!-- Search bar (top priority action) -->
-        <div class="relative">
-            <div class="relative">
-                <Icon icon="mdi:magnify" class="absolute left-3 top-1/2 -translate-y-1/2 text-surface-500" width="1.2rem" />
-                <input
-                    type="text"
-                    class="input bg-white/90 text-surface-900 placeholder:text-surface-500 pl-10 w-full"
-                    placeholder={$t('during_competition.search_placeholder')}
-                    bind:value={searchQuery}
-                    oninput={handleSearchInput}
-                />
-                {#if isSearching}
-                    <div class="absolute inset-y-0 right-3 flex items-center">
-                        <Icon icon="mdi:loading" class="animate-spin text-surface-500" width="1rem" />
-                    </div>
-                {/if}
-            </div>
-
-            <!-- Dropdown results -->
-            {#if searchResults.length > 0}
-                <div class="absolute z-50 w-full mt-1 bg-surface-50-950 border border-surface-300-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                    {#each searchResults as record (record.id)}
+                <div class="flex items-center gap-2">
+                    <!-- Overflow menu with Cancel option -->
+                    <div class="relative">
                         <button
                             type="button"
-                            class="w-full p-2 text-left hover:bg-surface-200-800 flex items-center gap-2 border-b border-surface-200-800 last:border-b-0"
-                            onclick={() => selectRecord(record)}
+                            class="btn-icon w-4 h-4 preset-tonal rounded-full"
+                            onclick={toggleOverflowMenu}
+                            data-testid="overflow-menu-{category.id}"
                         >
-                            {#if record.tableNumber != null}
-                                <span class="badge preset-outlined-primary-500 font-mono text-xs">
-                                    #{record.tableNumber}
-                                </span>
-                            {/if}
-                            <div class="flex flex-wrap items-center gap-1 text-sm">
-                                {#each record.users as user (user.id)}
-                                    <span>{user.name}</span>
-                                    {#if record.users.indexOf(user) < record.users.length - 1}
-                                        <span class="text-surface-400">&</span>
-                                    {/if}
-                                {/each}
-                                {#if record.userIntents && record.userIntents.length > 0}
-                                    {#if record.users.length > 0}
-                                        <span class="text-surface-400">&</span>
-                                    {/if}
-                                    {#each record.userIntents as userIntent (userIntent.id)}
-                                        <span class="italic text-surface-500">{userIntent.name}</span>
-                                        {#if record.userIntents.indexOf(userIntent) < record.userIntents.length - 1}
-                                            <span class="text-surface-400">&</span>
-                                        {/if}
-                                    {/each}
-                                {/if}
-                            </div>
+                            <DotsVerticalIcon width="1rem" height="1rem" />
                         </button>
-                    {/each}
-                </div>
-            {:else if searchQuery.trim().length >= 2 && !isSearching}
-                <div class="absolute z-50 w-full mt-1 bg-surface-50-950 border border-surface-300-700 rounded-lg shadow-lg p-3">
-                    <p class="text-sm text-surface-500">{$t('during_competition.no_results')}</p>
+                        {#if showOverflowMenu}
+                            <!-- svelte-ignore a11y_click_events_have_key_events -->
+                            <!-- svelte-ignore a11y_no_static_element_interactions -->
+                            <div class="fixed inset-0 z-40" onclick={closeOverflowMenu}></div>
+                            <!-- svelte-ignore a11y_click_events_have_key_events -->
+                            <!-- svelte-ignore a11y_no_static_element_interactions -->
+                            <div class="absolute right-0 top-full mt-1 z-50 bg-surface-50-950 border border-surface-300-700 rounded-lg shadow-lg min-w-40">
+                                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                                <div class="p-1" onclick={closeOverflowMenu}>
+                                    <ConfirmActionButton
+                                        icon={CancelIcon}
+                                        colorClass="preset-filled-warning-500"
+                                        confirmTitle={$t('during_competition.cancel_confirm_title')}
+                                        confirmMessage={$t('during_competition.cancel_confirm_message')}
+                                        onConfirm={() => onCancelCategory(category.id)}
+                                        testId="cancel-category-{category.id}"
+                                        label={$t('during_competition.cancel_category')}
+                                    />
+                                </div>
+                            </div>
+                        {/if}
+                    </div>
+                    <ConfirmActionButton
+                        icon={StopIcon}
+                        colorClass="preset-filled-error-500"
+                        confirmTitle={$t('during_competition.stop_confirm_title')}
+                        confirmMessage={$t('during_competition.stop_confirm_message')}
+                        onConfirm={handleStopCategory}
+                        testId="stop-category-{category.id}"
+                    />
                 </div>
             {/if}
         </div>
 
-        <!-- Selected record actions -->
-        {#if selectedRecord}
-            <div class="rounded-lg bg-surface-50-950 p-3 space-y-2">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-surface-500 uppercase font-semibold">{$t('during_competition.selected_record')}</span>
-                    <button class="btn btn-sm preset-tonal text-xs gap-1" onclick={clearSelectedRecord}>
-                        <Icon icon="mdi:close" width="0.8rem" />
-                    </button>
-                </div>
-                <RecordSearchResults
-                    records={[selectedRecord]}
-                    categoryRealStartTime={category.realStartTime}
-                    {handleRecordFinish}
-                />
-            </div>
-        {/if}
+        <!-- Search bar (client-side filter) -->
+        <div class="relative">
+            <MagnifyIcon class="absolute left-3 top-1/2 -translate-y-1/2 text-surface-500" width="1.2rem" height="1.2rem" />
+            <input
+                type="text"
+                class="input bg-white/90 text-surface-900 placeholder:text-surface-500 pl-10 w-full"
+                placeholder={$t('during_competition.search_placeholder')}
+                bind:value={searchQuery}
+            />
+        </div>
 
         <!-- Compact status strip: timer + progress count -->
         <div class="flex justify-between flex-wrap items-center gap-4 text-sm">
             {#if category.realStartTime}
                 <span class="flex items-center gap-1">
-                    <Icon icon="mdi:timer-sand" width="1rem" />
+                    <TimerSandIcon width="1rem" height="1rem" />
                     {calculateDuration(new Date(category.realStartTime), currentTime)}
                 </span>
             {/if}
             <span class="flex items-center gap-1">
-                <Icon icon="mdi:flag-checkered" width="1rem" />
-                {category.finishedRecords}/{category.totalRecords}
+                <FlagCheckeredIcon width="1rem" height="1rem" />
+                {effectiveFinishedCount}/{category.totalRecords}
             </span>
         </div>
 
@@ -323,93 +309,29 @@
             ></div>
         </div>
 
-        <!-- Collapsible pending records list -->
-        {#if category.totalRecords - category.finishedRecords > 0}
-            <div class="space-y-2">
-                <button
-                    class="btn btn-sm preset-tonal w-full justify-between"
-                    onclick={() => showPendingRecords = !showPendingRecords}
-                >
-                    <span class="flex items-center gap-1">
-                        <Icon icon="mdi:clock-outline" width="1rem" />
-                        {$t('during_competition.pending_records')} ({category.totalRecords - category.finishedRecords})
-                    </span>
-                    <Icon
-                        icon={showPendingRecords ? 'mdi:chevron-up' : 'mdi:chevron-down'}
-                        width="1rem"
-                    />
-                </button>
+        <RecordList
+            icon={ClockOutlineIcon}
+            label={$t('during_competition.pending_records')}
+            records={filteredPendingRecords}
+            loading={loadingPendingRecords}
+            categoryRealStartTime={category.realStartTime}
+            selectedRecord={selectedPendingRecord}
+            onSelectRecord={(id) => selectedPendingRecord = selectedPendingRecord === id ? null : id}
+            onFinish={handleRecordFinish}
+            emptyMessage={$t('during_competition.no_pending_records')}
+        />
 
-                {#if showPendingRecords}
-                    <div class="space-y-2 max-h-96 overflow-y-auto">
-                        {#if loadingPendingRecords}
-                            <div class="flex items-center justify-center p-4">
-                                <Icon icon="mdi:loading" class="animate-spin" width="1.5rem" />
-                            </div>
-                        {:else if pendingRecords.length > 0}
-                            <RecordSearchResults
-                                records={pendingRecords}
-                                categoryRealStartTime={category.realStartTime}
-                                {handleRecordFinish}
-                            />
-                        {:else}
-                            <p class="text-sm text-surface-500 text-center p-4">
-                                {$t('during_competition.no_pending_records')}
-                            </p>
-                        {/if}
-                    </div>
-                {/if}
-            </div>
-        {/if}
-
-        <!-- Collapsible finished records list -->
-        {#if category.finishedRecords > 0}
-            <div class="space-y-2">
-                <button
-                    class="btn btn-sm preset-tonal w-full justify-between"
-                    onclick={() => showFinishedRecords = !showFinishedRecords}
-                >
-                    <span class="flex items-center gap-1">
-                        <Icon icon="mdi:check-circle" width="1rem" />
-                        {$t('during_competition.finished_records')} ({category.finishedRecords})
-                    </span>
-                    <Icon
-                        icon={showFinishedRecords ? 'mdi:chevron-up' : 'mdi:chevron-down'}
-                        width="1rem"
-                    />
-                </button>
-
-                {#if showFinishedRecords}
-                    <div class="space-y-2 max-h-96 overflow-y-auto">
-                        {#if loadingFinishedRecords}
-                            <div class="flex items-center justify-center p-4">
-                                <Icon icon="mdi:loading" class="animate-spin" width="1.5rem" />
-                            </div>
-                        {:else if finishedRecords.length > 0}
-                            <RecordSearchResults
-                                records={finishedRecords}
-                                categoryRealStartTime={category.realStartTime}
-                                {handleRecordFinish}
-                            />
-                        {:else}
-                            <p class="text-sm text-surface-500 text-center p-4">
-                                {$t('during_competition.no_finished_records')}
-                            </p>
-                        {/if}
-                    </div>
-                {/if}
-            </div>
-        {/if}
+        <RecordList
+            icon={CheckCircleIcon}
+            label={$t('during_competition.finished_records')}
+            records={filteredFinishedRecords}
+            loading={loadingFinishedRecords}
+            categoryRealStartTime={category.realStartTime}
+            selectedRecord={selectedFinishedRecord}
+            onSelectRecord={(id) => selectedFinishedRecord = selectedFinishedRecord === id ? null : id}
+            onUndoFinish={handleRecordUndoFinish}
+            emptyMessage={$t('during_competition.no_finished_records')}
+        />
     </div>
     </div>
 </Card>
-
-{#if showStopDialog}
-    <StopCategoryConfirmDialog
-        categoryName={getCategoryTypeName(category.type)}
-        {competitionName}
-        {unfinishedCount}
-        onConfirm={handleStopCategory}
-        onCancel={() => showStopDialog = false}
-    />
-{/if}

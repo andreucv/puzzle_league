@@ -20,10 +20,10 @@
         isProcessing?: boolean;
     } = $props();
 
-    let popoverEl: HTMLDivElement | undefined = $state();
+    let popoverElement: HTMLDivElement | undefined = $state();
 
     function handleClickOutside(e: MouseEvent) {
-        if (popoverEl && !popoverEl.contains(e.target as Node)) {
+        if (popoverElement && !popoverElement.contains(e.target as Node)) {
             onCancel();
         }
     }
@@ -45,10 +45,10 @@
 </script>
 
 <div
-    bind:this={popoverEl}
+    bind:this={popoverElement}
     role="dialog"
     aria-modal="true"
-    class="absolute bottom-full right-0 mb-2 z-50 w-52 card preset-outlined-surface-200-800 shadow-xl overflow-hidden"
+    class="absolute bottom-full right-0 mb-2 z-50 w-64 card bg-surface-50-950 border border-surface-300-700 shadow-xl overflow-hidden"
 >
     <div class="h-1 w-full {colorClass}"></div>
     <div class="p-3 space-y-2">

@@ -3,17 +3,20 @@
     import ChevronDownIcon from '@iconify-svelte/mdi/chevron-down';
     import type { Snippet } from 'svelte';
 
-    let { icon: Icon, label, count, badgeClass, testId, children }: {
+    let { icon: Icon, label, count, badgeClass, testId, children, open: initialOpen = false }: {
         icon: typeof ChevronDownIcon;
         label: string;
         count: number;
         badgeClass: string;
         testId?: string;
         children: Snippet;
+        open?: boolean;
     } = $props();
+
+    let isOpen = $state(initialOpen);
 </script>
 
-<Collapsible class="items-start w-full">
+<Collapsible open={isOpen} onOpenChange={(details) => isOpen = details.open} class="items-start w-full">
     <div class="flex justify-between w-full">
         <div class="flex gap-2">
             <Icon width="1rem" height="1rem" />

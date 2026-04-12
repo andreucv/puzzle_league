@@ -9,6 +9,7 @@
         onConfirm,
         disabled = false,
         testId = undefined,
+        label = undefined,
     }: {
         icon: any;
         colorClass?: string;
@@ -17,6 +18,7 @@
         onConfirm: () => void;
         disabled?: boolean;
         testId?: string;
+        label?: string;
     } = $props();
 
     let showPopover = $state(false);
@@ -43,15 +45,28 @@
 </script>
 
 <div class="relative">
-    <button
-        type="button"
-        class="btn-icon w-4 h-4 {colorClass} rounded-full"
-        disabled={disabled || isProcessing}
-        onclick={handleButtonClick}
-        data-testid={testId}
-    >
-        <Icon width="1rem" height="1rem" />
-    </button>
+    {#if label}
+        <button
+            type="button"
+            class="flex items-start gap-2 w-full px-3 py-2 text-sm hover:bg-surface-200-800 rounded-md transition-colors text-left"
+            disabled={disabled || isProcessing}
+            onclick={handleButtonClick}
+            data-testid={testId}
+        >
+            <Icon class="shrink-0 mt-0.5" width="1rem" height="1rem" />
+            <span class="whitespace-normal">{label}</span>
+        </button>
+    {:else}
+        <button
+            type="button"
+            class="btn-icon w-4 h-4 {colorClass} rounded-full"
+            disabled={disabled || isProcessing}
+            onclick={handleButtonClick}
+            data-testid={testId}
+        >
+            <Icon width="1rem" height="1rem" />
+        </button>
+    {/if}
 
     {#if showPopover}
         <ConfirmPopover

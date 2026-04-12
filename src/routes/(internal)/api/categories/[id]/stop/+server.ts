@@ -1,6 +1,6 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/database';
-import { InscriptionStatus, CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, InscriptionStatus, CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
 
 export const POST = async (event: RequestEvent) => {
   try {
@@ -49,7 +49,7 @@ export const POST = async (event: RequestEvent) => {
       where: { id: categoryId },
       data: {
         realEndTime: now,
-        status: 'completed'
+        status: CategoryStatus.COMPLETE
       },
       include: {
         records: {
@@ -64,7 +64,7 @@ export const POST = async (event: RequestEvent) => {
     const remainingCategories = await prisma.category.count({
       where: {
         competitionId: updatedCategory.competitionId,
-        status: { not: 'completed' }
+        status: { not: CategoryStatus.COMPLETE }
       }
     });
 

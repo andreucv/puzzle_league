@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { CompetitionStatus, InscriptionStatus } from "$lib/.prisma/generated/prisma/enums";
+import { CategoryStatus, CompetitionStatus, InscriptionStatus } from "$lib/.prisma/generated/prisma/enums";
 import type { Prisma } from "$lib/.prisma/generated/prisma/client";
 import type { Competition, Category } from '$lib/.prisma/generated/prisma/browser';
 import { prisma } from '$lib/database/create_prisma_client';
@@ -355,7 +355,7 @@ export async function startCategory(categoryId: number) {
       where: { id: categoryId },
       data: {
         realStartTime: new Date(),
-        status: 'in_progress'
+        status: CategoryStatus.LIVE
       }
     });
 
@@ -616,7 +616,7 @@ export async function createEntries(recordsData: Prisma.RecordCreateInput[]) {
                 }
 
                 // Check if category is still accepting registrations
-                if (category.status !== 'not_started') {
+                if (category.status !== CategoryStatus.NOT_STARTED) {
                     throw new Error(`Registration closed for category: ${category.description || category.type}`);
                 }
 
@@ -804,7 +804,7 @@ export async function getCompetitionResults(competitionId: number) {
                 image_cld_id: true,
                 startDate: true,
                 categories: {
-                    where: { status: 'completed' },
+                    where: { status: CategoryStatus.COMPLETE },
                     orderBy: { realStartTime: 'asc' },
                     include: {
                         puzzles: {

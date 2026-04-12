@@ -21,7 +21,7 @@
 
     // Update current time every second when category is in progress
     $effect(() => {
-        if (category.status === 'in_progress') {
+        if (category.status === 'LIVE') {
             const interval = setInterval(() => {
                 currentTime = new Date();
             }, 1000);
@@ -82,9 +82,9 @@
 
 <div class="card variant-glass-surface shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden">
     <!-- Status Indicator Bar -->
-    <div class="h-1 {category.status === 'not_started'
+    <div class="h-1 {category.status === 'NOT_STARTED'
         ? 'bg-gradient-to-r from-gray-400 to-gray-500'
-        : category.status === 'in_progress'
+        : category.status === 'LIVE'
         ? 'bg-gradient-to-r from-yellow-400 to-orange-400 animate-pulse'
         : 'bg-gradient-to-r from-green-400 to-emerald-500'}">
     </div>
@@ -103,7 +103,7 @@
                     </div>
                     <!-- Action Button -->
                     <div class="flex-shrink-0 ml-auto">
-                        {#if category.status === "not_started"}
+                        {#if category.status === "NOT_STARTED"}
                             <button
                                 class="btn bg-success-300-700 btn-sm gap-2"
                                 onclick={() => onStartCategory(category.id)}
@@ -111,7 +111,7 @@
                                 <Icon icon="mdi:play" />
                                 Start
                             </button>
-                        {:else if category.status === "in_progress"}
+                        {:else if category.status === "LIVE"}
                             <button
                                 class="btn bg-error-300-700 btn-sm gap-2"
                                 onclick={() => onStopCategory()}
@@ -130,12 +130,12 @@
 
                 <!-- Timing Info -->
                 <div class="flex flex-row justify-between items-center gap-3 text-sm text-base-content/80">
-                    {#if category.status === "not_started"}
+                    {#if category.status === "NOT_STARTED"}
                         <span class="flex items-center gap-1 whitespace-nowrap">
                             <Icon icon="mdi:clock-start" class="text-base flex-shrink-0" />
                             Starts at {formatTime(category.startTime)}
                         </span>
-                    {:else if category.status === "in_progress"}
+                    {:else if category.status === "LIVE"}
                         <span class="flex items-center gap-1 whitespace-nowrap">
                             <Icon icon="mdi:clock-check" class="text-base text-yellow-500 flex-shrink-0" />
                             Started {formatTime(category.realStartTime)}
@@ -159,7 +159,7 @@
         </div>
 
         <!-- Entries Section -->
-        {#if category.status === "in_progress"}
+        {#if category.status === "LIVE"}
             {#if category.totalRecords > 0 && category.finishedRecords < category.totalRecords }
                 <CategoryRecordFinishForm
                     category={category}
@@ -187,7 +187,7 @@
                     <p>No participants in this category</p>
                 </div>
             {/if}
-        {:else if category.status === "completed"}
+        {:else if category.status === "COMPLETE"}
             <div class="flex justify-center">
                 <a href="/competitions/competition_details/{category.competitionId}/results#category-{category.id}">
                     <button class="btn bg-primary-500 btn-sm gap-2">

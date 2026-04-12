@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { InscriptionStatus, NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, InscriptionStatus, NotificationType } from '$lib/.prisma/generated/prisma/enums';
 import { getMaxRecordsPerCategory } from '$lib/utils/category_utils';
 import { createNotification } from '$lib/notifications/notifications';
 
@@ -130,7 +130,7 @@ export async function signUpUsersToCompetition(
                     throw new Error(`Party size (${totalPartySize}) exceeds maximum for category ${category.description || category.type} (${category.maxPartySize})`);
                 }
 
-                if (category.status !== 'not_started') {
+                if (category.status !== CategoryStatus.NOT_STARTED) {
                     throw new Error(`Registration closed for category: ${category.description || category.type}`);
                 }
 

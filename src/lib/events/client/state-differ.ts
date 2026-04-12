@@ -18,11 +18,11 @@ export function diffCompetitionState(
 		const prevCat = prevMap.get(cat.id);
 		if (!prevCat) continue;
 
-		if (prevCat.status !== 'in_progress' && cat.status === 'in_progress') {
+		if (prevCat.status !== 'LIVE' && cat.status === 'LIVE') {
 			changes.push({ type: 'category_started', categoryId: cat.id });
 		}
 
-		if (prevCat.status === 'in_progress' && cat.status === 'completed') {
+		if (prevCat.status === 'LIVE' && cat.status === 'COMPLETE') {
 			changes.push({ type: 'category_stopped', categoryId: cat.id });
 		}
 

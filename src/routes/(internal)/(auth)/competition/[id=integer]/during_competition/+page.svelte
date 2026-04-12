@@ -3,8 +3,13 @@
     import ActiveCategoryCard from '$lib/components/during-competition/ActiveCategoryCard.svelte';
     import UpcomingCategoryCard from '$lib/components/during-competition/UpcomingCategoryCard.svelte';
     import CompletedCategoryCard from '$lib/components/during-competition/CompletedCategoryCard.svelte';
+    import CollapsibleSection from '$lib/components/manage_inscriptions/CollapsibleSection.svelte';
     import { useEventStream } from '$lib/events/client/use-event-stream.svelte';
-    import Icon from '@iconify/svelte';
+    import PlayCircleOutlineIcon from '@iconify-svelte/mdi/play-circle-outline';
+    import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
+    import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
+    import WifiOffIcon from '@iconify-svelte/mdi/wifi-off';
+    import InformationOutlineIcon from '@iconify-svelte/mdi/information-outline';
     import { t } from '$lib/translations';
     import { untrack } from 'svelte';
 
@@ -30,7 +35,7 @@
         activeInterval: 3_000,
         idleInterval: 15_000,
         backgroundInterval: 30_000,
-        isActive: (s: any) => s?.categories?.some((c: any) => c.status === 'in_progress') ?? false
+        isActive: (s: any) => s?.categories?.some((c: any) => c.status === 'LIVE') ?? false
     });
 
     // Merge server categories with live event state
@@ -59,9 +64,10 @@
             : categories.filter((c: any) => judgedCategoryIds.includes(c.id))
     );
 
-    let activeCategories = $derived(visibleCategories.filter((c: any) => c.status === 'in_progress'));
-    let upcomingCategories = $derived(visibleCategories.filter((c: any) => c.status === 'not_started'));
-    let completedCategories = $derived(visibleCategories.filter((c: any) => c.status === 'completed'));
+    let activeCategories = $derived(visibleCategories.filter((c: any) => c.status === 'LIVE'));
+    let upcomingCategories = $derived(visibleCategories.filter((c: any) => c.status === 'NOT_STARTED'));
+    let finishedCategories = $derived(visibleCategories.filter((c: any) => c.status === 'COMPLETE' || c.status === 'CANCELED'));
+    let hasLiveCategories = $derived(activeCategories.length > 0);
 
     async function handleStartCategory(categoryId: number) {
         try {
@@ -76,8 +82,33 @@
         }
     }
 
+    async function handleCancelCategory(categoryId: number) {
+        try {
+            const res = await fetch(`/api/categories/${categoryId}/cancel`, { method: 'POST' });
+            if (res.ok) {
+                const result = await res.json();
+                categoryOverrides = { ...categoryOverrides, [categoryId]: result.category };
+                eventStream.refresh();
+            }
+        } catch (err) {
+            console.error('Failed to cancel category:', err);
+        }
+    }
+
+    async function handleRestartCategory(categoryId: number) {
+        try {
+            const res = await fetch(`/api/categories/${categoryId}/restart`, { method: 'POST' });
+            if (res.ok) {
+                const result = await res.json();
+                categoryOverrides = { ...categoryOverrides, [categoryId]: { ...result.category, totalRecords: result.category.totalRecords, finishedRecords: result.category.finishedRecords } };
+                eventStream.refresh();
+            }
+        } catch (err) {
+            console.error('Failed to restart category:', err);
+        }
+    }
+
     function handleRecordFinish(_recordId: string) {
-        // Trigger a refresh to get updated counts
         eventStream.refresh();
     }
 
@@ -87,7 +118,7 @@
     }
 </script>
 
-<div class="container mx-auto space-y-6">
+<div class="container mx-auto max-w-4xl space-y-4">
     <!-- Header -->
     <TitleBackButton
         href="/competitions/competition_details/{competitionId}"
@@ -97,64 +128,87 @@
     <!-- Connection status banner -->
     {#if eventStream.status === 'error'}
         <div class="p-2 rounded-lg bg-error-500/10 border border-error-500/30 text-sm text-error-600 flex items-center gap-2">
-            <Icon icon="mdi:wifi-off" width="1rem" />
+            <WifiOffIcon width="1rem" height="1rem" />
             {$t('during_competition.connection_error')}
         </div>
     {/if}
 
-    <!-- Active Categories Section -->
+    <!-- Active Categories Section (always expanded, not collapsible) -->
     {#if activeCategories.length > 0}
-        <section class="space-y-3">
-            <h3 class="text-sm font-semibold text-surface-600-400 uppercase tracking-wider flex items-center gap-2">
-                {$t('during_competition.currently_running')}
-                <span class="badge preset-filled-warning-500 text-xs">{activeCategories.length}</span>
-            </h3>
-            {#each activeCategories as cat (cat.id)}
-                <ActiveCategoryCard
-                    category={cat}
-                    competitionName={competition?.name ?? ''}
-                    {isOrganizer}
-                    onRecordFinish={handleRecordFinish}
-                    onCategoryUpdate={handleCategoryUpdate}
-                />
-            {/each}
-        </section>
+        <div>
+            <div class="flex items-center gap-2 mb-2">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-warning-500"></span>
+                </span>
+                <PlayCircleOutlineIcon width="1rem" height="1rem" />
+                <span class="text-sm font-semibold">{$t('during_competition.currently_running')}</span>
+                <span class="badge preset-tonal-warning text-xs">{activeCategories.length}</span>
+            </div>
+            <div class="space-y-3">
+                {#each activeCategories as cat (cat.id)}
+                    <ActiveCategoryCard
+                        category={cat}
+                        competitionName={competition?.name ?? ''}
+                        {isOrganizer}
+                        onRecordFinish={handleRecordFinish}
+                        onCategoryUpdate={handleCategoryUpdate}
+                        onCancelCategory={handleCancelCategory}
+                    />
+                {/each}
+            </div>
+        </div>
     {/if}
 
-    <!-- Upcoming Categories Section -->
+    <!-- Upcoming Categories Section (collapsible) -->
     {#if upcomingCategories.length > 0}
-        <section class="space-y-3">
-            <h3 class="text-sm font-semibold text-surface-600-400 uppercase tracking-wider flex items-center gap-2">
-                {$t('during_competition.upcoming')}
-                <span class="badge preset-tonal text-xs">{upcomingCategories.length}</span>
-            </h3>
-            {#each upcomingCategories as cat (cat.id)}
-                <UpcomingCategoryCard
-                    category={cat}
-                    {isOrganizer}
-                    onStartCategory={handleStartCategory}
-                />
-            {/each}
-        </section>
+        <CollapsibleSection
+            icon={ClockOutlineIcon}
+            label={$t('during_competition.upcoming')}
+            count={upcomingCategories.length}
+            badgeClass="preset-tonal"
+            testId="toggle-section-upcoming"
+            open={!hasLiveCategories}
+        >
+            <div class="space-y-3">
+                {#each upcomingCategories as cat (cat.id)}
+                    <UpcomingCategoryCard
+                        category={cat}
+                        {isOrganizer}
+                        onStartCategory={handleStartCategory}
+                        onCancelCategory={handleCancelCategory}
+                    />
+                {/each}
+            </div>
+        </CollapsibleSection>
     {/if}
 
-    <!-- Completed Categories Section -->
-    {#if completedCategories.length > 0}
-        <section class="space-y-3">
-            <h3 class="text-sm font-semibold text-surface-600-400 uppercase tracking-wider flex items-center gap-2">
-                {$t('during_competition.completed_section')}
-                <span class="badge preset-filled-success-500 text-xs">{completedCategories.length}</span>
-            </h3>
-            {#each completedCategories as cat (cat.id)}
-                <CompletedCategoryCard category={cat} />
-            {/each}
-        </section>
+    <!-- Completed + Canceled Categories Section (collapsible) -->
+    {#if finishedCategories.length > 0}
+        <CollapsibleSection
+            icon={CheckCircleIcon}
+            label={$t('during_competition.completed_section')}
+            count={finishedCategories.length}
+            badgeClass="preset-tonal-success"
+            testId="toggle-section-completed"
+            open={!hasLiveCategories}
+        >
+            <div class="space-y-3">
+                {#each finishedCategories as cat (cat.id)}
+                    <CompletedCategoryCard
+                        category={cat}
+                        {isOrganizer}
+                        onRestartCategory={handleRestartCategory}
+                    />
+                {/each}
+            </div>
+        </CollapsibleSection>
     {/if}
 
     <!-- Empty state when no categories visible -->
     {#if visibleCategories.length === 0}
         <div class="text-center py-8 text-surface-500">
-            <Icon icon="mdi:information-outline" width="2rem" class="mx-auto mb-2" />
+            <InformationOutlineIcon width="2rem" height="2rem" class="mx-auto mb-2" />
             <p>{$t('during_competition.no_categories')}</p>
         </div>
     {/if}

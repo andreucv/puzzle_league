@@ -28,7 +28,7 @@
     let canRegister = $derived(competition?.registrationOpen);
 
     function canRegisterForCategory(category: Category): boolean {
-        return !!canRegister && category.status === 'not_started';
+        return !!canRegister && category.status === 'NOT_STARTED';
     }
 
     // ---------------------------------------------------------------------------

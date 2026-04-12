@@ -99,6 +99,13 @@ enum CategoryType {
   OTHER
 }
 
+enum CategoryStatus {
+  NOT_STARTED
+  LIVE
+  COMPLETE
+  CANCELED
+}
+
 enum CompetitionStatus {
   NOT_STARTED
   STARTED
@@ -204,7 +211,7 @@ model Category {
   endTime       DateTime
   realStartTime DateTime?
   realEndTime   DateTime?
-  status        String       @default("not_started") // not_started, in_progress, completed
+  status        CategoryStatus @default(NOT_STARTED)
   maxParties    Int?
   price         Int          @default(0)
   competitionId Int

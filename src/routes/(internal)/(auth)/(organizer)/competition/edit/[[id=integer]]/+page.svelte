@@ -302,7 +302,7 @@
             maxParties: null,
             maxPartySize: 1,
             price: 0,
-            status: "not_started",
+            status: "NOT_STARTED",
             puzzleIds: [],
         }];
 

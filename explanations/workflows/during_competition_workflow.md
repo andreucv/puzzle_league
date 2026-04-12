@@ -79,3 +79,22 @@ During the competition, organizers need to manage the active categories and orga
   - Complete categories (if any)
     - List of completed categories with their details (type, subname, start time, end time)
     - Actions: Button to go to results page for that category.
+
+## Category Statuses and Transitions
+Statuses of categories must be an enum in schema.prisma with the following values:
+- NOT_STARTED: The category has not started yet. It can be started by an organizer.
+- LIVE: The category is currently active. Participants can attempt the category and judges can record results. It can be stopped by an organizer.
+- COMPLETE: The category has been completed. No further attempts or recordings can be made. Results can be viewed by participants and organizers.
+- CANCELED: The category has been canceled. No attempts or recordings can be made. It can be set to this status by an organizer if needed.
+
+### Transitions:
+- NOT_STARTED -> LIVE: Triggered when an organizer starts the category.
+- LIVE -> COMPLETE: Triggered when an organizer stops the category.
+- NOT_STARTED -> CANCELED: Triggered when an organizer cancels the category.
+- LIVE -> CANCELED: Triggered when an organizer cancels the category while it's active
+- COMPLETE -> LIVE: a category can be restarted if it was completed by mistake, so it can transition back to LIVE or NOT_STARTED depending on the previous status.
+- CANCELLED -> LIVE: a category can be restarted if it was cancelled by mistake, so it can transition back to LIVE or NOT_STARTED depending on the previous status.
+
+## UX elements requirements for category statuses and transitions
+1. When clicking a button that modifies status of a category, a confirmation dialog should appear to confirm the action. The dialog should clearly state the action being taken and its consequences (e.g., "Are you sure you want to start this category? Participants will be able to attempt it and judges will be able to record results.")
+

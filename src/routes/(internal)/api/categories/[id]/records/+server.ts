@@ -1,6 +1,7 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/database';
 import type { Prisma } from '$lib/.prisma/generated/prisma/client';
+import { InscriptionStatus } from '$lib/.prisma/generated/prisma/enums';
 
 export const GET = async (event: RequestEvent) => {
   try {
@@ -15,11 +16,14 @@ export const GET = async (event: RequestEvent) => {
     // Build where clause with optional search filtering
     const where: Prisma.RecordWhereInput = { categoryId };
 
-    // Filter by finished status if specified
+    // Filter by finished status if specified — only count CONFIRMED records
+    // to stay consistent with server-side totalRecords/finishedRecords counts
     if (finishedFilter === 'true') {
       where.finishTime = { not: null };
+      where.status = InscriptionStatus.CONFIRMED;
     } else if (finishedFilter === 'false') {
       where.finishTime = null;
+      where.status = InscriptionStatus.CONFIRMED;
     }
 
     if (search) {

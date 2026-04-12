@@ -1,5 +1,5 @@
 import type { Competition, Category } from '$lib/.prisma/generated/prisma/client';
-import { CompetitionStatus, InscriptionStatus, Role } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, CompetitionStatus, InscriptionStatus, Role } from '$lib/.prisma/generated/prisma/enums';
 import { prisma } from '$lib/database/database';
 
 /**
@@ -138,7 +138,7 @@ export async function getLastUserResults(userId: string, limit: number = 5) {
             users: { some: { id: userId } },
             status: InscriptionStatus.CONFIRMED,
             category: {
-                status: 'completed',
+                status: CategoryStatus.COMPLETE,
                 competition: {
                     status: CompetitionStatus.FINISHED
                 }

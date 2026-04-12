@@ -294,7 +294,8 @@ export async function getCompetitionCategories(
         const [categories, statusCounts, finishedCounts] = await Promise.all([
             prisma.category.findMany({
                 where: { competitionId },
-                orderBy: { startTime: 'asc' }
+                orderBy: { startTime: 'asc' },
+                include: { puzzles: { select: { pieces: true } } }
             }),
             // Group record counts by categoryId and status in a single query
             prisma.record.groupBy({

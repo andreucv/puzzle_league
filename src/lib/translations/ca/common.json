@@ -431,7 +431,20 @@
     "cancel_competition_confirm": "Sí, Cancel·lar Competició",
     "cancel_competition_success": "La competició ha estat cancel·lada.",
     "cancel_competition_error": "No s'ha pogut cancel·lar la competició.",
-    "undo_finish": "Tornar a Pendents"
+    "undo_finish": "Tornar a Pendents",
+    "stopped": "Aturada",
+    "stopped_section": "Esperant Resultats",
+    "dnf_pending_review": "registres DNF pendents de revisió",
+    "dnf_records": "Registres DNF",
+    "pieces_left": "Peces restants",
+    "all_records_reviewed": "Tots els registres revisats",
+    "loading": "Carregant",
+    "complete_confirm_title": "Completar Categoria?",
+    "complete_confirm_message": "Estàs segur que vols finalitzar aquesta categoria? Es marcarà com a completada.",
+    "resume_category": "Reprendre Categoria",
+    "resume_confirm_title": "Reprendre Categoria?",
+    "resume_confirm_message": "Estàs segur que vols reprendre aquesta categoria aturada? Tornarà a l'estat EN CURS.",
+    "restart_category": "Reiniciar Categoria"
   },
   "results": {
     "title": "Resultats",

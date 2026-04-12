@@ -1,12 +1,14 @@
 <script lang="ts">
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
     import ActiveCategoryCard from '$lib/components/during-competition/ActiveCategoryCard.svelte';
+    import StoppedCategoryCard from '$lib/components/during-competition/StoppedCategoryCard.svelte';
     import UpcomingCategoryCard from '$lib/components/during-competition/UpcomingCategoryCard.svelte';
     import CompletedCategoryCard from '$lib/components/during-competition/CompletedCategoryCard.svelte';
     import CollapsibleSection from '$lib/components/manage_inscriptions/CollapsibleSection.svelte';
     import { useEventStream } from '$lib/events/client/use-event-stream.svelte';
     import PlayCircleOutlineIcon from '@iconify-svelte/mdi/play-circle-outline';
     import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
+    import AlertCircleOutlineIcon from '@iconify-svelte/mdi/alert-circle-outline';
     import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
     import WifiOffIcon from '@iconify-svelte/mdi/wifi-off';
     import InformationOutlineIcon from '@iconify-svelte/mdi/information-outline';
@@ -35,7 +37,7 @@
         activeInterval: 3_000,
         idleInterval: 15_000,
         backgroundInterval: 30_000,
-        isActive: (s: any) => s?.categories?.some((c: any) => c.status === 'LIVE') ?? false
+        isActive: (s: any) => s?.categories?.some((c: any) => c.status === 'LIVE' || c.status === 'STOPPED') ?? false
     });
 
     // Merge server categories with live event state
@@ -65,9 +67,10 @@
     );
 
     let activeCategories = $derived(visibleCategories.filter((c: any) => c.status === 'LIVE'));
+    let stoppedCategories = $derived(visibleCategories.filter((c: any) => c.status === 'STOPPED'));
     let upcomingCategories = $derived(visibleCategories.filter((c: any) => c.status === 'NOT_STARTED'));
     let finishedCategories = $derived(visibleCategories.filter((c: any) => c.status === 'COMPLETE' || c.status === 'CANCELED'));
-    let hasLiveCategories = $derived(activeCategories.length > 0);
+    let hasLiveOrStopped = $derived(activeCategories.length > 0 || stoppedCategories.length > 0);
 
     async function handleStartCategory(categoryId: number) {
         try {
@@ -108,6 +111,32 @@
         }
     }
 
+    async function handleCompleteCategory(categoryId: number) {
+        try {
+            const res = await fetch(`/api/categories/${categoryId}/complete`, { method: 'POST' });
+            if (res.ok) {
+                const result = await res.json();
+                categoryOverrides = { ...categoryOverrides, [categoryId]: result.category };
+                eventStream.refresh();
+            }
+        } catch (err) {
+            console.error('Failed to complete category:', err);
+        }
+    }
+
+    async function handleResumeCategory(categoryId: number) {
+        try {
+            const res = await fetch(`/api/categories/${categoryId}/resume`, { method: 'POST' });
+            if (res.ok) {
+                const result = await res.json();
+                categoryOverrides = { ...categoryOverrides, [categoryId]: { ...result.category, totalRecords: result.category.totalRecords, finishedRecords: result.category.finishedRecords } };
+                eventStream.refresh();
+            }
+        } catch (err) {
+            console.error('Failed to resume category:', err);
+        }
+    }
+
     function handleRecordFinish(_recordId: string) {
         eventStream.refresh();
     }
@@ -130,6 +159,30 @@
         <div class="p-2 rounded-lg bg-error-500/10 border border-error-500/30 text-sm text-error-600 flex items-center gap-2">
             <WifiOffIcon width="1rem" height="1rem" />
             {$t('during_competition.connection_error')}
+        </div>
+    {/if}
+
+    <!-- Stopped Categories Section (first, highest visibility) -->
+    {#if stoppedCategories.length > 0}
+        <div>
+            <div class="flex items-center gap-2 mb-2">
+                <AlertCircleOutlineIcon width="1rem" height="1rem" class="text-warning-500" />
+                <span class="text-sm font-semibold">{$t('during_competition.stopped_section')}</span>
+                <span class="badge preset-tonal-warning text-xs">{stoppedCategories.length}</span>
+            </div>
+            <div class="space-y-3">
+                {#each stoppedCategories as cat (cat.id)}
+                    <StoppedCategoryCard
+                        category={cat}
+                        {isOrganizer}
+                        onCompleteCategory={handleCompleteCategory}
+                        onResumeCategory={handleResumeCategory}
+                        onCancelCategory={handleCancelCategory}
+                        onRestartCategory={handleRestartCategory}
+                        onCategoryUpdate={handleCategoryUpdate}
+                    />
+                {/each}
+            </div>
         </div>
     {/if}
 
@@ -168,7 +221,7 @@
             count={upcomingCategories.length}
             badgeClass="preset-tonal"
             testId="toggle-section-upcoming"
-            open={!hasLiveCategories}
+            open={!hasLiveOrStopped}
         >
             <div class="space-y-3">
                 {#each upcomingCategories as cat (cat.id)}
@@ -191,7 +244,7 @@
             count={finishedCategories.length}
             badgeClass="preset-tonal-success"
             testId="toggle-section-completed"
-            open={!hasLiveCategories}
+            open={!hasLiveOrStopped}
         >
             <div class="space-y-3">
                 {#each finishedCategories as cat (cat.id)}

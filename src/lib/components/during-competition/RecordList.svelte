@@ -14,7 +14,12 @@
         onSelectRecord,
         onFinish,
         onUndoFinish,
-        emptyMessage
+        onSubmitPieces,
+        onUndoPieces,
+        totalPieces,
+        emptyMessage,
+        initialOpen = false,
+        alwaysShow = false
     }: {
         icon: any;
         label: string;
@@ -25,13 +30,18 @@
         onSelectRecord: (id: string) => void;
         onFinish?: (recordId: string) => void;
         onUndoFinish?: (recordId: string) => void;
+        onSubmitPieces?: (recordId: string, nPiecesCompleted: number) => void;
+        onUndoPieces?: (recordId: string) => void;
+        totalPieces?: number | null;
         emptyMessage: string;
+        initialOpen?: boolean;
+        alwaysShow?: boolean;
     } = $props();
 
-    let open = $state(false);
+    let open = $state(initialOpen);
 </script>
 
-{#if records.length > 0 || loading}
+{#if records.length > 0 || loading || alwaysShow}
     <div class="space-y-2">
         <button
             class="btn btn-sm preset-tonal w-full justify-between"
@@ -63,6 +73,9 @@
                             onSelect={onSelectRecord}
                             {onFinish}
                             {onUndoFinish}
+                            {onSubmitPieces}
+                            {onUndoPieces}
+                            {totalPieces}
                         />
                     {/each}
                 {:else}

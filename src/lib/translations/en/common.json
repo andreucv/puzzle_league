@@ -431,7 +431,20 @@
     "cancel_competition_confirm": "Yes, Cancel Competition",
     "cancel_competition_success": "Competition has been cancelled.",
     "cancel_competition_error": "Failed to cancel competition.",
-    "undo_finish": "Return to Pending"
+    "undo_finish": "Return to Pending",
+    "stopped": "Stopped",
+    "stopped_section": "Waiting for Results",
+    "dnf_pending_review": "DNF records pending review",
+    "dnf_records": "DNF Records",
+    "pieces_left": "Pieces left",
+    "all_records_reviewed": "All records reviewed",
+    "loading": "Loading",
+    "complete_confirm_title": "Complete Category?",
+    "complete_confirm_message": "Are you sure you want to finalize this category? It will be marked as complete.",
+    "resume_category": "Resume Category",
+    "resume_confirm_title": "Resume Category?",
+    "resume_confirm_message": "Are you sure you want to resume this stopped category? It will return to LIVE status.",
+    "restart_category": "Restart Category"
   },
   "results": {
     "title": "Results",

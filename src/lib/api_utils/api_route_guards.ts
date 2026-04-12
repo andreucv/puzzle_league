@@ -73,7 +73,11 @@ const ROUTE_GUARDS: [RegExp, RouteGuard][] = [
   // ---- Category-scoped: JUDGE or ORGANIZER ----
   [/^\/api\/categories\/[^/]+\/records$/, { guard: 'categoryJudge' }],
   [/^\/api\/categories\/[^/]+\/start$/, { guard: 'categoryJudge' }],
-  [/^\/api\/categories\/[^/]+\/stop$/, { guard: 'categoryJudge' }],
+
+  // ---- Category-scoped: ORGANIZER only (state transitions) ----
+  [/^\/api\/categories\/[^/]+\/stop$/, { guard: 'categoryOrganizer' }],
+  [/^\/api\/categories\/[^/]+\/complete$/, { guard: 'categoryOrganizer' }],
+  [/^\/api\/categories\/[^/]+\/resume$/, { guard: 'categoryOrganizer' }],
 
   // ---- Record-scoped: JUDGE or ORGANIZER via category chain ----
   [/^\/api\/records\/[^/]+\/pieces$/, { guard: 'recordJudge' }],

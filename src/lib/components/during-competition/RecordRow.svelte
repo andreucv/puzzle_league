@@ -6,7 +6,10 @@
     import CheckIcon from '@iconify-svelte/mdi/check';
     import ChevronRightIcon from '@iconify-svelte/mdi/chevron-right';
     import UndoIcon from '@iconify-svelte/mdi/undo';
+    import PuzzlePieceIcon from '@iconify-svelte/mdi/puzzle';
+    import CloseIcon from '@iconify-svelte/mdi/close';
     import RecordActionButton from './RecordActionButton.svelte';
+    import { t } from '$lib/translations';
 
     interface RecordUser {
         id: string;
@@ -36,7 +39,10 @@
         selected = false,
         onSelect,
         onFinish,
-        onUndoFinish
+        onUndoFinish,
+        onSubmitPieces,
+        onUndoPieces,
+        totalPieces
     }: {
         record: RecordData;
         categoryRealStartTime: string | null;
@@ -44,30 +50,78 @@
         onSelect?: (id: string) => void;
         onFinish?: (recordId: string) => void;
         onUndoFinish?: (recordId: string) => void;
+        onSubmitPieces?: (recordId: string, nPiecesCompleted: number) => void;
+        onUndoPieces?: (recordId: string) => void;
+        totalPieces?: number | null;
     } = $props();
 
     let submitting = $state(false);
+    let piecesInput = $state('');
     let isPending = $derived(!record.finishTime);
+    let hasPiecesOnly = $derived(!record.finishTime && record.nPiecesCompleted != null);
 
     // Unified action config: null when no action is available
     let action = $derived.by(() => {
-        if (isPending && onFinish) {
-            return { icon: FlagCheckeredIcon, colorClass: 'preset-filled-success-500', handler: onFinish, testIdPrefix: 'finish-record' };
+        if (isPending && !hasPiecesOnly && onFinish) {
+            return { type: 'finish' as const, icon: FlagCheckeredIcon, colorClass: 'preset-filled-success-500', handler: onFinish, testIdPrefix: 'finish-record' };
+        }
+        if (isPending && !hasPiecesOnly && onSubmitPieces) {
+            return { type: 'pieces' as const, icon: PuzzlePieceIcon, colorClass: 'preset-filled-warning-500', handler: null, testIdPrefix: 'pieces-record' };
         }
         if (!isPending && onUndoFinish) {
-            return { icon: UndoIcon, colorClass: 'preset-filled-warning-500', handler: onUndoFinish, testIdPrefix: 'undo-finish-record' };
+            return { type: 'undo' as const, icon: UndoIcon, colorClass: 'preset-filled-warning-500', handler: onUndoFinish, testIdPrefix: 'undo-finish-record' };
+        }
+        if (hasPiecesOnly && onUndoPieces) {
+            return { type: 'undo-pieces' as const, icon: UndoIcon, colorClass: 'preset-filled-warning-500', handler: onUndoPieces, testIdPrefix: 'undo-pieces-record' };
         }
         return null;
     });
 
     let hasAction = $derived(!!action);
+    let isPiecesMode = $derived(action?.type === 'pieces');
+
+    // Compute pieces remaining for display
+    let piecesRemaining = $derived.by(() => {
+        if (record.nPiecesCompleted == null || totalPieces == null) return null;
+        return totalPieces - record.nPiecesCompleted;
+    });
 
     async function handleAction(e: MouseEvent) {
         e.stopPropagation();
-        if (!action || submitting) return;
+        if (!action || submitting || action.type === 'pieces') return;
+        if (!action.handler) return;
         submitting = true;
         await action.handler(record.id);
         submitting = false;
+    }
+
+    async function handleSubmitPieces() {
+        if (!onSubmitPieces || submitting) return;
+        const remaining = parseInt(piecesInput);
+        if (isNaN(remaining) || remaining < 0) return;
+        // TODO: re-enable when all categories have puzzle data
+        // if (totalPieces != null && remaining > totalPieces) return;
+        const nPiecesCompleted = totalPieces != null ? totalPieces - remaining : remaining;
+        submitting = true;
+        await onSubmitPieces(record.id, nPiecesCompleted);
+        piecesInput = '';
+        submitting = false;
+    }
+
+    function handlePiecesKeydown(e: KeyboardEvent) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSubmitPieces();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            onSelect?.('');
+        }
+    }
+
+    function cancelPieces(e: MouseEvent) {
+        e.stopPropagation();
+        piecesInput = '';
+        onSelect?.('');
     }
 
     let allNames = $derived([
@@ -125,20 +179,62 @@
                     {calculateDuration(new Date(categoryRealStartTime), new Date(record.finishTime))}
                 {/if}
             </span>
+        {:else if record.nPiecesCompleted != null}
+            <span class="text-xs text-warning-600 dark:text-warning-400 flex items-center gap-1">
+                <PuzzlePieceIcon width="0.8rem" height="0.8rem" />
+                {#if piecesRemaining != null}
+                    {piecesRemaining} {$t('during_competition.pieces_left')}
+                {:else}
+                    {record.nPiecesCompleted} {$t('during_competition.pieces_completed')}
+                {/if}
+            </span>
         {/if}
 
         {#if hasAction && action}
             <ChevronRightIcon width="1.1rem" height="1.1rem" class="text-surface-400 {selected ? 'invisible' : ''}" />
 
             {#if selected}
-                <div class="absolute inset-0 flex items-center justify-end z-10">
-                    <RecordActionButton
-                        icon={action.icon}
-                        colorClass={action.colorClass}
-                        {submitting}
-                        onclick={handleAction}
-                        data-testid="{action.testIdPrefix}-{record.id}"
-                    />
+                <div class="absolute inset-0 flex items-center justify-end z-10 rounded-md overflow-hidden">
+                    {#if isPiecesMode}
+                        <!-- svelte-ignore a11y_autofocus -->
+                        <div class="flex items-center bg-surface-50-950 border border-surface-300-700 rounded-lg px-2 py-1 space-x-2">
+                            <input
+                                type="number"
+                                min="0"
+                                inputmode="numeric"
+                                class="input text-xs text-center w-16 mr-4"
+                                placeholder={$t('during_competition.pieces_left')}
+                                bind:value={piecesInput}
+                                onkeydown={handlePiecesKeydown}
+                                onclick={(e) => e.stopPropagation()}
+                                autofocus
+                                data-testid="pieces-input-{record.id}"
+                            />
+                            <RecordActionButton
+                                icon={CheckIcon}
+                                colorClass="preset-filled-success-500"
+                                submitting={submitting}
+                                disabled={!piecesInput}
+                                onclick={(e) => { e.stopPropagation(); handleSubmitPieces(); }}
+                                data-testid="pieces-submit-{record.id}"
+                            />
+                            <RecordActionButton
+                                icon={CloseIcon}
+                                colorClass="preset-tonal"
+                                submitting={false}
+                                onclick={cancelPieces}
+                                data-testid="pieces-cancel-{record.id}"
+                            />
+                            </div>
+                        {:else}
+                            <RecordActionButton
+                                icon={action.icon}
+                                colorClass={action.colorClass}
+                                {submitting}
+                                onclick={handleAction}
+                                data-testid="{action.testIdPrefix}-{record.id}"
+                            />
+                        {/if}
                 </div>
             {/if}
         {/if}

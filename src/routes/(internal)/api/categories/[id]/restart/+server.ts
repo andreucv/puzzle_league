@@ -19,8 +19,8 @@ export const POST = async (event: RequestEvent) => {
       return json({ error: 'Category not found' }, { status: 404 });
     }
 
-    if (category.status !== CategoryStatus.COMPLETE && category.status !== CategoryStatus.CANCELED) {
-      return json({ error: 'Can only restart completed or canceled categories' }, { status: 400 });
+    if (category.status !== CategoryStatus.COMPLETE && category.status !== CategoryStatus.CANCELED && category.status !== CategoryStatus.STOPPED) {
+      return json({ error: 'Can only restart completed, canceled, or stopped categories' }, { status: 400 });
     }
 
     const [updatedCategory] = await prisma.$transaction([

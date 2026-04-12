@@ -102,6 +102,7 @@ enum CategoryType {
 enum CategoryStatus {
   NOT_STARTED
   LIVE
+  STOPPED
   COMPLETE
   CANCELED
 }

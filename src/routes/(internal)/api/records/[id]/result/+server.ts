@@ -1,5 +1,6 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/database';
+import { CategoryStatus } from '$lib/.prisma/generated/prisma/enums';
 
 export const POST = async (event: RequestEvent) => {
   try {
@@ -8,6 +9,18 @@ export const POST = async (event: RequestEvent) => {
 
     if (!recordId) {
       return json({ error: 'Invalid entry ID' }, { status: 400 });
+    }
+
+    // Enforce: finish actions only allowed while category is LIVE
+    const record = await prisma.record.findUnique({
+      where: { id: recordId },
+      select: { category: { select: { status: true } } }
+    });
+    if (!record) {
+      return json({ error: 'Record not found' }, { status: 404 });
+    }
+    if (record.category.status !== CategoryStatus.LIVE) {
+      return json({ error: 'Finish actions are only allowed while the category is LIVE' }, { status: 409 });
     }
 
     const updatedEntry = await prisma.record.update({
@@ -35,6 +48,18 @@ export const DELETE = async (event: RequestEvent) => {
 
     if (!recordId) {
       return json({ error: 'Invalid record ID' }, { status: 400 });
+    }
+
+    // Enforce: undo-finish actions only allowed while category is LIVE
+    const record = await prisma.record.findUnique({
+      where: { id: recordId },
+      select: { category: { select: { status: true } } }
+    });
+    if (!record) {
+      return json({ error: 'Record not found' }, { status: 404 });
+    }
+    if (record.category.status !== CategoryStatus.LIVE) {
+      return json({ error: 'Undo-finish actions are only allowed while the category is LIVE' }, { status: 409 });
     }
 
     const updatedRecord = await prisma.record.update({

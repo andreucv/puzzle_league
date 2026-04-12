@@ -10,7 +10,6 @@ export const POST = async (event: RequestEvent) => {
       return json({ error: 'Invalid category ID' }, { status: 400 });
     }
 
-    // Validate current status — only LIVE categories can be stopped
     const category = await prisma.category.findUnique({
       where: { id: categoryId },
       select: { id: true, status: true, competitionId: true }
@@ -20,23 +19,20 @@ export const POST = async (event: RequestEvent) => {
       return json({ error: 'Category not found' }, { status: 404 });
     }
 
-    if (category.status !== CategoryStatus.LIVE) {
-      return json({ error: 'Only LIVE categories can be stopped' }, { status: 409 });
+    if (category.status !== CategoryStatus.STOPPED) {
+      return json({ error: 'Only STOPPED categories can be resumed' }, { status: 409 });
     }
 
-    const now = new Date();
+    // Resume: set back to LIVE, clear realEndTime but preserve existing results
+    const updatedCategory = await prisma.category.update({
+      where: { id: categoryId },
+      data: {
+        status: CategoryStatus.LIVE,
+        realEndTime: null
+      }
+    });
 
-    // Transactional update: set status to STOPPED and record realEndTime.
-    // Do NOT auto-set finishTime on unfinished records — they remain as DNFs
-    // with finishTime = null for the organizer to review.
-    const [updatedCategory, totalRecords, finishedRecords] = await prisma.$transaction([
-      prisma.category.update({
-        where: { id: categoryId },
-        data: {
-          realEndTime: now,
-          status: CategoryStatus.STOPPED
-        }
-      }),
+    const [totalRecords, finishedRecords] = await Promise.all([
       prisma.record.count({
         where: { categoryId, status: InscriptionStatus.CONFIRMED }
       }),
@@ -53,7 +49,7 @@ export const POST = async (event: RequestEvent) => {
       }
     });
   } catch (error) {
-    console.error('Error stopping category:', error);
-    return json({ error: 'Failed to stop category' }, { status: 500 });
+    console.error('Error resuming category:', error);
+    return json({ error: 'Failed to resume category' }, { status: 500 });
   }
 };

@@ -431,7 +431,20 @@
     "cancel_competition_confirm": "Sí, Cancelar Competición",
     "cancel_competition_success": "La competición ha sido cancelada.",
     "cancel_competition_error": "No se pudo cancelar la competición.",
-    "undo_finish": "Devolver a Pendientes"
+    "undo_finish": "Devolver a Pendientes",
+    "stopped": "Detenida",
+    "stopped_section": "Esperando Resultados",
+    "dnf_pending_review": "registros DNF pendientes de revisión",
+    "dnf_records": "Registros DNF",
+    "pieces_left": "Piezas restantes",
+    "all_records_reviewed": "Todos los registros revisados",
+    "loading": "Cargando",
+    "complete_confirm_title": "¿Completar Categoría?",
+    "complete_confirm_message": "¿Estás seguro de que quieres finalizar esta categoría? Se marcará como completada.",
+    "resume_category": "Reanudar Categoría",
+    "resume_confirm_title": "¿Reanudar Categoría?",
+    "resume_confirm_message": "¿Estás seguro de que quieres reanudar esta categoría detenida? Volverá al estado EN CURSO.",
+    "restart_category": "Reiniciar Categoría"
   },
   "results": {
     "title": "Resultados",

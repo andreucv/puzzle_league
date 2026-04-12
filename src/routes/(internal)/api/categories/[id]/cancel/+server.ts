@@ -19,12 +19,12 @@ export const POST = async (event: RequestEvent) => {
       return json({ error: 'Category not found' }, { status: 404 });
     }
 
-    if (category.status === CategoryStatus.CANCELED) {
-      return json({ error: 'Category is already canceled' }, { status: 400 });
-    }
-
     if (category.status === CategoryStatus.COMPLETE) {
       return json({ error: 'Cannot cancel a completed category' }, { status: 400 });
+    }
+
+    if (category.status === CategoryStatus.CANCELED) {
+      return json({ error: 'Category is already canceled' }, { status: 400 });
     }
 
     const updatedCategory = await prisma.category.update({

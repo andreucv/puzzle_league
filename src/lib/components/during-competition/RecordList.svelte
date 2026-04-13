@@ -3,6 +3,7 @@
     import LoadingIcon from '@iconify-svelte/mdi/loading';
     import ChevronUpIcon from '@iconify-svelte/mdi/chevron-up';
     import ChevronDownIcon from '@iconify-svelte/mdi/chevron-down';
+    import { untrack } from 'svelte';
 
     let {
         icon: Icon,
@@ -19,7 +20,8 @@
         totalPieces,
         emptyMessage,
         initialOpen = false,
-        alwaysShow = false
+        alwaysShow = false,
+        forceOpen = false
     }: {
         icon: any;
         label: string;
@@ -36,9 +38,15 @@
         emptyMessage: string;
         initialOpen?: boolean;
         alwaysShow?: boolean;
+        forceOpen?: boolean;
     } = $props();
 
-    let open = $state(initialOpen);
+    // eslint-disable-next-line svelte/valid-compile -- initialOpen is intentionally captured once
+    let open = $state(untrack(() => initialOpen));
+
+    $effect(() => {
+        if (forceOpen) open = true;
+    });
 </script>
 
 {#if records.length > 0 || loading || alwaysShow}

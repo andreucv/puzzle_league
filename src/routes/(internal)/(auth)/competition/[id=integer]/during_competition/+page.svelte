@@ -1,9 +1,6 @@
 <script lang="ts">
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
-    import ActiveCategoryCard from '$lib/components/during-competition/ActiveCategoryCard.svelte';
-    import StoppedCategoryCard from '$lib/components/during-competition/StoppedCategoryCard.svelte';
-    import UpcomingCategoryCard from '$lib/components/during-competition/UpcomingCategoryCard.svelte';
-    import CompletedCategoryCard from '$lib/components/during-competition/CompletedCategoryCard.svelte';
+    import CategoryCard from '$lib/components/during-competition/CategoryCard.svelte';
     import CollapsibleSection from '$lib/components/manage_inscriptions/CollapsibleSection.svelte';
     import { useEventStream } from '$lib/events/client/use-event-stream.svelte';
     import PlayCircleOutlineIcon from '@iconify-svelte/mdi/play-circle-outline';
@@ -137,6 +134,19 @@
         }
     }
 
+    async function handleStopCategory(categoryId: number) {
+        try {
+            const res = await fetch(`/api/categories/${categoryId}/stop`, { method: 'POST' });
+            if (res.ok) {
+                const result = await res.json();
+                categoryOverrides = { ...categoryOverrides, [categoryId]: result.category };
+                eventStream.refresh();
+            }
+        } catch (err) {
+            console.error('Failed to stop category:', err);
+        }
+    }
+
     function handleRecordFinish(_recordId: string) {
         eventStream.refresh();
     }
@@ -172,7 +182,7 @@
             </div>
             <div class="space-y-3">
                 {#each stoppedCategories as cat (cat.id)}
-                    <StoppedCategoryCard
+                    <CategoryCard
                         category={cat}
                         {isOrganizer}
                         onCompleteCategory={handleCompleteCategory}
@@ -200,10 +210,10 @@
             </div>
             <div class="space-y-3">
                 {#each activeCategories as cat (cat.id)}
-                    <ActiveCategoryCard
+                    <CategoryCard
                         category={cat}
-                        competitionName={competition?.name ?? ''}
                         {isOrganizer}
+                        onStopCategory={handleStopCategory}
                         onRecordFinish={handleRecordFinish}
                         onCategoryUpdate={handleCategoryUpdate}
                         onCancelCategory={handleCancelCategory}
@@ -225,7 +235,7 @@
         >
             <div class="space-y-3">
                 {#each upcomingCategories as cat (cat.id)}
-                    <UpcomingCategoryCard
+                    <CategoryCard
                         category={cat}
                         {isOrganizer}
                         onStartCategory={handleStartCategory}
@@ -248,7 +258,7 @@
         >
             <div class="space-y-3">
                 {#each finishedCategories as cat (cat.id)}
-                    <CompletedCategoryCard
+                    <CategoryCard
                         category={cat}
                         {isOrganizer}
                         onRestartCategory={handleRestartCategory}

@@ -3,7 +3,7 @@
  * Used by CategoryCard for LIVE and STOPPED variants.
  */
 
-function matchesSearch(record: any, query: string): boolean {
+export function matchesSearch(record: any, query: string): boolean {
     const q = query.toLowerCase();
     if (record.tableNumber != null && String(record.tableNumber).includes(q)) return true;
     if (record.users?.some((u: any) => u.name?.toLowerCase().includes(q))) return true;

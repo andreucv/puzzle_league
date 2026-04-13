@@ -56,6 +56,10 @@ const FIRST_NAMES = [
     'Ivy', 'Jack', 'Karen', 'Leo', 'Mona', 'Nick', 'Olivia', 'Paul',
     'Quinn', 'Rosa', 'Sam', 'Tina', 'Ugo', 'Vera', 'Wade', 'Xena',
     'Yuri', 'Zara', 'Axel', 'Bella', 'Cleo', 'Dante',
+    'Elena', 'Felix', 'Gina', 'Hugo', 'Iris', 'Joel', 'Kira', 'Liam',
+    'Maya', 'Noah', 'Olga', 'Pedro', 'Rita', 'Sean', 'Thea', 'Ulf',
+    'Vito', 'Wendy', 'Xavi', 'Yael', 'Zoe', 'Amir', 'Bea', 'Cyrus',
+    'Dina', 'Elio', 'Faye', 'Gus', 'Hana', 'Ivan',
 ];
 
 const LAST_NAMES = [
@@ -63,7 +67,11 @@ const LAST_NAMES = [
     'Taylor', 'Anderson', 'Thomas', 'White', 'Harris', 'Clark', 'Lewis',
     'Walker', 'Young', 'King', 'Wright', 'Hill', 'Scott', 'Green',
     'Adams', 'Baker', 'Nelson', 'Carter', 'Mitchell', 'Perez', 'Roberts',
-    'Turner', 'Phillips',
+    'Turner', 'Phillips', 'Evans', 'Collins', 'Stewart', 'Morales', 'Reed',
+    'Cook', 'Morgan', 'Bell', 'Murphy', 'Bailey', 'Rivera', 'Cooper',
+    'Cox', 'Howard', 'Ward', 'Torres', 'Gray', 'Ramirez', 'James', 'Watson',
+    'Brooks', 'Kelly', 'Sanders', 'Price', 'Bennett', 'Wood', 'Barnes',
+    'Ross', 'Henderson', 'Coleman',
 ];
 
 const COUNTRIES = ['ES', 'FR', 'DE', 'IT', 'NL', 'PT', 'BE', 'AT'];
@@ -121,12 +129,12 @@ interface CategoryTemplate {
 }
 
 const CATEGORY_POOL: CategoryTemplate[] = [
-    { description: '500 pcs Ravensburger', type: 'INDIVIDUAL', maxPartySize: 1, maxParties: 20, morningSlot: true },
-    { description: '1000 pcs Educa', type: 'PAIRS', maxPartySize: 2, maxParties: 15, morningSlot: false },
-    { description: '2000 pcs Clementoni', type: 'TEAM', maxPartySize: 4, maxParties: 8, morningSlot: true },
-    { description: '300 pcs Junior Challenge', type: 'INDIVIDUAL', maxPartySize: 1, maxParties: 25, morningSlot: false },
-    { description: '1500 pcs Trefl Pairs', type: 'PAIRS', maxPartySize: 2, maxParties: 12, morningSlot: true },
-    { description: '3000 pcs Team Marathon', type: 'TEAM', maxPartySize: 4, maxParties: 6, morningSlot: false },
+    { description: '500 pcs Ravensburger', type: 'INDIVIDUAL', maxPartySize: 1, maxParties: 50, morningSlot: true },
+    { description: '1000 pcs Educa', type: 'PAIRS', maxPartySize: 2, maxParties: 45, morningSlot: false },
+    { description: '2000 pcs Clementoni', type: 'TEAM', maxPartySize: 4, maxParties: 40, morningSlot: true },
+    { description: '300 pcs Junior Challenge', type: 'INDIVIDUAL', maxPartySize: 1, maxParties: 50, morningSlot: false },
+    { description: '1500 pcs Trefl Pairs', type: 'PAIRS', maxPartySize: 2, maxParties: 45, morningSlot: true },
+    { description: '3000 pcs Team Marathon', type: 'TEAM', maxPartySize: 4, maxParties: 40, morningSlot: false },
 ];
 
 function generateCategories(competitions: SeedCompetition[]): SeedCategory[] {
@@ -164,43 +172,15 @@ function generateCategories(competitions: SeedCompetition[]): SeedCategory[] {
 
 // ── Record (inscription) generation ──
 
-const STATUSES = ['CONFIRMED', 'PENDING_CONFIRMATION', 'WAITLISTED'];
+// Deterministic pseudo-random: seeded from category index to produce varied but reproducible counts
+function seededCount(catIdx: number, salt: number, min: number, max: number): number {
+    return min + ((catIdx * 7 + salt * 13 + 3) % (max - min + 1));
+}
 
 function generateRecords(categories: SeedCategory[], totalUsers: number, startUserIndex = 0): SeedRecord[] {
-    const records: SeedRecord[] = [];
-    let userCursor = startUserIndex; // Start after real users (or from 0 for generated-only)
-
-    for (let catIdx = 0; catIdx < categories.length; catIdx++) {
-        const cat = categories[catIdx];
-        const partySize = cat.maxPartySize;
-
-        // Generate 4-6 records per category
-        const numRecords = 4 + (catIdx % 3); // 4, 5, 6, 4, 5, 6, ...
-
-        for (let r = 0; r < numRecords; r++) {
-            const userIndices: number[] = [];
-            for (let p = 0; p < partySize; p++) {
-                userIndices.push(userCursor % totalUsers);
-                userCursor++;
-            }
-
-            records.push({
-                competitionIndex: cat.competitionIndex,
-                categoryIndex: catIdx - categories.filter((c, i) => i < catIdx && c.competitionIndex < cat.competitionIndex)
-                    .length - categories.filter((c, i) => i < catIdx && c.competitionIndex === cat.competitionIndex ? false : false).length,
-                creatorIndex: userIndices[0],
-                userIndices,
-                status: STATUSES[r % STATUSES.length],
-            });
-        }
-    }
-
-    // Fix categoryIndex: it should be the index within its own competition
-    // Rebuild properly
-    const fixedRecords: SeedRecord[] = [];
+    // Build global-to-local category index map
     const catCountByComp = new Map<number, number>();
     const catGlobalToLocal = new Map<number, number>();
-
     for (let i = 0; i < categories.length; i++) {
         const ci = categories[i].competitionIndex;
         const localIdx = catCountByComp.get(ci) ?? 0;
@@ -208,32 +188,45 @@ function generateRecords(categories: SeedCategory[], totalUsers: number, startUs
         catCountByComp.set(ci, localIdx + 1);
     }
 
-    // Regenerate with correct categoryIndex
-    userCursor = startUserIndex;
+    const records: SeedRecord[] = [];
+    let userCursor = startUserIndex;
+
     for (let catIdx = 0; catIdx < categories.length; catIdx++) {
         const cat = categories[catIdx];
         const partySize = cat.maxPartySize;
-        const numRecords = 4 + (catIdx % 3);
         const localCatIdx = catGlobalToLocal.get(catIdx)!;
 
-        for (let r = 0; r < numRecords; r++) {
-            const userIndices: number[] = [];
-            for (let p = 0; p < partySize; p++) {
-                userIndices.push(userCursor % totalUsers);
-                userCursor++;
-            }
+        // Deterministic varied counts per status
+        const numConfirmed = seededCount(catIdx, 0, 15, 30);
+        const numPending = seededCount(catIdx, 1, 5, 10);
+        const numWaitlisted = seededCount(catIdx, 2, 1, 3);
 
-            fixedRecords.push({
-                competitionIndex: cat.competitionIndex,
-                categoryIndex: localCatIdx,
-                creatorIndex: userIndices[0],
-                userIndices,
-                status: STATUSES[r % STATUSES.length],
-            });
+        const statusBatches: { status: string; count: number }[] = [
+            { status: 'CONFIRMED', count: numConfirmed },
+            { status: 'PENDING_CONFIRMATION', count: numPending },
+            { status: 'WAITLISTED', count: numWaitlisted },
+        ];
+
+        for (const batch of statusBatches) {
+            for (let r = 0; r < batch.count; r++) {
+                const userIndices: number[] = [];
+                for (let p = 0; p < partySize; p++) {
+                    userIndices.push(userCursor % totalUsers);
+                    userCursor++;
+                }
+
+                records.push({
+                    competitionIndex: cat.competitionIndex,
+                    categoryIndex: localCatIdx,
+                    creatorIndex: userIndices[0],
+                    userIndices,
+                    status: batch.status,
+                });
+            }
         }
     }
 
-    return fixedRecords;
+    return records;
 }
 
 // ── Main ──
@@ -262,7 +255,7 @@ export function generateSeedData(): SeedData {
     }
 
     // Real users first (indices 0..M-1), generated users after (indices M..M+29)
-    const generatedUsers = generateUsers(30);
+    const generatedUsers = generateUsers(60);
     const users = [...realUsers, ...generatedUsers];
     const M = realUsers.length;
 

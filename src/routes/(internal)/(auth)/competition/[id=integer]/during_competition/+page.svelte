@@ -37,6 +37,16 @@
         isActive: (s: any) => s?.categories?.some((c: any) => c.status === 'LIVE' || c.status === 'STOPPED') ?? false
     });
 
+    // Clear optimistic overrides when server catches up (version advances)
+    let lastSeenVersion = $state<string | null>(null);
+    $effect(() => {
+        const version = eventStream.state?.version;
+        if (version && version !== lastSeenVersion) {
+            lastSeenVersion = version;
+            categoryOverrides = {};
+        }
+    });
+
     // Merge server categories with live event state
     let categories = $derived.by(() => {
         const liveState = eventStream.state;
@@ -69,13 +79,19 @@
     let finishedCategories = $derived(visibleCategories.filter((c: any) => c.status === 'COMPLETE' || c.status === 'CANCELED'));
     let hasLiveOrStopped = $derived(activeCategories.length > 0 || stoppedCategories.length > 0);
 
+    /** After a successful server action, clear error state and trigger immediate refresh */
+    function onActionSuccess() {
+        eventStream.resetErrors();
+        eventStream.refresh();
+    }
+
     async function handleStartCategory(categoryId: number) {
         try {
             const res = await fetch(`/api/categories/${categoryId}/start`, { method: 'POST' });
             if (res.ok) {
                 const result = await res.json();
                 categoryOverrides = { ...categoryOverrides, [categoryId]: { ...result.category, totalRecords: result.category.totalRecords, finishedRecords: result.category.finishedRecords } };
-                eventStream.refresh();
+                onActionSuccess();
             }
         } catch (err) {
             console.error('Failed to start category:', err);
@@ -88,7 +104,7 @@
             if (res.ok) {
                 const result = await res.json();
                 categoryOverrides = { ...categoryOverrides, [categoryId]: result.category };
-                eventStream.refresh();
+                onActionSuccess();
             }
         } catch (err) {
             console.error('Failed to cancel category:', err);
@@ -101,7 +117,7 @@
             if (res.ok) {
                 const result = await res.json();
                 categoryOverrides = { ...categoryOverrides, [categoryId]: { ...result.category, totalRecords: result.category.totalRecords, finishedRecords: result.category.finishedRecords } };
-                eventStream.refresh();
+                onActionSuccess();
             }
         } catch (err) {
             console.error('Failed to restart category:', err);
@@ -114,7 +130,7 @@
             if (res.ok) {
                 const result = await res.json();
                 categoryOverrides = { ...categoryOverrides, [categoryId]: result.category };
-                eventStream.refresh();
+                onActionSuccess();
             }
         } catch (err) {
             console.error('Failed to complete category:', err);
@@ -127,7 +143,7 @@
             if (res.ok) {
                 const result = await res.json();
                 categoryOverrides = { ...categoryOverrides, [categoryId]: { ...result.category, totalRecords: result.category.totalRecords, finishedRecords: result.category.finishedRecords } };
-                eventStream.refresh();
+                onActionSuccess();
             }
         } catch (err) {
             console.error('Failed to resume category:', err);
@@ -140,7 +156,7 @@
             if (res.ok) {
                 const result = await res.json();
                 categoryOverrides = { ...categoryOverrides, [categoryId]: result.category };
-                eventStream.refresh();
+                onActionSuccess();
             }
         } catch (err) {
             console.error('Failed to stop category:', err);
@@ -148,13 +164,15 @@
     }
 
     function handleRecordFinish(_recordId: string) {
-        eventStream.refresh();
+        onActionSuccess();
     }
 
     function handleCategoryUpdate(updated: any) {
         categoryOverrides = { ...categoryOverrides, [updated.id]: updated };
-        eventStream.refresh();
+        onActionSuccess();
     }
+
+    let liveVersion = $derived(eventStream.state?.version ?? null);
 </script>
 
 <div class="container mx-auto max-w-4xl space-y-4">
@@ -185,6 +203,7 @@
                     <CategoryCard
                         category={cat}
                         {isOrganizer}
+                        {liveVersion}
                         onCompleteCategory={handleCompleteCategory}
                         onResumeCategory={handleResumeCategory}
                         onCancelCategory={handleCancelCategory}
@@ -213,6 +232,7 @@
                     <CategoryCard
                         category={cat}
                         {isOrganizer}
+                        {liveVersion}
                         onStopCategory={handleStopCategory}
                         onRecordFinish={handleRecordFinish}
                         onCategoryUpdate={handleCategoryUpdate}
@@ -238,6 +258,7 @@
                     <CategoryCard
                         category={cat}
                         {isOrganizer}
+                        {liveVersion}
                         onStartCategory={handleStartCategory}
                         onCancelCategory={handleCancelCategory}
                     />
@@ -261,6 +282,7 @@
                     <CategoryCard
                         category={cat}
                         {isOrganizer}
+                        {liveVersion}
                         onRestartCategory={handleRestartCategory}
                     />
                 {/each}

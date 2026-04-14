@@ -20,27 +20,29 @@ export async function resolveCompetitionState(params: { id: number }): Promise<C
 		}
 	});
 
-	// Count finished records per category
-	const enriched = await Promise.all(
-		categories.map(async (cat) => {
-			const finishedRecords = await prisma.record.count({
-				where: {
-					categoryId: cat.id,
-					status: InscriptionStatus.CONFIRMED,
-					finishTime: { not: null }
-				}
-			});
+	const categoryIdList = categories.map(c => c.id);
 
-			return {
-				id: cat.id,
-				status: cat.status,
-				totalRecords: cat._count.records,
-				finishedRecords,
-				realStartTime: cat.realStartTime?.toISOString() ?? null,
-				realEndTime: cat.realEndTime?.toISOString() ?? null
-			};
-		})
-	);
+	// Single grouped query instead of N+1 individual counts
+	const finishedGroups = await prisma.record.groupBy({
+		by: ['categoryId'],
+		where: {
+			categoryId: { in: categoryIdList },
+			status: InscriptionStatus.CONFIRMED,
+			finishTime: { not: null }
+		},
+		_count: { id: true }
+	});
+
+	const finishedMap = new Map(finishedGroups.map(g => [g.categoryId, g._count.id]));
+
+	const enriched = categories.map((cat) => ({
+		id: cat.id,
+		status: cat.status,
+		totalRecords: cat._count.records,
+		finishedRecords: finishedMap.get(cat.id) ?? 0,
+		realStartTime: cat.realStartTime?.toISOString() ?? null,
+		realEndTime: cat.realEndTime?.toISOString() ?? null
+	}));
 
 	// Compute version hash from category data
 	const versionPayload = enriched.map(c => `${c.id}:${c.status}:${c.finishedRecords}:${c.totalRecords}`).join('|');

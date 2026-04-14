@@ -97,15 +97,15 @@ function getRouteGuard(pathname: string): GuardLevel | null {
   return null;
 }
 
-/** Extract the first path segment that looks like an integer ID after /api/<resource>/ */
-function extractIntId(pathname: string): number | null {
-  // Matches patterns like /api/competitions/42/... or /api/categories/7/...
-  const match = pathname.match(/\/api\/\w+\/(\d+)/);
+/** Extract the last integer path segment from an API pathname.
+ *  Works for both flat (/api/competitions/42) and nested (/api/events/competition/42) routes. */
+export function extractIntId(pathname: string): number | null {
+  const match = pathname.match(/\/(\d+)(?:\/|$)/);
   return match ? parseInt(match[1], 10) : null;
 }
 
 /** Extract a string ID (e.g. UUID) from /api/<resource>/<id>/... */
-function extractStringId(pathname: string): string | null {
+export function extractStringId(pathname: string): string | null {
   const match = pathname.match(/\/api\/\w+\/([^/]+)/);
   return match ? match[1] : null;
 }

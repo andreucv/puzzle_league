@@ -56,6 +56,10 @@ export function useEventStream<K extends ChannelName>(
 		adapter.refresh();
 	}
 
+	function resetErrors() {
+		adapter.resetErrors();
+	}
+
 	function destroy() {
 		adapter.disconnect();
 	}
@@ -66,6 +70,7 @@ export function useEventStream<K extends ChannelName>(
 		get lastUpdated() { return lastUpdated; },
 		get error() { return error; },
 		refresh,
+		resetErrors,
 		destroy
 	};
 }

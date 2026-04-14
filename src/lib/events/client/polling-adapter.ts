@@ -32,6 +32,7 @@ export class PollingAdapter<TState> implements TransportAdapter<TState> {
 	private errorCount = 0;
 	private isBackground = false;
 	private visibilityHandler: (() => void) | null = null;
+	private polling = false;
 
 	constructor(options: PollingAdapterOptions) {
 		this.url = options.url;
@@ -108,8 +109,17 @@ export class PollingAdapter<TState> implements TransportAdapter<TState> {
 		this.schedule();
 	}
 
+	/** Reset error state — call after a successful user action to avoid stale error status */
+	resetErrors(): void {
+		if (this.errorCount > 0) {
+			this.errorCount = 0;
+			this.reschedule();
+		}
+	}
+
 	private async poll(): Promise<void> {
-		if (!this.connected) return;
+		if (!this.connected || this.polling) return;
+		this.polling = true;
 
 		try {
 			const headers: HeadersInit = {};
@@ -149,6 +159,8 @@ export class PollingAdapter<TState> implements TransportAdapter<TState> {
 			this.errorCount++;
 			this.statusCallback?.(this.errorCount >= 3 ? 'error' : 'reconnecting');
 			this.reschedule();
+		} finally {
+			this.polling = false;
 		}
 	}
 }

@@ -47,6 +47,7 @@
     let {
         category,
         isOrganizer,
+        liveVersion,
         onStartCategory,
         onStopCategory,
         onCompleteCategory,
@@ -58,6 +59,7 @@
     }: {
         category: CategoryData;
         isOrganizer: boolean;
+        liveVersion?: string | null;
         onStartCategory?: (id: number) => void;
         onStopCategory?: (id: number) => void;
         onCompleteCategory?: (id: number) => void;
@@ -89,6 +91,16 @@
     const records = untrack(() => hasRecords)
         ? useCategoryRecords(() => category.id, untrack(() => isLive) ? 'split' : 'unified')
         : null;
+
+    // --- Re-fetch records when live version changes (external update from another judge) ---
+    let trackedVersion: string | null | undefined = undefined;
+    $effect(() => {
+        const v = liveVersion;
+        if (v && trackedVersion !== undefined && v !== trackedVersion) {
+            records?.refreshAll();
+        }
+        trackedVersion = v;
+    });
 
     // --- Optimistic finished count (LIVE only) ---
     let localFinishedCount = $state<number | null>(null);

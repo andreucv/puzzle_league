@@ -23,6 +23,7 @@ export function useEventStream<K extends ChannelName>(
 	let status = $state<ConnectionStatus>('disconnected');
 	let lastUpdated = $state<Date | null>(null);
 	let error = $state<string | null>(null);
+	let pollCount = $state(0);
 
 	const url = CHANNEL_URLS[channel](params as Record<string, unknown>);
 
@@ -47,6 +48,10 @@ export function useEventStream<K extends ChannelName>(
 		}
 	});
 
+	adapter.onPollComplete(() => {
+		pollCount++;
+	});
+
 	$effect(() => {
 		adapter.connect();
 		return () => adapter.disconnect();
@@ -69,6 +74,7 @@ export function useEventStream<K extends ChannelName>(
 		get status() { return status; },
 		get lastUpdated() { return lastUpdated; },
 		get error() { return error; },
+		get pollCount() { return pollCount; },
 		refresh,
 		resetErrors,
 		destroy

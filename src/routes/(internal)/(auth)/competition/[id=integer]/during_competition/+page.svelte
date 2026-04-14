@@ -31,10 +31,12 @@
 
     // Event stream for live updates
     const eventStream = useEventStream('competition', { id: competitionId }, {
-        activeInterval: 3_000,
-        idleInterval: 15_000,
-        backgroundInterval: 30_000,
-        isActive: (s: any) => s?.categories?.some((c: any) => c.status === 'LIVE' || c.status === 'STOPPED') ?? false
+        activeInterval: 1_000,
+        idleInterval: 30_000,
+        backgroundInterval: 60_000,
+        isActive: (s: any) => s?.categories?.some((c: any) =>
+            (c.status === 'LIVE' || c.status === 'STOPPED') && c.finishedRecords > 0
+        ) ?? false
     });
 
     // Clear optimistic overrides when server catches up (version advances)
@@ -173,6 +175,16 @@
     }
 
     let liveVersion = $derived(eventStream.state?.version ?? null);
+
+    type PollingMode = 'live' | 'idle' | 'error';
+    let pollingMode: PollingMode = $derived.by(() => {
+        if (eventStream.status === 'error') return 'error';
+        const s = eventStream.state;
+        if (s?.categories?.some((c: any) =>
+            (c.status === 'LIVE' || c.status === 'STOPPED') && c.finishedRecords > 0
+        )) return 'live';
+        return 'idle';
+    });
 </script>
 
 <div class="container mx-auto max-w-4xl space-y-4">
@@ -180,7 +192,40 @@
     <TitleBackButton
         href="/competitions/competition_details/{competitionId}"
         text={competition?.name ?? $t('during_competition.title')}
-    />
+    >
+        {#snippet trailing()}
+            {#if pollingMode === 'live'}
+                <span class="badge preset-tonal-success gap-1 text-xs" data-testid="polling-indicator-live">
+                    <span class="relative flex h-1.5 w-1.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-500"></span>
+                    </span>
+                    {$t('during_competition.polling_live')}
+                </span>
+            {:else if pollingMode === 'error'}
+                <span class="badge preset-tonal-error gap-1 text-xs" data-testid="polling-indicator-error">
+                    <span class="inline-flex rounded-full h-1.5 w-1.5 bg-error-500"></span>
+                    {$t('during_competition.polling_offline')}
+                </span>
+            {:else}
+                {#key eventStream.pollCount}
+                <span class="badge preset-tonal-success gap-1 text-xs" data-testid="polling-indicator-idle">
+                    <span class="relative flex items-center justify-center" style="width: 12px; height: 12px;">
+                        <svg class="absolute poll-progress" viewBox="0 0 12 12" width="12" height="12">
+                            <circle cx="6" cy="6" r="4.5" fill="none" stroke="var(--color-success-400)" stroke-width="1.5"
+                                stroke-dasharray="28.27"
+                                stroke-dashoffset="28.27"
+                                stroke-linecap="round"
+                                transform="rotate(-90 6 6)" />
+                        </svg>
+                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-500"></span>
+                    </span>
+                    {$t('during_competition.polling_live')}
+                </span>
+                {/key}
+            {/if}
+        {/snippet}
+    </TitleBackButton>
 
     <!-- Connection status banner -->
     {#if eventStream.status === 'error'}
@@ -298,3 +343,18 @@
         </div>
     {/if}
 </div>
+
+<style>
+    .poll-progress circle {
+        animation: poll-fill 30s linear forwards;
+    }
+
+    @keyframes poll-fill {
+        from {
+            stroke-dashoffset: 28.27;
+        }
+        to {
+            stroke-dashoffset: 0;
+        }
+    }
+</style>

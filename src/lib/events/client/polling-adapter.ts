@@ -24,6 +24,7 @@ export class PollingAdapter<TState> implements TransportAdapter<TState> {
 
 	private stateCallback: ((state: TState) => void) | null = null;
 	private statusCallback: ((status: ConnectionStatus) => void) | null = null;
+	private pollCompleteCallback: (() => void) | null = null;
 
 	private timer: ReturnType<typeof setInterval> | null = null;
 	private etag: string | null = null;
@@ -33,6 +34,7 @@ export class PollingAdapter<TState> implements TransportAdapter<TState> {
 	private isBackground = false;
 	private visibilityHandler: (() => void) | null = null;
 	private polling = false;
+	private _pollCount = 0;
 
 	constructor(options: PollingAdapterOptions) {
 		this.url = options.url;
@@ -48,6 +50,10 @@ export class PollingAdapter<TState> implements TransportAdapter<TState> {
 
 	onStatusChange(callback: (status: ConnectionStatus) => void): void {
 		this.statusCallback = callback;
+	}
+
+	onPollComplete(callback: () => void): void {
+		this.pollCompleteCallback = callback;
 	}
 
 	connect(): void {
@@ -77,6 +83,11 @@ export class PollingAdapter<TState> implements TransportAdapter<TState> {
 			this.visibilityHandler = null;
 		}
 		this.statusCallback?.('disconnected');
+	}
+
+	/** Number of completed poll cycles — used by UI to reset animations */
+	get pollCount(): number {
+		return this._pollCount;
 	}
 
 	/** Force an immediate poll (used by manual refresh) */
@@ -160,7 +171,9 @@ export class PollingAdapter<TState> implements TransportAdapter<TState> {
 			this.statusCallback?.(this.errorCount >= 3 ? 'error' : 'reconnecting');
 			this.reschedule();
 		} finally {
+			this._pollCount++;
 			this.polling = false;
+			this.pollCompleteCallback?.();
 		}
 	}
 }

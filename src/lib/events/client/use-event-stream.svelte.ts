@@ -52,10 +52,11 @@ export function useEventStream<K extends ChannelName>(
 		pollCount++;
 	});
 
-	$effect(() => {
-		adapter.connect();
-		return () => adapter.disconnect();
-	});
+	// TEMPORARILY DISABLED — Prisma plan limit reached
+	// $effect(() => {
+	// 	adapter.connect();
+	// 	return () => adapter.disconnect();
+	// });
 
 	function refresh() {
 		adapter.refresh();

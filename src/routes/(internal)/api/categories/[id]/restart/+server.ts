@@ -1,6 +1,7 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/database';
 import { CategoryStatus, InscriptionStatus } from '$lib/.prisma/generated/prisma/enums';
+import { publishCompetitionEvent } from '$lib/events/server/ably';
 
 export const POST = async (event: RequestEvent) => {
   try {
@@ -43,6 +44,14 @@ export const POST = async (event: RequestEvent) => {
 
     const totalRecords = await prisma.record.count({
       where: { categoryId, status: InscriptionStatus.CONFIRMED }
+    });
+
+    publishCompetitionEvent(updatedCategory.competitionId, 'category.status_changed', {
+      categoryId: updatedCategory.id,
+      competitionId: updatedCategory.competitionId,
+      status: updatedCategory.status,
+      realStartTime: updatedCategory.realStartTime?.toISOString() ?? null,
+      realEndTime: null
     });
 
     return json({

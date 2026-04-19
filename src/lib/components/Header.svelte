@@ -8,25 +8,9 @@
     let currentPath = $derived(page.url.pathname);
 
     import { drawerState } from '../../shareds/drawer.svelte';
-    import { useEventStream } from '$lib/events/client/use-event-stream.svelte';
 
+    // TODO: Replace with Ably subscription when notifications channel is implemented
     let hasUnread = $state(false);
-
-    $effect(() => {
-        if (user) {
-            const stream = useEventStream('notifications', { userId: user.id }, {
-                idleInterval: 15_000,
-                backgroundInterval: 30_000
-            });
-            // Reactive derivation in inner effect to track state changes
-            $effect(() => {
-                hasUnread = stream.state?.hasUnread ?? false;
-            });
-            return () => {
-                stream.destroy();
-            };
-        }
-    });
 </script>
 
 <header>

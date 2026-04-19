@@ -2,7 +2,7 @@
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
     import CategoryCard from '$lib/components/during-competition/CategoryCard.svelte';
     import CollapsibleSection from '$lib/components/manage_inscriptions/CollapsibleSection.svelte';
-    import { useEventStream } from '$lib/events/client/use-event-stream.svelte';
+    import { useAblyStream } from '$lib/events/client/use-ably-stream.svelte';
     import PlayCircleOutlineIcon from '@iconify-svelte/mdi/play-circle-outline';
     import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
     import AlertCircleOutlineIcon from '@iconify-svelte/mdi/alert-circle-outline';
@@ -11,7 +11,6 @@
     import InformationOutlineIcon from '@iconify-svelte/mdi/information-outline';
     import { t } from '$lib/translations';
     import { untrack } from 'svelte';
-    import { authClient } from '$lib/auth_client';
 
     let { data } = $props();
 
@@ -30,29 +29,24 @@
         data.props.categories.map((c: any) => categoryOverrides[c.id] ? { ...c, ...categoryOverrides[c.id] } : c)
     );
 
-    // Event stream for live updates
-    const eventStream = useEventStream('competition', { id: competitionId }, {
-        activeInterval: 1_000,
-        idleInterval: 30_000,
-        backgroundInterval: 60_000,
-        isActive: (s: any) => s?.categories?.some((c: any) =>
-            (c.status === 'LIVE' || c.status === 'STOPPED') && c.finishedRecords > 0
-        ) ?? false
-    });
+    // Ably stream for live updates — initialized with server-computed state
+    const ablyStream = useAblyStream(
+        `competition:${competitionId}`,
+        untrack(() => data.props.initialEventState),
+        `/api/ably-token?competitionId=${competitionId}`
+    );
 
-    // Clear optimistic overrides when server catches up (version advances)
-    let lastSeenVersion = $state<string | null>(null);
+    // When load() re-runs (after invalidation), update the stream's state
     $effect(() => {
-        const version = eventStream.state?.version;
-        if (version && version !== lastSeenVersion) {
-            lastSeenVersion = version;
+        if (data.props.initialEventState) {
+            ablyStream.updateState(data.props.initialEventState);
             categoryOverrides = {};
         }
     });
 
-    // Merge server categories with live event state
+    // Merge server categories with live Ably state
     let categories = $derived.by(() => {
-        const liveState = eventStream.state;
+        const liveState = ablyStream.state;
         if (!liveState) return serverCategories;
 
         return serverCategories.map((cat: any) => {
@@ -82,10 +76,10 @@
     let finishedCategories = $derived(visibleCategories.filter((c: any) => c.status === 'COMPLETE' || c.status === 'CANCELED'));
     let hasLiveOrStopped = $derived(activeCategories.length > 0 || stoppedCategories.length > 0);
 
-    /** After a successful server action, clear error state and trigger immediate refresh */
+    /** After a successful server action, clear overrides (Ably push will bring the update) */
     function onActionSuccess() {
-        eventStream.resetErrors();
-        eventStream.refresh();
+        // No-op: Ably will push the update to all clients.
+        // Optimistic overrides are cleared when the Ably event arrives via state update.
     }
 
     async function handleStartCategory(categoryId: number) {
@@ -175,16 +169,14 @@
         onActionSuccess();
     }
 
-    let liveVersion = $derived(eventStream.state?.version ?? null);
+    let liveVersion = $derived(ablyStream.state?.version ?? null);
 
-    type PollingMode = 'live' | 'idle' | 'error';
-    let pollingMode: PollingMode = $derived.by(() => {
-        if (eventStream.status === 'error') return 'error';
-        const s = eventStream.state;
-        if (s?.categories?.some((c: any) =>
-            (c.status === 'LIVE' || c.status === 'STOPPED') && c.finishedRecords > 0
-        )) return 'live';
-        return 'idle';
+    type StreamMode = 'connected' | 'connecting' | 'error' | 'disconnected';
+    let streamMode: StreamMode = $derived.by(() => {
+        if (ablyStream.status === 'error') return 'error';
+        if (ablyStream.status === 'disconnected') return 'disconnected';
+        if (ablyStream.status === 'connecting' || ablyStream.status === 'reconnecting') return 'connecting';
+        return 'connected';
     });
 </script>
 
@@ -192,44 +184,33 @@
     <!-- Header -->
     <TitleBackButton
         href="/competitions/competition_details/{competitionId}"
-        text={competition?.name ?? $t('during_competition.title')}
+        text={competition.name}
     >
         {#snippet trailing()}
-            {#if pollingMode === 'live'}
-                <span class="badge preset-tonal-success gap-1 text-xs" data-testid="polling-indicator-live">
+            {#if streamMode === 'connected'}
+                <span class="badge preset-tonal-success gap-1 text-xs" data-testid="stream-indicator-connected">
                     <span class="relative flex h-1.5 w-1.5">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-500"></span>
                     </span>
                     {$t('during_competition.polling_live')}
                 </span>
-            {:else if pollingMode === 'error'}
-                <span class="badge preset-tonal-error gap-1 text-xs" data-testid="polling-indicator-error">
+            {:else if streamMode === 'error'}
+                <span class="badge preset-tonal-error gap-1 text-xs" data-testid="stream-indicator-error">
                     <span class="inline-flex rounded-full h-1.5 w-1.5 bg-error-500"></span>
                     {$t('during_competition.polling_offline')}
                 </span>
-            {:else}
-                {#key eventStream.pollCount}
-                <span class="badge preset-tonal-success gap-1 text-xs" data-testid="polling-indicator-idle">
-                    <span class="relative flex items-center justify-center" style="width: 12px; height: 12px;">
-                        <svg class="absolute poll-progress" viewBox="0 0 12 12" width="12" height="12">
-                            <circle cx="6" cy="6" r="4.5" fill="none" stroke="var(--color-success-400)" stroke-width="1.5"
-                                stroke-dasharray="28.27"
-                                stroke-dashoffset="28.27"
-                                stroke-linecap="round"
-                                transform="rotate(-90 6 6)" />
-                        </svg>
-                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-500"></span>
-                    </span>
+            {:else if streamMode === 'connecting'}
+                <span class="badge preset-tonal-warning gap-1 text-xs" data-testid="stream-indicator-connecting">
+                    <span class="inline-flex rounded-full h-1.5 w-1.5 bg-warning-500 animate-pulse"></span>
                     {$t('during_competition.polling_live')}
                 </span>
-                {/key}
             {/if}
         {/snippet}
     </TitleBackButton>
 
     <!-- Connection status banner -->
-    {#if eventStream.status === 'error'}
+    {#if ablyStream.status === 'error'}
         <div class="p-2 rounded-lg bg-error-500/10 border border-error-500/30 text-sm text-error-600 flex items-center gap-2">
             <WifiOffIcon width="1rem" height="1rem" />
             {$t('during_competition.connection_error')}
@@ -344,18 +325,3 @@
         </div>
     {/if}
 </div>
-
-<style>
-    .poll-progress circle {
-        animation: poll-fill 30s linear forwards;
-    }
-
-    @keyframes poll-fill {
-        from {
-            stroke-dashoffset: 28.27;
-        }
-        to {
-            stroke-dashoffset: 0;
-        }
-    }
-</style>

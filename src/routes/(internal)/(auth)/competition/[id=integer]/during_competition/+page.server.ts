@@ -2,6 +2,7 @@ import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getCompetition, getCompetitionCategories } from '$lib/database/database';
 import { getDuringCompetitionAccess } from '$lib/database/db_competition_utils';
+import { resolveCompetitionState } from '$lib/events/channels/competition';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
     const competitionId = parseInt(params.id as string);
@@ -15,10 +16,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         throw redirect(302, '/login');
     }
 
-    const [{ isOrganizer, isJudge, judgedCategoryIds }, competition, categories] = await Promise.all([
+    const [{ isOrganizer, isJudge, judgedCategoryIds }, competition, categories, initialEventState] = await Promise.all([
         getDuringCompetitionAccess(competitionId, user.id),
         getCompetition(competitionId),
-        getCompetitionCategories(competitionId)
+        getCompetitionCategories(competitionId),
+        resolveCompetitionState({ id: competitionId })
     ]);
 
     if (!isOrganizer && !isJudge) {
@@ -34,7 +36,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
             competition,
             categories,
             userRole: isOrganizer ? 'organizer' : 'judge',
-            judgedCategoryIds
+            judgedCategoryIds,
+            initialEventState
         }
     };
 };

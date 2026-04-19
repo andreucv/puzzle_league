@@ -1,6 +1,7 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/database';
 import { CategoryStatus } from '$lib/.prisma/generated/prisma/enums';
+import { publishCompetitionEvent } from '$lib/events/server/ably';
 
 export const POST = async (event: RequestEvent) => {
   try {
@@ -33,6 +34,13 @@ export const POST = async (event: RequestEvent) => {
         users: true,
         category: true
       }
+    });
+
+    publishCompetitionEvent(updatedEntry.category.competitionId, 'record.finished', {
+      recordId: updatedEntry.id,
+      categoryId: updatedEntry.categoryId,
+      competitionId: updatedEntry.category.competitionId,
+      finishTime: updatedEntry.finishTime!.toISOString()
     });
 
     return json({ record: updatedEntry });

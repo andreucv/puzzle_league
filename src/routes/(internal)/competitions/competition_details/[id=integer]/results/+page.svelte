@@ -5,6 +5,9 @@
     import { t } from '$lib/translations';
     import { formatElapsedTime, formatTimeDelta, getCategoryTypeName } from '$lib/utils/category_utils';
     import { onMount } from 'svelte';
+    import { invalidateAll } from '$app/navigation';
+    import { AblyAdapter } from '$lib/events/client/ably-adapter';
+    import { page } from '$app/state';
 
     import TrophyIcon from '@iconify-svelte/mdi/trophy';
     import TrophyOutlineIcon from '@iconify-svelte/mdi/trophy-outline';
@@ -22,6 +25,20 @@
     const categories: App.ResultCategory[] = $derived(competition.categories);
 
     let selectedCategoryId = $state<number | null>(null);
+
+    // Live updates: subscribe to competition events and re-fetch results on changes
+    $effect(() => {
+        const competitionId = data.competition.id;
+        const authUrl = page.data.user
+            ? `/api/ably-token?competitionId=${competitionId}`
+            : `/api/ably-token/public?competitionId=${competitionId}`;
+        const adapter = new AblyAdapter({ channelName: `competition:${competitionId}`, authUrl });
+        adapter.onMessage(() => {
+            invalidateAll();
+        });
+        adapter.connect();
+        return () => adapter.disconnect();
+    });
 
     const selectedCategory = $derived(
         categories.find((c) => c.id === selectedCategoryId) ?? categories[0] ?? null

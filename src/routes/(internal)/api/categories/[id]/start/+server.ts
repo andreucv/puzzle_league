@@ -3,6 +3,7 @@ import { startCategory } from '$lib/database/database';
 import { prisma } from '$lib/database/create_prisma_client';
 import { createNotificationForUsers } from '$lib/notifications/notifications';
 import { CompetitionStatus, NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { publishCompetitionEvent } from '$lib/events/server/ably';
 
 export const POST = async (event: RequestEvent) => {
   try {
@@ -48,6 +49,13 @@ export const POST = async (event: RequestEvent) => {
         );
       }
     }
+
+    publishCompetitionEvent(updatedCategory.competitionId, 'category.status_changed', {
+      categoryId: updatedCategory.id,
+      competitionId: updatedCategory.competitionId,
+      status: updatedCategory.status,
+      realStartTime: updatedCategory.realStartTime?.toISOString() ?? null
+    });
 
     console.log(`api/categories/${categoryId}/start: `, updatedCategory);
     return json({ category: updatedCategory });

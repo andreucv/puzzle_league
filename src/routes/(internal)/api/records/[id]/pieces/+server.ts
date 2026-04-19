@@ -1,6 +1,7 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/database';
 import { CategoryStatus } from '$lib/.prisma/generated/prisma/enums';
+import { publishCompetitionEvent } from '$lib/events/server/ably';
 
 export const POST = async (event: RequestEvent) => {
 	try {
@@ -44,6 +45,19 @@ export const POST = async (event: RequestEvent) => {
 				}
 			}
 		});
+
+		const cat = await prisma.category.findUnique({
+			where: { id: updatedRecord.categoryId },
+			select: { competitionId: true }
+		});
+		if (cat) {
+			publishCompetitionEvent(cat.competitionId, 'record.pieces_updated', {
+				recordId: updatedRecord.id,
+				categoryId: updatedRecord.categoryId,
+				competitionId: cat.competitionId,
+				nPiecesCompleted
+			});
+		}
 
 		return json({ record: updatedRecord });
 	} catch (error) {

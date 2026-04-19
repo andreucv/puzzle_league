@@ -25,12 +25,16 @@ and tailwindcss for styling.
 - [PostgreSQL](https://www.postgresql.org/) - The database used for storing the app data
 - [Vercel](https://vercel.com/) - The platform used for deploying the app
 
-<!-- GSD Configuration — managed by get-shit-done installer -->
-# Instructions for GSD
+## Work Documentation (MANDATORY)
 
-- Use the get-shit-done skill when the user asks for GSD or uses a `gsd-*` command.
-- Treat `/gsd-...` or `gsd-...` as command invocations and load the matching file from `.github/skills/gsd-*`.
-- When a command says to spawn a subagent, prefer a matching custom agent from `.github/agents`.
-- Do not apply GSD workflows unless the user explicitly asks for them.
-- After completing any `gsd-*` command (or any deliverable it triggers: feature, bug fix, tests, docs, etc.), ALWAYS: (1) offer the user the next step by prompting via `ask_user`; repeat this feedback loop until the user explicitly indicates they are done.
-<!-- /GSD Configuration -->
+After completing any work, create a documentation file in the `.work-done/` folder with the filename format: `YYYY-MM-DD-<short-description>.md`
+
+This file must include:
+1. **What was implemented** - A brief description of the features or changes added
+2. **Decisions made and rationale** - Explain key technical decisions and their reasons
+3. **Files changed** - List all files that were modified, created, or deleted
+
+**Guidelines:**
+- Write in past tense (work has been completed)
+- Keep descriptions concise and clear
+- Use this documentation for team reference and change tracking

@@ -1,5 +1,7 @@
 import "dotenv/config";
-import { betterAuth } from "better-auth";
+import { betterAuth } from "better-auth"
+import { jwt } from "better-auth/plugins"
+
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from '$lib/database/create_prisma_client';
 
@@ -17,4 +19,7 @@ export const auth = betterAuth({
             clientSecret: `${process.env.GOOGLE_CLIENT_SECRET}`,
         },
     },
+    plugins: [
+        jwt(),
+    ]
 });

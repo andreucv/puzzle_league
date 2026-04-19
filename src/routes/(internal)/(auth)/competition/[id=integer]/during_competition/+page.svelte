@@ -11,6 +11,7 @@
     import InformationOutlineIcon from '@iconify-svelte/mdi/information-outline';
     import { t } from '$lib/translations';
     import { untrack } from 'svelte';
+    import { authClient } from '$lib/auth_client';
 
     let { data } = $props();
 

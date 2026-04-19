@@ -1,12 +1,13 @@
+
 generator client {
   provider = "prisma-client"
   output   = "../src/lib/.prisma/generated/prisma"
 }
 
 generator zod {
-  provider          = "zod-prisma-types"
-  output            = "../src/lib/.prisma/generated/zod"
-  useMultipleFiles  = true
+  provider         = "zod-prisma-types"
+  output           = "../src/lib/.prisma/generated/zod"
+  useMultipleFiles = true
 }
 
 datasource db {
@@ -14,31 +15,31 @@ datasource db {
 }
 
 model User {
-  id                    String           @id
-  name                  String
-  email                 String
-  emailVerified         Boolean
-  image                 String?
-  country               String?
-  postalCode            String?
-  phonePrefix           String?
-  phoneNumber           String?
+  id                     String           @id
+  name                   String
+  email                  String
+  emailVerified          Boolean
+  image                  String?
+  country                String?
+  postalCode             String?
+  phonePrefix            String?
+  phoneNumber            String?
   phonePromptLastChecked DateTime?
   userIntentsLastChecked DateTime?
-  createdAt             DateTime
-  updatedAt             DateTime
-  sessions              Session[]
-  accounts              Account[]
-  records               Record[]          @relation("RecordParticipants")
-  createdRecords        Record[]          @relation("RecordCreator")
-  roleAssignments       RoleAssignment[]
-  requests              Request[]
-  leaguePoints          LeaguePoints[]
-  competitions          Competition[]
-  notifications         Notification[]    @relation("NotificationRecipient")
-  createdUserIntents    UserIntent[]      @relation("UserIntentCreator")
-  claimedUserIntents    UserIntent[]      @relation("UserIntentClaimer")
-  judgedCategories      Category[]        @relation("CategoryJudges")
+  createdAt              DateTime
+  updatedAt              DateTime
+  sessions               Session[]
+  accounts               Account[]
+  records                Record[]         @relation("RecordParticipants")
+  createdRecords         Record[]         @relation("RecordCreator")
+  roleAssignments        RoleAssignment[]
+  requests               Request[]
+  leaguePoints           LeaguePoints[]
+  competitions           Competition[]
+  notifications          Notification[]   @relation("NotificationRecipient")
+  createdUserIntents     UserIntent[]     @relation("UserIntentCreator")
+  claimedUserIntents     UserIntent[]     @relation("UserIntentClaimer")
+  judgedCategories       Category[]       @relation("CategoryJudges")
 
   @@unique([email])
   @@map("user")
@@ -57,6 +58,7 @@ model Session {
 
   @@unique([token])
   @@map("session")
+  @@index([userId])
 }
 
 model Account {
@@ -76,6 +78,7 @@ model Account {
   updatedAt             DateTime
 
   @@map("account")
+  @@index([userId])
 }
 
 model Verification {
@@ -87,6 +90,7 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+  @@index([identifier])
 }
 
 enum CategoryType {
@@ -161,23 +165,23 @@ model League {
 }
 
 model Competition {
-  id               Int               @id @default(autoincrement())
-  name             String
-  description      String?
-  location         String?
-  country          String?
-  postalCode       String?
-  image_cld_id     String?
-  startDate        DateTime
-  endDate          DateTime
-  status           CompetitionStatus @default(NOT_STARTED)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  leagueId         String?
-  league           League?           @relation(fields: [leagueId], references: [id], onDelete: Cascade)
-  categories       Category[]
-  roleAssignments  RoleAssignment[]
-  requests         Request[]
+  id                 Int               @id @default(autoincrement())
+  name               String
+  description        String?
+  location           String?
+  country            String?
+  postalCode         String?
+  image_cld_id       String?
+  startDate          DateTime
+  endDate            DateTime
+  status             CompetitionStatus @default(NOT_STARTED)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  leagueId           String?
+  league             League?           @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  categories         Category[]
+  roleAssignments    RoleAssignment[]
+  requests           Request[]
   paymentMethod      String?
   creatorId          String
   creator            User              @relation(fields: [creatorId], references: [id], onDelete: Cascade)
@@ -203,7 +207,7 @@ model Puzzle {
 }
 
 model Category {
-  id            Int          @id @default(autoincrement())
+  id            Int            @id @default(autoincrement())
   description   String
   subname       String?
   type          CategoryType
@@ -214,43 +218,43 @@ model Category {
   realEndTime   DateTime?
   status        CategoryStatus @default(NOT_STARTED)
   maxParties    Int?
-  price         Int          @default(0)
+  price         Int            @default(0)
   competitionId Int
-  competition   Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  competition   Competition    @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   records       Record[]
   puzzles       Puzzle[]
-  judges        User[]       @relation("CategoryJudges")
+  judges        User[]         @relation("CategoryJudges")
 
   @@map("category")
 }
 
 model Record {
-  id                 String            @id @default(cuid())
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  finishTime         DateTime?
-  tableNumber        Int?
-  nPiecesCompleted   Int?
-  status             InscriptionStatus @default(PENDING_CONFIRMATION)
-  categoryId         Int
-  category           Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  users              User[]            @relation("RecordParticipants")
-  userIntents        UserIntent[]      @relation("RecordUserIntents")
-  creatorId          String
-  creator            User              @relation("RecordCreator", fields: [creatorId], references: [id], onDelete: SetDefault)
+  id               String            @id @default(cuid())
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  finishTime       DateTime?
+  tableNumber      Int?
+  nPiecesCompleted Int?
+  status           InscriptionStatus @default(PENDING_CONFIRMATION)
+  categoryId       Int
+  category         Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  users            User[]            @relation("RecordParticipants")
+  userIntents      UserIntent[]      @relation("RecordUserIntents")
+  creatorId        String
+  creator          User              @relation("RecordCreator", fields: [creatorId], references: [id], onDelete: SetDefault)
 
   @@map("record")
 }
 
 model UserIntent {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime @default(now())
   createdById String
-  createdBy   User      @relation("UserIntentCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  createdBy   User     @relation("UserIntentCreator", fields: [createdById], references: [id], onDelete: Cascade)
   claimedById String?
-  claimedBy   User?     @relation("UserIntentClaimer", fields: [claimedById], references: [id], onDelete: SetNull)
-  records     Record[]  @relation("RecordUserIntents")
+  claimedBy   User?    @relation("UserIntentClaimer", fields: [claimedById], references: [id], onDelete: SetNull)
+  records     Record[] @relation("RecordUserIntents")
 
   @@map("user_intent")
 }
@@ -311,4 +315,14 @@ model Notification {
 
   @@index([userId, read])
   @@map("notification")
+}
+
+model Jwks {
+  id         String    @id
+  publicKey  String
+  privateKey String
+  createdAt  DateTime
+  expiresAt  DateTime?
+
+  @@map("jwks")
 }

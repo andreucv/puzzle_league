@@ -16,14 +16,14 @@ export const GET = async (event: RequestEvent) => {
     // Build where clause with optional search filtering
     const where: Prisma.RecordWhereInput = { categoryId };
 
-    // Filter by finished status if specified — only count CONFIRMED records
-    // to stay consistent with server-side totalRecords/finishedRecords counts
+    // Only return CONFIRMED records to stay consistent with server-side counts
+    where.status = InscriptionStatus.CONFIRMED;
+
+    // Optionally filter by finished status
     if (finishedFilter === 'true') {
       where.finishTime = { not: null };
-      where.status = InscriptionStatus.CONFIRMED;
     } else if (finishedFilter === 'false') {
       where.finishTime = null;
-      where.status = InscriptionStatus.CONFIRMED;
     }
 
     if (search) {

@@ -27,22 +27,7 @@
     import PuzzlePieceIcon from '@iconify-svelte/mdi/puzzle';
     import FormatListBulletedIcon from '@iconify-svelte/mdi/format-list-bulleted';
 
-    import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
-
-    interface CategoryData {
-        id: number;
-        type: CategoryType;
-        description: string;
-        subname?: string | null;
-        status: string;
-        startTime?: string;
-        realStartTime: string | null;
-        realEndTime: string | null;
-        totalRecords: number;
-        finishedRecords: number;
-        competitionId: number;
-        puzzles?: { pieces: number }[];
-    }
+    import type { CategoryData } from '$lib/types/category';
 
     let {
         category,
@@ -53,9 +38,7 @@
         onCompleteCategory,
         onResumeCategory,
         onCancelCategory,
-        onRestartCategory,
-        onRecordFinish,
-        onCategoryUpdate
+        onRestartCategory
     }: {
         category: CategoryData;
         isOrganizer: boolean;
@@ -66,8 +49,6 @@
         onResumeCategory?: (id: number) => void;
         onCancelCategory?: (id: number) => void;
         onRestartCategory?: (id: number) => void;
-        onRecordFinish?: (recordId: string) => void;
-        onCategoryUpdate?: (category: CategoryData) => void;
     } = $props();
 
     let status = $derived(category.status);
@@ -108,6 +89,18 @@
     $effect(() => {
         category.finishedRecords;
         localFinishedCount = null;
+    });
+
+    // --- Debug: track record counts reactively ---
+    $effect(() => {
+        if (records) {
+            const pending = records.pendingRecords?.length ?? '?';
+            const finished = records.finishedRecords?.length ?? '?';
+            // untrack category reads — we only care about count changes, not prop identity
+            const id = untrack(() => category.id);
+            const type = untrack(() => category.type);
+            console.log(`[CategoryCard ${id} ${type}] pending: ${pending}, finished: ${finished}`);
+        }
     });
 
     let effectiveFinishedCount = $derived(localFinishedCount ?? category.finishedRecords);
@@ -206,15 +199,13 @@
                 body: JSON.stringify({ finishTime: new Date().toISOString() })
             });
             if (response.ok) {
-                const finishedRecord = records.pendingRecords.find((r: any) => r.id === recordId);
-                if (finishedRecord) {
-                    records.pendingRecords = records.pendingRecords.filter((r: any) => r.id !== recordId);
-                    records.finishedRecords = [...records.finishedRecords, { ...finishedRecord, finishTime: new Date().toISOString() }];
-                    localFinishedCount = records.finishedRecords.length;
-                }
+                records.allRecords = records.allRecords.map((r: any) =>
+                    r.id === recordId ? { ...r, finishTime: new Date().toISOString() } : r
+                );
+                localFinishedCount = records.finishedRecords.length;
                 records.selectedPendingRecord = null;
-                onRecordFinish?.(recordId);
-                records.refreshAll();
+                // No refreshAll() here — the Ably event will trigger a version change
+                // which the version-tracking effect uses to refresh only this card's records.
             }
         } catch (err) {
             console.error('Failed to record finish:', err);
@@ -226,15 +217,11 @@
         try {
             const response = await fetch(`/api/records/${recordId}/result`, { method: 'DELETE' });
             if (response.ok) {
-                const record = records.finishedRecords.find((r: any) => r.id === recordId);
-                if (record) {
-                    records.finishedRecords = records.finishedRecords.filter((r: any) => r.id !== recordId);
-                    records.pendingRecords = [...records.pendingRecords, { ...record, finishTime: null }];
-                    localFinishedCount = records.finishedRecords.length;
-                }
+                records.allRecords = records.allRecords.map((r: any) =>
+                    r.id === recordId ? { ...r, finishTime: null } : r
+                );
+                localFinishedCount = records.finishedRecords.length;
                 records.selectedFinishedRecord = null;
-                onRecordFinish?.(recordId);
-                records.refreshAll();
             }
         } catch (err) {
             console.error('Failed to undo record finish:', err);
@@ -291,8 +278,6 @@
         return '';
     });
 
-    // Whether the completed card uses a non-icon-only restart button
-    let showCompletedRestartInline = $derived((isComplete || isCanceled) && isOrganizer && onRestartCategory);
 </script>
 
 <Card>

@@ -4,6 +4,8 @@
     import ChevronUpIcon from '@iconify-svelte/mdi/chevron-up';
     import ChevronDownIcon from '@iconify-svelte/mdi/chevron-down';
     import { untrack } from 'svelte';
+    import { slide } from 'svelte/transition';
+    import { flip } from 'svelte/animate';
 
     let {
         icon: Icon,
@@ -74,17 +76,19 @@
                     </div>
                 {:else if records.length > 0}
                     {#each records as record (record.id)}
-                        <RecordRow
-                            {record}
-                            {categoryRealStartTime}
-                            selected={selectedRecord === record.id}
-                            onSelect={onSelectRecord}
-                            {onFinish}
-                            {onUndoFinish}
-                            {onSubmitPieces}
-                            {onUndoPieces}
-                            {totalPieces}
-                        />
+                        <div transition:slide={{ duration: 200 }} animate:flip={{ duration: 200 }}>
+                            <RecordRow
+                                {record}
+                                {categoryRealStartTime}
+                                selected={selectedRecord === record.id}
+                                onSelect={onSelectRecord}
+                                {onFinish}
+                                {onUndoFinish}
+                                {onSubmitPieces}
+                                {onUndoPieces}
+                                {totalPieces}
+                            />
+                        </div>
                     {/each}
                 {:else}
                     <p class="text-sm text-surface-500 text-center p-4">{emptyMessage}</p>

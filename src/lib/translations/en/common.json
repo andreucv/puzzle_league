@@ -447,7 +447,19 @@
     "resume_category": "Resume Category",
     "resume_confirm_title": "Resume Category?",
     "resume_confirm_message": "Are you sure you want to resume this stopped category? It will return to LIVE status.",
-    "restart_category": "Restart Category"
+    "restart_category": "Restart Category",
+    "start_success": "Category started successfully",
+    "start_error": "Failed to start category",
+    "stop_success": "Category stopped successfully",
+    "stop_error": "Failed to stop category",
+    "cancel_success": "Category cancelled successfully",
+    "cancel_error": "Failed to cancel category",
+    "complete_success": "Category completed successfully",
+    "complete_error": "Failed to complete category",
+    "resume_success": "Category resumed successfully",
+    "resume_error": "Failed to resume category",
+    "restart_success": "Category restarted successfully",
+    "restart_error": "Failed to restart category"
   },
   "results": {
     "title": "Results",

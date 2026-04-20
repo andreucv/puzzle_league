@@ -69,6 +69,13 @@ export function useAblyStream(
 		state = newState;
 	}
 
+	/** Apply a synthetic event locally (e.g. optimistic update from user action) */
+	function applyLocalEvent(event: CompetitionEvent) {
+		if (state) {
+			state = applyCompetitionEvent(state, event);
+		}
+	}
+
 	function destroy() {
 		adapter.disconnect();
 	}
@@ -79,6 +86,7 @@ export function useAblyStream(
 		get lastUpdated() { return lastUpdated; },
 		get error() { return error; },
 		updateState,
+		applyLocalEvent,
 		destroy
 	};
 }

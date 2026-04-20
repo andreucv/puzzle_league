@@ -1,7 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { prisma } from '$lib/database/database';
-import { CategoryStatus, CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
-import { publishCompetitionEvent } from '$lib/events/server/ably';
+import { completeCategory, CategoryNotFoundError, InvalidStatusTransitionError } from '$lib/services/category-lifecycle';
 
 export const POST = async (event: RequestEvent) => {
   try {
@@ -11,52 +9,15 @@ export const POST = async (event: RequestEvent) => {
       return json({ error: 'Invalid category ID' }, { status: 400 });
     }
 
-    const category = await prisma.category.findUnique({
-      where: { id: categoryId },
-      select: { id: true, status: true, competitionId: true }
-    });
-
-    if (!category) {
-      return json({ error: 'Category not found' }, { status: 404 });
-    }
-
-    if (category.status !== CategoryStatus.STOPPED) {
-      return json({ error: 'Only STOPPED categories can be completed' }, { status: 409 });
-    }
-
-    // Transactional: complete the category and check if competition is done
-    const updatedCategory = await prisma.$transaction(async (tx) => {
-      const updated = await tx.category.update({
-        where: { id: categoryId },
-        data: { status: CategoryStatus.COMPLETE }
-      });
-
-      // Check if all categories are now COMPLETE or CANCELED
-      const remaining = await tx.category.count({
-        where: {
-          competitionId: category.competitionId,
-          status: { notIn: [CategoryStatus.COMPLETE, CategoryStatus.CANCELED] }
-        }
-      });
-
-      if (remaining === 0) {
-        await tx.competition.update({
-          where: { id: category.competitionId },
-          data: { status: CompetitionStatus.FINISHED }
-        });
-      }
-
-      return updated;
-    });
-
-    publishCompetitionEvent(updatedCategory.competitionId, 'category.status_changed', {
-      categoryId: updatedCategory.id,
-      competitionId: updatedCategory.competitionId,
-      status: updatedCategory.status
-    });
-
-    return json({ category: updatedCategory });
+    const category = await completeCategory(categoryId);
+    return json({ category });
   } catch (error) {
+    if (error instanceof CategoryNotFoundError) {
+      return json({ error: error.message }, { status: 404 });
+    }
+    if (error instanceof InvalidStatusTransitionError) {
+      return json({ error: error.message }, { status: 409 });
+    }
     console.error('Error completing category:', error);
     return json({ error: 'Failed to complete category' }, { status: 500 });
   }

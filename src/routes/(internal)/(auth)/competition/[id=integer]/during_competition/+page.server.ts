@@ -2,7 +2,7 @@ import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getCompetition, getCompetitionCategories } from '$lib/database/database';
 import { getDuringCompetitionAccess } from '$lib/database/db_competition_utils';
-import { resolveCompetitionState } from '$lib/events/channels/competition';
+import { buildEventStateFromCategories } from '$lib/events/channels/competition';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
     const competitionId = parseInt(params.id as string);
@@ -16,11 +16,10 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         throw redirect(302, '/login');
     }
 
-    const [{ isOrganizer, isJudge, judgedCategoryIds }, competition, categories, initialEventState] = await Promise.all([
+    const [{ isOrganizer, isJudge, judgedCategoryIds }, competition, categories] = await Promise.all([
         getDuringCompetitionAccess(competitionId, user.id),
         getCompetition(competitionId),
-        getCompetitionCategories(competitionId),
-        resolveCompetitionState({ id: competitionId })
+        getCompetitionCategories(competitionId)
     ]);
 
     if (!isOrganizer && !isJudge) {
@@ -30,6 +29,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     if (!competition) {
         throw error(404, 'Competition not found');
     }
+
+    const initialEventState = buildEventStateFromCategories(categories);
 
     return {
         props: {

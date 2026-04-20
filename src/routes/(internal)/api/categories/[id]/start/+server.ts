@@ -1,9 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { startCategory } from '$lib/database/database';
-import { prisma } from '$lib/database/create_prisma_client';
-import { createNotificationForUsers } from '$lib/notifications/notifications';
-import { CompetitionStatus, NotificationType } from '$lib/.prisma/generated/prisma/enums';
-import { publishCompetitionEvent } from '$lib/events/server/ably';
+import { startCategory, CategoryNotFoundError } from '$lib/services/category-lifecycle';
 
 export const POST = async (event: RequestEvent) => {
   try {
@@ -13,53 +9,12 @@ export const POST = async (event: RequestEvent) => {
       return json({ error: 'Invalid category ID' }, { status: 400 });
     }
 
-    const updatedCategory = await startCategory(categoryId);
-
-    // If this is the first category to start, mark the competition as STARTED
-    const { count: competitionStarted } = await prisma.competition.updateMany({
-      where: {
-        id: updatedCategory.competitionId,
-        status: CompetitionStatus.NOT_STARTED
-      },
-      data: { status: CompetitionStatus.STARTED }
-    });
-
-    // Notify participants when competition transitions to STARTED
-    if (competitionStarted > 0) {
-      const competition = await prisma.competition.findUnique({
-        where: { id: updatedCategory.competitionId },
-        select: { name: true }
-      });
-
-      const participantIds = await prisma.record.findMany({
-        where: { category: { competitionId: updatedCategory.competitionId } },
-        select: { users: { select: { id: true } } }
-      });
-
-      const uniqueUserIds = [...new Set(participantIds.flatMap(r => r.users.map(u => u.id)))];
-
-      if (uniqueUserIds.length > 0 && competition) {
-        await createNotificationForUsers(
-          uniqueUserIds,
-          NotificationType.COMPETITION_STARTED,
-          'notifications.titles.competition_started',
-          'notifications.messages.competition_started',
-          `/competitions/competition_details/${updatedCategory.competitionId}`,
-          { competitionName: competition.name },
-        );
-      }
-    }
-
-    publishCompetitionEvent(updatedCategory.competitionId, 'category.status_changed', {
-      categoryId: updatedCategory.id,
-      competitionId: updatedCategory.competitionId,
-      status: updatedCategory.status,
-      realStartTime: updatedCategory.realStartTime?.toISOString() ?? null
-    });
-
-    console.log(`api/categories/${categoryId}/start: `, updatedCategory);
-    return json({ category: updatedCategory });
+    const category = await startCategory(categoryId);
+    return json({ category });
   } catch (error) {
+    if (error instanceof CategoryNotFoundError) {
+      return json({ error: error.message }, { status: 404 });
+    }
     console.error('Error starting category:', error);
     return json({ error: 'Failed to start category' }, { status: 500 });
   }

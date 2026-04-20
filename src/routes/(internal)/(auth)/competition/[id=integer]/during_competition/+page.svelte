@@ -11,6 +11,10 @@
     import InformationOutlineIcon from '@iconify-svelte/mdi/information-outline';
     import { t } from '$lib/translations';
     import { untrack } from 'svelte';
+    import { executeCategoryAction, type CategoryAction } from '$lib/api/category-actions';
+    import { showSuccessToast, showErrorToast } from '$lib/utils/toast';
+    import type { CategoryData } from '$lib/types/category';
+    import type { CategoryStatusChangedEvent } from '$lib/events/types';
 
     let { data } = $props();
 
@@ -21,37 +25,38 @@
     const isOrganizer = $derived(data.props.userRole === 'organizer');
     const judgedCategoryIds = $derived(data.props.judgedCategoryIds as number[]);
 
-    // Local overrides for categories (from user actions like start/stop)
-    let categoryOverrides: Record<number, any> = $state({});
+    // Static category data from server (description, type, puzzles, etc.)
+    // Cast: SvelteKit serializes Prisma Date fields to strings at the wire boundary
+    let staticCategories = $derived(data.props.categories as unknown as CategoryData[]);
 
-    // Server categories merged with local overrides
-    let serverCategories = $derived(
-        data.props.categories.map((c: any) => categoryOverrides[c.id] ? { ...c, ...categoryOverrides[c.id] } : c)
-    );
-
-    // Ably stream for live updates — initialized with server-computed state
+    // Ably stream: single source of truth for dynamic fields (status, counts, times)
     const ablyStream = useAblyStream(
         `competition:${competitionId}`,
         untrack(() => data.props.initialEventState),
         `/api/ably-token?competitionId=${competitionId}`
     );
 
-    // When load() re-runs (after invalidation), update the stream's state
+    // When load() re-runs (after invalidation), sync the stream state
     $effect(() => {
-        if (data.props.initialEventState) {
-            ablyStream.updateState(data.props.initialEventState);
-            categoryOverrides = {};
+        const newState = data.props.initialEventState;
+        if (newState) {
+            ablyStream.updateState(newState);
         }
     });
 
-    // Merge server categories with live Ably state
-    let categories = $derived.by(() => {
+    // Merge static server data with dynamic Ably state, then filter by role
+    let visibleCategories: CategoryData[] = $derived.by(() => {
         const liveState = ablyStream.state;
-        if (!liveState) return serverCategories;
+        const base = isOrganizer
+            ? staticCategories
+            : staticCategories.filter((c) => judgedCategoryIds.includes(c.id));
 
-        return serverCategories.map((cat: any) => {
-            const liveCat = liveState.categories.find((c: any) => c.id === cat.id);
+        if (!liveState) return base;
+
+        return base.map((cat) => {
+            const liveCat = liveState.categories.find((c) => c.id === cat.id);
             if (!liveCat) return cat;
+
             return {
                 ...cat,
                 status: liveCat.status,
@@ -63,113 +68,49 @@
         });
     });
 
-    // Filter by role: judges only see assigned categories
-    let visibleCategories = $derived(
-        isOrganizer
-            ? categories
-            : categories.filter((c: any) => judgedCategoryIds.includes(c.id))
-    );
-
-    let activeCategories = $derived(visibleCategories.filter((c: any) => c.status === 'LIVE'));
-    let stoppedCategories = $derived(visibleCategories.filter((c: any) => c.status === 'STOPPED'));
-    let upcomingCategories = $derived(visibleCategories.filter((c: any) => c.status === 'NOT_STARTED'));
-    let finishedCategories = $derived(visibleCategories.filter((c: any) => c.status === 'COMPLETE' || c.status === 'CANCELED'));
+    let activeCategories = $derived(visibleCategories.filter((c) => c.status === 'LIVE'));
+    let stoppedCategories = $derived(visibleCategories.filter((c) => c.status === 'STOPPED'));
+    let upcomingCategories = $derived(visibleCategories.filter((c) => c.status === 'NOT_STARTED'));
+    let finishedCategories = $derived(visibleCategories.filter((c) => c.status === 'COMPLETE' || c.status === 'CANCELED'));
     let hasLiveOrStopped = $derived(activeCategories.length > 0 || stoppedCategories.length > 0);
 
-    /** After a successful server action, clear overrides (Ably push will bring the update) */
-    function onActionSuccess() {
-        // No-op: Ably will push the update to all clients.
-        // Optimistic overrides are cleared when the Ably event arrives via state update.
-    }
+    // Map category actions to the status they produce, for optimistic updates
+    const actionToStatus: Record<CategoryAction, string> = {
+        start: 'LIVE',
+        stop: 'STOPPED',
+        cancel: 'CANCELED',
+        complete: 'COMPLETE',
+        resume: 'LIVE',
+        restart: 'LIVE'
+    };
 
-    async function handleStartCategory(categoryId: number) {
-        try {
-            const res = await fetch(`/api/categories/${categoryId}/start`, { method: 'POST' });
-            if (res.ok) {
-                const result = await res.json();
-                categoryOverrides = { ...categoryOverrides, [categoryId]: { ...result.category, totalRecords: result.category.totalRecords, finishedRecords: result.category.finishedRecords } };
-                onActionSuccess();
-            }
-        } catch (err) {
-            console.error('Failed to start category:', err);
+    async function handleCategoryAction(categoryId: number, action: CategoryAction) {
+        const result = await executeCategoryAction(categoryId, action);
+        if (result.ok) {
+            // Apply optimistic update directly to the Ably stream state
+            ablyStream.applyLocalEvent({
+                type: 'category.status_changed',
+                categoryId,
+                competitionId,
+                status: actionToStatus[action],
+                realStartTime: result.category.realStartTime,
+                realEndTime: result.category.realEndTime
+            } satisfies CategoryStatusChangedEvent);
+            showSuccessToast($t(`during_competition.${action}_success`));
+        } else {
+            showErrorToast($t(`during_competition.${action}_error`), result.error);
         }
     }
 
-    async function handleCancelCategory(categoryId: number) {
-        try {
-            const res = await fetch(`/api/categories/${categoryId}/cancel`, { method: 'POST' });
-            if (res.ok) {
-                const result = await res.json();
-                categoryOverrides = { ...categoryOverrides, [categoryId]: result.category };
-                onActionSuccess();
-            }
-        } catch (err) {
-            console.error('Failed to cancel category:', err);
-        }
-    }
-
-    async function handleRestartCategory(categoryId: number) {
-        try {
-            const res = await fetch(`/api/categories/${categoryId}/restart`, { method: 'POST' });
-            if (res.ok) {
-                const result = await res.json();
-                categoryOverrides = { ...categoryOverrides, [categoryId]: { ...result.category, totalRecords: result.category.totalRecords, finishedRecords: result.category.finishedRecords } };
-                onActionSuccess();
-            }
-        } catch (err) {
-            console.error('Failed to restart category:', err);
-        }
-    }
-
-    async function handleCompleteCategory(categoryId: number) {
-        try {
-            const res = await fetch(`/api/categories/${categoryId}/complete`, { method: 'POST' });
-            if (res.ok) {
-                const result = await res.json();
-                categoryOverrides = { ...categoryOverrides, [categoryId]: result.category };
-                onActionSuccess();
-            }
-        } catch (err) {
-            console.error('Failed to complete category:', err);
-        }
-    }
-
-    async function handleResumeCategory(categoryId: number) {
-        try {
-            const res = await fetch(`/api/categories/${categoryId}/resume`, { method: 'POST' });
-            if (res.ok) {
-                const result = await res.json();
-                categoryOverrides = { ...categoryOverrides, [categoryId]: { ...result.category, totalRecords: result.category.totalRecords, finishedRecords: result.category.finishedRecords } };
-                onActionSuccess();
-            }
-        } catch (err) {
-            console.error('Failed to resume category:', err);
-        }
-    }
-
-    async function handleStopCategory(categoryId: number) {
-        try {
-            const res = await fetch(`/api/categories/${categoryId}/stop`, { method: 'POST' });
-            if (res.ok) {
-                const result = await res.json();
-                categoryOverrides = { ...categoryOverrides, [categoryId]: result.category };
-                onActionSuccess();
-            }
-        } catch (err) {
-            console.error('Failed to stop category:', err);
-        }
-    }
-
-    function handleRecordFinish(_recordId: string) {
-        onActionSuccess();
-    }
-
-    function handleCategoryUpdate(updated: any) {
-        categoryOverrides = { ...categoryOverrides, [updated.id]: updated };
-        onActionSuccess();
-    }
-
-    let liveVersion = $derived(ablyStream.state?.version ?? null);
+    // Per-category version: only changes when a specific category's data changes.
+    // This prevents unrelated cards from re-fetching records on every Ably event.
+    let categoryVersions = $derived.by(() => {
+        const state = ablyStream.state;
+        if (!state) return new Map<number, string>();
+        return new Map(state.categories.map(c =>
+            [c.id, `${c.status}:${c.finishedRecords}:${c.totalRecords}`]
+        ));
+    });
 
     type StreamMode = 'connected' | 'connecting' | 'error' | 'disconnected';
     let streamMode: StreamMode = $derived.by(() => {
@@ -230,12 +171,11 @@
                     <CategoryCard
                         category={cat}
                         {isOrganizer}
-                        {liveVersion}
-                        onCompleteCategory={handleCompleteCategory}
-                        onResumeCategory={handleResumeCategory}
-                        onCancelCategory={handleCancelCategory}
-                        onRestartCategory={handleRestartCategory}
-                        onCategoryUpdate={handleCategoryUpdate}
+                        liveVersion={categoryVersions.get(cat.id) ?? null}
+                        onCompleteCategory={(id) => handleCategoryAction(id, 'complete')}
+                        onResumeCategory={(id) => handleCategoryAction(id, 'resume')}
+                        onCancelCategory={(id) => handleCategoryAction(id, 'cancel')}
+                        onRestartCategory={(id) => handleCategoryAction(id, 'restart')}
                     />
                 {/each}
             </div>
@@ -259,11 +199,9 @@
                     <CategoryCard
                         category={cat}
                         {isOrganizer}
-                        {liveVersion}
-                        onStopCategory={handleStopCategory}
-                        onRecordFinish={handleRecordFinish}
-                        onCategoryUpdate={handleCategoryUpdate}
-                        onCancelCategory={handleCancelCategory}
+                        liveVersion={categoryVersions.get(cat.id) ?? null}
+                        onStopCategory={(id) => handleCategoryAction(id, 'stop')}
+                        onCancelCategory={(id) => handleCategoryAction(id, 'cancel')}
                     />
                 {/each}
             </div>
@@ -285,9 +223,9 @@
                     <CategoryCard
                         category={cat}
                         {isOrganizer}
-                        {liveVersion}
-                        onStartCategory={handleStartCategory}
-                        onCancelCategory={handleCancelCategory}
+                        liveVersion={categoryVersions.get(cat.id) ?? null}
+                        onStartCategory={(id) => handleCategoryAction(id, 'start')}
+                        onCancelCategory={(id) => handleCategoryAction(id, 'cancel')}
                     />
                 {/each}
             </div>
@@ -309,8 +247,8 @@
                     <CategoryCard
                         category={cat}
                         {isOrganizer}
-                        {liveVersion}
-                        onRestartCategory={handleRestartCategory}
+                        liveVersion={categoryVersions.get(cat.id) ?? null}
+                        onRestartCategory={(id) => handleCategoryAction(id, 'restart')}
                     />
                 {/each}
             </div>

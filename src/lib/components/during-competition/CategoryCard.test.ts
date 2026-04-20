@@ -10,16 +10,10 @@ import CategoryCard from './CategoryCard.svelte';
 
 function mockFetchRecords(finished: any[] = [], pending: any[] = []) {
 	return vi.fn((url: string) => {
-		if (typeof url === 'string' && url.includes('finished=true')) {
+		if (typeof url === 'string' && url.includes('/records')) {
 			return Promise.resolve({
 				ok: true,
-				json: () => Promise.resolve({ records: finished })
-			});
-		}
-		if (typeof url === 'string' && url.includes('finished=false')) {
-			return Promise.resolve({
-				ok: true,
-				json: () => Promise.resolve({ records: pending })
+				json: () => Promise.resolve({ records: [...finished, ...pending] })
 			});
 		}
 		// Default: results API
@@ -156,12 +150,11 @@ describe('CategoryCard', () => {
 			});
 		});
 
-		it('fetches pending and finished records', async () => {
+		it('fetches all records in a single call', async () => {
 			renderCard(liveCategory);
 			await waitFor(() => {
 				const calls = fetchMock.mock.calls.map((c: any[]) => c[0]);
-				expect(calls.some((url: string) => url.includes('finished=true'))).toBe(true);
-				expect(calls.some((url: string) => url.includes('finished=false'))).toBe(true);
+				expect(calls.some((url: string) => url.includes('/records'))).toBe(true);
 			});
 		});
 
@@ -221,12 +214,11 @@ describe('CategoryCard', () => {
 			expect(screen.getByTestId('restart-category-1')).toBeInTheDocument();
 		});
 
-		it('fetches all records (finished + unfinished)', async () => {
+		it('fetches all records in a single call', async () => {
 			renderCard(stoppedCategory);
 			await waitFor(() => {
 				const calls = fetchMock.mock.calls.map((c: any[]) => c[0]);
-				expect(calls.some((url: string) => url.includes('finished=true'))).toBe(true);
-				expect(calls.some((url: string) => url.includes('finished=false'))).toBe(true);
+				expect(calls.some((url: string) => url.includes('/records'))).toBe(true);
 			});
 		});
 

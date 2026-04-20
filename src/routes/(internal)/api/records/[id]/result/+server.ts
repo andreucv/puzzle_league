@@ -79,6 +79,12 @@ export const DELETE = async (event: RequestEvent) => {
       }
     });
 
+    publishCompetitionEvent(updatedRecord.category.competitionId, 'record.unfinished', {
+      recordId: updatedRecord.id,
+      categoryId: updatedRecord.categoryId,
+      competitionId: updatedRecord.category.competitionId
+    });
+
     return json({ record: updatedRecord });
   } catch (error) {
     console.error('Error undoing record finish:', error);

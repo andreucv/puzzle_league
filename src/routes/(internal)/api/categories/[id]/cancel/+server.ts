@@ -1,7 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { prisma } from '$lib/database/database';
-import { CategoryStatus } from '$lib/.prisma/generated/prisma/enums';
-import { publishCompetitionEvent } from '$lib/events/server/ably';
+import { cancelCategory, CategoryNotFoundError, InvalidStatusTransitionError } from '$lib/services/category-lifecycle';
 
 export const POST = async (event: RequestEvent) => {
   try {
@@ -11,38 +9,15 @@ export const POST = async (event: RequestEvent) => {
       return json({ error: 'Invalid category ID' }, { status: 400 });
     }
 
-    const category = await prisma.category.findUnique({
-      where: { id: categoryId },
-      select: { id: true, status: true, competitionId: true }
-    });
-
-    if (!category) {
-      return json({ error: 'Category not found' }, { status: 404 });
-    }
-
-    if (category.status === CategoryStatus.COMPLETE) {
-      return json({ error: 'Cannot cancel a completed category' }, { status: 400 });
-    }
-
-    if (category.status === CategoryStatus.CANCELED) {
-      return json({ error: 'Category is already canceled' }, { status: 400 });
-    }
-
-    const updatedCategory = await prisma.category.update({
-      where: { id: categoryId },
-      data: {
-        status: CategoryStatus.CANCELED
-      }
-    });
-
-    publishCompetitionEvent(updatedCategory.competitionId, 'category.status_changed', {
-      categoryId: updatedCategory.id,
-      competitionId: updatedCategory.competitionId,
-      status: updatedCategory.status
-    });
-
-    return json({ category: updatedCategory });
+    const category = await cancelCategory(categoryId);
+    return json({ category });
   } catch (error) {
+    if (error instanceof CategoryNotFoundError) {
+      return json({ error: error.message }, { status: 404 });
+    }
+    if (error instanceof InvalidStatusTransitionError) {
+      return json({ error: error.message }, { status: 400 });
+    }
     console.error('Error canceling category:', error);
     return json({ error: 'Failed to cancel category' }, { status: 500 });
   }

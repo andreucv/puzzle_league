@@ -4,9 +4,8 @@
     import { CldImage } from 'svelte-cloudinary';
     import { t } from '$lib/translations';
     import { formatElapsedTime, formatTimeDelta, getCategoryTypeName } from '$lib/utils/category_utils';
-    import { onMount } from 'svelte';
-    import { invalidateAll } from '$app/navigation';
-    import { AblyAdapter } from '$lib/events/client/ably-adapter';
+    import { onMount, untrack } from 'svelte';
+    import { useAblyInvalidation } from '$lib/events/client/use-ably-invalidation.svelte';
     import { page } from '$app/state';
 
     import TrophyIcon from '@iconify-svelte/mdi/trophy';
@@ -27,18 +26,13 @@
     let selectedCategoryId = $state<number | null>(null);
 
     // Live updates: subscribe to competition events and re-fetch results on changes
-    $effect(() => {
-        const competitionId = data.competition.id;
-        const authUrl = page.data.user
+    const competitionId = untrack(() => data.competition.id);
+    useAblyInvalidation(
+        `competition:${competitionId}`,
+        untrack(() => page.data.user)
             ? `/api/ably-token?competitionId=${competitionId}`
-            : `/api/ably-token/public?competitionId=${competitionId}`;
-        const adapter = new AblyAdapter({ channelName: `competition:${competitionId}`, authUrl });
-        adapter.onMessage(() => {
-            invalidateAll();
-        });
-        adapter.connect();
-        return () => adapter.disconnect();
-    });
+            : `/api/ably-token/public?competitionId=${competitionId}`
+    );
 
     const selectedCategory = $derived(
         categories.find((c) => c.id === selectedCategoryId) ?? categories[0] ?? null

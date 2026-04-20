@@ -46,6 +46,13 @@ export interface RecordFinishedEvent {
 	finishTime: string;
 }
 
+export interface RecordUnfinishedEvent {
+	type: 'record.unfinished';
+	recordId: string;
+	categoryId: number;
+	competitionId: number;
+}
+
 export interface RecordPiecesUpdatedEvent {
 	type: 'record.pieces_updated';
 	recordId: string;
@@ -57,7 +64,15 @@ export interface RecordPiecesUpdatedEvent {
 export type CompetitionEvent =
 	| CategoryStatusChangedEvent
 	| RecordFinishedEvent
+	| RecordUnfinishedEvent
 	| RecordPiecesUpdatedEvent;
+
+// Monotonic counter for generating unique event versions on the client side.
+// Each applied event gets a unique version so downstream effects can detect changes.
+let _eventSeq = 0;
+function nextEventVersion(): string {
+	return `evt-${++_eventSeq}-${Date.now()}`;
+}
 
 /**
  * Apply a single Ably event to the current competition state.
@@ -71,7 +86,7 @@ export function applyCompetitionEvent(
 		case 'category.status_changed': {
 			return {
 				...state,
-				version: '', // version is only meaningful for polling ETags
+				version: nextEventVersion(),
 				categories: state.categories.map((cat) =>
 					cat.id === event.categoryId
 						? {
@@ -93,10 +108,21 @@ export function applyCompetitionEvent(
 		case 'record.finished': {
 			return {
 				...state,
-				version: '',
+				version: nextEventVersion(),
 				categories: state.categories.map((cat) =>
 					cat.id === event.categoryId
 						? { ...cat, finishedRecords: cat.finishedRecords + 1 }
+						: cat
+				)
+			};
+		}
+		case 'record.unfinished': {
+			return {
+				...state,
+				version: nextEventVersion(),
+				categories: state.categories.map((cat) =>
+					cat.id === event.categoryId
+						? { ...cat, finishedRecords: Math.max(0, cat.finishedRecords - 1) }
 						: cat
 				)
 			};

@@ -16,23 +16,27 @@ export function matchesSearch(record: any, query: string): boolean {
  * Mode 'unified': fetches all records once, splits client-side (for STOPPED — unresolved vs resolved).
  */
 export function useCategoryRecords(getCategoryId: () => number, mode: 'split' | 'unified') {
+    // Capture category ID once to avoid reactive reads inside $effect.
+    // getCategoryId() is a closure over a reactive prop; calling it inside
+    // an effect would make the effect re-run on every parent re-render.
+    const categoryId = getCategoryId();
+
     let searchQuery = $state('');
 
-    // --- Split mode state (LIVE) ---
-    let pendingRecords = $state<any[]>([]);
-    let finishedRecords = $state<any[]>([]);
-    let loadingPending = $state(false);
-    let loadingFinished = $state(false);
+    // --- Core state: single source of truth ---
+    let allRecords = $state<any[]>([]);
+    let loading = $state(false);
     let selectedPendingRecord = $state<string | null>(null);
     let selectedFinishedRecord = $state<string | null>(null);
-
-    // --- Unified mode state (STOPPED) ---
-    let allRecords = $state<any[]>([]);
-    let loadingAll = $state(false);
     let selectedDnfRecord = $state<string | null>(null);
     let selectedResolvedRecord = $state<string | null>(null);
 
-    // Derived: unified mode splits
+    // --- Derived splits ---
+    // Split mode (LIVE): pending vs finished
+    let pendingRecords = $derived(allRecords.filter(r => r.finishTime == null));
+    let finishedRecords = $derived(allRecords.filter(r => r.finishTime != null));
+
+    // Unified mode (STOPPED): unresolved vs resolved
     let unresolvedRecords = $derived(
         allRecords.filter(r => r.finishTime == null && r.nPiecesCompleted == null)
     );
@@ -62,66 +66,52 @@ export function useCategoryRecords(getCategoryId: () => number, mode: 'split' | 
             : resolvedRecords
     );
 
-    // --- Fetchers ---
-    async function fetchFinishedRecords() {
-        loadingFinished = true;
+    // --- Initial load tracking (only show loading spinner on first fetch, not background refreshes) ---
+    let initialLoad = false;
+
+    // --- Generation counter: discard stale fetch responses when a newer refresh has started ---
+    let fetchGeneration = 0;
+
+    // --- Debounce timer: coalesce rapid refreshAll() calls into a single fetch ---
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+    // --- Fetcher: single request for all confirmed records ---
+    async function fetchRecords(generation: number) {
+        if (!initialLoad) loading = true;
         try {
-            const res = await fetch(`/api/categories/${getCategoryId()}/records?finished=true`);
+            const res = await fetch(`/api/categories/${categoryId}/records`);
+            if (generation !== fetchGeneration) return;
             if (res.ok) {
                 const data = await res.json();
-                finishedRecords = data.records ?? [];
+                if (generation !== fetchGeneration) return;
+                allRecords = data.records ?? [];
             }
-        } catch (err) {
-            console.error('Failed to fetch finished records:', err);
-        } finally {
-            loadingFinished = false;
-        }
-    }
-
-    async function fetchPendingRecords() {
-        loadingPending = true;
-        try {
-            const res = await fetch(`/api/categories/${getCategoryId()}/records?finished=false`);
-            if (res.ok) {
-                const data = await res.json();
-                pendingRecords = data.records ?? [];
-            }
-        } catch (err) {
-            console.error('Failed to fetch pending records:', err);
-        } finally {
-            loadingPending = false;
-        }
-    }
-
-    async function fetchAllRecords() {
-        loadingAll = true;
-        try {
-            const [finishedRes, unfinishedRes] = await Promise.all([
-                fetch(`/api/categories/${getCategoryId()}/records?finished=true`),
-                fetch(`/api/categories/${getCategoryId()}/records?finished=false`)
-            ]);
-            const finished = finishedRes.ok ? (await finishedRes.json()).records ?? [] : [];
-            const unfinished = unfinishedRes.ok ? (await unfinishedRes.json()).records ?? [] : [];
-            allRecords = [...finished, ...unfinished];
         } catch (err) {
             console.error('Failed to fetch records:', err);
         } finally {
-            loadingAll = false;
+            if (generation === fetchGeneration) {
+                loading = false;
+            }
+            initialLoad = true;
         }
+    }
+
+    function doFetch() {
+        const generation = ++fetchGeneration;
+        fetchRecords(generation);
     }
 
     function refreshAll() {
-        if (mode === 'split') {
-            fetchFinishedRecords();
-            fetchPendingRecords();
-        } else {
-            fetchAllRecords();
-        }
+        if (refreshTimer) clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(() => {
+            refreshTimer = null;
+            doFetch();
+        }, 150);
     }
 
-    // Load on init
+    // Load on init — immediate, no debounce
     $effect(() => {
-        refreshAll();
+        doFetch();
     });
 
     return {
@@ -129,13 +119,16 @@ export function useCategoryRecords(getCategoryId: () => number, mode: 'split' | 
         get searchQuery() { return searchQuery; },
         set searchQuery(v: string) { searchQuery = v; },
 
-        // Split mode (LIVE)
+        // Core state
+        get allRecords() { return allRecords; },
+        set allRecords(v: any[]) { allRecords = v; },
+        get loading() { return loading; },
+
+        // Split mode (LIVE) — derived from allRecords
         get pendingRecords() { return pendingRecords; },
-        set pendingRecords(v: any[]) { pendingRecords = v; },
         get finishedRecords() { return finishedRecords; },
-        set finishedRecords(v: any[]) { finishedRecords = v; },
-        get loadingPending() { return loadingPending; },
-        get loadingFinished() { return loadingFinished; },
+        get loadingPending() { return loading; },
+        get loadingFinished() { return loading; },
         get filteredPending() { return filteredPending; },
         get filteredFinished() { return filteredFinished; },
         get selectedPendingRecord() { return selectedPendingRecord; },
@@ -143,10 +136,8 @@ export function useCategoryRecords(getCategoryId: () => number, mode: 'split' | 
         get selectedFinishedRecord() { return selectedFinishedRecord; },
         set selectedFinishedRecord(v: string | null) { selectedFinishedRecord = v; },
 
-        // Unified mode (STOPPED)
-        get allRecords() { return allRecords; },
-        set allRecords(v: any[]) { allRecords = v; },
-        get loadingAll() { return loadingAll; },
+        // Unified mode (STOPPED) — derived from allRecords
+        get loadingAll() { return loading; },
         get unresolvedRecords() { return unresolvedRecords; },
         get resolvedRecords() { return resolvedRecords; },
         get filteredUnresolved() { return filteredUnresolved; },

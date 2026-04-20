@@ -447,7 +447,19 @@
     "resume_category": "Reprendre Categoria",
     "resume_confirm_title": "Reprendre Categoria?",
     "resume_confirm_message": "Estàs segur que vols reprendre aquesta categoria aturada? Tornarà a l'estat EN CURS.",
-    "restart_category": "Reiniciar Categoria"
+    "restart_category": "Reiniciar Categoria",
+    "start_success": "Categoria iniciada correctament",
+    "start_error": "Error en iniciar la categoria",
+    "stop_success": "Categoria aturada correctament",
+    "stop_error": "Error en aturar la categoria",
+    "cancel_success": "Categoria cancel·lada correctament",
+    "cancel_error": "Error en cancel·lar la categoria",
+    "complete_success": "Categoria completada correctament",
+    "complete_error": "Error en completar la categoria",
+    "resume_success": "Categoria represa correctament",
+    "resume_error": "Error en reprendre la categoria",
+    "restart_success": "Categoria reiniciada correctament",
+    "restart_error": "Error en reiniciar la categoria"
   },
   "results": {
     "title": "Resultats",

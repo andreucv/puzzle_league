@@ -1,9 +1,10 @@
 <script lang="ts">
     import '../app.css';
-    import { Dialog, Portal } from '@skeletonlabs/skeleton-svelte';
+    import { Dialog, Portal, Toast } from '@skeletonlabs/skeleton-svelte';
     import Header from '$lib/components/Header.svelte';
     import Footer from '$lib/components/Footer.svelte';
     import CloseIcon from '@iconify-svelte/mdi/close';
+    import { toaster } from '$lib/stores/toaster';
 
     let {children, data} = $props();
     import { drawerState } from '../shareds/drawer.svelte';
@@ -54,3 +55,15 @@
 {#if !data.user}
 <Footer />
 {/if}
+
+<Toast.Group {toaster}>
+    {#snippet children(toast)}
+        <Toast {toast}>
+            <Toast.Message>
+                <Toast.Title>{toast.title}</Toast.Title>
+                <Toast.Description>{toast.description}</Toast.Description>
+            </Toast.Message>
+            <Toast.CloseTrigger />
+        </Toast>
+    {/snippet}
+</Toast.Group>

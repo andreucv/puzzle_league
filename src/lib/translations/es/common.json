@@ -447,7 +447,19 @@
     "resume_category": "Reanudar Categoría",
     "resume_confirm_title": "¿Reanudar Categoría?",
     "resume_confirm_message": "¿Estás seguro de que quieres reanudar esta categoría detenida? Volverá al estado EN CURSO.",
-    "restart_category": "Reiniciar Categoría"
+    "restart_category": "Reiniciar Categoría",
+    "start_success": "Categoría iniciada correctamente",
+    "start_error": "Error al iniciar la categoría",
+    "stop_success": "Categoría detenida correctamente",
+    "stop_error": "Error al detener la categoría",
+    "cancel_success": "Categoría cancelada correctamente",
+    "cancel_error": "Error al cancelar la categoría",
+    "complete_success": "Categoría completada correctamente",
+    "complete_error": "Error al completar la categoría",
+    "resume_success": "Categoría reanudada correctamente",
+    "resume_error": "Error al reanudar la categoría",
+    "restart_success": "Categoría reiniciada correctamente",
+    "restart_error": "Error al reiniciar la categoría"
   },
   "results": {
     "title": "Resultados",

@@ -27,6 +27,13 @@
 
     const competition = $derived(data.competition);
     const categories: App.ResultCategory[] = $derived(competition.categories);
+    const viewerIsPrivileged = $derived(data.viewerIsPrivileged);
+
+    // Check if a user's identity should be visible to the current viewer
+    function isUserVisible(user: { id: string; publicResultsVisibility?: boolean }) {
+        if (viewerIsPrivileged) return true;
+        return user.publicResultsVisibility !== false;
+    }
 
     // Sort categories: LIVE first, then STOPPED, then COMPLETE, then NOT_STARTED
     const statusOrder: Record<string, number> = { LIVE: 0, STOPPED: 1, COMPLETE: 2, NOT_STARTED: 3 };
@@ -381,15 +388,23 @@
                                                 <td class="px-4 py-3">
                                                     <div class="space-y-1">
                                                         {#each record.users as user}
+                                                            {@const visible = isUserVisible(user)}
                                                             <div class="flex items-center gap-2">
-                                                                {#if user.image}
-                                                                    <img src={user.image} alt={user.name} class="w-5 h-5 shrink-0 rounded-full object-cover ring-1 ring-surface-300/50" loading="lazy" />
+                                                                {#if visible}
+                                                                    {#if user.image}
+                                                                        <img src={user.image} alt={user.name} class="w-5 h-5 shrink-0 rounded-full object-cover ring-1 ring-surface-300/50" loading="lazy" />
+                                                                    {:else}
+                                                                        <div class="w-5 h-5 shrink-0 rounded-full bg-primary-500/20 flex items-center justify-center">
+                                                                            <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
+                                                                        </div>
+                                                                    {/if}
+                                                                    <a href="/public_profile/{user.id}" class="font-medium text-sm hover:text-primary-500 hover:underline transition-colors">{user.name}</a>
                                                                 {:else}
-                                                                    <div class="w-5 h-5 shrink-0 rounded-full bg-primary-500/20 flex items-center justify-center">
-                                                                        <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
+                                                                    <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
+                                                                        <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
                                                                     </div>
+                                                                    <span class="font-medium text-sm text-surface-400 italic">{$t('results.anonymous_puzzler')}</span>
                                                                 {/if}
-                                                                <span class="font-medium text-sm">{user.name}</span>
                                                             </div>
                                                         {/each}
                                                         {#each record.userIntents as ui}
@@ -456,15 +471,23 @@
                                                     <td class="px-4 py-3">
                                                         <div class="space-y-1">
                                                             {#each record.users as user}
+                                                                {@const visible = isUserVisible(user)}
                                                                 <div class="flex items-center gap-2">
-                                                                    {#if user.image}
-                                                                        <img src={user.image} alt={user.name} class="w-5 h-5 shrink-0 rounded-full object-cover ring-1 ring-surface-300/50" loading="lazy" />
+                                                                    {#if visible}
+                                                                        {#if user.image}
+                                                                            <img src={user.image} alt={user.name} class="w-5 h-5 shrink-0 rounded-full object-cover ring-1 ring-surface-300/50" loading="lazy" />
+                                                                        {:else}
+                                                                            <div class="w-5 h-5 shrink-0 rounded-full bg-primary-500/20 flex items-center justify-center">
+                                                                                <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
+                                                                            </div>
+                                                                        {/if}
+                                                                        <a href="/public_profile/{user.id}" class="font-medium text-sm hover:text-primary-500 hover:underline transition-colors">{user.name}</a>
                                                                     {:else}
-                                                                        <div class="w-5 h-5 shrink-0 rounded-full bg-primary-500/20 flex items-center justify-center">
-                                                                            <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
+                                                                        <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
+                                                                            <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
                                                                         </div>
+                                                                        <span class="font-medium text-sm text-surface-400 italic">{$t('results.anonymous_puzzler')}</span>
                                                                     {/if}
-                                                                    <span class="font-medium text-sm">{user.name}</span>
                                                                 </div>
                                                             {/each}
                                                             {#each record.userIntents as ui}
@@ -507,15 +530,23 @@
                                             </div>
                                             <div class="flex-1 min-w-0 space-y-1">
                                                 {#each record.users as user}
+                                                    {@const visible = isUserVisible(user)}
                                                     <div class="flex items-center gap-2">
-                                                        {#if user.image}
-                                                            <img src={user.image} alt={user.name} class="w-5 h-5 shrink-0 rounded-full object-cover" loading="lazy" />
+                                                        {#if visible}
+                                                            {#if user.image}
+                                                                <img src={user.image} alt={user.name} class="w-5 h-5 shrink-0 rounded-full object-cover" loading="lazy" />
+                                                            {:else}
+                                                                <div class="w-5 h-5 shrink-0 rounded-full bg-primary-500/20 flex items-center justify-center">
+                                                                    <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
+                                                                </div>
+                                                            {/if}
+                                                            <a href="/public_profile/{user.id}" class="text-sm font-medium truncate hover:text-primary-500 hover:underline transition-colors">{user.name}</a>
                                                         {:else}
-                                                            <div class="w-5 h-5 shrink-0 rounded-full bg-primary-500/20 flex items-center justify-center">
-                                                                <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
+                                                            <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
+                                                                <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
                                                             </div>
+                                                            <span class="text-sm font-medium truncate text-surface-400 italic">{$t('results.anonymous_puzzler')}</span>
                                                         {/if}
-                                                        <span class="text-sm font-medium truncate">{user.name}</span>
                                                     </div>
                                                 {/each}
                                                 {#each record.userIntents as ui}
@@ -576,15 +607,23 @@
                                                 </div>
                                                 <div class="flex-1 min-w-0 space-y-1">
                                                     {#each record.users as user}
+                                                        {@const visible = isUserVisible(user)}
                                                         <div class="flex items-center gap-2">
-                                                            {#if user.image}
-                                                                <img src={user.image} alt={user.name} class="w-5 h-5 shrink-0 rounded-full object-cover" loading="lazy" />
+                                                            {#if visible}
+                                                                {#if user.image}
+                                                                    <img src={user.image} alt={user.name} class="w-5 h-5 shrink-0 rounded-full object-cover" loading="lazy" />
+                                                                {:else}
+                                                                    <div class="w-5 h-5 shrink-0 rounded-full bg-primary-500/20 flex items-center justify-center">
+                                                                        <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
+                                                                    </div>
+                                                                {/if}
+                                                                <a href="/public_profile/{user.id}" class="text-sm font-medium truncate hover:text-primary-500 hover:underline transition-colors">{user.name}</a>
                                                             {:else}
-                                                                <div class="w-5 h-5 shrink-0 rounded-full bg-primary-500/20 flex items-center justify-center">
-                                                                    <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
+                                                                <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
+                                                                    <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
                                                                 </div>
+                                                                <span class="text-sm font-medium truncate text-surface-400 italic">{$t('results.anonymous_puzzler')}</span>
                                                             {/if}
-                                                            <span class="text-sm font-medium truncate">{user.name}</span>
                                                         </div>
                                                     {/each}
                                                     {#each record.userIntents as ui}

@@ -70,7 +70,11 @@
     "phone": "Phone",
     "phone_prefix_placeholder": "e.g. +34",
     "phone_number_placeholder": "e.g. 612345678",
-    "phone_not_set": "Not set"
+    "phone_not_set": "Not set",
+    "public_profile_visibility": "Profile visibility",
+    "public_profile_visibility_description": "When enabled, any user (including non-registered visitors) can view your public profile. When disabled, only competition organizers and administrators can see it.",
+    "public_results_visibility": "Results visibility",
+    "public_results_visibility_description": "When enabled, your name and avatar appear in competition results for everyone. When disabled, other participants see you as 'Anonymous Puzzler' — you can still see your own name."
   },
   "admin": {
     "review_requests": {
@@ -490,7 +494,9 @@
     "live_updates": "Live",
     "live_updates_connecting": "Connecting",
     "live_updates_offline": "Offline",
-    "progress": "Progress"
+    "progress": "Progress",
+    "anonymous_puzzler": "Anonymous Puzzler",
+    "profile_hidden": "This profile is private"
   },
   "category_status": {
     "not_started": "Not Started",

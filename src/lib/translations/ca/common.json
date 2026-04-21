@@ -70,7 +70,11 @@
     "phone": "Telèfon",
     "phone_prefix_placeholder": "ex. +34",
     "phone_number_placeholder": "ex. 612345678",
-    "phone_not_set": "No configurat"
+    "phone_not_set": "No configurat",
+    "public_profile_visibility": "Visibilitat del perfil",
+    "public_profile_visibility_description": "Si està activat, qualsevol usuari (fins i tot visitants no registrats) pot veure el teu perfil públic. Si està desactivat, només els organitzadors i administradors el poden veure.",
+    "public_results_visibility": "Visibilitat als resultats",
+    "public_results_visibility_description": "Si està activat, el teu nom i avatar apareixen als resultats de les competicions per a tothom. Si està desactivat, els altres participants et veuen com a 'Puzzler Anònim' — tu sempre pots veure el teu propi nom."
   },
   "admin": {
     "review_requests": {
@@ -475,7 +479,9 @@
     "category_duration": "Duració de la categoria",
     "puzzle": "Puzzle",
     "pieces": "peces",
-    "dns": "DNS"
+    "dns": "DNS",
+    "anonymous_puzzler": "Puzzler Anònim",
+    "profile_hidden": "Aquest perfil és privat"
   },
   "category_status": {
     "not_started": "No Iniciada",

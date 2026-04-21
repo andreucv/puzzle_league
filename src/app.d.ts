@@ -53,6 +53,7 @@ declare global {
             id: string;
             name: string;
             image: string | null;
+            publicResultsVisibility: boolean;
         }
         interface ResultUserIntent {
             id: string;

@@ -70,7 +70,11 @@
     "phone": "Teléfono",
     "phone_prefix_placeholder": "ej. +34",
     "phone_number_placeholder": "ej. 612345678",
-    "phone_not_set": "No configurado"
+    "phone_not_set": "No configurado",
+    "public_profile_visibility": "Visibilidad del perfil",
+    "public_profile_visibility_description": "Si está activado, cualquier usuario (incluso visitantes no registrados) puede ver tu perfil público. Si está desactivado, solo los organizadores y administradores pueden verlo.",
+    "public_results_visibility": "Visibilidad en resultados",
+    "public_results_visibility_description": "Si está activado, tu nombre y avatar aparecen en los resultados de las competiciones para todos. Si está desactivado, los demás participantes te ven como 'Puzzler Anónimo' — tú siempre puedes ver tu propio nombre."
   },
   "admin": {
     "review_requests": {
@@ -490,7 +494,9 @@
     "live_updates": "En vivo",
     "live_updates_connecting": "Conectando",
     "live_updates_offline": "Sin conexión",
-    "progress": "Progreso"
+    "progress": "Progreso",
+    "anonymous_puzzler": "Puzzler Anónimo",
+    "profile_hidden": "Este perfil es privado"
   },
   "category_status": {
     "not_started": "No Iniciada",

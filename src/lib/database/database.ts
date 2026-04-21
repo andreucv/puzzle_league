@@ -33,6 +33,8 @@ export async function getUserWithRoles(authUser: { id: string }) {
                 phonePrefix: true,
                 phoneNumber: true,
                 phonePromptLastChecked: true,
+                publicProfileVisibility: true,
+                publicResultsVisibility: true,
                 roleAssignments: true
             }
         });
@@ -46,11 +48,13 @@ export async function getUserWithRoles(authUser: { id: string }) {
                 phonePrefix: user.phonePrefix,
                 phoneNumber: user.phoneNumber,
                 phonePromptLastChecked: user.phonePromptLastChecked,
+                publicProfileVisibility: user.publicProfileVisibility,
+                publicResultsVisibility: user.publicResultsVisibility,
                 roleAssignments: user.roleAssignments
             };
         }
 
-        return { ...authUser, country: null, postalCode: null, phonePrefix: null, phoneNumber: null, phonePromptLastChecked: null, roleAssignments: [] };
+        return { ...authUser, country: null, postalCode: null, phonePrefix: null, phoneNumber: null, phonePromptLastChecked: null, publicProfileVisibility: true, publicResultsVisibility: true, roleAssignments: [] };
     }
     catch (error) {
         console.error('Error getting user with roles:', error);
@@ -836,7 +840,8 @@ export async function getCompetitionResults(competitionId: number) {
                                     select: {
                                         id: true,
                                         name: true,
-                                        image: true
+                                        image: true,
+                                        publicResultsVisibility: true
                                     }
                                 },
                                 userIntents: {

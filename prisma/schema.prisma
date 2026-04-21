@@ -24,10 +24,12 @@ model User {
   postalCode             String?
   phonePrefix            String?
   phoneNumber            String?
-  phonePromptLastChecked DateTime?
-  userIntentsLastChecked DateTime?
-  createdAt              DateTime
-  updatedAt              DateTime
+  phonePromptLastChecked      DateTime?
+  userIntentsLastChecked      DateTime?
+  publicProfileVisibility     Boolean          @default(true)
+  publicResultsVisibility     Boolean          @default(true)
+  createdAt                   DateTime
+  updatedAt                   DateTime
   sessions               Session[]
   accounts               Account[]
   records                Record[]         @relation("RecordParticipants")

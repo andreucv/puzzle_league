@@ -81,5 +81,32 @@ export const actions: Actions = {
             console.error('Error deleting phone:', err);
             return fail(500, { message: 'Unable to delete your phone. Please try again.' });
         }
+    },
+
+    updateVisibility: async ({ request, locals }) => {
+        const user = locals.user;
+        if (!user) {
+            return fail(401, { message: 'Unauthorized' });
+        }
+
+        const formData = await request.formData();
+        const field = formData.get('field')?.toString();
+        const value = formData.get('value')?.toString() === 'true';
+
+        if (field !== 'publicProfileVisibility' && field !== 'publicResultsVisibility') {
+            return fail(400, { message: 'Invalid visibility field' });
+        }
+
+        try {
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { [field]: value, updatedAt: new Date() }
+            });
+
+            return { success: true };
+        } catch (err) {
+            console.error('Error updating visibility:', err);
+            return fail(500, { message: 'Unable to update visibility setting. Please try again.' });
+        }
     }
 };

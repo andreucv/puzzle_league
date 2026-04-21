@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Avatar, Combobox, Portal, useListCollection } from "@skeletonlabs/skeleton-svelte";
+    import { Avatar, Combobox, Portal, Switch, useListCollection } from "@skeletonlabs/skeleton-svelte";
     import type { RoleAssignment } from "@prisma/client";
     import { t } from '$lib/translations';
     import { enhance } from '$app/forms';
@@ -7,6 +7,18 @@
     import { countries, getCountryFlag, getFlagFromPhonePrefix } from '$lib/utils/country_utils';
 
     let { user, account } = $props();
+
+    let profileVisibility = $state(true);
+    let resultsVisibility = $state(true);
+    let isSavingVisibility = $state(false);
+    let profileVisibilityForm: HTMLFormElement;
+    let resultsVisibilityForm: HTMLFormElement;
+
+    // Sync visibility state from user prop
+    $effect(() => {
+        profileVisibility = user.publicProfileVisibility ?? true;
+        resultsVisibility = user.publicResultsVisibility ?? true;
+    });
 
     let displayName = $derived(user.name || "Pending name...");
     let countryValue = $derived(user.country ? [user.country] : []);
@@ -466,14 +478,77 @@
         </div>
 
         <!-- Profile Visibility Setting -->
-        <div class="grid grid-cols-2 gap-4 items-center">
-            <div>
-                <span class="text-sm font-semibold text-surface-500">Profile Visibility</span>
-                <p class="text-sm">Disabled</p>
-            </div>
-            <div class="flex justify-end">
-                <button class="btn btn-sm preset-outlined-surface-500" disabled>Change</button>
-            </div>
+        <div class="space-y-1">
+            <form
+                bind:this={profileVisibilityForm}
+                method="POST"
+                action="?/updateVisibility"
+                use:enhance={() => {
+                    isSavingVisibility = true;
+                    return async ({ update }) => {
+                        isSavingVisibility = false;
+                        await update();
+                    };
+                }}
+            >
+                <input type="hidden" name="field" value="publicProfileVisibility" />
+                <input type="hidden" name="value" value={!profileVisibility} />
+                <Switch
+                    checked={profileVisibility}
+                    onCheckedChange={(details) => {
+                        profileVisibility = details.checked;
+                        profileVisibilityForm?.requestSubmit();
+                    }}
+                    disabled={isSavingVisibility}
+                    class="flex justify-between items-center"
+                >
+                    <Switch.Label>
+                        <span class="text-sm font-semibold text-surface-500">{$t('profile.public_profile_visibility')}</span>
+                    </Switch.Label>
+                    <Switch.Control>
+                        <Switch.Thumb />
+                    </Switch.Control>
+                    <Switch.HiddenInput />
+                </Switch>
+            </form>
+            <p class="text-xs text-surface-400 pl-1">{$t('profile.public_profile_visibility_description')}</p>
+        </div>
+
+        <!-- Results Visibility Setting -->
+        <div class="space-y-1">
+            <form
+                bind:this={resultsVisibilityForm}
+                method="POST"
+                action="?/updateVisibility"
+                use:enhance={() => {
+                    isSavingVisibility = true;
+                    return async ({ update }) => {
+                        isSavingVisibility = false;
+                        await update();
+                    };
+                }}
+            >
+                <input type="hidden" name="field" value="publicResultsVisibility" />
+                <input type="hidden" name="value" value={!resultsVisibility} />
+                <Switch
+                    checked={resultsVisibility}
+                    onCheckedChange={(details) => {
+                        resultsVisibility = details.checked;
+                        resultsVisibilityForm?.requestSubmit();
+                    }}
+                    disabled={isSavingVisibility}
+                    class="flex justify-between items-center"
+                >
+                    <Switch.Label>
+                        <span class="text-sm font-semibold text-surface-500">{$t('profile.public_results_visibility')}</span>
+                    </Switch.Label>
+                    <Switch.Control>
+                        <Switch.Thumb />
+                    </Switch.Control>
+                    <Switch.HiddenInput />
+                </Switch>
+            </form>
+            <p class="text-xs text-surface-400 pl-1">{$t('profile.public_results_visibility_description')}</p>
         </div>
         <div class="grid grid-cols-2 gap-4 items-center">
             <div>

@@ -181,6 +181,7 @@
                             placeholder={$t('manage_judges.search_placeholder')}
                             bind:value={searchQueries[category.id]}
                             oninput={() => handleSearchInput(category.id)}
+                            data-testid="judge-search-{category.id}"
                         />
                         {#if searchingCategory === category.id}
                             <Icon icon="mdi:loading" class="animate-spin text-surface-400" width="1.2rem" height="1.2rem" />
@@ -197,6 +198,7 @@
                                         type="button"
                                         class="w-full flex items-center justify-between p-3 hover:bg-surface-200 dark:hover:bg-surface-700 text-left"
                                         onclick={() => addJudge(category.id, user)}
+                                        data-testid="judge-search-result-{user.id}"
                                     >
                                         <div class="flex items-center gap-2 min-w-0">
                                             <Avatar class="w-7 h-7 shrink-0">
@@ -223,7 +225,7 @@
                 {#if category.judges.length > 0}
                     <div class="space-y-2">
                         {#each category.judges as judge (judge.id)}
-                            <div class="flex items-center justify-between p-2 rounded-lg bg-surface-100 dark:bg-surface-800">
+                            <div class="flex items-center justify-between p-2 rounded-lg bg-surface-100 dark:bg-surface-800" data-testid="judge-entry-{category.id}-{judge.id}">
                                 <div class="flex items-center gap-2 min-w-0">
                                     <Avatar class="w-7 h-7 shrink-0">
                                         <Avatar.Fallback>{judge.name?.substring(0, 2) ?? 'U'}</Avatar.Fallback>
@@ -238,6 +240,7 @@
                                     class="btn btn-sm preset-filled-error-500 shrink-0"
                                     onclick={() => removeJudge(category.id, judge.id)}
                                     aria-label="{$t('manage_judges.remove_judge')} {judge.name}"
+                                    data-testid="remove-judge-{category.id}-{judge.id}"
                                 >
                                     <CloseIcon width="1rem" height="1rem" />
                                 </button>
@@ -252,6 +255,7 @@
                                 type="button"
                                 class="btn btn-sm preset-tonal-primary"
                                 onclick={() => copyJudgesToAll(category.id)}
+                                data-testid="copy-judges-{category.id}"
                             >
                                 <ContentCopyIcon width="1rem" height="1rem" />
                                 {$t('manage_judges.copy_to_all')}

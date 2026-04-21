@@ -107,7 +107,7 @@ export async function requireCategoryJudge(
 
   const category = await prisma.category.findUnique({
     where: { id: categoryId },
-    select: { competitionId: true }
+    select: { competitionId: true, judges: { where: { id: authResult.userId }, select: { id: true } } }
   });
 
   if (!category) {
@@ -120,6 +120,12 @@ export async function requireCategoryJudge(
     };
   }
 
+  // User is directly assigned as judge for this category
+  if (category.judges.length > 0) {
+    return authResult;
+  }
+
+  // Fall back to competition-level role check (organizer, admin, creator)
   return requireCompetitionRole(event, category.competitionId, [Role.JUDGE, Role.ORGANIZER]);
 }
 

@@ -41,15 +41,34 @@ function waitForPort(port: number, timeout = 30_000): Promise<void> {
     });
 }
 
+/** Kill all processes listening on a given port. */
+function killProcessesOnPort(port: number) {
+    try {
+        const output = execSync(`lsof -ti tcp:${port}`, { encoding: 'utf-8' }).trim();
+        if (output) {
+            const pids = output.split('\n').map((p) => p.trim()).filter(Boolean);
+            for (const pid of pids) {
+                try {
+                    process.kill(Number(pid), 'SIGKILL');
+                    console.log(`   Killed leftover process ${pid} on port ${port}.`);
+                } catch { /* already dead */ }
+            }
+        }
+    } catch { /* lsof returns exit code 1 when no processes found */ }
+}
+
 /** Kills a leftover preview server from a previous run if state file exists. */
 function killLeftoverServer() {
-    if (!fs.existsSync(STATE_FILE)) return;
-    try {
-        const state: ServerState = JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8'));
-        try { process.kill(-state.serverPid, 'SIGTERM'); } catch { /* already dead */ }
-        try { process.kill(state.serverPid, 'SIGTERM'); } catch { /* already dead */ }
-    } catch { /* best effort */ }
-    fs.unlinkSync(STATE_FILE);
+    if (fs.existsSync(STATE_FILE)) {
+        try {
+            const state: ServerState = JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8'));
+            try { process.kill(-state.serverPid, 'SIGTERM'); } catch { /* already dead */ }
+            try { process.kill(state.serverPid, 'SIGTERM'); } catch { /* already dead */ }
+        } catch { /* best effort */ }
+        fs.unlinkSync(STATE_FILE);
+    }
+    // Always kill anything on the preview port regardless of state file
+    killProcessesOnPort(PREVIEW_PORT);
 }
 
 /** Runs a shell command, printing stdout/stderr and re-throwing with output on failure. */

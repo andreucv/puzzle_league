@@ -2,7 +2,7 @@
 // for information about these interfaces
 
 import type { User, Session } from '@prisma/client';
-import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
+import type { CategoryType, CategoryStatus } from '$lib/.prisma/generated/prisma/browser';
 
 declare global {
     namespace App {
@@ -71,10 +71,13 @@ declare global {
             description: string;
             subname: string | null;
             type: CategoryType;
+            status: CategoryStatus;
+            startTime: Date;
             realStartTime: Date | null;
             realEndTime: Date | null;
             puzzles: ResultPuzzleData[];
             records: ResultRecord[];
+            _count: { records: number };
         }
     }
 }

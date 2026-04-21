@@ -805,9 +805,17 @@ export async function getCompetitionResults(competitionId: number) {
                 image_cld_id: true,
                 startDate: true,
                 categories: {
-                    where: { status: CategoryStatus.COMPLETE },
-                    orderBy: { realStartTime: 'asc' },
-                    include: {
+                    where: { status: { not: CategoryStatus.CANCELED } },
+                    orderBy: { startTime: 'asc' },
+                    select: {
+                        id: true,
+                        description: true,
+                        subname: true,
+                        type: true,
+                        status: true,
+                        startTime: true,
+                        realStartTime: true,
+                        realEndTime: true,
                         puzzles: {
                             select: {
                                 id: true,
@@ -821,7 +829,7 @@ export async function getCompetitionResults(competitionId: number) {
                             where: { status: InscriptionStatus.CONFIRMED },
                             orderBy: [
                                 { finishTime: 'asc' },
-                                { tableNumber: 'asc' }
+                                { nPiecesCompleted: 'desc' }
                             ],
                             include: {
                                 users: {
@@ -838,6 +846,9 @@ export async function getCompetitionResults(competitionId: number) {
                                     }
                                 }
                             }
+                        },
+                        _count: {
+                            select: { records: { where: { status: InscriptionStatus.CONFIRMED } } }
                         }
                     }
                 }

@@ -33,6 +33,8 @@ export async function getUserWithRoles(authUser: { id: string }) {
                 phonePrefix: true,
                 phoneNumber: true,
                 phonePromptLastChecked: true,
+                locale: true,
+                localePromptLastChecked: true,
                 publicProfileVisibility: true,
                 publicResultsVisibility: true,
                 roleAssignments: true
@@ -48,13 +50,15 @@ export async function getUserWithRoles(authUser: { id: string }) {
                 phonePrefix: user.phonePrefix,
                 phoneNumber: user.phoneNumber,
                 phonePromptLastChecked: user.phonePromptLastChecked,
+                locale: user.locale,
+                localePromptLastChecked: user.localePromptLastChecked,
                 publicProfileVisibility: user.publicProfileVisibility,
                 publicResultsVisibility: user.publicResultsVisibility,
                 roleAssignments: user.roleAssignments
             };
         }
 
-        return { ...authUser, country: null, postalCode: null, phonePrefix: null, phoneNumber: null, phonePromptLastChecked: null, publicProfileVisibility: true, publicResultsVisibility: true, roleAssignments: [] };
+        return { ...authUser, country: null, postalCode: null, phonePrefix: null, phoneNumber: null, phonePromptLastChecked: null, locale: null, localePromptLastChecked: null, publicProfileVisibility: true, publicResultsVisibility: true, roleAssignments: [] };
     }
     catch (error) {
         console.error('Error getting user with roles:', error);

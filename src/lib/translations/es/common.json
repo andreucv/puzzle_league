@@ -549,5 +549,13 @@
     "validation_number_required": "El número es obligatorio si se proporciona un prefijo",
     "validation_prefix_format": "El prefijo debe empezar con + seguido de 1-4 dígitos",
     "validation_number_format": "Introduce un número de teléfono válido"
+  },
+  "select_language": {
+    "title": "Elige tu idioma",
+    "description": "Selecciona tu idioma preferido para la aplicación y las notificaciones por correo.",
+    "skip_hint": "Puedes saltar este paso y cambiarlo más tarde desde tu perfil.",
+    "save": "Guardar preferencia",
+    "saving": "Guardando...",
+    "skip": "Saltar por ahora"
   }
 }

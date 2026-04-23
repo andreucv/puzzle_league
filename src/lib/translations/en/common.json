@@ -549,5 +549,13 @@
     "validation_number_required": "Phone number is required when prefix is provided",
     "validation_prefix_format": "Prefix must start with + followed by 1-4 digits",
     "validation_number_format": "Enter a valid phone number"
+  },
+  "select_language": {
+    "title": "Choose your language",
+    "description": "Select your preferred language for the application and email notifications.",
+    "skip_hint": "You can skip this and change it later from your profile.",
+    "save": "Save preference",
+    "saving": "Saving...",
+    "skip": "Skip for now"
   }
 }

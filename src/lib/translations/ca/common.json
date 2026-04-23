@@ -534,5 +534,13 @@
     "validation_number_required": "El número és obligatori si es proporciona un prefix",
     "validation_prefix_format": "El prefix ha de començar amb + seguit d'1-4 dígits",
     "validation_number_format": "Introdueix un número de telèfon vàlid"
+  },
+  "select_language": {
+    "title": "Tria el teu idioma",
+    "description": "Selecciona el teu idioma preferit per a l'aplicació i les notificacions per correu.",
+    "skip_hint": "Pots saltar aquest pas i canviar-ho més tard des del teu perfil.",
+    "save": "Desa la preferència",
+    "saving": "Desant...",
+    "skip": "Salta per ara"
   }
 }

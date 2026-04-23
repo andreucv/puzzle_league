@@ -25,12 +25,13 @@ export async function handle({ event, resolve }) {
 		const isPageRequest = !path.startsWith('/api/') && !path.startsWith('/auth/');
 		const isClaimPage = path === '/claim-participations';
 		const isAddPhonePage = path === '/add-phone';
+		const isSelectLanguagePage = path === '/select-language';
 
 		if (isPageRequest && !isClaimPage) {
 			// Check DB flags — only query when on a page that may trigger redirects
 			const dbUser = await prisma.user.findUnique({
 				where: { id: session.user.id },
-				select: { userIntentsLastChecked: true, phonePromptLastChecked: true, phoneNumber: true }
+				select: { userIntentsLastChecked: true, phonePromptLastChecked: true, phoneNumber: true, localePromptLastChecked: true, locale: true }
 			});
 
 			if (!dbUser) {
@@ -78,6 +79,11 @@ export async function handle({ event, resolve }) {
 				// not here, to avoid conflicting with the page's own redirect guard.
 				if (!isAddPhonePage && !dbUser.phonePromptLastChecked && !dbUser.phoneNumber) {
 					throw redirect(302, '/add-phone');
+				}
+
+				// Language preference onboarding — show once for users without a stored locale
+				if (!isAddPhonePage && !isSelectLanguagePage && !dbUser.localePromptLastChecked && !dbUser.locale) {
+					throw redirect(302, '/select-language');
 				}
 			}
 		}

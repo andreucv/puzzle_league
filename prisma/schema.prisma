@@ -25,6 +25,8 @@ model User {
   phonePrefix            String?
   phoneNumber            String?
   phonePromptLastChecked      DateTime?
+  locale                      String?
+  localePromptLastChecked     DateTime?
   userIntentsLastChecked      DateTime?
   publicProfileVisibility     Boolean          @default(true)
   publicResultsVisibility     Boolean          @default(true)

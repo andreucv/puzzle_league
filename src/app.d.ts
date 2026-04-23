@@ -22,6 +22,8 @@ declare global {
                 phonePrefix?: string | null;
                 phoneNumber?: string | null;
                 phonePromptLastChecked?: Date | null;
+                locale?: string | null;
+                localePromptLastChecked?: Date | null;
                 createdAt: Date;
                 updatedAt: Date;
             };

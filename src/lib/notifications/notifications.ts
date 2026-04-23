@@ -1,22 +1,18 @@
 import { prisma } from '$lib/database/create_prisma_client';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { sendEmail } from '$lib/emails/send_email_utils';
 
 // ---------------------------------------------------------------------------
-// Mail hooks (stubs – see instructions for future implementation)
+// Mail hooks — delegates to src/lib/emails/send_email_utils
 // ---------------------------------------------------------------------------
 
-/** Returns true for notification types that should also trigger an email. */
-function shouldSendMail(_type: NotificationType): boolean {
-	return false;
-}
+/** Notification types that should also trigger an email. */
+const EMAIL_ENABLED_TYPES = new Set<NotificationType>([
+	NotificationType.INSCRIPTION_CONFIRMED,
+]);
 
-/** Stub – replace body with actual mail transport when enabling email. */
-async function sendMailNotification(
-	_userId: string,
-	_title: string,
-	_message: string,
-): Promise<void> {
-	// no-op
+function shouldSendMail(type: NotificationType): boolean {
+	return EMAIL_ENABLED_TYPES.has(type);
 }
 
 // ---------------------------------------------------------------------------
@@ -42,8 +38,13 @@ export async function createNotification({
 		data: { userId, type, title, message, link, data: data ?? undefined },
 	});
 
-	if (shouldSendMail(type)) {
-		await sendMailNotification(userId, title, message);
+	if (shouldSendMail(type) && link) {
+		const emailData: Record<string, string> = {};
+		if (data) {
+			for (const [k, v] of Object.entries(data)) emailData[k] = String(v);
+		}
+		// Fire-and-forget: email failures must not block the notification flow
+		sendEmail([userId], type, link, emailData).catch(() => {});
 	}
 
 	return notification;
@@ -61,10 +62,13 @@ export async function createNotificationForUsers(
 		data: userIds.map((userId) => ({ userId, type, title, message, link, data: data ?? undefined })),
 	});
 
-	if (shouldSendMail(type)) {
-		await Promise.all(
-			userIds.map((userId) => sendMailNotification(userId, title, message)),
-		);
+	if (shouldSendMail(type) && link) {
+		const emailData: Record<string, string> = {};
+		if (data) {
+			for (const [k, v] of Object.entries(data)) emailData[k] = String(v);
+		}
+		// Fire-and-forget: email failures must not block the notification flow
+		sendEmail(userIds, type, link, emailData).catch(() => {});
 	}
 
 	return notifications;

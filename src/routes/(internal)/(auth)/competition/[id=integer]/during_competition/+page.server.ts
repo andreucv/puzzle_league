@@ -4,7 +4,7 @@ import { getCompetition, getCompetitionCategories } from '$lib/database/database
 import { getDuringCompetitionAccess } from '$lib/database/db_competition_utils';
 import { buildEventStateFromCategories } from '$lib/events/channels/competition';
 
-export const load: PageServerLoad = async ({ params, locals }) => {
+export const load: PageServerLoad = async ({ params, locals, url }) => {
     const competitionId = parseInt(params.id as string);
 
     if (isNaN(competitionId)) {
@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
     const user = locals.user;
     if (!user) {
-        throw redirect(302, '/login');
+        throw redirect(302, '/login?redirect=' + encodeURIComponent(url.pathname));
     }
 
     const [{ isOrganizer, isJudge, judgedCategoryIds }, competition, categories] = await Promise.all([

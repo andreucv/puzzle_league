@@ -30,7 +30,7 @@ export const load: PageServerLoad = async (event) => {
 
     const userId = event.locals.user?.id;
     if (!userId) {
-        throw redirect(302, '/login');
+        throw redirect(302, '/login?redirect=' + encodeURIComponent(event.url.pathname));
     }
 
     const isCreator = competition.creatorId === userId;

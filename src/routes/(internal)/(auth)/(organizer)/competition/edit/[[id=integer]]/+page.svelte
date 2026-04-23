@@ -646,7 +646,7 @@
     </div>
 {:else}
 
-<TitleBackButton href={isEdit ? `/competitions/competition_details/${$form.id}` : '/competitions/explore_competitions'} text={isEdit? $t('competition.edit.title') : $t('competition.create.title')} />
+<TitleBackButton href={isEdit ? `/competitions/competition_details/${$form.id}` : '/competitions/explore_competitions'} text={isEdit? $t('competition.edit.title') : $t('competition.create.title')} subtitle={isEdit ? $form.name : undefined} />
 <div class="container mx-auto relative">
     <!-- Header Section -->
     <div class="space-y-3 mb-2">

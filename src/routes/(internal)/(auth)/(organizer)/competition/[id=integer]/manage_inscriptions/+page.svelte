@@ -88,8 +88,7 @@
 <div class="container mx-auto max-w-4xl space-y-4">
     <!-- Header -->
     <div class="space-y-4">
-        <TitleBackButton href="/competitions/competition_details/{competition?.id}" text={$t('manage_inscriptions.title')}/>
-        <CompetitionTitle title={competition.name} />
+        <TitleBackButton href="/competitions/competition_details/{competition?.id}" text={$t('manage_inscriptions.title')} subtitle={competition.name}/>
     </div>
 
     <!-- Manage Registration Status -->

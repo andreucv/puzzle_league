@@ -21,7 +21,7 @@ export const load: PageServerLoad = async (event) => {
     // Check the user is the creator, has an ORGANIZER role for this competition, or is an ADMIN
     const userId = event.locals.user?.id;
     if (!userId) {
-        throw redirect(302, '/login');
+        throw redirect(302, '/login?redirect=' + encodeURIComponent(event.url.pathname));
     }
 
     const isCreator = competition.creatorId === userId;

@@ -11,7 +11,6 @@
     import { slide } from 'svelte/transition';
     import LoadingOverlay from '$lib/components/LoadingOverlay.svelte';
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
-    import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
     import Card from '$lib/components/common/card/Card.svelte';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
     import CheckAllIcon from '@iconify-svelte/mdi/check-all';
@@ -24,11 +23,18 @@
     let categories = $derived(competition?.categories || []);
     let existingRecords = $derived(data.existingRecords || []);
     let inscribedUserIds = $derived(data.inscribedUserIds as Record<number, string[]> || {});
+    let categoriesWithCounts = $derived(data.categoriesWithCounts || []);
 
     let canRegister = $derived(competition?.registrationOpen);
 
     function canRegisterForCategory(category: Category): boolean {
         return !!canRegister && category.status === 'NOT_STARTED';
+    }
+
+    function getSpotsLeft(category: Category): number | undefined {
+        if (category.maxParties == null) return undefined;
+        const registered = categoriesWithCounts.find((c: any) => c.id === category.id)?.totalRecords ?? 0;
+        return category.maxParties - registered;
     }
 
     // ---------------------------------------------------------------------------
@@ -61,6 +67,7 @@
     let messageProgressKey = $state(0);
     let showPaymentPopover = $state(false);
     let submitFormEl = $state<HTMLFormElement | null>(null);
+    let showSuccessCard = $state(false);
 
     function showResultMessage(msg: { success: boolean; message: string }) {
         if (messageDismissTimer) clearTimeout(messageDismissTimer);
@@ -430,8 +437,23 @@
 
     <!-- Header -->
     <div class="space-y-4 mb-6">
-        <TitleBackButton href="/competitions/competition_details/{competition?.id}" text={$t('inscription.title')}/>
-        <CompetitionTitle title={competition.name} />
+        <TitleBackButton href="/competitions/competition_details/{competition?.id}" text={$t('inscription.title')} subtitle={competition.name}/>
+
+        <!-- Competition context -->
+        <div class="flex flex-wrap items-center gap-3 text-sm text-surface-500">
+            {#if competition.startDate}
+                <span class="flex items-center gap-1">
+                    <Icon icon="mdi:calendar-clock" width="1rem" height="1rem" class="text-primary-500" />
+                    {new Date(competition.startDate).toLocaleDateString('default', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+            {/if}
+            {#if competition.location}
+                <span class="flex items-center gap-1">
+                    <Icon icon="mdi:map-marker" width="1rem" height="1rem" class="text-primary-500" />
+                    {competition.location}
+                </span>
+            {/if}
+        </div>
 
         {#if !canRegister}
             <div class="alert preset-filled-warning-500 p-4 rounded-lg" data-testid="registration-closed-warning">
@@ -472,16 +494,35 @@
             {@const limitReached = totalRegistrations >= maxRecords}
             {@const maxSize = category.maxPartySize || 1}
             {@const individual = isIndividual(category)}
+            {@const spotsLeft = getSpotsLeft(category)}
 
             <Card>
                 <!-- Category header -->
                 <div class="flex justify-between items-start">
                     <CategoryCardTitle type={category.type} subname={category.description} />
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 flex-wrap justify-end">
                         <span class="badge preset-tonal text-xs flex items-center gap-1 p-2">
                             <Icon icon="mdi:account-multiple" width="1rem" height="1rem" />
                             {maxSize} {maxSize === 1 ? $t('inscription.participant') : $t('inscription.participants')}
                         </span>
+                        {#if spotsLeft !== undefined}
+                            {#if spotsLeft <= 0}
+                                <span class="badge preset-tonal-error text-xs flex items-center gap-1 p-2">
+                                    <Icon icon="mdi:account-off" width="1rem" height="1rem" />
+                                    {$t('competition_details.full')}
+                                </span>
+                            {:else if spotsLeft <= 3}
+                                <span class="badge preset-tonal-warning text-xs flex items-center gap-1 p-2">
+                                    <Icon icon="mdi:account-plus-outline" width="1rem" height="1rem" />
+                                    {spotsLeft} {$t('competition_details.spots_left')}
+                                </span>
+                            {:else}
+                                <span class="badge preset-tonal-success text-xs flex items-center gap-1 p-2">
+                                    <Icon icon="mdi:account-plus-outline" width="1rem" height="1rem" />
+                                    {spotsLeft} {$t('competition_details.spots_left')}
+                                </span>
+                            {/if}
+                        {/if}
                     </div>
                 </div>
 
@@ -622,9 +663,9 @@
                                 type="button"
                                 class="absolute -top-2 -right-2 w-6 h-6 bg-error-500 hover:bg-error-600 text-white rounded-full flex items-center justify-center text-xs transition-colors z-10"
                                 onclick={() => removeSlot(category.id, slot.slotId)}
-                                title={$t('inscription.cancel')}
+                                aria-label={$t('inscription.cancel')}
                             >
-                                ✕
+                                <Icon icon="mdi:close" width="0.85rem" height="0.85rem" />
                             </button>
 
                             <!-- Party progress -->
@@ -830,6 +871,29 @@
         {/each}
     </div>
 
+    <!-- Success card after registration -->
+    {#if showSuccessCard && !hasNewSignups}
+        <div class="mt-6" transition:slide={{ duration: 200 }}>
+            <Card>
+                <div class="flex flex-col items-center gap-4 py-4 text-center">
+                    <CheckAllIcon width="2.5rem" height="2.5rem" class="text-success-500" />
+                    <div>
+                        <h3 class="h4 font-semibold">{$t('inscription.success_title')}</h3>
+                        <p class="text-sm text-surface-500 mt-1">{$t('inscription.success_message')}</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <a href="/competitions/competition_details/{competition?.id}" class="btn preset-filled-primary-500">
+                            {$t('inscription.back_to_competition')}
+                        </a>
+                        <a href="/" class="btn preset-tonal">
+                            {$t('inscription.go_home')}
+                        </a>
+                    </div>
+                </div>
+            </Card>
+        </div>
+    {/if}
+
     <!-- Submit all signups -->
     {#if hasNewSignups}
         <div class="sticky bottom-4 mt-6 z-30" transition:slide={{ duration: 200 }}>
@@ -845,6 +909,7 @@
                         showResultMessage({ success: data.success, message: data.message || '' });
                         if (result.data.success) {
                             clearAllSignupState();
+                            showSuccessCard = true;
                             await invalidateAll();
                         }
                     } else if (result.type === 'failure') {

@@ -203,7 +203,12 @@
     "edit_button": "Edit Competition",
     "start_competition_button": "Start Competition",
     "back_to_competitions_button": "Back to Competitions",
-    "manage_judges_button": "Manage Judges"
+    "manage_judges_button": "Manage Judges",
+    "registration_closed_banner": "Registration is closed for this competition.",
+    "login_to_register": "Log in to register for this competition.",
+    "you_are_registered": "You are registered in {{n}} category(ies)",
+    "full": "Full",
+    "spots_left": "spots left"
   },
   "claim_participations": {
     "title": "Claim Participations",
@@ -257,7 +262,11 @@
     "payment_warning_total": "Total",
     "payment_warning_confirm": "I understand, submit",
     "payment_warning_cancel": "Cancel",
-    "pending_confirmation_is_not_guaranteed_inscription": "The inscriptions in pending confirmation do not guarantee a participation into the competition."
+    "pending_confirmation_is_not_guaranteed_inscription": "The inscriptions in pending confirmation do not guarantee a participation into the competition.",
+    "success_title": "Registration Complete!",
+    "success_message": "Your registrations have been submitted successfully.",
+    "back_to_competition": "Back to competition details",
+    "go_home": "Go home"
   },
   "manage_judges": {
     "title": "Manage Judges",
@@ -337,7 +346,26 @@
   },
   "auth": {
     "login_title": "Log in to your account",
-    "register_title": "Create an account"
+    "register_title": "Create an account",
+    "email_label": "Email",
+    "enter_email": "Enter Email",
+    "name_label": "Name",
+    "enter_name": "Enter Name",
+    "password_label": "Password",
+    "enter_password": "Enter Password",
+    "confirm_password_placeholder": "Confirm Password",
+    "passwords_not_match": "Passwords do not match",
+    "register_button": "Register",
+    "registering": "Registering...",
+    "login_button": "Log In",
+    "logging_in": "Logging in...",
+    "or_separator": "or",
+    "sign_in_with_google": "Log in with Google",
+    "no_account": "Not registered yet?",
+    "create_account_link": "Create an account",
+    "have_account": "Already have an account?",
+    "sign_in_link": "Sign in",
+    "forgot_password": "Forgot Password?"
   },
   "legal": {
     "privacy_policy": "Privacy Policy",

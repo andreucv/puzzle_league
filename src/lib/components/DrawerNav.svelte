@@ -11,11 +11,19 @@
 
     import { drawerState } from '../../shareds/drawer.svelte';
     import { t } from '$lib/translations';
+    import { page } from '$app/state';
 
     let { user = null }: { user: any } = $props();
 
+    let currentPath = $derived(page.url.pathname);
+
     function navigate() {
         drawerState.open = false;
+    }
+
+    function isActive(href: string): boolean {
+        if (href === '/') return currentPath === '/';
+        return currentPath.startsWith(href);
     }
 </script>
 
@@ -41,20 +49,20 @@
 <!-- Navigation links -->
 <ul class="flex-1 px-3 py-2 space-y-0.5">
     <li>
-        <a data-testid="nav-drawer-home" href="/" onclick={navigate} class="nav-item">
+        <a data-testid="nav-drawer-home" href="/" onclick={navigate} class="nav-item" class:nav-item-active={isActive('/')}>
             <HomeOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('drawer_menu.home')}</span>
         </a>
     </li>
     <li>
-        <a data-testid="nav-drawer-competitions" href="/competitions/explore_competitions" onclick={navigate} class="nav-item">
+        <a data-testid="nav-drawer-competitions" href="/competitions/explore_competitions" onclick={navigate} class="nav-item" class:nav-item-active={isActive('/competitions')}>
             <TrophyOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('drawer_menu.explore_competitions')}</span>
         </a>
     </li>
     {#if user}
     <li>
-        <a data-testid="nav-drawer-notifications" href="/notifications" onclick={navigate} class="nav-item">
+        <a data-testid="nav-drawer-notifications" href="/notifications" onclick={navigate} class="nav-item" class:nav-item-active={isActive('/notifications')}>
             <BellOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('notifications.title')}</span>
         </a>
@@ -66,19 +74,19 @@
         <span class="section-label">Organizer</span>
     </li>
     <li>
-        <a data-testid="nav-drawer-create-competition" href="/competition/edit/" onclick={navigate} class="nav-item">
+        <a data-testid="nav-drawer-create-competition" href="/competition/edit/" onclick={navigate} class="nav-item" class:nav-item-active={isActive('/competition/edit')}>
             <PlusCircleOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('drawer_menu.create_competition')}</span>
         </a>
     </li>
     <li>
-        <a data-testid="nav-drawer-my-organized-competitions" href="/my_organized_competitions" onclick={navigate} class="nav-item">
+        <a data-testid="nav-drawer-my-organized-competitions" href="/my_organized_competitions" onclick={navigate} class="nav-item" class:nav-item-active={isActive('/my_organized_competitions')}>
             <ClipboardListOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('competitions.my_organized_competitions')}</span>
         </a>
     </li>
     <li>
-        <a data-testid="nav-drawer-puzzles" href="/puzzles" onclick={navigate} class="nav-item">
+        <a data-testid="nav-drawer-puzzles" href="/puzzles" onclick={navigate} class="nav-item" class:nav-item-active={isActive('/puzzles')}>
             <PuzzleOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('drawer_menu.puzzles')}</span>
         </a>
@@ -90,7 +98,7 @@
         <span class="section-label">Admin</span>
     </li>
     <li>
-        <a data-testid="nav-drawer-review-permissions-requests" href="/admin/review_requests" onclick={navigate} class="nav-item">
+        <a data-testid="nav-drawer-review-permissions-requests" href="/admin/review_requests" onclick={navigate} class="nav-item" class:nav-item-active={isActive('/admin')}>
             <ShieldCheckOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('landing_page.review_requests')}</span>
         </a>
@@ -118,6 +126,16 @@
 
     :global([data-mode="dark"]) .nav-item:hover {
         background-color: rgb(var(--color-surface-800) / 1);
+    }
+
+    .nav-item-active {
+        background-color: rgb(var(--color-primary-500) / 0.1);
+        color: rgb(var(--color-primary-600));
+    }
+
+    :global([data-mode="dark"]) .nav-item-active {
+        background-color: rgb(var(--color-primary-500) / 0.15);
+        color: rgb(var(--color-primary-400));
     }
 
     .section-label {

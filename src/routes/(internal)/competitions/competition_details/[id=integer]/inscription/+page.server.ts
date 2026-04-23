@@ -1,16 +1,15 @@
 import type { PageServerLoad, Actions } from "./$types";
-import { getCompetitionWithCategories } from "$lib/database/database";
+import { getCompetitionWithCategories, getCompetitionCategories } from "$lib/database/database";
 import { getCategoryEntriesFromCompetition, signUpUsersToCompetition, removeRecordById, getInscribedUserIdsByCategory } from "$lib/database/db_inscription_utils";
-import { auth } from "$lib/auth";
 import { redirect } from "@sveltejs/kit";
 import { createNotificationForUsers } from "$lib/notifications/notifications";
 import { NotificationType, InscriptionStatus } from "$lib/.prisma/generated/prisma/enums";
 
 export const load: PageServerLoad = async (event) => {
-    const session = await auth.api.getSession(event.request);
+    const user = event.locals.user;
 
-    if (!session?.user) {
-        throw redirect(302, '/login');
+    if (!user) {
+        throw redirect(302, '/login?redirect=' + encodeURIComponent(event.url.pathname));
     }
 
     const competitionId = parseInt(event.params.id);
@@ -20,23 +19,25 @@ export const load: PageServerLoad = async (event) => {
         throw redirect(302, '/competitions/explore_competitions');
     }
 
-    const [existingRecords, inscribedUserIds] = await Promise.all([
-        getCategoryEntriesFromCompetition(competitionId, session.user.id),
-        getInscribedUserIdsByCategory(competitionId)
+    const [existingRecords, inscribedUserIds, categoriesWithCounts] = await Promise.all([
+        getCategoryEntriesFromCompetition(competitionId, user.id),
+        getInscribedUserIdsByCategory(competitionId),
+        getCompetitionCategories(competitionId)
     ]);
 
     return {
         competition,
         existingRecords: existingRecords || [],
         inscribedUserIds,
+        categoriesWithCounts,
     };
 };
 
 export const actions: Actions = {
-    signup: async ({ request }) => {
-        const session = await auth.api.getSession(request);
+    signup: async ({ request, locals }) => {
+        const user = locals.user;
 
-        if (!session?.user) {
+        if (!user) {
             return { success: false, message: 'You must be logged in to sign up' };
         }
 
@@ -54,7 +55,7 @@ export const actions: Actions = {
                 return { success: false, message: 'No categories selected for signup' };
             }
 
-            const result = await signUpUsersToCompetition(signups, session.user.id);
+            const result = await signUpUsersToCompetition(signups, user.id);
 
             if (result.success) {
                 // Notify users on waitlisted inscriptions
@@ -86,10 +87,10 @@ export const actions: Actions = {
         }
     },
 
-    unregister: async ({ request }) => {
-        const session = await auth.api.getSession(request);
+    unregister: async ({ request, locals }) => {
+        const user = locals.user;
 
-        if (!session?.user) {
+        if (!user) {
             return { success: false, message: 'You must be logged in' };
         }
 
@@ -101,7 +102,7 @@ export const actions: Actions = {
         }
 
         try {
-            const result = await removeRecordById(recordId, session.user.id);
+            const result = await removeRecordById(recordId, user.id);
             if (result) {
                 return { success: true, message: 'Successfully unregistered' };
             }

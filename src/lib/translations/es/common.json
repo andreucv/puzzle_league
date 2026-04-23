@@ -203,7 +203,12 @@
     "edit_button": "Edita la competición",
     "start_competition_button": "Empieza la competición",
     "back_to_competitions_button": "Volver a competiciones",
-    "manage_judges_button": "Gestionar Jueces"
+    "manage_judges_button": "Gestionar Jueces",
+    "registration_closed_banner": "Las inscripciones están cerradas para esta competición.",
+    "login_to_register": "Inicia sesión para inscribirte en esta competición.",
+    "you_are_registered": "Estás inscrito en {{n}} categoría(s)",
+    "full": "Completo",
+    "spots_left": "plazas libres"
   },
   "claim_participations": {
     "title": "Reclamar participaciones",
@@ -257,7 +262,11 @@
     "payment_warning_total": "Total",
     "payment_warning_confirm": "Entendido, enviar",
     "payment_warning_cancel": "Cancelar",
-    "pending_confirmation_is_not_guaranteed_inscription": "Las inscripciones pendientes de confirmación no garantizan la participación en el concurso."
+    "pending_confirmation_is_not_guaranteed_inscription": "Las inscripciones pendientes de confirmación no garantizan la participación en el concurso.",
+    "success_title": "¡Inscripción completada!",
+    "success_message": "Tus inscripciones se han enviado correctamente.",
+    "back_to_competition": "Volver a detalles de la competición",
+    "go_home": "Ir al inicio"
   },
   "puzzles": {
     "catalog_title": "Catálogo de Puzzles",
@@ -288,7 +297,26 @@
   },
   "auth": {
     "login_title": "Inicia sesión en tu cuenta",
-    "register_title": "Crea una cuenta"
+    "register_title": "Crea una cuenta",
+    "email_label": "Correo electrónico",
+    "enter_email": "Introduce tu correo",
+    "name_label": "Nombre",
+    "enter_name": "Introduce tu nombre",
+    "password_label": "Contraseña",
+    "enter_password": "Introduce tu contraseña",
+    "confirm_password_placeholder": "Confirmar contraseña",
+    "passwords_not_match": "Las contraseñas no coinciden",
+    "register_button": "Registrarse",
+    "registering": "Registrando...",
+    "login_button": "Iniciar sesión",
+    "logging_in": "Iniciando sesión...",
+    "or_separator": "o",
+    "sign_in_with_google": "Iniciar sesión con Google",
+    "no_account": "¿No tienes cuenta?",
+    "create_account_link": "Crea una cuenta",
+    "have_account": "¿Ya tienes una cuenta?",
+    "sign_in_link": "Inicia sesión",
+    "forgot_password": "¿Olvidaste tu contraseña?"
   },
   "legal": {
     "privacy_policy": "Política de Privacidad",

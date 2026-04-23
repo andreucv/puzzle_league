@@ -23,6 +23,9 @@
     import ClipboardCheckOutlineIcon from '@iconify-svelte/mdi/clipboard-check-outline';
     import ArrowLeftIcon from '@iconify-svelte/mdi/arrow-left';
     import CloseIcon from '@iconify-svelte/mdi/close';
+    import LockOutlineIcon from '@iconify-svelte/mdi/lock-outline';
+    import LoginIcon from '@iconify-svelte/mdi/login';
+    import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
 
     let { data } = $props();
 
@@ -210,6 +213,19 @@
                     <EndPageActionButton icon={ArrowLeftIcon} href="/competitions/explore_competitions/" colorClass="preset-tonal" text={$t('competition_details.back_to_competitions_button')} />
                 </div>
 
+                <!-- Alert Banner: explain why inscription is not available -->
+                {#if !competition?.registrationOpen}
+                    <div class="flex items-center gap-2 p-3 rounded-lg bg-warning-50 dark:bg-warning-900/20 border border-warning-300 dark:border-warning-700 text-sm">
+                        <LockOutlineIcon width="1.2rem" height="1.2rem" class="text-warning-500 shrink-0" />
+                        <span>{$t('competition_details.registration_closed_banner')}</span>
+                    </div>
+                {:else if !currentUser}
+                    <a href="/login?redirect={encodeURIComponent(`/competitions/competition_details/${competition?.id}/inscription`)}" class="flex items-center gap-2 p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-300 dark:border-primary-700 text-sm hover:opacity-80 transition-opacity">
+                        <LoginIcon width="1.2rem" height="1.2rem" class="text-primary-500 shrink-0" />
+                        <span>{$t('competition_details.login_to_register')}</span>
+                    </a>
+                {/if}
+
                 <!-- Cancel Competition Button -->
                 {#if canCancel}
                     <div class="flex justify-center pt-4">
@@ -257,45 +273,39 @@
 </div>
 
 <!-- Cancel Competition Confirmation Dialog -->
-{#if showCancelDialog}
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        onclick={() => showCancelDialog = false}
-    >
-        <div
-            class="card preset-outlined-surface-200-800 p-6 m-4 max-w-md w-full space-y-4"
-            onclick={(e) => e.stopPropagation()}
-        >
-            <h3 class="h3 flex items-center gap-2">
-                <AlertIcon class="text-error-500" width="1.5rem" height="1.5rem" />
-                {$t('during_competition.cancel_competition_confirm_title')}
-            </h3>
+<Dialog open={showCancelDialog} onOpenChange={(e) => showCancelDialog = e.open}>
+    <Portal>
+        <Dialog.Backdrop class="fixed inset-0 z-50 bg-black/50" />
+        <Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <Dialog.Content class="card preset-outlined-surface-200-800 p-6 max-w-md w-full space-y-4">
+                <h3 class="h3 flex items-center gap-2">
+                    <AlertIcon class="text-error-500" width="1.5rem" height="1.5rem" />
+                    {$t('during_competition.cancel_competition_confirm_title')}
+                </h3>
 
-            <p class="text-sm">
-                {$t('during_competition.cancel_competition_confirm_message')}
-            </p>
+                <p class="text-sm">
+                    {$t('during_competition.cancel_competition_confirm_message')}
+                </p>
 
-            <div class="flex justify-end gap-2">
-                <button
-                    class="btn btn-sm preset-tonal"
-                    onclick={() => showCancelDialog = false}
-                    disabled={isCancelling}
-                >
-                    {$t('during_competition.cancel')}
-                </button>
-                <button
-                    class="btn btn-sm preset-filled-error-500"
-                    onclick={handleCancelCompetition}
-                    disabled={isCancelling}
-                >
-                    {#if isCancelling}
-                        <LoadingIcon class="animate-spin" width="1rem" height="1rem" />
-                    {/if}
-                    {$t('during_competition.cancel_competition_confirm')}
-                </button>
-            </div>
-        </div>
-    </div>
-{/if}
+                <div class="flex justify-end gap-2">
+                    <Dialog.CloseTrigger
+                        class="btn btn-sm preset-tonal"
+                        disabled={isCancelling}
+                    >
+                        {$t('during_competition.cancel')}
+                    </Dialog.CloseTrigger>
+                    <button
+                        class="btn btn-sm preset-filled-error-500"
+                        onclick={handleCancelCompetition}
+                        disabled={isCancelling}
+                    >
+                        {#if isCancelling}
+                            <LoadingIcon class="animate-spin" width="1rem" height="1rem" />
+                        {/if}
+                        {$t('during_competition.cancel_competition_confirm')}
+                    </button>
+                </div>
+            </Dialog.Content>
+        </Dialog.Positioner>
+    </Portal>
+</Dialog>

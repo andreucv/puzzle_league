@@ -154,10 +154,22 @@
             {:else}
                 <div class="flex items-center justify-between gap-2 overflow-hidden">
                     {#if seatsAvailable !== undefined}
-                        <div class="flex items-center gap-1 text-sm text-surface-500 min-w-0">
-                            <AccountBoxPlusOutlineIcon width="1rem" height="1rem" class="shrink-0" />
-                            <span class="truncate">{seatsAvailable} {$t('competition_details.seats_available')}</span>
-                        </div>
+                        {#if seatsAvailable <= 0}
+                            <span class="badge preset-tonal-error text-xs flex items-center gap-1">
+                                <AccountBoxPlusOutlineIcon width="0.8rem" height="0.8rem" />
+                                {$t('competition_details.full')}
+                            </span>
+                        {:else if seatsAvailable <= 3}
+                            <span class="badge preset-tonal-warning text-xs flex items-center gap-1">
+                                <AccountBoxPlusOutlineIcon width="0.8rem" height="0.8rem" />
+                                {seatsAvailable} {$t('competition_details.spots_left')}
+                            </span>
+                        {:else}
+                            <span class="badge preset-tonal-success text-xs flex items-center gap-1">
+                                <AccountBoxPlusOutlineIcon width="0.8rem" height="0.8rem" />
+                                {seatsAvailable} {$t('competition_details.spots_left')}
+                            </span>
+                        {/if}
                     {:else}
                         <div></div>
                     {/if}

@@ -39,12 +39,6 @@ async function clickConfirmPopover(page: Page): Promise<void> {
     await page.getByTestId('confirm-popover-action').click();
 }
 
-async function expandPendingRecords(page: Page): Promise<void> {
-    const pendingButton = page.locator('button', { hasText: /Pending Records/ });
-    await expect(pendingButton).toBeVisible({ timeout: 5000 });
-    await pendingButton.click();
-}
-
 // ==================== TESTS ====================
 
 test.describe('During Competition Workflow', () => {
@@ -117,8 +111,7 @@ test.describe('During Competition Workflow', () => {
         // Category should now be LIVE — stop button appears
         await expect(organizerPage.getByTestId(`stop-category-${testData.categoryId}`)).toBeVisible({ timeout: 10000 });
 
-        // Expand collapsed Pending Records section, then verify record rows
-        await expandPendingRecords(organizerPage);
+        // Record rows should be visible (pending records)
         const recordRow = organizerPage.locator('[data-testid^="record-row-"]').first();
         await expect(recordRow).toBeVisible({ timeout: 5000 });
     });
@@ -131,8 +124,7 @@ test.describe('During Competition Workflow', () => {
         await expect(participantPage.getByTestId(`stop-category-${testData.categoryId}`)).not.toBeVisible();
         await expect(participantPage.getByTestId(`start-category-${testData.categoryId}`)).not.toBeVisible();
 
-        // Expand collapsed Pending Records section, then verify record rows
-        await expandPendingRecords(participantPage);
+        // Record rows should be visible
         const recordRow = participantPage.getByTestId(`record-row-${testData.recordIds[0]}`);
         await expect(recordRow).toBeVisible({ timeout: 5000 });
 
@@ -160,8 +152,7 @@ test.describe('During Competition Workflow', () => {
         // Organizer reloads to see current state
         await navigateToDuringCompetition(organizerPage, testData.competitionId);
 
-        // Expand collapsed Pending Records section, then wait for records to load
-        await expandPendingRecords(organizerPage);
+        // Wait for records to load
         const recordRow = organizerPage.getByTestId(`record-row-${testData.recordIds[1]}`);
         await expect(recordRow).toBeVisible({ timeout: 5000 });
 

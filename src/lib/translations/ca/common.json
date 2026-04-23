@@ -100,7 +100,12 @@
     "edit_button": "Edita la competició",
     "start_competition_button": "Comença la competició",
     "back_to_competitions_button": "Torna a competicions",
-    "manage_judges_button": "Gestionar Jutges"
+    "manage_judges_button": "Gestionar Jutges",
+    "registration_closed_banner": "Les inscripcions estan tancades per a aquesta competició.",
+    "login_to_register": "Inicia sessió per inscriure't a aquesta competició.",
+    "you_are_registered": "Estàs inscrit a {{n}} categoria(es)",
+    "full": "Complet",
+    "spots_left": "places lliures"
   },
   "claim_participations": {
     "title": "Reclama participacions",
@@ -154,7 +159,11 @@
     "payment_warning_total": "Total",
     "payment_warning_confirm": "Entesos, envia",
     "payment_warning_cancel": "Cancel·la",
-    "pending_confirmation_is_not_guaranteed_inscription": "Les inscripcions pendents de confirmació no garanteixen la participació al concurs."
+    "pending_confirmation_is_not_guaranteed_inscription": "Les inscripcions pendents de confirmació no garanteixen la participació al concurs.",
+    "success_title": "Inscripció completada!",
+    "success_message": "Les teves inscripcions s'han enviat correctament.",
+    "back_to_competition": "Tornar als detalls de la competició",
+    "go_home": "Anar a l'inici"
   },
   "puzzles": {
     "catalog_title": "Catàleg de Puzzles",
@@ -288,7 +297,26 @@
   },
   "auth": {
     "login_title": "Inicia sessió al teu compte",
-    "register_title": "Crea un compte"
+    "register_title": "Crea un compte",
+    "email_label": "Correu electrònic",
+    "enter_email": "Introdueix el teu correu",
+    "name_label": "Nom",
+    "enter_name": "Introdueix el teu nom",
+    "password_label": "Contrasenya",
+    "enter_password": "Introdueix la teva contrasenya",
+    "confirm_password_placeholder": "Confirmar contrasenya",
+    "passwords_not_match": "Les contrasenyes no coincideixen",
+    "register_button": "Registrar-se",
+    "registering": "Registrant...",
+    "login_button": "Iniciar sessió",
+    "logging_in": "Iniciant sessió...",
+    "or_separator": "o",
+    "sign_in_with_google": "Iniciar sessió amb Google",
+    "no_account": "No tens compte?",
+    "create_account_link": "Crea un compte",
+    "have_account": "Ja tens un compte?",
+    "sign_in_link": "Inicia sessió",
+    "forgot_password": "Has oblidat la contrasenya?"
   },
   "legal": {
     "privacy_policy": "Política de Privacitat",

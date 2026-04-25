@@ -7,6 +7,7 @@ import { createNotificationForUsers } from '$lib/notifications/notifications';
 export const POST = async (event: RequestEvent) => {
 	try {
 		const recordId = event.params.id as string;
+		const actorName = event.locals.user?.name || undefined;
 
 		if (!recordId) {
 			return json({ error: 'Invalid record ID' }, { status: 400 });
@@ -39,6 +40,7 @@ export const POST = async (event: RequestEvent) => {
 			'notifications.messages.inscription_refused',
 			`/competitions/competition_details/${record.category.competitionId}`,
 			{ categoryName: record.category.description },
+			actorName,
 		);
 
 		return json({ success: true, data: result.data });

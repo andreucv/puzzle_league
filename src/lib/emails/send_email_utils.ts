@@ -20,12 +20,19 @@ export async function sendEmail(
 	type: NotificationType,
 	link: string,
 	data: Record<string, string>,
+	actorName?: string,
+	translationKey?: string,
 ): Promise<void> {
 	try {
 		const users = await prisma.user.findMany({
 			where: { id: { in: userIds } },
 			select: { id: true, email: true, locale: true },
 		});
+
+		const baseEmail = RESEND_FROM_EMAIL.match(/<(.+)>/)?.[1] ?? RESEND_FROM_EMAIL;
+		const fromAddress = actorName
+			? `${actorName} <${baseEmail}>`
+			: RESEND_FROM_EMAIL;
 
 		// Pre-resolve multi-language translations once (shared by all no-locale users)
 		let multiLangTranslations: Awaited<ReturnType<typeof resolveMultiLanguageTranslations>> | null = null;
@@ -38,13 +45,13 @@ export async function sendEmail(
 				let subject: string;
 
 				if (user.locale) {
-					const translation = await resolveEmailTranslation(user.locale, type, data);
+					const translation = await resolveEmailTranslation(user.locale, type, data, translationKey);
 					html = buildSingleLanguageEmail(translation, link);
 					subject = translation.title;
 				} else {
 					// Lazy-init shared multi-language content
 					if (!multiLangTranslations) {
-						multiLangTranslations = await resolveMultiLanguageTranslations(type, data);
+						multiLangTranslations = await resolveMultiLanguageTranslations(type, data, translationKey);
 						multiLangHtml = buildMultiLanguageEmail(multiLangTranslations, link);
 						multiLangSubject = multiLangTranslations.map((t) => t.title).join(' / ');
 					}
@@ -53,7 +60,7 @@ export async function sendEmail(
 				}
 
 				await resend.emails.send({
-					from: RESEND_FROM_EMAIL,
+					from: fromAddress,
 					to: user.email,
 					subject,
 					html,

@@ -389,6 +389,7 @@
     "titles": {
       "inscription_created": "New inscription",
       "inscription_confirmed": "Inscription confirmed",
+      "inscription_confirmed_team": "Inscription confirmed",
       "inscription_confirmed_nonplatform": "Inscription confirmed",
       "inscription_refused": "Inscription refused",
       "inscription_waitlisted": "Inscription waitlisted",
@@ -401,8 +402,9 @@
     },
     "messages": {
       "inscription_created": "You have been registered for {{categoryName}} in {{competitionName}} by {{registeredBy}}.",
-      "inscription_confirmed": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition has been confirmed.",
-      "inscription_confirmed_nonplatform": "The inscription for {{nonPlatformNames}} in the {{categoryName}} category of the {{competitionName}} competition has been confirmed.",
+      "inscription_confirmed": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition has been confirmed by {{confirmedBy}}.",
+      "inscription_confirmed_team": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition has been confirmed by {{confirmedBy}}. Your teammates: {{teammateNames}}.",
+      "inscription_confirmed_nonplatform": "The inscription for {{participantNames}} in the {{categoryName}} category of the {{competitionName}} competition has been confirmed by {{confirmedBy}}.",
       "inscription_refused": "Your inscription for {{categoryName}} has been refused.",
       "inscription_waitlisted": "Your inscription for {{categoryName}} has been waitlisted. The category is currently full.",
       "competition_started": "The competition {{competitionName}} has started!",

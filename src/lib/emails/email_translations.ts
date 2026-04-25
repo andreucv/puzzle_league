@@ -4,6 +4,7 @@ import type { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 const NOTIFICATION_TYPE_KEY: Record<string, string> = {
 	INSCRIPTION_CREATED: 'inscription_created',
 	INSCRIPTION_CONFIRMED: 'inscription_confirmed',
+	INSCRIPTION_CONFIRMED_TEAM: 'inscription_confirmed_team',
 	INSCRIPTION_CONFIRMED_NONPLATFORM: 'inscription_confirmed_nonplatform',
 	INSCRIPTION_REFUSED: 'inscription_refused',
 	INSCRIPTION_WAITLISTED: 'inscription_waitlisted',
@@ -74,9 +75,10 @@ export async function resolveEmailTranslation(
 	locale: string,
 	type: NotificationType,
 	data: Record<string, string>,
+	translationKey?: string,
 ): Promise<EmailTranslation> {
 	const translations = await loadTranslationsForLocale(locale);
-	const keySuffix = NOTIFICATION_TYPE_KEY[type] ?? 'general';
+	const keySuffix = translationKey ?? NOTIFICATION_TYPE_KEY[type] ?? 'general';
 
 	const titleKey = `notifications.titles.${keySuffix}`;
 	const messageKey = `notifications.messages.${keySuffix}`;
@@ -99,7 +101,8 @@ export async function resolveEmailTranslation(
 export async function resolveMultiLanguageTranslations(
 	type: NotificationType,
 	data: Record<string, string>,
+	translationKey?: string,
 ): Promise<EmailTranslation[]> {
 	const locales = ['ca', 'es', 'en'];
-	return Promise.all(locales.map((locale) => resolveEmailTranslation(locale, type, data)));
+	return Promise.all(locales.map((locale) => resolveEmailTranslation(locale, type, data, translationKey)));
 }

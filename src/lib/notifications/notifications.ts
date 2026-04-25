@@ -26,6 +26,8 @@ export async function createNotification({
 	message,
 	link,
 	data,
+	actorName,
+	translationKey,
 }: {
 	userId: string;
 	type: NotificationType;
@@ -33,6 +35,8 @@ export async function createNotification({
 	message: string;
 	link?: string;
 	data?: Record<string, string | number | boolean>;
+	actorName?: string;
+	translationKey?: string;
 }) {
 	const notification = await prisma.notification.create({
 		data: { userId, type, title, message, link, data: data ?? undefined },
@@ -44,7 +48,9 @@ export async function createNotification({
 			for (const [k, v] of Object.entries(data)) emailData[k] = String(v);
 		}
 		// Fire-and-forget: email failures must not block the notification flow
-		sendEmail([userId], type, link, emailData).catch(() => {});
+		sendEmail([userId], type, link, emailData, actorName, translationKey).catch((err) => {
+			console.error(`[createNotification] Email send failed for user ${userId}:`, err);
+		});
 	}
 
 	return notification;
@@ -57,6 +63,8 @@ export async function createNotificationForUsers(
 	message: string,
 	link?: string,
 	data?: Record<string, string | number | boolean>,
+	actorName?: string,
+	translationKey?: string,
 ) {
 	const notifications = await prisma.notification.createMany({
 		data: userIds.map((userId) => ({ userId, type, title, message, link, data: data ?? undefined })),
@@ -68,7 +76,9 @@ export async function createNotificationForUsers(
 			for (const [k, v] of Object.entries(data)) emailData[k] = String(v);
 		}
 		// Fire-and-forget: email failures must not block the notification flow
-		sendEmail(userIds, type, link, emailData).catch(() => {});
+		sendEmail(userIds, type, link, emailData, actorName, translationKey).catch((err) => {
+			console.error(`[createNotificationForUsers] Email send failed:`, err);
+		});
 	}
 
 	return notifications;

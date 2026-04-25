@@ -389,6 +389,7 @@
     "titles": {
       "inscription_created": "Nueva inscripción",
       "inscription_confirmed": "Inscripción confirmada",
+      "inscription_confirmed_team": "Inscripción confirmada",
       "inscription_confirmed_nonplatform": "Inscripción confirmada",
       "inscription_refused": "Inscripción rechazada",
       "inscription_waitlisted": "Inscripción en lista de espera",
@@ -401,8 +402,9 @@
     },
     "messages": {
       "inscription_created": "Has sido registrado en {{categoryName}} en {{competitionName}} por {{registeredBy}}.",
-      "inscription_confirmed": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} ha sido confirmada.",
-      "inscription_confirmed_nonplatform": "La inscripción de {{nonPlatformNames}} en la categoría {{categoryName}} de la competición {{competitionName}} ha sido confirmada.",
+      "inscription_confirmed": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} ha sido confirmada por {{confirmedBy}}.",
+      "inscription_confirmed_team": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} ha sido confirmada por {{confirmedBy}}. Tus compañeros de equipo: {{teammateNames}}.",
+      "inscription_confirmed_nonplatform": "La inscripción de {{participantNames}} en la categoría {{categoryName}} de la competición {{competitionName}} ha sido confirmada por {{confirmedBy}}.",
       "inscription_refused": "Tu inscripción para {{categoryName}} ha sido rechazada.",
       "inscription_waitlisted": "Tu inscripción para {{categoryName}} está en lista de espera. La categoría está llena.",
       "competition_started": "¡La competición {{competitionName}} ha comenzado!",

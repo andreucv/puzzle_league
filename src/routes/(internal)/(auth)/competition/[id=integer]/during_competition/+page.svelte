@@ -125,7 +125,8 @@
     <!-- Header -->
     <TitleBackButton
         href="/competitions/competition_details/{competitionId}"
-        text={competition.name}
+        text={$t('during_competition.title')}
+        subtitle={competition.name}
     >
         {#snippet trailing()}
             {#if streamMode === 'connected'}

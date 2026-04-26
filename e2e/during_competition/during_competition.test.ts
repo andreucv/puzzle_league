@@ -1,9 +1,5 @@
 import { expect, test, runSeed } from '../fixtures';
 import type { Page, BrowserContext } from '@playwright/test';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ==================== TYPES ====================
 
@@ -49,8 +45,8 @@ test.describe('During Competition Workflow', () => {
     let testData: TestData;
 
     test.beforeAll(async ({ browser }) => {
-        // Seed test data using co-located seed.ts
-        testData = await runSeed<TestData>(__dirname);
+        // Seed test data using co-located seed.ts (auto-resolved from import.meta.url)
+        testData = await runSeed<TestData>(import.meta.url);
 
         // Create browser contexts with saved auth states
         organizerContext = await browser.newContext({

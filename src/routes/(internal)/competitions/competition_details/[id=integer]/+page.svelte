@@ -26,6 +26,7 @@
     import LockOutlineIcon from '@iconify-svelte/mdi/lock-outline';
     import LoginIcon from '@iconify-svelte/mdi/login';
     import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
+    import FormatListBulletedIcon from '@iconify-svelte/mdi/format-list-bulleted';
 
     let { data } = $props();
 
@@ -203,6 +204,9 @@
                 <!-- Action Buttons -->
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <EndPageActionButton icon={AccountPlusIcon} href="/competitions/competition_details/{competition?.id}/inscription" colorClass="preset-filled-success-500" disabled={!(currentUser && competition?.registrationOpen)} text={$t('competition_details.manage_inscription')} testId="signup-button" />
+                    {#if categories.some(c => c.status === 'LIVE' || c.status === 'STOPPED')}
+                        <EndPageActionButton icon={FormatListBulletedIcon} href="/competitions/competition_details/{competition?.id}/results" text={$t('competition_details.view_live_results')} />
+                    {/if}
                     {#if canAccessDuringCompetition}
                         <EndPageActionButton icon={TimerPlayIcon} href="/competition/{competition?.id}/during_competition" text={$t('during_competition.title')} />
                     {/if}

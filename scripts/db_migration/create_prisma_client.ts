@@ -1,14 +1,8 @@
 import "dotenv/config";
-import { PrismaClient } from '../../src/lib/.prisma/generated/prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { createPrismaClient } from '../../src/lib/database/create_prisma_client';
 
-function createPrismaClient() {
-    const url = process.env.DATABASE_URL!;
-    if (url.startsWith('prisma+postgres://')) {
-        return new PrismaClient({ accelerateUrl: url });
-    }
-    const adapter = new PrismaPg({ connectionString: url });
-    return new PrismaClient({ adapter });
-}
-
-export const prisma = createPrismaClient();
+/**
+ * Singleton Prisma client for CLI scripts.
+ * Reads DATABASE_URL from environment — scripts control their own env.
+ */
+export const prisma = createPrismaClient(process.env.DATABASE_URL!);

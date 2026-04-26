@@ -115,6 +115,56 @@
                 <FormatListBulletedIcon width="1rem" height="1rem" />
                 {$t('during_competition.view_results')}
             </a>
+        {:else if category.status === 'LIVE' || category.status === 'STOPPED'}
+            <!-- Inscription summary (non-clickable) + results link for running categories -->
+            {#if normalizedRecords.some((record) => (record.users?.length ?? 0) > 0 || (record.userIntents?.length ?? 0) > 0)}
+                <div class="flex flex-col gap-2 overflow-hidden">
+                    {#each normalizedRecords as record, index (record.id ?? `${category.id}-${index}`)}
+                        {@const recordUsers = record.users ?? []}
+                        {@const recordIntents = record.userIntents ?? []}
+                        {@const StatusIcon = getInscriptionStatusIcon(record.status)}
+                        {#if recordUsers.length > 0 || recordIntents.length > 0}
+                            <div class="flex items-center gap-2 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-50/70 dark:bg-surface-800/60 px-2 py-1 overflow-hidden">
+                                <div class="flex items-center gap-2 min-w-0 flex-1">
+                                    <div class="flex -space-x-1.5 shrink-0">
+                                        {#each recordUsers as user}
+                                            <Avatar class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-surface-900 shadow-sm">
+                                                <Avatar.Image src={user?.image ?? undefined} alt={user.name ?? 'User'} />
+                                                <Avatar.Fallback>{user.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
+                                            </Avatar>
+                                        {/each}
+                                        {#each recordIntents as intent}
+                                            <Avatar class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-surface-900 shadow-sm bg-primary-100 dark:bg-primary-900/40">
+                                                <Avatar.Fallback>{intent.name.substring(0,2)}</Avatar.Fallback>
+                                            </Avatar>
+                                        {/each}
+                                    </div>
+                                    <span class="text-xs text-surface-600 dark:text-surface-400 truncate">
+                                        {[...recordUsers.map(u => u.name), ...recordIntents.map(i => i.name)].join(', ')}
+                                    </span>
+                                </div>
+                                <span class={`badge text-xs flex items-center gap-1 shrink-0 ${getInscriptionStatusTonalClass(record.status)}`} data-testid="category-status-badge">
+                                    <StatusIcon width="0.8rem" height="0.8rem" />
+                                    {getInscriptionStatusLabel(record.status, $t) || 'Open'}
+                                </span>
+                            </div>
+                        {/if}
+                    {/each}
+                </div>
+            {/if}
+            <a
+                href="/competitions/competition_details/{category.competitionId}/results#category-{category.id}"
+                class="btn btn-sm preset-tonal-primary gap-1.5 w-full"
+            >
+                {#if category.status === 'LIVE'}
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
+                    </span>
+                {/if}
+                <FormatListBulletedIcon width="1rem" height="1rem" />
+                {$t('competition_details.view_live_results')}
+            </a>
         {:else}
         <a href="/competitions/competition_details/{category.competitionId}/inscription" class="block mt-auto -mb-0.5 hover:opacity-80 transition-opacity overflow-hidden">
             {#if normalizedRecords.some((record) => (record.users?.length ?? 0) > 0 || (record.userIntents?.length ?? 0) > 0)}

@@ -1,11 +1,15 @@
 <script lang="ts">
     import ArrowLeftIcon from '@iconify-svelte/mdi/arrow-left';
     import type { Snippet } from 'svelte';
-    let { href, text, subtitle, trailing }: { href: string; text: string; subtitle?: string; trailing?: Snippet } = $props();
+    let { href, text, subtitle, trailing, useHistoryBack = false }: { href: string; text: string; subtitle?: string; trailing?: Snippet; useHistoryBack?: boolean } = $props();
 </script>
 
 <div class="flex items-center gap-2">
-    <a href={href} class="btn btn-sm preset-tonal shrink-0">
+    <a
+        href={href}
+        class="btn btn-sm preset-tonal shrink-0"
+        onclick={useHistoryBack ? (e: MouseEvent) => { e.preventDefault(); history.back(); } : undefined}
+    >
         <ArrowLeftIcon width="1.2rem" height="1.2rem" />
     </a>
     <div class="flex-1 min-w-0">

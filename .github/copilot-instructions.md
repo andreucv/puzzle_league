@@ -25,16 +25,15 @@ and tailwindcss for styling.
 - [PostgreSQL](https://www.postgresql.org/) - The database used for storing the app data
 - [Vercel](https://vercel.com/) - The platform used for deploying the app
 
-## Work Documentation (MANDATORY)
+## Principles
+- **Simplicity**: We look to not overcomplicate things. We want to keep the codebase simple and easy to understand.
+- **Maintainability**: We want to keep the codebase maintainable and easy to work with. We want to avoid technical debt and keep the codebase clean.
+- **Performance**: We want to keep the app performant and responsive. We want to avoid unnecessary re-renders and keep the app fast.
+- **Accessibility**: We want to make sure the app is accessible to everyone. We want to follow best practices for accessibility and make sure the app is usable by everyone.
+- **User Experience**: We want to make sure the app is easy to use and provides a good user experience. We want to make sure the app is intuitive and easy to navigate.
+- **Decisions as comments**: Code that is decided to be implemented in a certain way that is not obvious in the code itself should be commented with the rational behind the decision.
 
-After completing any work, create a documentation file in the `.work-done/` folder with the filename format: `YYYY-MM-DD-<short-description>.md`
-
-This file must include:
-1. **What was implemented** - A brief description of the features or changes added
-2. **Decisions made and rationale** - Explain key technical decisions and their reasons
-3. **Files changed** - List all files that were modified, created, or deleted
-
-**Guidelines:**
-- Write in past tense (work has been completed)
-- Keep descriptions concise and clear
-- Use this documentation for team reference and change tracking
+## Codebase Organization
+- **Component-Based**: We organize our codebase around components. Each component is responsible for a specific piece of functionality and must be reused throughout the app.
+- **Utils**: We have a utils folder where we put all the utility functions that are used throughout the app. This helps us keep our codebase organized and makes it easy to find and reuse code.
+- **Tests**: We have e2e tests to test workflows, with seeding the needed information in the database before running the tests. We also have unit tests for our utility functions and components.

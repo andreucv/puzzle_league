@@ -94,6 +94,8 @@ async function main() {
                 phonePrefix: '+99',
                 phoneNumber: '99999',
                 phonePromptLastChecked: new Date(),
+                locale: 'en',
+                localePromptLastChecked: new Date(),
             },
         });
         console.log(`   📱 Phone set for ${tu.email}`);

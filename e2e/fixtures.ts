@@ -14,14 +14,15 @@ const ROOT = resolve(__dirname, '..');
  *
  * Convention:
  *  - Place a `seed.ts` next to your `*.test.ts` file.
- *  - The seed script writes a `test-data.json` in the same directory.
- *  - Call `const data = await seed()` in `test.beforeAll` to run it.
+ *  - The seed script composes steps from `e2e/seed_utils` and writes
+ *    `test-data.json` via `writeSeedOutput(import.meta.url, data)`.
+ *  - Call `runSeed<T>(import.meta.url)` in `test.beforeAll`.
  *
  * The generic parameter `T` lets each test define its own data shape:
  *
  * ```ts
  * test.beforeAll(async () => {
- *     data = await seed<MyTestData>();
+ *     data = await runSeed<MyTestData>(import.meta.url);
  * });
  * ```
  */
@@ -33,12 +34,9 @@ export interface SeedOptions {
 }
 
 /**
- * Runs a seed script from the given test directory and returns the parsed JSON output.
- *
- * @param testDir - Absolute path to the directory containing the seed.ts and test-data.json
- * @param options - Optional overrides for file names
+ * Internal: runs a seed script from the given test directory.
  */
-export async function runSeed<T = unknown>(testDir: string, options?: SeedOptions): Promise<T> {
+async function executeSeed<T = unknown>(testDir: string, options?: SeedOptions): Promise<T> {
     const seedFile = options?.seedFile ?? 'seed.ts';
     const dataFile = options?.dataFile ?? 'test-data.json';
 
@@ -58,7 +56,7 @@ export async function runSeed<T = unknown>(testDir: string, options?: SeedOption
     if (!existsSync(dataPath)) {
         throw new Error(
             `Seed script ran but did not produce output file: ${dataPath}\n` +
-            `Make sure your seed.ts writes a ${dataFile} in its own directory.`,
+            `Make sure your seed.ts calls writeSeedOutput(import.meta.url, data).`,
         );
     }
 
@@ -66,13 +64,29 @@ export async function runSeed<T = unknown>(testDir: string, options?: SeedOption
 }
 
 /**
+ * Runs the co-located `seed.ts` for a test file and returns the parsed JSON output.
+ *
+ * Pass `import.meta.url` from your test file — the seed.ts in the same
+ * directory will be resolved automatically.
+ *
+ * @param callerUrl - `import.meta.url` of the calling test file
+ * @param options   - Optional overrides for file names
+ */
+export async function runSeed<T = unknown>(callerUrl: string, options?: SeedOptions): Promise<T> {
+    const testDir = dirname(fileURLToPath(callerUrl));
+    return executeSeed<T>(testDir, options);
+}
+
+/**
  * Extended Playwright `test` that provides a `seed` fixture.
+ *
+ * The fixture automatically resolves the calling test's directory.
  *
  * Usage:
  * ```ts
  * import { test, expect } from '../fixtures';
  *
- * test.beforeAll(async ({ seed }) => {
+ * test('my test', async ({ seed }) => {
  *     const data = await seed<MyTestData>();
  * });
  * ```
@@ -82,7 +96,7 @@ export const test = base.extend<{
 }>({
     seed: async ({}, use, testInfo) => {
         const testDir = dirname(testInfo.file);
-        await use(<T = unknown>(options?: SeedOptions) => runSeed<T>(testDir, options));
+        await use(<T = unknown>(options?: SeedOptions) => executeSeed<T>(testDir, options));
     },
 });
 

@@ -1,58 +1,10 @@
 import { expect, test, type Page, type BrowserContext } from '@playwright/test';
-import type { CompetitionData, CategoryData } from '../types';
+import { runSeed } from '../fixtures';
 
 // ==================== HELPER FUNCTIONS ====================
 
-function formatDateToCalendarLabel(date: Date = new Date()): string {
-    const weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
-    const month = date.toLocaleDateString('en-US', { month: 'long' });
-    const day = date.getDate();
-    return `${weekday}, ${month} ${day},`;
-}
-
-/** Creates a competition with the given categories and returns the competition detail page URL. */
-async function createCompetition(
-    page: Page,
-    competition: CompetitionData,
-    categories: CategoryData[]
-): Promise<string> {
-    await page.goto('/competition/edit');
-    await expect(page.getByRole('heading', { name: 'Create new competition' }).first()).toBeVisible();
-
-    await page.locator('input[name="competition_name"]').fill(competition.name);
-    await page.locator('input[name="location"]').fill(competition.location);
-    await page.locator('textarea[name="description"]').fill(competition.description);
-
-    // Select today's date
-    await page.getByTestId('date-picker').locator('button').first().click();
-    await page.getByLabel(formatDateToCalendarLabel()).click();
-
-    for (let i = 0; i < categories.length; i++) {
-        const cat = categories[i];
-        await page.getByRole('button', { name: 'Add Category' }).first().click();
-        await page.locator(`#category-type-create-${i}`).selectOption(cat.type);
-        await page.getByTestId(`description-create-${i}`).fill(cat.description);
-        await page.getByTestId(`start-time-create-${i}`).fill(cat.start_time);
-        await page.getByTestId(`end-time-create-${i}`).fill(cat.end_time);
-        await page.getByTestId(`max-parties-create-${i}`).fill(cat.max_parties);
-        await page.getByTestId(`max-party-size-create-${i}`).fill(cat.participants_per_party);
-    }
-
-    await page.getByTestId('submit-competition').click();
-    await expect(page.getByText(competition.name).first()).toBeVisible();
-
-    return page.url();
-}
-
-/** Extracts the competition ID from a competition detail URL. */
-function extractCompetitionId(url: string): string {
-    const match = url.match(/competition_details\/(\d+)/);
-    if (!match) throw new Error(`Could not extract competition ID from URL: ${url}`);
-    return match[1];
-}
-
 /** Opens registration for a competition from the manage inscriptions page. */
-async function openRegistration(page: Page, competitionId: string): Promise<void> {
+async function openRegistration(page: Page, competitionId: number): Promise<void> {
     await page.goto(`/competition/${competitionId}/manage_inscriptions`);
     await expect(page.getByText('closed')).toBeVisible();
     await page.getByTestId('toggle-registration').click();
@@ -60,29 +12,15 @@ async function openRegistration(page: Page, competitionId: string): Promise<void
 }
 
 /** Signs up the current user for the first individual category and submits. */
-async function signUpIndividualAndSubmit(page: Page, competitionId: string): Promise<void> {
+async function signUpIndividualAndSubmit(page: Page, competitionId: number): Promise<void> {
     await page.goto(`/competitions/competition_details/${competitionId}/inscription`);
     await page.getByText('Sign Up', { exact: true }).first().click();
     await page.getByTestId('submit-all-registrations').click();
     await expect(page.getByTestId('inscription-status-badge')).toBeVisible({ timeout: 10000 });
 }
 
-/** Extracts category IDs from the inscription page by reading signup button data-testid attributes. */
-async function extractCategoryIds(page: Page, competitionId: string): Promise<string[]> {
-    await page.goto(`/competitions/competition_details/${competitionId}/inscription`);
-    const buttons = page.locator('[data-testid^="signup-category-"]');
-    const count = await buttons.count();
-    const ids: string[] = [];
-    for (let i = 0; i < count; i++) {
-        const testid = await buttons.nth(i).getAttribute('data-testid');
-        const match = testid?.match(/signup-category-(\d+)$/);
-        if (match) ids.push(match[1]);
-    }
-    return ids;
-}
-
 /** Confirms the first pending inscription on the manage inscriptions page. */
-async function confirmFirstInscription(page: Page, competitionId: string): Promise<void> {
+async function confirmFirstInscription(page: Page, competitionId: number): Promise<void> {
     await page.goto(`/competition/${competitionId}/manage_inscriptions`);
 
     // Click the first inscription row to reveal action buttons
@@ -107,6 +45,27 @@ async function confirmFirstInscription(page: Page, competitionId: string): Promi
     await expect(page.locator('[data-testid^="inscription-record-"]')).toBeVisible({ timeout: 3000 });
 }
 
+// ==================== TYPES ====================
+
+interface InscriptionTestData {
+    happyPath: { competitionId: number; name: string };
+    userIntent: { competitionId: number };
+    groupTeam: { competitionId: number };
+    unregister: { competitionId: number };
+    refuseInscription: { competitionId: number };
+    waitlist: { competitionId: number };
+    removeQueued: { competitionId: number };
+    multiCategory: { competitionId: number; individualCategoryId: number; pairsCategoryId: number };
+}
+
+// ==================== SEED ====================
+
+let testData: InscriptionTestData;
+
+test.beforeAll(async () => {
+    testData = await runSeed<InscriptionTestData>(import.meta.url);
+});
+
 // ==================== TESTS ====================
 
 test.describe('Inscription Happy Path', () => {
@@ -114,22 +73,7 @@ test.describe('Inscription Happy Path', () => {
     let participantContext: BrowserContext;
     let organizerPage: Page;
     let participantPage: Page;
-    let competitionId: string;
-
-    const competition: CompetitionData = {
-        name: 'Happy Path Competition',
-        location: 'Test Location',
-        description: 'Competition for happy path inscription E2E tests',
-    };
-
-    const category: CategoryData = {
-        description: '500 pcs',
-        type: 'Individual',
-        start_time: '10:00',
-        end_time: '12:00',
-        max_parties: '10',
-        participants_per_party: '1',
-    };
+    let competitionId: number;
 
     test.beforeAll(async ({ browser }) => {
         organizerContext = await browser.newContext({
@@ -141,8 +85,7 @@ test.describe('Inscription Happy Path', () => {
         organizerPage = await organizerContext.newPage();
         participantPage = await participantContext.newPage();
 
-        const competitionUrl = await createCompetition(organizerPage, competition, [category]);
-        competitionId = extractCompetitionId(competitionUrl);
+        competitionId = testData.happyPath.competitionId;
     });
 
     test.afterAll(async () => {
@@ -152,9 +95,9 @@ test.describe('Inscription Happy Path', () => {
         await participantContext.close();
     });
 
-    test('Step 1: Competition is created and visible', async () => {
-        await expect(organizerPage.getByText(competition.name).first()).toBeVisible();
-        await expect(organizerPage.getByText(competition.description).first()).toBeVisible();
+    test('Step 1: Check competition visible', async () => {
+        await organizerPage.goto(`/competitions/competition_details/${competitionId}`);
+        await expect(organizerPage.getByText(testData.happyPath.name).first()).toBeVisible();
     });
 
     test('Step 2a: Participant cannot register when registration is closed', async () => {
@@ -199,22 +142,7 @@ test.describe('Individual — Register Non-Platform User (UserIntent)', () => {
     let participantContext: BrowserContext;
     let organizerPage: Page;
     let participantPage: Page;
-    let competitionId: string;
-
-    const competition: CompetitionData = {
-        name: 'UserIntent Individual Competition',
-        location: 'Test Location',
-        description: 'Tests registering a non-platform participant',
-    };
-
-    const category: CategoryData = {
-        description: '500 pcs solo',
-        type: 'Individual',
-        start_time: '10:00',
-        end_time: '12:00',
-        max_parties: '10',
-        participants_per_party: '1',
-    };
+    let competitionId: number;
 
     const userIntentName = 'Alice NonPlatform';
 
@@ -228,9 +156,7 @@ test.describe('Individual — Register Non-Platform User (UserIntent)', () => {
         organizerPage = await organizerContext.newPage();
         participantPage = await participantContext.newPage();
 
-        const url = await createCompetition(organizerPage, competition, [category]);
-        competitionId = extractCompetitionId(url);
-        await openRegistration(organizerPage, competitionId);
+        competitionId = testData.userIntent.competitionId;
     });
 
     // test.afterAll(async () => {
@@ -291,22 +217,7 @@ test.describe('Group Category — Build Team with UserIntent', () => {
     let participantContext: BrowserContext;
     let organizerPage: Page;
     let participantPage: Page;
-    let competitionId: string;
-
-    const competition: CompetitionData = {
-        name: 'Pairs Team Build Competition',
-        location: 'Test Location',
-        description: 'Tests building a team for pairs category',
-    };
-
-    const category: CategoryData = {
-        description: '500 pcs pairs',
-        type: 'Pairs',
-        start_time: '10:00',
-        end_time: '12:00',
-        max_parties: '10',
-        participants_per_party: '2',
-    };
+    let competitionId: number;
 
     const teammateIntentName = 'Bob NonPlatform';
 
@@ -320,9 +231,7 @@ test.describe('Group Category — Build Team with UserIntent', () => {
         organizerPage = await organizerContext.newPage();
         participantPage = await participantContext.newPage();
 
-        const url = await createCompetition(organizerPage, competition, [category]);
-        competitionId = extractCompetitionId(url);
-        await openRegistration(organizerPage, competitionId);
+        competitionId = testData.groupTeam.competitionId;
     });
 
     // test.afterAll(async () => {
@@ -407,22 +316,7 @@ test.describe('Unregister from Existing Record', () => {
     let participantContext: BrowserContext;
     let organizerPage: Page;
     let participantPage: Page;
-    let competitionId: string;
-
-    const competition: CompetitionData = {
-        name: 'Unregister Test Competition',
-        location: 'Test Location',
-        description: 'Tests unregistering from a category',
-    };
-
-    const category: CategoryData = {
-        description: '500 pcs unreg',
-        type: 'Individual',
-        start_time: '10:00',
-        end_time: '12:00',
-        max_parties: '10',
-        participants_per_party: '1',
-    };
+    let competitionId: number;
 
     test.beforeAll(async ({ browser }) => {
         organizerContext = await browser.newContext({
@@ -434,9 +328,7 @@ test.describe('Unregister from Existing Record', () => {
         organizerPage = await organizerContext.newPage();
         participantPage = await participantContext.newPage();
 
-        const url = await createCompetition(organizerPage, competition, [category]);
-        competitionId = extractCompetitionId(url);
-        await openRegistration(organizerPage, competitionId);
+        competitionId = testData.unregister.competitionId;
     });
 
     test.afterAll(async () => {
@@ -476,22 +368,7 @@ test.describe('Organizer Refuses Inscription', () => {
     let participantContext: BrowserContext;
     let organizerPage: Page;
     let participantPage: Page;
-    let competitionId: string;
-
-    const competition: CompetitionData = {
-        name: 'Refuse Test Competition',
-        location: 'Test Location',
-        description: 'Tests organizer refusing an inscription',
-    };
-
-    const category: CategoryData = {
-        description: '500 pcs refuse',
-        type: 'Individual',
-        start_time: '10:00',
-        end_time: '12:00',
-        max_parties: '10',
-        participants_per_party: '1',
-    };
+    let competitionId: number;
 
     test.beforeAll(async ({ browser }) => {
         organizerContext = await browser.newContext({
@@ -503,9 +380,7 @@ test.describe('Organizer Refuses Inscription', () => {
         organizerPage = await organizerContext.newPage();
         participantPage = await participantContext.newPage();
 
-        const url = await createCompetition(organizerPage, competition, [category]);
-        competitionId = extractCompetitionId(url);
-        await openRegistration(organizerPage, competitionId);
+        competitionId = testData.refuseInscription.competitionId;
     });
 
     test.afterAll(async () => {
@@ -562,23 +437,7 @@ test.describe('Waitlisting', () => {
     let participantContext: BrowserContext;
     let organizerPage: Page;
     let participantPage: Page;
-    let competitionId: string;
-
-    const competition: CompetitionData = {
-        name: 'Waitlist Test Competition',
-        location: 'Test Location',
-        description: 'Tests waitlisting when category is full',
-    };
-
-    // Category with only 1 max party — first accepted fills it
-    const category: CategoryData = {
-        description: '500 pcs waitlist',
-        type: 'Individual',
-        start_time: '10:00',
-        end_time: '12:00',
-        max_parties: '1',
-        participants_per_party: '1',
-    };
+    let competitionId: number;
 
     test.beforeAll(async ({ browser }) => {
         organizerContext = await browser.newContext({
@@ -590,9 +449,7 @@ test.describe('Waitlisting', () => {
         organizerPage = await organizerContext.newPage();
         participantPage = await participantContext.newPage();
 
-        const url = await createCompetition(organizerPage, competition, [category]);
-        competitionId = extractCompetitionId(url);
-        await openRegistration(organizerPage, competitionId);
+        competitionId = testData.waitlist.competitionId;
     });
 
     test('Participant registers → Pending Confirmation, organizer confirms → fills the category', async () => {
@@ -634,22 +491,7 @@ test.describe('Remove Queued Signup Before Submitting', () => {
     let participantContext: BrowserContext;
     let organizerPage: Page;
     let participantPage: Page;
-    let competitionId: string;
-
-    const competition: CompetitionData = {
-        name: 'Remove Queued Competition',
-        location: 'Test Location',
-        description: 'Tests removing a queued signup',
-    };
-
-    const category: CategoryData = {
-        description: '500 pcs remove',
-        type: 'Individual',
-        start_time: '10:00',
-        end_time: '12:00',
-        max_parties: '10',
-        participants_per_party: '1',
-    };
+    let competitionId: number;
 
     test.beforeAll(async ({ browser }) => {
         organizerContext = await browser.newContext({
@@ -661,9 +503,7 @@ test.describe('Remove Queued Signup Before Submitting', () => {
         organizerPage = await organizerContext.newPage();
         participantPage = await participantContext.newPage();
 
-        const url = await createCompetition(organizerPage, competition, [category]);
-        competitionId = extractCompetitionId(url);
-        await openRegistration(organizerPage, competitionId);
+        competitionId = testData.removeQueued.competitionId;
     });
 
     test.afterAll(async () => {
@@ -706,36 +546,11 @@ test.describe('Multi-Category Batch Submission', () => {
     let participantContext: BrowserContext;
     let organizerPage: Page;
     let participantPage: Page;
-    let competitionId: string;
-
-    const competition: CompetitionData = {
-        name: 'Multi-Cat Batch Competition',
-        location: 'Test Location',
-        description: 'Tests registering for multiple categories at once',
-    };
-
-    const categories: CategoryData[] = [
-        {
-            description: '500 pcs individual',
-            type: 'Individual',
-            start_time: '10:00',
-            end_time: '12:00',
-            max_parties: '10',
-            participants_per_party: '1',
-        },
-        {
-            description: '500 pcs pairs',
-            type: 'Pairs',
-            start_time: '14:00',
-            end_time: '16:00',
-            max_parties: '10',
-            participants_per_party: '2',
-        },
-    ];
+    let competitionId: number;
 
     const pairsIntentName = 'Charlie NonPlatform';
-    let individualCategoryId: string;
-    let pairsCategoryId: string;
+    let individualCategoryId: number;
+    let pairsCategoryId: number;
 
     test.beforeAll(async ({ browser }) => {
         organizerContext = await browser.newContext({
@@ -747,14 +562,9 @@ test.describe('Multi-Category Batch Submission', () => {
         organizerPage = await organizerContext.newPage();
         participantPage = await participantContext.newPage();
 
-        const url = await createCompetition(organizerPage, competition, categories);
-        competitionId = extractCompetitionId(url);
-        await openRegistration(organizerPage, competitionId);
-
-        // Extract category IDs so we can target specific signup buttons
-        const categoryIds = await extractCategoryIds(participantPage, competitionId);
-        individualCategoryId = categoryIds[0];
-        pairsCategoryId = categoryIds[1];
+        competitionId = testData.multiCategory.competitionId;
+        individualCategoryId = testData.multiCategory.individualCategoryId;
+        pairsCategoryId = testData.multiCategory.pairsCategoryId;
     });
 
     test('Register for individual + build pairs team, submit all at once', async () => {

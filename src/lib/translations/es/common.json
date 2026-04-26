@@ -208,7 +208,8 @@
     "login_to_register": "Inicia sesión para inscribirte en esta competición.",
     "you_are_registered": "Estás inscrito en {{n}} categoría(s)",
     "full": "Completo",
-    "spots_left": "plazas libres"
+    "spots_left": "plazas libres",
+    "view_live_results": "Ver Resultados en Vivo"
   },
   "claim_participations": {
     "title": "Reclamar participaciones",
@@ -503,7 +504,7 @@
     "delta": "Diferencia",
     "dnf": "DNF",
     "pieces_completed": "{n}/{total} piezas",
-    "no_completed_categories": "Aún no hay categorías completadas.",
+    "no_completed_categories": "Aún no hay resultados.",
     "no_categories": "Esta competición no tiene categorías.",
     "started_at": "Iniciada a las",
     "winner": "Ganador/a",

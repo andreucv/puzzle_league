@@ -21,7 +21,7 @@
     import PauseCircleOutlineIcon from '@iconify-svelte/mdi/pause-circle-outline';
     import TimerOutlineIcon from '@iconify-svelte/mdi/timer-outline';
     import AccountGroupIcon from '@iconify-svelte/mdi/account-group';
-    import ArrowRightIcon from '@iconify-svelte/mdi/arrow-right';
+    import ArrowLeftIcon from '@iconify-svelte/mdi/arrow-left';
 
     let { data } = $props();
 
@@ -183,7 +183,9 @@
 <div class="container mx-auto space-y-6 max-w-4xl">
     <TitleBackButton
         href="/competitions/competition_details/{competition.id}"
-        text="{competition.name} — {$t('results.title')}"
+        text={$t('results.title')}
+        subtitle={competition.name}
+        useHistoryBack={true}
     >
         {#snippet trailing()}
             {#if ablyConnection}
@@ -279,8 +281,8 @@
                             href="/competitions/competition_details/{competition.id}"
                             class="btn preset-tonal-primary inline-flex items-center gap-1.5 mt-2"
                         >
+                            <ArrowLeftIcon width="1rem" height="1rem" />
                             {$t('results.back_to_details')}
-                            <ArrowRightIcon width="1rem" height="1rem" />
                         </a>
                     </div>
                 </Card>

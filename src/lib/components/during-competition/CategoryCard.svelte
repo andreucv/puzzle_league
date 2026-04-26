@@ -449,6 +449,7 @@
                 onSelectRecord={(id) => records.selectedPendingRecord = records.selectedPendingRecord === id ? null : id}
                 onFinish={handleRecordFinish}
                 emptyMessage={$t('during_competition.no_pending_records')}
+                initialOpen={true}
                 forceOpen={records.searchQuery.trim() !== '' && records.filteredPending.length > 0}
             />
 

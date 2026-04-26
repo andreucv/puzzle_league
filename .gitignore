@@ -40,7 +40,7 @@ scripts/db_migration/*seed_data.json
 /playwright/.test-server-state.json
 
 # E2E test generated data
-/e2e/during_competition/test-data.json
+/e2e/*/test-data.json
 
 # Chrome devtools files
 com.chrome.devtools.json
@@ -51,6 +51,7 @@ com.chrome.devtools.json
 .agents/
 skills-lock.json
 explanations/plans/
+.work-done
 
 # GSD files
 .planning/

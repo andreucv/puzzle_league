@@ -105,7 +105,8 @@
     "login_to_register": "Inicia sessió per inscriure't a aquesta competició.",
     "you_are_registered": "Estàs inscrit a {{n}} categoria(es)",
     "full": "Complet",
-    "spots_left": "places lliures"
+    "spots_left": "places lliures",
+    "view_live_results": "Veure Resultats en Directe"
   },
   "claim_participations": {
     "title": "Reclama participacions",
@@ -503,7 +504,7 @@
     "delta": "Diferència",
     "dnf": "DNF",
     "pieces_completed": "{n}/{total} peces",
-    "no_completed_categories": "Encara no hi ha categories completades.",
+    "no_completed_categories": "Encara no hi ha resultats.",
     "started_at": "Iniciada a les",
     "winner": "Guanyador/a",
     "category_duration": "Duració de la categoria",
@@ -511,7 +512,12 @@
     "pieces": "peces",
     "dns": "DNS",
     "anonymous_puzzler": "Puzzler Anònim",
-    "profile_hidden": "Aquest perfil és privat"
+    "profile_hidden": "Aquest perfil és privat",
+    "live_badge": "En Directe",
+    "total_participants": "{{n}} inscripcions",
+    "duration": "Duració",
+    "live_updates": "En directe",
+    "live_updates_connecting": "Connectant..."
   },
   "category_status": {
     "not_started": "No Iniciada",

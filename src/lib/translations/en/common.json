@@ -208,7 +208,8 @@
     "login_to_register": "Log in to register for this competition.",
     "you_are_registered": "You are registered in {{n}} category(ies)",
     "full": "Full",
-    "spots_left": "spots left"
+    "spots_left": "spots left",
+    "view_live_results": "View Live Results"
   },
   "claim_participations": {
     "title": "Claim Participations",
@@ -503,7 +504,7 @@
     "delta": "Gap",
     "dnf": "DNF",
     "pieces_completed": "{n}/{total} pieces",
-    "no_completed_categories": "No completed categories yet.",
+    "no_completed_categories": "No results yet.",
     "no_categories": "This competition has no categories.",
     "started_at": "Started at",
     "winner": "Winner",

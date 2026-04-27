@@ -530,6 +530,11 @@
     "phone": "Telèfon",
     "member_since": "Membre des de"
   },
+  "onboarding": {
+    "step_of": "Pas {current} de {total}",
+    "welcome": "Benvingut/da, {name}!",
+    "welcome_subtitle": "Configurem el teu compte amb un parell de coses ràpides."
+  },
   "add_phone": {
     "title": "Afegeix el teu número de telèfon",
     "description": "Afegeix el teu número de telèfon perquè els organitzadors puguin contactar-te si hi ha un problema amb la teva inscripció.",

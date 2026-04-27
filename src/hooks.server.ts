@@ -1,13 +1,18 @@
 import { auth } from "$lib/auth"; // path to your auth file
 import { svelteKitHandler } from "better-auth/svelte-kit";
 import { building } from "$app/environment";
-import { prisma } from "$lib/database/create_prisma_client";
 import { redirect } from "@sveltejs/kit";
 import { isPublicApiRoute } from "$lib/api_utils/api_whitelist";
 import { validateOrigin } from "$lib/api_utils/api_csrf";
 import { apiRateLimiter, searchRateLimiter, isSearchEndpoint } from "$lib/api_utils/rate-limit";
 import { enforceRouteGuard } from "$lib/api_utils/api_route_guards";
+import { hasIncompleteOnboarding } from "$lib/utils/onboarding_utils";
 import type { HandleServerError } from "@sveltejs/kit";
+
+/** Returns true for navigable page requests (not API or auth endpoints). */
+function isPageRequest(path: string): boolean {
+	return !path.startsWith('/api/') && !path.startsWith('/auth/');
+}
 
 // Auth handler
 export async function handle({ event, resolve }) {
@@ -20,71 +25,12 @@ export async function handle({ event, resolve }) {
 		event.locals.session = session.session as typeof event.locals.session;
 		event.locals.user = session.user;
 
-		// First-login redirect to claim participations page
+		// Onboarding redirect — send users to unified wizard if any step is incomplete
 		const path = event.url.pathname;
-		const isPageRequest = !path.startsWith('/api/') && !path.startsWith('/auth/');
-		const isClaimPage = path === '/claim-participations';
-		const isAddPhonePage = path === '/add-phone';
-		const isSelectLanguagePage = path === '/select-language';
 
-		if (isPageRequest && !isClaimPage) {
-			// Check DB flags — only query when on a page that may trigger redirects
-			const dbUser = await prisma.user.findUnique({
-				where: { id: session.user.id },
-				select: { userIntentsLastChecked: true, phonePromptLastChecked: true, phoneNumber: true, localePromptLastChecked: true, locale: true }
-			});
-
-			if (!dbUser) {
-				console.warn(`[hooks] Session references unknown user ${session.user.id}, skipping redirect checks`);
-			} else {
-				// TODO: In the future, we may want to re-check user intents periodically (e.g. every 30 days)
-				// in case new unclaimed intents appear that match the user's name.
-				// For now, we only check once on first login to avoid complexity of re-checking logic and
-				// potential edge cases around claiming after multiple checks.
-
-				if (!dbUser.userIntentsLastChecked) {
-					// Mark as checked immediately so we never re-check
-					await prisma.user.update({
-						where: { id: session.user.id },
-						data: { userIntentsLastChecked: new Date() }
-					});
-
-					// Check if user was created recently (within last 5 minutes)
-					const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-					if (new Date(session.user.createdAt) > fiveMinutesAgo) {
-						// Check if there are unclaimed UserIntents matching this user's name
-						const userName = session.user.name;
-						if (userName) {
-							// Single query: fetch only unclaimed intent names (avoids redundant count + findMany)
-							const unclaimed = await prisma.userIntent.findMany({
-								where: { claimedById: null },
-								select: { name: true },
-								take: 100
-							});
-							const userNameLower = userName.toLowerCase();
-							const hasMatch = unclaimed.some(ui => {
-								const intentNameLower = ui.name.toLowerCase();
-								return intentNameLower.includes(userNameLower) || userNameLower.includes(intentNameLower);
-							});
-
-							if (hasMatch) {
-								throw redirect(302, '/claim-participations');
-							}
-						}
-					}
-				}
-
-				// Phone onboarding redirect — show once for users without phone data
-				// Note: phonePromptLastChecked is set by the /add-phone page actions (save/skip),
-				// not here, to avoid conflicting with the page's own redirect guard.
-				if (!isAddPhonePage && !dbUser.phonePromptLastChecked && !dbUser.phoneNumber) {
-					throw redirect(302, '/add-phone');
-				}
-
-				// Language preference onboarding — show once for users without a stored locale
-				if (!isAddPhonePage && !isSelectLanguagePage && !dbUser.localePromptLastChecked && !dbUser.locale) {
-					throw redirect(302, '/select-language');
-				}
+		if (isPageRequest(path) && path !== '/onboarding') {
+			if (await hasIncompleteOnboarding(session.user.id)) {
+				throw redirect(302, '/onboarding');
 			}
 		}
 	}

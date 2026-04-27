@@ -36,7 +36,7 @@ const testUsers: TestUser[] = [
         email: process.env.TEST_PARTICIPANT_USER_EMAIL!,
         password: process.env.TEST_PARTICIPANT_USER_PASSWORD!,
         name: 'Test Participant',
-        role: 'PARTICIPANT' as Role,
+        role: 'PARTICIPANT' as Role
     },
     {
         email: process.env.TEST_ORGANIZER_USER_EMAIL!,
@@ -48,7 +48,7 @@ const testUsers: TestUser[] = [
         email: process.env.TEST_ADMIN_USER_EMAIL!,
         password: process.env.TEST_ADMIN_USER_PASSWORD!,
         name: 'Test Admin',
-        role: 'ADMIN' as Role,
+        role: 'ADMIN' as Role
     },
 ];
 
@@ -96,6 +96,7 @@ async function main() {
                 phonePromptLastChecked: new Date(),
                 locale: 'en',
                 localePromptLastChecked: new Date(),
+                userIntentsLastChecked: new Date(),
             },
         });
         console.log(`   📱 Phone set for ${tu.email}`);

@@ -540,6 +540,11 @@
     "phone": "Teléfono",
     "member_since": "Miembro desde"
   },
+  "onboarding": {
+    "step_of": "Paso {current} de {total}",
+    "welcome": "¡Bienvenido/a, {name}!",
+    "welcome_subtitle": "Vamos a configurar tu cuenta con un par de cosas rápidas."
+  },
   "add_phone": {
     "title": "Añade tu número de teléfono",
     "description": "Añade tu número de teléfono para que los organizadores puedan contactarte si hay un problema con tu inscripción.",

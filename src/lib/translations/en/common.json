@@ -540,6 +540,11 @@
     "phone": "Phone",
     "member_since": "Member since"
   },
+  "onboarding": {
+    "step_of": "Step {current} of {total}",
+    "welcome": "Welcome, {name}!",
+    "welcome_subtitle": "Let's get you set up with just a couple of quick things."
+  },
   "add_phone": {
     "title": "Add your phone number",
     "description": "Add your phone number so organizers can contact you if there is a problem with your registration.",

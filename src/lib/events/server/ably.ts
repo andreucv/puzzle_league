@@ -28,7 +28,10 @@ export function publishCompetitionEvent(
 	data: Record<string, unknown>
 ): void {
 	const client = getClient();
-	if (!client) return;
+	if (!client) {
+		console.warn(`[ably] Client not available — cannot publish event ${eventName} for competition ${competitionId}`);
+		return;
+	}
 
 	const channelName = `competition:${competitionId}`;
 	client.channels.get(channelName).publish(eventName, data).catch((err) => {

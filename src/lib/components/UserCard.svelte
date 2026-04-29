@@ -1,9 +1,12 @@
 <script lang="ts">
     import { Avatar, Combobox, Portal, Switch, useListCollection } from "@skeletonlabs/skeleton-svelte";
     import type { RoleAssignment } from "@prisma/client";
-    import { t } from '$lib/translations';
+    import { t, locale, locales, setLocale } from '$lib/translations';
     import { enhance } from '$app/forms';
     import ThemeLightSwitch from './ThemeLightSwitch.svelte';
+    import langNames from '$lib/translations/lang.json';
+
+    const langMap: Record<string, string> = langNames;
     import { countries, getCountryFlag, getFlagFromPhonePrefix } from '$lib/utils/country_utils';
 
     let { user, account } = $props();
@@ -29,6 +32,10 @@
     let isEditingPhone = $state(false);
     let isSavingPhone = $state(false);
     let isDeletingPhone = $state(false);
+    let isSavingLocale = $state(false);
+    let selectedLocale = $state($locale);
+    let localeForm: HTMLFormElement;
+
     let phonePrefixValue = $derived(user.phonePrefix ? [user.phonePrefix] : []);
     let phonePrefixInputValue = $derived(user.phonePrefix || '');
     let phoneNumberValue = $derived(user.phoneNumber || '');
@@ -458,11 +465,34 @@
         <!-- Language Setting -->
         <div class="grid grid-cols-2 gap-4 items-center">
             <div>
-                <span class="text-sm font-semibold text-surface-500">Language</span>
-                <p class="text-sm">English</p>
+                <span class="text-sm font-semibold text-surface-500">{$t('profile.language')}</span>
             </div>
             <div class="flex justify-end">
-                <button class="btn btn-sm preset-outlined-surface-500" disabled>Change</button>
+                <form
+                    bind:this={localeForm}
+                    method="POST"
+                    action="?/updateLocale"
+                    use:enhance={() => {
+                        isSavingLocale = true;
+                        return async ({ update }) => {
+                            isSavingLocale = false;
+                            await setLocale(selectedLocale);
+                            await update({ reset: false });
+                        };
+                    }}
+                >
+                    <select
+                        name="locale"
+                        class="select text-sm px-3 py-2 border rounded-lg border-surface-300"
+                        bind:value={selectedLocale}
+                        disabled={isSavingLocale}
+                        onchange={() => localeForm?.requestSubmit()}
+                    >
+                        {#each $locales as loc}
+                            <option value={loc}>{langMap[loc] || loc}</option>
+                        {/each}
+                    </select>
+                </form>
             </div>
         </div>
 

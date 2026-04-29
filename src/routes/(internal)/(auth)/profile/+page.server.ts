@@ -2,6 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { prisma } from '$lib/database/database';
 import { error, fail } from '@sveltejs/kit';
 import { validatePhone, savePhoneForUser, deletePhoneForUser } from '$lib/utils/phone_utils';
+import { locales } from '$lib/translations';
 
 export const load: PageServerLoad = async ({ parent }) => {
 
@@ -107,6 +108,35 @@ export const actions: Actions = {
         } catch (err) {
             console.error('Error updating visibility:', err);
             return fail(500, { message: 'Unable to update visibility setting. Please try again.' });
+        }
+    },
+
+    updateLocale: async ({ request, locals, cookies }) => {
+        const user = locals.user;
+        if (!user) {
+            return fail(401, { message: 'Unauthorized' });
+        }
+
+        const formData = await request.formData();
+        const locale = formData.get('locale')?.toString();
+
+        const supportedLocales = locales.get().map((l) => l.toLowerCase());
+        if (!locale || !supportedLocales.includes(locale.toLowerCase())) {
+            return fail(400, { message: 'Invalid locale' });
+        }
+
+        try {
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { locale, updatedAt: new Date() }
+            });
+
+            cookies.set('lang', locale, { path: '/', maxAge: 60 * 60 * 24 * 365 });
+
+            return { success: true };
+        } catch (err) {
+            console.error('Error updating locale:', err);
+            return fail(500, { message: 'Unable to update language. Please try again.' });
         }
     }
 };

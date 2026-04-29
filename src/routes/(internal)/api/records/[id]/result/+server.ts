@@ -36,12 +36,16 @@ export const POST = async (event: RequestEvent) => {
       }
     });
 
+    console.log('Recorded result for entry', { recordId, finishTime: updatedEntry.finishTime, tableNumber: updatedEntry.tableNumber });
+
     publishCompetitionEvent(updatedEntry.category.competitionId, 'record.finished', {
       recordId: updatedEntry.id,
       categoryId: updatedEntry.categoryId,
       competitionId: updatedEntry.category.competitionId,
       finishTime: updatedEntry.finishTime!.toISOString()
     });
+
+    console.log('Published record.finished event for record', { recordId: updatedEntry.id, categoryId: updatedEntry.categoryId, competitionId: updatedEntry.category.competitionId });
 
     return json({ record: updatedEntry });
   } catch (error) {

@@ -74,7 +74,9 @@
     "public_profile_visibility": "Visibilidad del perfil",
     "public_profile_visibility_description": "Si está activado, cualquier usuario (incluso visitantes no registrados) puede ver tu perfil público. Si está desactivado, solo los organizadores y administradores pueden verlo.",
     "public_results_visibility": "Visibilidad en resultados",
-    "public_results_visibility_description": "Si está activado, tu nombre y avatar aparecen en los resultados de las competiciones para todos. Si está desactivado, los demás participantes te ven como 'Puzzler Anónimo' — tú siempre puedes ver tu propio nombre."
+    "public_results_visibility_description": "Si está activado, tu nombre y avatar aparecen en los resultados de las competiciones para todos. Si está desactivado, los demás participantes te ven como 'Puzzler Anónimo' — tú siempre puedes ver tu propio nombre.",
+    "language": "Idioma",
+    "save": "Guardar"
   },
   "admin": {
     "review_requests": {

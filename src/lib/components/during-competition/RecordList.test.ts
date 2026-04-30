@@ -27,8 +27,8 @@ function renderList(overrides: Record<string, any> = {}) {
 			records: [],
 			loading: false,
 			categoryRealStartTime: null,
-			selectedRecord: null,
-			onSelectRecord: vi.fn(),
+			mode: 'finish' as const,
+			onAction: vi.fn(),
 			emptyMessage: 'No records found',
 			...overrides
 		}

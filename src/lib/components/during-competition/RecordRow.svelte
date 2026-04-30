@@ -10,6 +10,7 @@
     import CloseIcon from '@iconify-svelte/mdi/close';
     import RecordActionButton from './RecordActionButton.svelte';
     import { t } from '$lib/translations';
+    import type { RecordActionMode, RecordActionHandler } from './types';
 
     interface RecordUser {
         id: string;
@@ -33,52 +34,37 @@
         userIntents: UserIntent[];
     }
 
+    // Action config lookup — maps mode to visual + behavioral config
+    const ACTION_CONFIG = {
+        'finish': { icon: FlagCheckeredIcon, colorClass: 'preset-filled-success-500', testIdPrefix: 'finish-record' },
+        'undo-finish': { icon: UndoIcon, colorClass: 'preset-filled-warning-500', testIdPrefix: 'undo-finish-record' },
+        'pieces': { icon: PuzzlePieceIcon, colorClass: 'preset-filled-warning-500', testIdPrefix: 'pieces-record' },
+        'undo-pieces': { icon: UndoIcon, colorClass: 'preset-filled-warning-500', testIdPrefix: 'undo-pieces-record' }
+    } as const;
+
     let {
         record,
         categoryRealStartTime,
         selected = false,
         onSelect,
-        onFinish,
-        onUndoFinish,
-        onSubmitPieces,
-        onUndoPieces,
+        mode,
+        onAction,
         totalPieces
     }: {
         record: RecordData;
         categoryRealStartTime: string | null;
         selected?: boolean;
         onSelect?: (id: string) => void;
-        onFinish?: (recordId: string) => void;
-        onUndoFinish?: (recordId: string) => void;
-        onSubmitPieces?: (recordId: string, nPiecesCompleted: number) => void;
-        onUndoPieces?: (recordId: string) => void;
+        mode: RecordActionMode;
+        onAction: RecordActionHandler;
         totalPieces?: number | null;
     } = $props();
 
     let submitting = $state(false);
     let piecesInput = $state('');
-    let isPending = $derived(!record.finishTime);
-    let hasPiecesOnly = $derived(!record.finishTime && record.nPiecesCompleted != null);
 
-    // Unified action config: null when no action is available
-    let action = $derived.by(() => {
-        if (isPending && !hasPiecesOnly && onFinish) {
-            return { type: 'finish' as const, icon: FlagCheckeredIcon, colorClass: 'preset-filled-success-500', handler: onFinish, testIdPrefix: 'finish-record' };
-        }
-        if (isPending && !hasPiecesOnly && onSubmitPieces) {
-            return { type: 'pieces' as const, icon: PuzzlePieceIcon, colorClass: 'preset-filled-warning-500', handler: null, testIdPrefix: 'pieces-record' };
-        }
-        if (!isPending && onUndoFinish) {
-            return { type: 'undo' as const, icon: UndoIcon, colorClass: 'preset-filled-warning-500', handler: onUndoFinish, testIdPrefix: 'undo-finish-record' };
-        }
-        if (hasPiecesOnly && onUndoPieces) {
-            return { type: 'undo-pieces' as const, icon: UndoIcon, colorClass: 'preset-filled-warning-500', handler: onUndoPieces, testIdPrefix: 'undo-pieces-record' };
-        }
-        return null;
-    });
-
-    let hasAction = $derived(!!action);
-    let isPiecesMode = $derived(action?.type === 'pieces');
+    let actionConfig = $derived(ACTION_CONFIG[mode]);
+    let isPiecesMode = $derived(mode === 'pieces');
 
     // Compute pieces remaining for display
     let piecesRemaining = $derived.by(() => {
@@ -88,22 +74,21 @@
 
     async function handleAction(e: MouseEvent) {
         e.stopPropagation();
-        if (!action || submitting || action.type === 'pieces') return;
-        if (!action.handler) return;
+        if (submitting || isPiecesMode) return;
         submitting = true;
-        await action.handler(record.id);
+        await onAction(record.id);
         submitting = false;
     }
 
     async function handleSubmitPieces() {
-        if (!onSubmitPieces || submitting) return;
+        if (submitting) return;
         const remaining = parseInt(piecesInput);
         if (isNaN(remaining) || remaining < 0) return;
         // TODO: re-enable when all categories have puzzle data
         // if (totalPieces != null && remaining > totalPieces) return;
         const nPiecesCompleted = totalPieces != null ? totalPieces - remaining : remaining;
         submitting = true;
-        await onSubmitPieces(record.id, nPiecesCompleted);
+        await onAction(record.id, { nPiecesCompleted });
         piecesInput = '';
         submitting = false;
     }
@@ -133,9 +118,9 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-    class="relative flex items-center gap-2 py-2 px-1 w-full border-b border-surface-200 dark:border-surface-700 last:border-b-0 {submitting ? 'opacity-50' : ''} {hasAction ? 'cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 rounded-md transition-colors' : ''}"
+    class="relative flex items-center gap-2 py-2 px-1 w-full border-b border-surface-200 dark:border-surface-700 last:border-b-0 {submitting ? 'opacity-50' : ''} cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 rounded-md transition-colors"
     data-testid="record-row-{record.id}"
-    onclick={() => hasAction && onSelect?.(record.id)}
+    onclick={() => onSelect?.(record.id)}
 >
     <!-- Table number badge -->
     {#if record.tableNumber != null}
@@ -190,53 +175,51 @@
             </span>
         {/if}
 
-        {#if hasAction && action}
-            <ChevronRightIcon width="1.1rem" height="1.1rem" class="text-surface-400 {selected ? 'invisible' : ''}" />
+        <ChevronRightIcon width="1.1rem" height="1.1rem" class="text-surface-400 {selected ? 'invisible' : ''}" />
 
-            {#if selected}
-                <div class="absolute inset-0 flex items-center justify-end z-10 rounded-md overflow-hidden">
-                    {#if isPiecesMode}
-                        <!-- svelte-ignore a11y_autofocus -->
-                        <div class="flex items-center bg-surface-50-950 border border-surface-300-700 rounded-lg px-2 py-1 space-x-2">
-                            <input
-                                type="number"
-                                min="0"
-                                inputmode="numeric"
-                                class="input text-xs text-center w-16 mr-4"
-                                placeholder={$t('during_competition.pieces_left')}
-                                bind:value={piecesInput}
-                                onkeydown={handlePiecesKeydown}
-                                onclick={(e) => e.stopPropagation()}
-                                autofocus
-                                data-testid="pieces-input-{record.id}"
-                            />
-                            <RecordActionButton
-                                icon={CheckIcon}
-                                colorClass="preset-filled-success-500"
-                                submitting={submitting}
-                                disabled={!piecesInput}
-                                onclick={(e) => { e.stopPropagation(); handleSubmitPieces(); }}
-                                data-testid="pieces-submit-{record.id}"
-                            />
-                            <RecordActionButton
-                                icon={CloseIcon}
-                                colorClass="preset-tonal"
-                                submitting={false}
-                                onclick={cancelPieces}
-                                data-testid="pieces-cancel-{record.id}"
-                            />
-                            </div>
-                        {:else}
-                            <RecordActionButton
-                                icon={action.icon}
-                                colorClass={action.colorClass}
-                                {submitting}
-                                onclick={handleAction}
-                                data-testid="{action.testIdPrefix}-{record.id}"
-                            />
-                        {/if}
-                </div>
-            {/if}
+        {#if selected}
+            <div class="absolute inset-0 flex items-center justify-end z-10 rounded-md overflow-hidden">
+                {#if isPiecesMode}
+                    <!-- svelte-ignore a11y_autofocus -->
+                    <div class="flex items-center bg-surface-50-950 border border-surface-300-700 rounded-lg px-2 py-1 space-x-2">
+                        <input
+                            type="number"
+                            min="0"
+                            inputmode="numeric"
+                            class="input text-xs text-center w-16 mr-4"
+                            placeholder={$t('during_competition.pieces_left')}
+                            bind:value={piecesInput}
+                            onkeydown={handlePiecesKeydown}
+                            onclick={(e) => e.stopPropagation()}
+                            autofocus
+                            data-testid="pieces-input-{record.id}"
+                        />
+                        <RecordActionButton
+                            icon={CheckIcon}
+                            colorClass="preset-filled-success-500"
+                            submitting={submitting}
+                            disabled={!piecesInput}
+                            onclick={(e) => { e.stopPropagation(); handleSubmitPieces(); }}
+                            data-testid="pieces-submit-{record.id}"
+                        />
+                        <RecordActionButton
+                            icon={CloseIcon}
+                            colorClass="preset-tonal"
+                            submitting={false}
+                            onclick={cancelPieces}
+                            data-testid="pieces-cancel-{record.id}"
+                        />
+                    </div>
+                {:else}
+                    <RecordActionButton
+                        icon={actionConfig.icon}
+                        colorClass={actionConfig.colorClass}
+                        {submitting}
+                        onclick={handleAction}
+                        data-testid="{actionConfig.testIdPrefix}-{record.id}"
+                    />
+                {/if}
+            </div>
         {/if}
     </div>
 </div>

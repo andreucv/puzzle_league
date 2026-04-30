@@ -3,6 +3,13 @@ import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/sv
 
 vi.mock('$lib/translations', async () => import('../../../tests/mocks/translations'));
 vi.mock('$app/stores', async () => import('../../../tests/mocks/app_stores'));
+vi.mock('$lib/api/category-actions', () => ({
+	executeCategoryAction: vi.fn(() => Promise.resolve({ ok: true, category: {} }))
+}));
+vi.mock('$lib/utils/toast', () => ({
+	showSuccessToast: vi.fn(),
+	showErrorToast: vi.fn()
+}));
 
 import CategoryCard from './CategoryCard.svelte';
 
@@ -44,14 +51,7 @@ function renderCard(categoryOverrides: Record<string, any> = {}, propsOverrides:
 		props: {
 			category: makeCategory(categoryOverrides),
 			isOrganizer: true,
-			onStartCategory: vi.fn(),
-			onStopCategory: vi.fn(),
-			onCompleteCategory: vi.fn(),
-			onResumeCategory: vi.fn(),
-			onCancelCategory: vi.fn(),
-			onRestartCategory: vi.fn(),
-			onRecordFinish: vi.fn(),
-			onCategoryUpdate: vi.fn(),
+			onCategoryActionComplete: vi.fn(),
 			...propsOverrides
 		}
 	});
@@ -64,6 +64,10 @@ describe('CategoryCard', () => {
 		cleanup();
 		fetchMock = mockFetchRecords();
 		vi.stubGlobal('fetch', fetchMock);
+		// JSDOM doesn't implement the Web Animations API used by Svelte's flip/animate
+		if (!Element.prototype.animate) {
+			Element.prototype.animate = vi.fn(() => ({ cancel: vi.fn(), finished: Promise.resolve() })) as any;
+		}
 	});
 
 	afterEach(() => {
@@ -352,18 +356,12 @@ describe('CategoryCard', () => {
 			const onRecordFinish = vi.fn();
 			renderCard(liveCategory, { onRecordFinish });
 
-			// Expand the pending records list first
-			await waitFor(() => {
-				expect(screen.getByText(/during_competition\.pending_records/)).toBeInTheDocument();
-			});
-			await fireEvent.click(screen.getByText(/during_competition\.pending_records/));
-
-			// Wait for records to load
+			// Wait for records to load (pending list starts open via initialOpen=true)
 			await waitFor(() => {
 				expect(screen.getByTestId('record-row-rec-1')).toBeInTheDocument();
 			});
 
-			// Open pending list, click on record to select it
+			// Click on record to select it
 			await fireEvent.click(screen.getByTestId('record-row-rec-1'));
 
 			// Now the finish button should appear

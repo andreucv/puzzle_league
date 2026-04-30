@@ -7,6 +7,8 @@
     import ConfirmActionButton from '$lib/components/common/buttons/ConfirmActionButton.svelte';
     import SearchInput from '$lib/components/SearchInput.svelte';
     import { useCategoryRecords } from './useCategoryRecords.svelte';
+    import { executeCategoryAction, type CategoryAction, type CategoryActionResult } from '$lib/api/category-actions';
+    import { showSuccessToast, showErrorToast } from '$lib/utils/toast';
     import { t } from '$lib/translations';
     import { untrack } from 'svelte';
 
@@ -33,22 +35,12 @@
         category,
         isOrganizer,
         liveVersion,
-        onStartCategory,
-        onStopCategory,
-        onCompleteCategory,
-        onResumeCategory,
-        onCancelCategory,
-        onRestartCategory
+        onCategoryActionComplete
     }: {
         category: CategoryData;
         isOrganizer: boolean;
         liveVersion?: string | null;
-        onStartCategory?: (id: number) => void;
-        onStopCategory?: (id: number) => void;
-        onCompleteCategory?: (id: number) => void;
-        onResumeCategory?: (id: number) => void;
-        onCancelCategory?: (id: number) => void;
-        onRestartCategory?: (id: number) => void;
+        onCategoryActionComplete?: (categoryId: number, action: CategoryAction, result: CategoryActionResult & { ok: true }) => void;
     } = $props();
 
     let status = $derived(category.status);
@@ -118,65 +110,71 @@
         return puzzles.reduce((sum, p) => sum + p.pieces, 0);
     });
 
+    // --- Category action handler ---
+    async function handleCategoryAction(action: CategoryAction) {
+        const result = await executeCategoryAction(category.id, action);
+        if (result.ok) {
+            onCategoryActionComplete?.(category.id, action, result);
+            showSuccessToast($t(`during_competition.${action}_success`));
+        } else {
+            showErrorToast($t(`during_competition.${action}_error`), result.error);
+        }
+    }
+
     // --- Overflow menu actions ---
     let overflowActions = $derived.by(() => {
+        if (!isOrganizer) return [];
         const actions: { icon: any; colorClass: string; confirmTitle: string; confirmMessage: string; onConfirm: () => void; testId: string; label: string }[] = [];
 
-        if ((isUpcoming || isLive ) && onCancelCategory) {
+        if (isUpcoming || isLive) {
             actions.push({
                 icon: CancelIcon,
                 colorClass: 'preset-filled-warning-500',
                 confirmTitle: $t('during_competition.cancel_confirm_title'),
                 confirmMessage: $t('during_competition.cancel_confirm_message'),
-                onConfirm: () => onCancelCategory!(category.id),
+                onConfirm: () => handleCategoryAction('cancel'),
                 testId: `cancel-category-${category.id}`,
                 label: $t('during_competition.cancel_category')
             });
         }
 
         if (isStopped) {
-            if (onResumeCategory) {
-                actions.push({
-                    icon: PlayIcon,
-                    colorClass: 'preset-filled-primary-500',
-                    confirmTitle: $t('during_competition.resume_confirm_title'),
-                    confirmMessage: $t('during_competition.resume_confirm_message'),
-                    onConfirm: () => onResumeCategory!(category.id),
-                    testId: `resume-category-${category.id}`,
-                    label: $t('during_competition.resume_category')
-                });
-            }
-            if (onCancelCategory) {
-                actions.push({
-                    icon: CancelIcon,
-                    colorClass: 'preset-filled-warning-500',
-                    confirmTitle: $t('during_competition.cancel_confirm_title'),
-                    confirmMessage: $t('during_competition.cancel_confirm_message'),
-                    onConfirm: () => onCancelCategory!(category.id),
-                    testId: `cancel-category-${category.id}`,
-                    label: $t('during_competition.cancel_category')
-                });
-            }
-            if (onRestartCategory) {
-                actions.push({
-                    icon: RestartIcon,
-                    colorClass: 'preset-filled-error-500',
-                    confirmTitle: $t('during_competition.restart_confirm_title'),
-                    confirmMessage: $t('during_competition.restart_confirm_message'),
-                    onConfirm: () => onRestartCategory!(category.id),
-                    testId: `restart-category-${category.id}`,
-                    label: $t('during_competition.restart_category')
-                });
-            }
+            actions.push({
+                icon: PlayIcon,
+                colorClass: 'preset-filled-primary-500',
+                confirmTitle: $t('during_competition.resume_confirm_title'),
+                confirmMessage: $t('during_competition.resume_confirm_message'),
+                onConfirm: () => handleCategoryAction('resume'),
+                testId: `resume-category-${category.id}`,
+                label: $t('during_competition.resume_category')
+            });
+            actions.push({
+                icon: CancelIcon,
+                colorClass: 'preset-filled-warning-500',
+                confirmTitle: $t('during_competition.cancel_confirm_title'),
+                confirmMessage: $t('during_competition.cancel_confirm_message'),
+                onConfirm: () => handleCategoryAction('cancel'),
+                testId: `cancel-category-${category.id}`,
+                label: $t('during_competition.cancel_category')
+            });
+            actions.push({
+                icon: RestartIcon,
+                colorClass: 'preset-filled-error-500',
+                confirmTitle: $t('during_competition.restart_confirm_title'),
+                confirmMessage: $t('during_competition.restart_confirm_message'),
+                onConfirm: () => handleCategoryAction('restart'),
+                testId: `restart-category-${category.id}`,
+                label: $t('during_competition.restart_category')
+            });
         }
 
-        if ((isComplete || isCanceled) && onRestartCategory) {
+        if (isComplete || isCanceled) {
             actions.push({
                 icon: RestartIcon,
                 colorClass: 'preset-filled-warning-500',
                 confirmTitle: $t('during_competition.restart_confirm_title'),
                 confirmMessage: $t('during_competition.restart_confirm_message'),
-                onConfirm: () => onRestartCategory!(category.id),
+                onConfirm: () => handleCategoryAction('restart'),
                 testId: `restart-category-${category.id}`,
                 label: $t('during_competition.restart_category')
             });
@@ -189,80 +187,62 @@
         isStopped ? `overflow-menu-stopped-${category.id}` : `overflow-menu-${category.id}`
     );
 
-    // --- Record handlers (LIVE) ---
+    // --- Record action handlers ---
+    // Each handler performs an optimistic local update after a successful API call.
+    // Selection clearing is handled by RecordList internally.
+
     async function handleRecordFinish(recordId: string) {
         if (!records) return;
-        try {
-            const response = await fetch(`/api/records/${recordId}/result`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ finishTime: new Date().toISOString() })
-            });
-            if (response.ok) {
-                records.allRecords = records.allRecords.map((r: any) =>
-                    r.id === recordId ? { ...r, finishTime: new Date().toISOString() } : r
-                );
-                localFinishedCount = records.finishedRecords.length;
-                records.selectedPendingRecord = null;
-                // No refreshAll() here — the Ably event will trigger a version change
-                // which the version-tracking effect uses to refresh only this card's records.
-            }
-        } catch (err) {
-            console.error('Failed to record finish:', err);
+        const response = await fetch(`/api/records/${recordId}/result`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ finishTime: new Date().toISOString() })
+        });
+        if (response.ok) {
+            records.allRecords = records.allRecords.map((r: any) =>
+                r.id === recordId ? { ...r, finishTime: new Date().toISOString() } : r
+            );
+            localFinishedCount = records.finishedRecords.length;
+            // No refreshAll() here — the Ably event will trigger a version change
+            // which the version-tracking effect uses to refresh only this card's records.
         }
     }
 
     async function handleRecordUndoFinish(recordId: string) {
         if (!records) return;
-        try {
-            const response = await fetch(`/api/records/${recordId}/result`, { method: 'DELETE' });
-            if (response.ok) {
-                records.allRecords = records.allRecords.map((r: any) =>
-                    r.id === recordId ? { ...r, finishTime: null } : r
-                );
-                localFinishedCount = records.finishedRecords.length;
-                records.selectedFinishedRecord = null;
-            }
-        } catch (err) {
-            console.error('Failed to undo record finish:', err);
+        const response = await fetch(`/api/records/${recordId}/result`, { method: 'DELETE' });
+        if (response.ok) {
+            records.allRecords = records.allRecords.map((r: any) =>
+                r.id === recordId ? { ...r, finishTime: null } : r
+            );
+            localFinishedCount = records.finishedRecords.length;
         }
     }
 
-    // --- Record handlers (STOPPED) ---
-    async function handleSubmitPieces(recordId: string, nPiecesCompleted: number) {
-        if (!records) return;
-        try {
-            const res = await fetch(`/api/records/${recordId}/pieces`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nPiecesCompleted })
-            });
-            if (res.ok) {
-                records.allRecords = records.allRecords.map((r: any) =>
-                    r.id === recordId ? { ...r, nPiecesCompleted } : r
-                );
-                records.selectedDnfRecord = null;
-            } else {
-                const errorData = await res.json().catch(() => ({}));
-                console.error('Failed to update pieces:', res.status, errorData);
-            }
-        } catch (err) {
-            console.error('Failed to update pieces:', err);
+    async function handleSubmitPieces(recordId: string, data?: { nPiecesCompleted: number }) {
+        if (!records || !data) return;
+        const res = await fetch(`/api/records/${recordId}/pieces`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nPiecesCompleted: data.nPiecesCompleted })
+        });
+        if (res.ok) {
+            records.allRecords = records.allRecords.map((r: any) =>
+                r.id === recordId ? { ...r, nPiecesCompleted: data.nPiecesCompleted } : r
+            );
+        } else {
+            const errorData = await res.json().catch(() => ({}));
+            console.error('Failed to update pieces:', res.status, errorData);
         }
     }
 
     async function handleUndoPieces(recordId: string) {
         if (!records) return;
-        try {
-            const res = await fetch(`/api/records/${recordId}/pieces`, { method: 'DELETE' });
-            if (res.ok) {
-                records.allRecords = records.allRecords.map((r: any) =>
-                    r.id === recordId ? { ...r, nPiecesCompleted: null } : r
-                );
-                records.selectedResolvedRecord = null;
-            }
-        } catch (err) {
-            console.error('Failed to reset pieces:', err);
+        const res = await fetch(`/api/records/${recordId}/pieces`, { method: 'DELETE' });
+        if (res.ok) {
+            records.allRecords = records.allRecords.map((r: any) =>
+                r.id === recordId ? { ...r, nPiecesCompleted: null } : r
+            );
         }
     }
 
@@ -308,40 +288,40 @@
                     {/if}
 
                     <!-- Primary action button -->
-                    {#if isUpcoming && onStartCategory}
+                    {#if isUpcoming}
                         <ConfirmActionButton
                             icon={PlayIcon}
                             colorClass="preset-filled-success-500"
                             confirmTitle={$t('during_competition.start_confirm_title')}
                             confirmMessage={$t('during_competition.start_confirm_message')}
-                            onConfirm={() => onStartCategory!(category.id)}
+                            onConfirm={() => handleCategoryAction('start')}
                             testId="start-category-{category.id}"
                         />
-                    {:else if isLive && onStopCategory}
+                    {:else if isLive}
                         <ConfirmActionButton
                             icon={StopIcon}
                             colorClass="preset-filled-error-500"
                             confirmTitle={$t('during_competition.stop_confirm_title')}
                             confirmMessage={$t('during_competition.stop_confirm_message')}
-                            onConfirm={() => onStopCategory!(category.id)}
+                            onConfirm={() => handleCategoryAction('stop')}
                             testId="stop-category-{category.id}"
                         />
-                    {:else if isStopped && onCompleteCategory}
+                    {:else if isStopped}
                         <ConfirmActionButton
                             icon={CheckCircleOutlineIcon}
                             colorClass="preset-filled-success-500"
                             confirmTitle={$t('during_competition.complete_confirm_title')}
                             confirmMessage={$t('during_competition.complete_confirm_message')}
-                            onConfirm={() => onCompleteCategory!(category.id)}
+                            onConfirm={() => handleCategoryAction('complete')}
                             testId="complete-category-{category.id}"
                         />
-                    {:else if (isComplete || isCanceled) && onRestartCategory}
+                    {:else if isComplete || isCanceled}
                         <ConfirmActionButton
                             icon={RestartIcon}
                             colorClass="preset-filled-warning-500"
                             confirmTitle={$t('during_competition.restart_confirm_title')}
                             confirmMessage={$t('during_competition.restart_confirm_message')}
-                            onConfirm={() => onRestartCategory!(category.id)}
+                            onConfirm={() => handleCategoryAction('restart')}
                             testId="restart-category-{category.id}"
                         />
                     {/if}
@@ -445,9 +425,8 @@
                 records={records.filteredPending}
                 loading={records.loadingPending}
                 categoryRealStartTime={category.realStartTime}
-                selectedRecord={records.selectedPendingRecord}
-                onSelectRecord={(id) => records.selectedPendingRecord = records.selectedPendingRecord === id ? null : id}
-                onFinish={handleRecordFinish}
+                mode="finish"
+                onAction={handleRecordFinish}
                 emptyMessage={$t('during_competition.no_pending_records')}
                 initialOpen={true}
                 forceOpen={records.searchQuery.trim() !== '' && records.filteredPending.length > 0}
@@ -459,9 +438,8 @@
                 records={records.filteredFinished}
                 loading={records.loadingFinished}
                 categoryRealStartTime={category.realStartTime}
-                selectedRecord={records.selectedFinishedRecord}
-                onSelectRecord={(id) => records.selectedFinishedRecord = records.selectedFinishedRecord === id ? null : id}
-                onUndoFinish={handleRecordUndoFinish}
+                mode="undo-finish"
+                onAction={handleRecordUndoFinish}
                 emptyMessage={$t('during_competition.no_finished_records')}
                 forceOpen={records.searchQuery.trim() !== '' && records.filteredFinished.length > 0}
             />
@@ -475,9 +453,8 @@
                 records={records.filteredUnresolved}
                 loading={records.loadingAll}
                 categoryRealStartTime={category.realStartTime}
-                selectedRecord={records.selectedDnfRecord}
-                onSelectRecord={(id) => { records.selectedDnfRecord = records.selectedDnfRecord === id ? null : id; }}
-                onSubmitPieces={handleSubmitPieces}
+                mode="pieces"
+                onAction={handleSubmitPieces}
                 {totalPieces}
                 emptyMessage={$t('during_competition.all_records_reviewed')}
                 initialOpen={true}
@@ -491,9 +468,8 @@
                 records={records.filteredResolved}
                 loading={records.loadingAll}
                 categoryRealStartTime={category.realStartTime}
-                selectedRecord={records.selectedResolvedRecord}
-                onSelectRecord={(id) => { records.selectedResolvedRecord = records.selectedResolvedRecord === id ? null : id; }}
-                onUndoPieces={handleUndoPieces}
+                mode="undo-pieces"
+                onAction={handleUndoPieces}
                 {totalPieces}
                 emptyMessage={$t('during_competition.no_finished_records')}
                 forceOpen={records.searchQuery.trim() !== '' && records.filteredResolved.length > 0}

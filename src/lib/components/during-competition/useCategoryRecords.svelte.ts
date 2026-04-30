@@ -1,6 +1,7 @@
 /**
- * Composable for managing category records — search, filtering, fetching, and selection.
+ * Composable for managing category records — search, filtering, and fetching.
  * Used by CategoryCard for LIVE and STOPPED variants.
+ * Selection state is managed by each RecordList instance internally.
  */
 
 export function matchesSearch(record: any, query: string): boolean {
@@ -26,10 +27,6 @@ export function useCategoryRecords(getCategoryId: () => number, mode: 'split' | 
     // --- Core state: single source of truth ---
     let allRecords = $state<any[]>([]);
     let loading = $state(false);
-    let selectedPendingRecord = $state<string | null>(null);
-    let selectedFinishedRecord = $state<string | null>(null);
-    let selectedDnfRecord = $state<string | null>(null);
-    let selectedResolvedRecord = $state<string | null>(null);
 
     // --- Derived splits ---
     // Split mode (LIVE): pending vs finished
@@ -131,10 +128,6 @@ export function useCategoryRecords(getCategoryId: () => number, mode: 'split' | 
         get loadingFinished() { return loading; },
         get filteredPending() { return filteredPending; },
         get filteredFinished() { return filteredFinished; },
-        get selectedPendingRecord() { return selectedPendingRecord; },
-        set selectedPendingRecord(v: string | null) { selectedPendingRecord = v; },
-        get selectedFinishedRecord() { return selectedFinishedRecord; },
-        set selectedFinishedRecord(v: string | null) { selectedFinishedRecord = v; },
 
         // Unified mode (STOPPED) — derived from allRecords
         get loadingAll() { return loading; },
@@ -142,10 +135,6 @@ export function useCategoryRecords(getCategoryId: () => number, mode: 'split' | 
         get resolvedRecords() { return resolvedRecords; },
         get filteredUnresolved() { return filteredUnresolved; },
         get filteredResolved() { return filteredResolved; },
-        get selectedDnfRecord() { return selectedDnfRecord; },
-        set selectedDnfRecord(v: string | null) { selectedDnfRecord = v; },
-        get selectedResolvedRecord() { return selectedResolvedRecord; },
-        set selectedResolvedRecord(v: string | null) { selectedResolvedRecord = v; },
 
         refreshAll
     };

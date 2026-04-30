@@ -6,6 +6,7 @@
     import { untrack } from 'svelte';
     import { slide } from 'svelte/transition';
     import { flip } from 'svelte/animate';
+    import type { RecordActionMode, RecordActionHandler } from './types';
 
     let {
         icon: Icon,
@@ -13,12 +14,8 @@
         records,
         loading,
         categoryRealStartTime,
-        selectedRecord,
-        onSelectRecord,
-        onFinish,
-        onUndoFinish,
-        onSubmitPieces,
-        onUndoPieces,
+        mode,
+        onAction,
         totalPieces,
         emptyMessage,
         initialOpen = false,
@@ -30,12 +27,8 @@
         records: any[];
         loading: boolean;
         categoryRealStartTime: string | null;
-        selectedRecord: string | null;
-        onSelectRecord: (id: string) => void;
-        onFinish?: (recordId: string) => void;
-        onUndoFinish?: (recordId: string) => void;
-        onSubmitPieces?: (recordId: string, nPiecesCompleted: number) => void;
-        onUndoPieces?: (recordId: string) => void;
+        mode: RecordActionMode;
+        onAction: RecordActionHandler;
         totalPieces?: number | null;
         emptyMessage: string;
         initialOpen?: boolean;
@@ -43,12 +36,25 @@
         forceOpen?: boolean;
     } = $props();
 
+    // Selection state is owned by RecordList — no need to thread through parent
+    let selectedRecord = $state<string | null>(null);
+
     // eslint-disable-next-line svelte/valid-compile -- initialOpen is intentionally captured once
     let open = $state(untrack(() => initialOpen));
 
     $effect(() => {
         if (forceOpen) open = true;
     });
+
+    function toggleSelection(id: string) {
+        selectedRecord = selectedRecord === id ? null : id;
+    }
+
+    // Wrap onAction to clear selection after a successful action
+    async function handleAction(recordId: string, data?: { nPiecesCompleted: number }) {
+        await onAction(recordId, data);
+        selectedRecord = null;
+    }
 </script>
 
 {#if records.length > 0 || loading || alwaysShow}
@@ -81,11 +87,9 @@
                                 {record}
                                 {categoryRealStartTime}
                                 selected={selectedRecord === record.id}
-                                onSelect={onSelectRecord}
-                                {onFinish}
-                                {onUndoFinish}
-                                {onSubmitPieces}
-                                {onUndoPieces}
+                                onSelect={toggleSelection}
+                                {mode}
+                                onAction={handleAction}
                                 {totalPieces}
                             />
                         </div>

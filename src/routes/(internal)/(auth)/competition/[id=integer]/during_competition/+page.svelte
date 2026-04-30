@@ -11,10 +11,9 @@
     import InformationOutlineIcon from '@iconify-svelte/mdi/information-outline';
     import { t } from '$lib/translations';
     import { untrack } from 'svelte';
-    import { executeCategoryAction, type CategoryAction } from '$lib/api/category-actions';
-    import { showSuccessToast, showErrorToast } from '$lib/utils/toast';
     import type { CategoryData } from '$lib/types/category';
     import type { CategoryStatusChangedEvent } from '$lib/events/types';
+    import type { CategoryAction, CategoryActionResult } from '$lib/api/category-actions';
 
     let { data } = $props();
 
@@ -74,7 +73,7 @@
     let finishedCategories = $derived(visibleCategories.filter((c) => c.status === 'COMPLETE' || c.status === 'CANCELED'));
     let hasLiveOrStopped = $derived(activeCategories.length > 0 || stoppedCategories.length > 0);
 
-    // Map category actions to the status they produce, for optimistic updates
+    // Map category actions to the status they produce, for optimistic Ably updates
     const actionToStatus: Record<CategoryAction, string> = {
         start: 'LIVE',
         stop: 'STOPPED',
@@ -84,22 +83,16 @@
         restart: 'LIVE'
     };
 
-    async function handleCategoryAction(categoryId: number, action: CategoryAction) {
-        const result = await executeCategoryAction(categoryId, action);
-        if (result.ok) {
-            // Apply optimistic update directly to the Ably stream state
-            ablyStream.applyLocalEvent({
-                type: 'category.status_changed',
-                categoryId,
-                competitionId,
-                status: actionToStatus[action],
-                realStartTime: result.category.realStartTime,
-                realEndTime: result.category.realEndTime
-            } satisfies CategoryStatusChangedEvent);
-            showSuccessToast($t(`during_competition.${action}_success`));
-        } else {
-            showErrorToast($t(`during_competition.${action}_error`), result.error);
-        }
+    // Called by CategoryCard after a successful category action to apply optimistic Ably update
+    function handleCategoryActionComplete(categoryId: number, action: CategoryAction, result: CategoryActionResult & { ok: true }) {
+        ablyStream.applyLocalEvent({
+            type: 'category.status_changed',
+            categoryId,
+            competitionId,
+            status: actionToStatus[action],
+            realStartTime: result.category.realStartTime,
+            realEndTime: result.category.realEndTime
+        } satisfies CategoryStatusChangedEvent);
     }
 
     // Per-category version: only changes when a specific category's data changes.
@@ -173,10 +166,7 @@
                         category={cat}
                         {isOrganizer}
                         liveVersion={categoryVersions.get(cat.id) ?? null}
-                        onCompleteCategory={(id) => handleCategoryAction(id, 'complete')}
-                        onResumeCategory={(id) => handleCategoryAction(id, 'resume')}
-                        onCancelCategory={(id) => handleCategoryAction(id, 'cancel')}
-                        onRestartCategory={(id) => handleCategoryAction(id, 'restart')}
+                        onCategoryActionComplete={handleCategoryActionComplete}
                     />
                 {/each}
             </div>
@@ -201,8 +191,7 @@
                         category={cat}
                         {isOrganizer}
                         liveVersion={categoryVersions.get(cat.id) ?? null}
-                        onStopCategory={(id) => handleCategoryAction(id, 'stop')}
-                        onCancelCategory={(id) => handleCategoryAction(id, 'cancel')}
+                        onCategoryActionComplete={handleCategoryActionComplete}
                     />
                 {/each}
             </div>
@@ -225,8 +214,7 @@
                         category={cat}
                         {isOrganizer}
                         liveVersion={categoryVersions.get(cat.id) ?? null}
-                        onStartCategory={(id) => handleCategoryAction(id, 'start')}
-                        onCancelCategory={(id) => handleCategoryAction(id, 'cancel')}
+                        onCategoryActionComplete={handleCategoryActionComplete}
                     />
                 {/each}
             </div>
@@ -249,7 +237,7 @@
                         category={cat}
                         {isOrganizer}
                         liveVersion={categoryVersions.get(cat.id) ?? null}
-                        onRestartCategory={(id) => handleCategoryAction(id, 'restart')}
+                        onCategoryActionComplete={handleCategoryActionComplete}
                     />
                 {/each}
             </div>

@@ -31,6 +31,8 @@ function renderRow(props: Record<string, any> = {}) {
 		props: {
 			record: makeRecord(),
 			categoryRealStartTime: null,
+			mode: 'finish' as const,
+			onAction: vi.fn(),
 			...props
 		}
 	});
@@ -112,52 +114,39 @@ describe('RecordRow', () => {
 
 	it('clicking row calls onSelect with record id when action is available', async () => {
 		const onSelect = vi.fn();
-		const onFinish = vi.fn();
 		renderRow({
 			record: makeRecord({ id: 'rec-5' }),
 			onSelect,
-			onFinish
+			mode: 'finish'
 		});
 		await fireEvent.click(screen.getByTestId('record-row-rec-5'));
 		expect(onSelect).toHaveBeenCalledWith('rec-5');
 	});
 
-	it('clicking row does NOT call onSelect when no action is available', async () => {
+	it('shows finish action button when selected and mode is finish', async () => {
 		const onSelect = vi.fn();
-		// Finished record with no onUndoFinish — no action available
-		renderRow({
-			record: makeRecord({ id: 'rec-5', finishTime: '2026-01-01T10:05:00Z' }),
-			onSelect
-		});
-		await fireEvent.click(screen.getByTestId('record-row-rec-5'));
-		expect(onSelect).not.toHaveBeenCalled();
-	});
-
-	it('shows finish action button when selected and onFinish provided', async () => {
-		const onSelect = vi.fn();
-		const onFinish = vi.fn();
 		renderRow({
 			record: makeRecord({ id: 'rec-5' }),
 			onSelect,
-			onFinish,
+			mode: 'finish',
 			selected: true
 		});
 		expect(screen.getByTestId('finish-record-rec-5')).toBeInTheDocument();
 	});
 
-	it('shows undo action button when selected, finished record, and onUndoFinish provided', () => {
+	it('shows undo action button when selected and mode is undo-finish', () => {
 		renderRow({
 			record: makeRecord({ id: 'rec-5', finishTime: '2026-01-01T10:05:00Z' }),
-			onUndoFinish: vi.fn(),
+			mode: 'undo-finish',
 			selected: true
 		});
 		expect(screen.getByTestId('undo-finish-record-rec-5')).toBeInTheDocument();
 	});
 
-	it('shows pieces input when selected and onSubmitPieces provided (pending record)', () => {
+	it('shows pieces input when selected and mode is pieces', () => {
 		renderRow({
 			record: makeRecord({ id: 'rec-5' }),
-			onSubmitPieces: vi.fn(),
+			mode: 'pieces',
 			selected: true
 		});
 		expect(screen.getByTestId('pieces-input-rec-5')).toBeInTheDocument();
@@ -165,10 +154,10 @@ describe('RecordRow', () => {
 		expect(screen.getByTestId('pieces-cancel-rec-5')).toBeInTheDocument();
 	});
 
-	it('shows undo-pieces button when selected, has nPiecesCompleted, and onUndoPieces provided', () => {
+	it('shows undo-pieces button when selected and mode is undo-pieces', () => {
 		renderRow({
 			record: makeRecord({ id: 'rec-5', nPiecesCompleted: 400 }),
-			onUndoPieces: vi.fn(),
+			mode: 'undo-pieces',
 			selected: true
 		});
 		expect(screen.getByTestId('undo-pieces-record-rec-5')).toBeInTheDocument();

@@ -6,12 +6,6 @@ import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
 injectAnalytics({ mode: dev ? 'development' : 'production' });
 injectSpeedInsights();
 
-import * as Swetrix from 'swetrix'
-import { PUBLIC_SWETRIX_API_ID } from '$env/static/public';
-
-Swetrix.init(PUBLIC_SWETRIX_API_ID);
-Swetrix.trackViews()
-
 /** @type {import('@sveltejs/kit').Load} */
 export const load = async ({ data }) => {
   const { i18n, translations } = data;

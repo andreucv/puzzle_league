@@ -17,22 +17,22 @@ export function validatePhone(
     const phoneNumber = formData.get('phoneNumber')?.toString().replace(/[\s\-]/g, '').trim() || '';
 
     if (requireBoth && (!phonePrefix || !phoneNumber)) {
-        return { valid: false, error: 'Both phone prefix and number are required' };
+        return { valid: false, error: 'add_phone.validation_both_required' };
     }
 
     if (phonePrefix && !phoneNumber) {
-        return { valid: false, error: 'Phone number is required when prefix is provided' };
+        return { valid: false, error: 'add_phone.validation_number_required' };
     }
     if (!phonePrefix && phoneNumber) {
-        return { valid: false, error: 'Phone prefix is required when number is provided' };
+        return { valid: false, error: 'add_phone.validation_prefix_required' };
     }
 
     if (phonePrefix && !/^\+\d{1,4}$/.test(phonePrefix)) {
-        return { valid: false, error: 'Prefix must start with + followed by 1-4 digits' };
+        return { valid: false, error: 'add_phone.validation_prefix_format' };
     }
 
     if (phoneNumber && !/^\d{4,15}$/.test(phoneNumber)) {
-        return { valid: false, error: 'Enter a valid phone number (4-15 digits)' };
+        return { valid: false, error: 'add_phone.validation_number_format' };
     }
 
     return { valid: true, phonePrefix, phoneNumber };

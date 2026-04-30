@@ -97,6 +97,8 @@ async function main() {
                 locale: 'en',
                 localePromptLastChecked: new Date(),
                 userIntentsLastChecked: new Date(),
+                emailVerified: true,
+                emailVerificationPromptLastChecked: new Date(),
             },
         });
         console.log(`   📱 Phone set for ${tu.email}`);

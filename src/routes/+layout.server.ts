@@ -2,22 +2,33 @@ import type { LayoutServerLoad } from "./$types";
 import { loadTranslations, locales, translations } from "$lib/translations";
 import { getUserWithRoles } from "$lib/database/database";
 
-export const load: LayoutServerLoad = async ({ url, cookies, locals, request }) => {
-    // Get the locales and translations for the current route
-    const { pathname } = url;
-    let locale = "es";
-    // Get locale from Accept-Language header
-    const acceptLanguage = request.headers.get('accept-language');
-    if (acceptLanguage) {
-        locale = acceptLanguage.split(',')[0].split('-')[0];
-    }
-    // Prefer the cookie value
-    locale = cookies.get("lang") || locale;
+// Locale priority: DB user preference > Accept-Language header > default "es"
+function determineLocale(locals, request) {
+    let locale = "es"; // default
 
-    const supportedLocales = locales.get().map((l) => l.toLowerCase());
-    if (!supportedLocales.includes(locale.toLowerCase())) {
+    if(locals.user?.locale) {
+        locale = locals.user.locale;
+    }
+    else if(request.headers.get('accept-language')) {
+        locale = request.headers.get('accept-language').split(',')[0].split('-')[0];
+    }
+
+    // We look for locales in our translations, if not supported, fallback to "es"
+    if (!locales.get().map(l => l.toLowerCase()).includes(locale.toLowerCase())) {
         locale = "es";
     }
+
+    return locale;
+}
+
+export const load: LayoutServerLoad = async ({ url, locals, request }) => {
+    const { pathname } = url;
+
+    // Fetch user data early so we can use their stored locale preference
+    const user = locals.user ? await getUserWithRoles(locals.user) : null;
+
+    // Locale priority: DB user preference > cookie > Accept-Language header > default "es"
+    const locale = determineLocale(locals, request);
 
     loadTranslations(locale, pathname);
 
@@ -26,12 +37,9 @@ export const load: LayoutServerLoad = async ({ url, cookies, locals, request }) 
         i18n: { locale, route: pathname }
     };
 
-    if (!locals.user) {
+    if (!user) {
         return layoutData;
     }
-
-    // Single DB query: fetch country, postalCode and roleAssignments together
-    const user = await getUserWithRoles(locals.user);
 
     return {
         ...layoutData,

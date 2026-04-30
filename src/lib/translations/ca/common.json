@@ -76,6 +76,7 @@
     "public_results_visibility": "Visibilitat als resultats",
     "public_results_visibility_description": "Si està activat, el teu nom i avatar apareixen als resultats de les competicions per a tothom. Si està desactivat, els altres participants et veuen com a 'Puzzler Anònim' — tu sempre pots veure el teu propi nom.",
     "language": "Idioma",
+    "select_language": "Selecciona idioma",
     "save": "Desar"
   },
   "admin": {
@@ -533,9 +534,16 @@
     "member_since": "Membre des de"
   },
   "onboarding": {
-    "step_of": "Pas {current} de {total}",
-    "welcome": "Benvingut/da, {name}!",
-    "welcome_subtitle": "Configurem el teu compte amb un parell de coses ràpides."
+    "step_of": "Pas {{current}} de {{total}}",
+    "welcome": "Benvingut/da, {{name}}!",
+    "welcome_subtitle": "Configurem el teu compte amb un parell de coses ràpides.",
+    "verify_email_title": "Verifica el teu correu",
+    "verify_email_sent": "Hem enviat un correu de verificació a {{email}}",
+    "verify_email_check": "Comprova la teva safata d'entrada i fes clic a l'enllaç per verificar el teu correu electrònic.",
+    "verify_email_resend": "Reenviar correu",
+    "verify_email_skip": "Ho faré més tard",
+    "verify_email_resent": "Correu enviat!",
+    "verify_email_resending": "Enviant..."
   },
   "add_phone": {
     "title": "Afegeix el teu número de telèfon",
@@ -545,6 +553,7 @@
     "skip_button": "Salta per ara",
     "prefix_placeholder": "ex. +34",
     "number_placeholder": "ex. 612345678",
+    "validation_both_required": "Cal indicar tant el prefix com el número de telèfon",
     "validation_prefix_required": "El prefix és obligatori si es proporciona un número",
     "validation_number_required": "El número és obligatori si es proporciona un prefix",
     "validation_prefix_format": "El prefix ha de començar amb + seguit d'1-4 dígits",
@@ -557,5 +566,12 @@
     "save": "Desa la preferència",
     "saving": "Desant...",
     "skip": "Salta per ara"
+  },
+  "verify_email": {
+    "success_title": "Correu verificat!",
+    "success_message": "La teva adreça de correu electrònic s'ha verificat correctament.",
+    "continue": "Continuar a l'aplicació",
+    "error_title": "Verificació fallida",
+    "error_message": "L'enllaç de verificació pot haver caducat o no és vàlid. Si us plau, sol·licita'n un de nou."
   }
 }

@@ -19,6 +19,13 @@ export async function hasIncompleteOnboarding(userId: string): Promise<boolean> 
 			phoneNumber: true,
 			phonePromptLastChecked: true,
 			userIntentsLastChecked: true,
+			emailVerified: true,
+			emailVerificationPromptLastChecked: true,
+			accounts: {
+				where: { providerId: 'credential' },
+				select: { id: true },
+				take: 1,
+			},
 		},
 	});
 
@@ -28,5 +35,9 @@ export async function hasIncompleteOnboarding(userId: string): Promise<boolean> 
 	const needsPhone = !user.phonePromptLastChecked && !user.phoneNumber;
 	const needsIntentCheck = !user.userIntentsLastChecked;
 
-	return needsLocale || needsPhone || needsIntentCheck;
+	// Email verification only applies to email/password users (providerId = 'credential')
+	const isEmailPasswordUser = user.accounts.length > 0;
+	const needsEmailVerification = isEmailPasswordUser && !user.emailVerified && !user.emailVerificationPromptLastChecked;
+
+	return needsLocale || needsPhone || needsIntentCheck || needsEmailVerification;
 }

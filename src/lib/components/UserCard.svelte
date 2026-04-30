@@ -33,7 +33,7 @@
     let isSavingPhone = $state(false);
     let isDeletingPhone = $state(false);
     let isSavingLocale = $state(false);
-    let selectedLocale = $state($locale);
+    let selectedLocale = $state(user.locale || '');
     let localeForm: HTMLFormElement;
 
     let phonePrefixValue = $derived(user.phonePrefix ? [user.phonePrefix] : []);
@@ -417,9 +417,17 @@
         <div class="grid grid-cols-2 md:grid-cols-2 gap-4 items-center">
             <div>
             <p class="text-sm">{user.email}</p>
-            <span class="text-xs {user.emailVerified ? 'text-success-500' : 'text-warning-500'}">
-                {user.emailVerified ? '✓ Verified' : '⚠ Unverified'}
-            </span>
+            {#if user.emailVerified}
+                <span class="text-xs text-success-500">✓ Verified</span>
+            {:else}
+                <a href="/onboarding" class="text-xs text-warning-500 underline hover:text-warning-600 inline-flex items-center gap-1">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-warning-500"></span>
+                    </span>
+                    ⚠ Unverified
+                </a>
+            {/if}
             </div>
             <div class="flex flex-col items-end gap-1">
             <span class="badge preset-filled-surface-500">{account.provider}</span>
@@ -432,9 +440,7 @@
     <div class="grid grid-cols-2 gap-2 pb-4">
         <div>{$t('profile.roles')}</div>
         <div class="flex justify-end gap-2">
-        {#if user.roleAssignments?.some((role: RoleAssignment) => role.role === "PARTICIPANT")}
-            <span class="badge preset-filled-surface-500" data-testid="profile-participant-role-chip">Participant</span>
-        {/if}
+        <span class="badge preset-filled-surface-500" data-testid="profile-participant-role-chip">Participant</span>
         {#if user.roleAssignments?.some((role: RoleAssignment) => role.role === "ORGANIZER")}
             <span class="badge preset-filled-primary-500" data-testid="profile-organizer-role-chip">Organizer</span>
         {/if}
@@ -488,6 +494,9 @@
                         disabled={isSavingLocale}
                         onchange={() => localeForm?.requestSubmit()}
                     >
+                        {#if !selectedLocale}
+                            <option value="" disabled selected>{$t('profile.select_language')}</option>
+                        {/if}
                         {#each $locales as loc}
                             <option value={loc}>{langMap[loc] || loc}</option>
                         {/each}

@@ -41,7 +41,7 @@ function sectionHtml(translation: EmailTranslation, absoluteLink: string): strin
     <a href="${escapeHtml(absoluteLink)}"
        style="display:inline-block;padding:10px 24px;background-color:#6366f1;color:#ffffff;
               text-decoration:none;border-radius:6px;font-size:14px;font-weight:500;">
-      ${translation.locale === 'ca' ? 'Veure detalls' : translation.locale === 'es' ? 'Ver detalles' : 'View details'}
+      ${translation.buttonText ?? (translation.locale === 'ca' ? 'Veure detalls' : translation.locale === 'es' ? 'Ver detalles' : 'View details')}
     </a>`;
 }
 

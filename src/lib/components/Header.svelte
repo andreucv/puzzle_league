@@ -39,7 +39,7 @@
                             <span class="absolute top-1 right-1 w-2 h-2 rounded-full" style="background-color: #DD2200;"></span>
                         {/if}
                     </a>
-                    <a href="/profile" data-testid="profile-avatar">
+                    <a href="/profile" data-testid="profile-avatar" class="relative">
                         {#if user && user?.image === undefined}
                             <UserAltFillIcon width="1.5rem" height="1.5rem" class="mx-2"/>
                         {:else}
@@ -47,6 +47,12 @@
                                 <Avatar.Image src={user.image} alt={user.name ?? 'User'} />
                                 <Avatar.Fallback>{user.name ? user.name.substring(0,2) : 'U'}</Avatar.Fallback>
                             </Avatar>
+                        {/if}
+                        {#if !user.emailVerified}
+                            <span
+                                class="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-warning-500 border-2 border-white"
+                                title="Email not verified"
+                            ></span>
                         {/if}
                     </a>
                 </div>

@@ -76,6 +76,7 @@
     "public_results_visibility": "Results visibility",
     "public_results_visibility_description": "When enabled, your name and avatar appear in competition results for everyone. When disabled, other participants see you as 'Anonymous Puzzler' — you can still see your own name.",
     "language": "Language",
+    "select_language": "Select language",
     "save": "Save"
   },
   "admin": {
@@ -543,9 +544,16 @@
     "member_since": "Member since"
   },
   "onboarding": {
-    "step_of": "Step {current} of {total}",
-    "welcome": "Welcome, {name}!",
-    "welcome_subtitle": "Let's get you set up with just a couple of quick things."
+    "step_of": "Step {{current}} of {{total}}",
+    "welcome": "Welcome, {{name}}!",
+    "welcome_subtitle": "Let's get you set up with just a couple of quick things.",
+    "verify_email_title": "Verify your email",
+    "verify_email_sent": "We sent a verification email to {{email}}",
+    "verify_email_check": "Check your inbox and click the link to verify your email address.",
+    "verify_email_resend": "Resend email",
+    "verify_email_skip": "I'll do it later",
+    "verify_email_resent": "Email sent!",
+    "verify_email_resending": "Sending..."
   },
   "add_phone": {
     "title": "Add your phone number",
@@ -555,6 +563,7 @@
     "skip_button": "Skip for now",
     "prefix_placeholder": "e.g. +34",
     "number_placeholder": "e.g. 612345678",
+    "validation_both_required": "Both phone prefix and number are required",
     "validation_prefix_required": "Phone prefix is required when number is provided",
     "validation_number_required": "Phone number is required when prefix is provided",
     "validation_prefix_format": "Prefix must start with + followed by 1-4 digits",
@@ -567,5 +576,12 @@
     "save": "Save preference",
     "saving": "Saving...",
     "skip": "Skip for now"
+  },
+  "verify_email": {
+    "success_title": "Email verified!",
+    "success_message": "Your email address has been successfully verified.",
+    "continue": "Continue to app",
+    "error_title": "Verification failed",
+    "error_message": "The verification link may have expired or is invalid. Please request a new one."
   }
 }

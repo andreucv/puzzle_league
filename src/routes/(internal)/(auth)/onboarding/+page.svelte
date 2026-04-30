@@ -8,6 +8,7 @@
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import { countries, getCountryFlag } from '$lib/utils/country_utils';
     import Icon from '@iconify/svelte';
+    import { authClient } from '$lib/auth_client';
 
     let { data, form }: { data: PageData; form: any } = $props();
 
@@ -50,6 +51,10 @@
     let phonePrefixInputValue = $state('');
     let phoneNumberValue = $state('');
     let phoneError = $state<string | null>(null);
+
+    // --- Verify email step state ---
+    let isResendingEmail = $state(false);
+    let emailResent = $state(false);
 
     const getPhonePrefixData = () => {
         const seen = new Set<string>();
@@ -106,9 +111,26 @@
             };
         };
     }
+
+    async function resendVerificationEmail() {
+        if (isResendingEmail) return;
+        isResendingEmail = true;
+        emailResent = false;
+        try {
+            await authClient.sendVerificationEmail({
+                email: data.userEmail,
+                callbackURL: '/verify-email',
+            });
+            emailResent = true;
+        } catch (err) {
+            console.error('Failed to resend verification email:', err);
+        } finally {
+            isResendingEmail = false;
+        }
+    }
 </script>
 
-<div class="container mx-auto max-w-lg space-y-6 py-4">
+<div class="container mx-auto max-w-lg space-y-6 py-4" data-testid="onboarding-wizard">
     <!-- Progress indicator -->
     <div class="flex flex-col items-center gap-2">
         <div class="flex items-center gap-2">
@@ -137,6 +159,7 @@
 
     <!-- ==================== LANGUAGE STEP ==================== -->
     {#if currentStepId === 'language'}
+        <div data-testid="onboarding-step-language">
         <GenericTitle text={$t('select_language.title')} />
 
         <p class="text-surface-600 dark:text-surface-400">
@@ -214,6 +237,7 @@
                 {$t('select_language.skip')}
             </button>
         </form>
+        </div>
     {/if}
 
     <!-- ==================== CLAIM STEP ==================== -->
@@ -333,6 +357,7 @@
 
     <!-- ==================== PHONE STEP ==================== -->
     {#if currentStepId === 'phone'}
+        <div data-testid="onboarding-step-phone">
         <GenericTitle text={$t('add_phone.title')} />
 
         <p class="text-surface-600 dark:text-surface-400">
@@ -345,7 +370,7 @@
 
         {#if phoneError}
             <div class="p-3 rounded-lg preset-filled-error-500 text-sm">
-                {phoneError}
+                {$t(phoneError)}
             </div>
         {/if}
 
@@ -434,5 +459,60 @@
                 {$t('add_phone.skip_button')}
             </button>
         </form>
+        </div>
+    {/if}
+
+    <!-- ==================== VERIFY EMAIL STEP ==================== -->
+    {#if currentStepId === 'verify-email'}
+        <div data-testid="onboarding-step-verify-email">
+        <GenericTitle text={$t('onboarding.verify_email_title')} />
+
+        <Card>
+            <div class="text-center space-y-4 py-4">
+                <Icon icon="mdi:email-check-outline" width="3rem" height="3rem" class="text-primary-500 mx-auto" />
+
+                <p class="text-surface-600 dark:text-surface-400">
+                    {$t('onboarding.verify_email_sent', { email: data.userEmail })}
+                </p>
+
+                <p class="text-sm text-surface-500 dark:text-surface-400">
+                    {$t('onboarding.verify_email_check')}
+                </p>
+
+                {#if emailResent}
+                    <div class="p-3 rounded-lg preset-filled-success-500 text-sm flex items-center justify-center gap-2">
+                        <Icon icon="mdi:check-circle" width="1.2rem" height="1.2rem" />
+                        <span>{$t('onboarding.verify_email_resent')}</span>
+                    </div>
+                {/if}
+
+                <button
+                    type="button"
+                    onclick={resendVerificationEmail}
+                    disabled={isResendingEmail}
+                    class="btn preset-outlined-primary-500 w-full"
+                    data-testid="onboarding-verify-email-resend"
+                >
+                    <Icon icon="mdi:email-sync-outline" width="1.2rem" height="1.2rem" />
+                    {isResendingEmail ? $t('onboarding.verify_email_resending') : $t('onboarding.verify_email_resend')}
+                </button>
+            </div>
+        </Card>
+
+        <form
+            method="POST"
+            action="?/skipEmailVerification"
+            use:enhance={createEnhanceHandler(() => {}, 'error')}
+        >
+            <button
+                type="submit"
+                class="btn preset-tonal w-full"
+                disabled={isSubmitting}
+                data-testid="onboarding-verify-email-skip"
+            >
+                {$t('onboarding.verify_email_skip')}
+            </button>
+        </form>
+        </div>
     {/if}
 </div>

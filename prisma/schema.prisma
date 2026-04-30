@@ -24,10 +24,11 @@ model User {
   postalCode             String?
   phonePrefix            String?
   phoneNumber            String?
-  phonePromptLastChecked      DateTime?
-  locale                      String?
-  localePromptLastChecked     DateTime?
-  userIntentsLastChecked      DateTime?
+  phonePromptLastChecked              DateTime?
+  locale                              String?
+  localePromptLastChecked             DateTime?
+  userIntentsLastChecked              DateTime?
+  emailVerificationPromptLastChecked  DateTime?
   publicProfileVisibility     Boolean          @default(true)
   publicResultsVisibility     Boolean          @default(true)
   createdAt                   DateTime

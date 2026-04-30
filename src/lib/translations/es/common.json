@@ -76,6 +76,7 @@
     "public_results_visibility": "Visibilidad en resultados",
     "public_results_visibility_description": "Si está activado, tu nombre y avatar aparecen en los resultados de las competiciones para todos. Si está desactivado, los demás participantes te ven como 'Puzzler Anónimo' — tú siempre puedes ver tu propio nombre.",
     "language": "Idioma",
+    "select_language": "Selecciona idioma",
     "save": "Guardar"
   },
   "admin": {
@@ -543,9 +544,16 @@
     "member_since": "Miembro desde"
   },
   "onboarding": {
-    "step_of": "Paso {current} de {total}",
-    "welcome": "¡Bienvenido/a, {name}!",
-    "welcome_subtitle": "Vamos a configurar tu cuenta con un par de cosas rápidas."
+    "step_of": "Paso {{current}} de {{total}}",
+    "welcome": "¡Bienvenido/a, {{name}}!",
+    "welcome_subtitle": "Vamos a configurar tu cuenta con un par de cosas rápidas.",
+    "verify_email_title": "Verifica tu correo",
+    "verify_email_sent": "Hemos enviado un correo de verificación a {email}",
+    "verify_email_check": "Revisa tu bandeja de entrada y haz clic en el enlace para verificar tu correo electrónico.",
+    "verify_email_resend": "Reenviar correo",
+    "verify_email_skip": "Lo haré más tarde",
+    "verify_email_resent": "¡Correo enviado!",
+    "verify_email_resending": "Enviando..."
   },
   "add_phone": {
     "title": "Añade tu número de teléfono",
@@ -555,6 +563,7 @@
     "skip_button": "Saltar por ahora",
     "prefix_placeholder": "ej. +34",
     "number_placeholder": "ej. 612345678",
+    "validation_both_required": "Se requieren tanto el prefijo como el número de teléfono",
     "validation_prefix_required": "El prefijo es obligatorio si se proporciona un número",
     "validation_number_required": "El número es obligatorio si se proporciona un prefijo",
     "validation_prefix_format": "El prefijo debe empezar con + seguido de 1-4 dígitos",
@@ -567,5 +576,12 @@
     "save": "Guardar preferencia",
     "saving": "Guardando...",
     "skip": "Saltar por ahora"
+  },
+  "verify_email": {
+    "success_title": "¡Correo verificado!",
+    "success_message": "Tu dirección de correo electrónico ha sido verificada correctamente.",
+    "continue": "Continuar a la aplicación",
+    "error_title": "Verificación fallida",
+    "error_message": "El enlace de verificación puede haber caducado o no es válido. Por favor, solicita uno nuevo."
   }
 }

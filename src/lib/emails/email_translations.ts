@@ -66,6 +66,7 @@ export interface EmailTranslation {
 	languageName: string;
 	title: string;
 	message: string;
+	buttonText?: string;
 }
 
 /**

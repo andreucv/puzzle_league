@@ -14,7 +14,7 @@ async function main() {
     const ctx = await createSeedContext(databaseUrl);
     const { participant } = ctx.baseUsers;
 
-    // Reset all onboarding fields so the wizard shows language + phone steps
+    // Reset all onboarding fields so the wizard shows language + phone + verify-email steps
     await ctx.prisma.user.update({
         where: { id: participant.id },
         data: {
@@ -24,12 +24,15 @@ async function main() {
             phoneNumber: null,
             phonePromptLastChecked: null,
             userIntentsLastChecked: null,
+            emailVerified: false,
+            emailVerificationPromptLastChecked: null,
         },
     });
 
     const output = {
         participantId: participant.id,
         participantName: participant.name,
+        participantEmail: participant.email,
     };
 
     writeSeedOutput(import.meta.url, output);

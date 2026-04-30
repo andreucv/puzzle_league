@@ -28,7 +28,7 @@ export async function handle({ event, resolve }) {
 		// Onboarding redirect — send users to unified wizard if any step is incomplete
 		const path = event.url.pathname;
 
-		if (isPageRequest(path) && path !== '/onboarding') {
+		if (isPageRequest(path) && path !== '/onboarding' && path !== '/verify-email') {
 			if (await hasIncompleteOnboarding(session.user.id)) {
 				throw redirect(302, '/onboarding');
 			}

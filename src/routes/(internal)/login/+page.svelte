@@ -39,7 +39,8 @@
             const { data, error } = await authClient.signUp.email({
                 email,
                 password,
-                name
+                name,
+                callbackURL: '/verify-email',
             });
             await after_login(data, error);
         } finally {

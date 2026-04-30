@@ -5,15 +5,26 @@ import { saveLocaleForUser, skipLocalePrompt, isValidLocale } from '$lib/utils/l
 import { validatePhone, savePhoneForUser } from '$lib/utils/phone_utils';
 
 /** Onboarding steps the wizard can show. Order matters. */
-export type OnboardingStep = 'language' | 'claim' | 'phone';
+export type OnboardingStep = 'language' | 'claim' | 'phone' | 'verify-email';
 
-export const load: PageServerLoad = async ({ parent }) => {
+export const load: PageServerLoad = async ({ parent, locals }) => {
 	const { user } = await parent();
 
 	// Query onboarding-specific flags not available via getUserWithRoles
 	const dbUser = await prisma.user.findUnique({
 		where: { id: user.id },
-		select: { userIntentsLastChecked: true, name: true, createdAt: true },
+		select: {
+			userIntentsLastChecked: true,
+			name: true,
+			createdAt: true,
+			emailVerified: true,
+			emailVerificationPromptLastChecked: true,
+			accounts: {
+				where: { providerId: 'credential' },
+				select: { id: true },
+				take: 1,
+			},
+		},
 	});
 
 	// Determine which steps are needed
@@ -71,6 +82,12 @@ export const load: PageServerLoad = async ({ parent }) => {
 		steps.push('phone');
 	}
 
+	// Step 4: Email verification (email/password users only, not yet verified or skipped)
+	const isEmailPasswordUser = dbUser ? dbUser.accounts.length > 0 : false;
+	if (isEmailPasswordUser && dbUser && !dbUser.emailVerified && !dbUser.emailVerificationPromptLastChecked) {
+		steps.push('verify-email');
+	}
+
 	// If no onboarding steps needed, redirect to home
 	if (steps.length === 0) {
 		throw redirect(302, '/');
@@ -108,11 +125,12 @@ export const load: PageServerLoad = async ({ parent }) => {
 		steps,
 		unclaimedIntents,
 		userName: dbUser?.name ?? '',
+		userEmail: locals.user!.email,
 	};
 };
 
 export const actions: Actions = {
-	saveLocale: async ({ request, locals, cookies }) => {
+	saveLocale: async ({ request, locals }) => {
 		const user = locals.user;
 		if (!user) return fail(401, { error: 'Unauthorized' });
 
@@ -125,7 +143,6 @@ export const actions: Actions = {
 
 		try {
 			await saveLocaleForUser(user.id, locale);
-			cookies.set('lang', locale, { path: '/', maxAge: 60 * 60 * 24 * 365 });
 		} catch (err) {
 			console.error('Error saving locale:', err);
 			return fail(500, { error: 'Unable to save your preference. Please try again.' });
@@ -268,5 +285,22 @@ export const actions: Actions = {
 		}
 
 		return { success: true, action: 'skipPhone' };
+	},
+
+	skipEmailVerification: async ({ locals }) => {
+		const user = locals.user;
+		if (!user) return fail(401, { error: 'Unauthorized' });
+
+		try {
+			await prisma.user.update({
+				where: { id: user.id },
+				data: { emailVerificationPromptLastChecked: new Date() },
+			});
+		} catch (err) {
+			console.error('Error marking email verification as skipped:', err);
+			return fail(500, { error: 'Something went wrong. Please try again.' });
+		}
+
+		return { success: true, action: 'skipEmailVerification' };
 	},
 };

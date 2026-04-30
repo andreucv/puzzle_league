@@ -50,13 +50,13 @@ async function getRecordCounts(categoryId: number): Promise<{ totalRecords: numb
 	return { totalRecords, finishedRecords };
 }
 
-function publishStatusChanged(
+async function publishStatusChanged(
 	competitionId: number,
 	categoryId: number,
 	status: string,
 	extra: Record<string, unknown> = {}
-) {
-	publishCompetitionEvent(competitionId, 'category.status_changed', {
+): Promise<void> {
+	await publishCompetitionEvent(competitionId, 'category.status_changed', {
 		categoryId,
 		competitionId,
 		status,
@@ -110,7 +110,7 @@ export async function startCategory(categoryId: number): Promise<CategoryWithCou
 		}
 	}
 
-	publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status, {
+	await publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status, {
 		realStartTime: updatedCategory.realStartTime?.toISOString() ?? null
 	});
 
@@ -142,7 +142,7 @@ export async function stopCategory(categoryId: number): Promise<CategoryWithCoun
 		})
 	]);
 
-	publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status, {
+	await publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status, {
 		realEndTime: updatedCategory.realEndTime?.toISOString() ?? null
 	});
 
@@ -200,7 +200,7 @@ export async function completeCategory(categoryId: number): Promise<CategoryWith
 		return updated;
 	});
 
-	publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status);
+	await publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status);
 
 	const { totalRecords, finishedRecords } = await getRecordCounts(categoryId);
 	return { ...updatedCategory, totalRecords, finishedRecords };
@@ -223,7 +223,7 @@ export async function resumeCategory(categoryId: number): Promise<CategoryWithCo
 
 	const { totalRecords, finishedRecords } = await getRecordCounts(categoryId);
 
-	publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status, {
+	await publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status, {
 		realEndTime: null
 	});
 
@@ -263,7 +263,7 @@ export async function restartCategory(categoryId: number): Promise<CategoryWithC
 		where: { categoryId, status: InscriptionStatus.CONFIRMED }
 	});
 
-	publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status, {
+	await publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status, {
 		realStartTime: updatedCategory.realStartTime?.toISOString() ?? null,
 		realEndTime: null
 	});

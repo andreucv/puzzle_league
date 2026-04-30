@@ -19,14 +19,16 @@ function getClient(): Ably.Rest | null {
 
 /**
  * Publish a competition event to the `competition:{id}` channel.
- * Fire-and-forget: errors are logged but never thrown — the calling
- * API endpoint must succeed regardless of Ably availability.
+ * Returns a Promise that resolves when the publish completes so callers can
+ * await it before sending their HTTP response (required on Vercel Edge where
+ * the runtime terminates as soon as the Response is returned).
+ * Errors are caught and logged — the promise always resolves, never rejects.
  */
-export function publishCompetitionEvent(
+export async function publishCompetitionEvent(
 	competitionId: number,
 	eventName: string,
 	data: Record<string, unknown>
-): void {
+): Promise<void> {
 	const client = getClient();
 	if (!client) {
 		console.warn(`[ably] Client not available — cannot publish event ${eventName} for competition ${competitionId}`);
@@ -34,7 +36,9 @@ export function publishCompetitionEvent(
 	}
 
 	const channelName = `competition:${competitionId}`;
-	client.channels.get(channelName).publish(eventName, data).catch((err) => {
+	try {
+		await client.channels.get(channelName).publish(eventName, data);
+	} catch (err) {
 		console.error(`[ably] Failed to publish ${eventName} to ${channelName}:`, err);
-	});
+	}
 }

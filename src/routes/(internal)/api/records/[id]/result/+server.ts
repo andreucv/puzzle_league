@@ -38,7 +38,7 @@ export const POST = async (event: RequestEvent) => {
 
     console.log('Recorded result for entry', { recordId, finishTime: updatedEntry.finishTime, tableNumber: updatedEntry.tableNumber });
 
-    publishCompetitionEvent(updatedEntry.category.competitionId, 'record.finished', {
+    await publishCompetitionEvent(updatedEntry.category.competitionId, 'record.finished', {
       recordId: updatedEntry.id,
       categoryId: updatedEntry.categoryId,
       competitionId: updatedEntry.category.competitionId,
@@ -83,7 +83,7 @@ export const DELETE = async (event: RequestEvent) => {
       }
     });
 
-    publishCompetitionEvent(updatedRecord.category.competitionId, 'record.unfinished', {
+    await publishCompetitionEvent(updatedRecord.category.competitionId, 'record.unfinished', {
       recordId: updatedRecord.id,
       categoryId: updatedRecord.categoryId,
       competitionId: updatedRecord.category.competitionId

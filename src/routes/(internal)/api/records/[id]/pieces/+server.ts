@@ -51,7 +51,7 @@ export const POST = async (event: RequestEvent) => {
 			select: { competitionId: true }
 		});
 		if (cat) {
-			publishCompetitionEvent(cat.competitionId, 'record.pieces_updated', {
+			await publishCompetitionEvent(cat.competitionId, 'record.pieces_updated', {
 				recordId: updatedRecord.id,
 				categoryId: updatedRecord.categoryId,
 				competitionId: cat.competitionId,

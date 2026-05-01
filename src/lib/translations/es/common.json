@@ -365,6 +365,12 @@
     "confirm_accept_message": "¿Estás seguro de que quieres aceptar esta inscripción?",
     "confirm_refuse_title": "Rechazar inscripción",
     "confirm_refuse_message": "¿Estás seguro de que quieres rechazar esta inscripción?",
+    "table_number": "Mesa {{number}}",
+    "publish_tables": "Publicar Asignación de Mesas",
+    "publish_tables_confirm_title": "Publicar asignación de mesas",
+    "publish_tables_confirm_message": "Esto reasignará los números de mesa secuencialmente y notificará a todos los participantes confirmados. ¿Continuar?",
+    "publish_tables_success": "Asignación de mesas publicada para {{count}} registros.",
+    "publish_tables_error": "Error al publicar la asignación de mesas.",
     "confirm_button": "Confirmar",
     "cancel_button": "Cancelar",
     "waitlisted": "En lista de espera",
@@ -402,6 +408,7 @@
       "user_intent_claimed": "Participante reclamado",
       "role_request_approved": "Solicitud de rol aprobada",
       "role_request_rejected": "Solicitud de rol rechazada",
+      "table_assigned": "Mesa asignada",
       "general": "Notificación"
     },
     "messages": {
@@ -416,6 +423,9 @@
       "user_intent_claimed": "{{intentName}} ha sido reclamado por un usuario registrado y ahora está vinculado a su cuenta.",
       "role_request_approved": "Tu solicitud para el rol {{roleName}} ha sido aprobada.",
       "role_request_rejected": "Tu solicitud para el rol {{roleName}} ha sido rechazada.",
+      "table_assigned": "{{participantName}}, se te ha asignado la Mesa {{tableNumber}} para la categoría {{categoryName}} en la competición {{competitionName}}.",
+      "table_assigned_team": "{{participantName}}, se te ha asignado la Mesa {{tableNumber}} para la categoría {{categoryName}} en la competición {{competitionName}}. Tus compañeros: {{teammateNames}}.",
+      "table_assigned_creator": "A {{participantNames}} se les ha asignado la Mesa {{tableNumber}} para la categoría {{categoryName}} en la competición {{competitionName}}.",
       "general": "Tienes una nueva notificación."
     }
   },

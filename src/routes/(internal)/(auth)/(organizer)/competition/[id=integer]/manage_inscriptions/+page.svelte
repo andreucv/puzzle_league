@@ -23,6 +23,7 @@
 
     // Loading state for individual actions
     let processingRecordId: string | null = $state(null);
+    let publishingCategoryId: number | null = $state(null);
     let resultMessage = $state<{ success: boolean; message: string } | null>(null);
     let messageDismissTimer: ReturnType<typeof setTimeout> | null = null;
     let messageProgressKey = $state(0);
@@ -81,6 +82,27 @@
             showResultMessage({ success: false, message: $t('manage_inscriptions.refuse_error') });
         } finally {
             processingRecordId = null;
+        }
+    }
+
+    async function handlePublishTables(categoryId: number) {
+        publishingCategoryId = categoryId;
+        try {
+            const response = await fetch(`/api/categories/${categoryId}/publish-tables`, {
+                method: 'POST'
+            });
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                showResultMessage({ success: true, message: $t('manage_inscriptions.publish_tables_success', { count: result.assignedCount }) });
+                await invalidateAll();
+            } else {
+                showResultMessage({ success: false, message: result.error || $t('manage_inscriptions.publish_tables_error') });
+            }
+        } catch {
+            showResultMessage({ success: false, message: $t('manage_inscriptions.publish_tables_error') });
+        } finally {
+            publishingCategoryId = null;
         }
     }
 </script>
@@ -142,8 +164,10 @@
                     records={category.records}
                     {processingRecordId}
                     {searchFilter}
+                    publishingTables={publishingCategoryId === category.id}
                     onConfirm={handleConfirm}
                     onRefuse={handleRefuse}
+                    onPublishTables={() => handlePublishTables(category.id)}
                 />
             </Card>
         {/each}

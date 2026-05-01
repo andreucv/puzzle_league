@@ -92,3 +92,88 @@ export async function notifyInscriptionConfirmed(
 
 	await Promise.all(promises);
 }
+
+// ---------------------------------------------------------------------------
+// Table assignment notification
+// ---------------------------------------------------------------------------
+
+interface TableAssignmentRecord {
+	id: string;
+	tableNumber: number;
+	users: { id: string; name: string }[];
+	userIntents: { name: string }[];
+	creatorId: string;
+}
+
+interface TableAssignmentCategory {
+	competitionId: number;
+	description: string;
+	subname: string | null;
+	type: CategoryType;
+	competition: { name: string };
+}
+
+/**
+ * Send TABLE_ASSIGNED notifications to every user on each record.
+ * Called after the organizer publishes / compacts table assignments.
+ */
+export async function notifyTableAssignments(
+	records: TableAssignmentRecord[],
+	category: TableAssignmentCategory,
+): Promise<void> {
+	const typeLabel = getCategoryTypeName(category.type);
+	const categoryName = category.subname
+		? `${typeLabel} - ${category.subname}`
+		: typeLabel;
+	const competitionName = category.competition.name;
+	const link = `/competitions/competition_details/${category.competitionId}`;
+
+	const promises: Promise<unknown>[] = [];
+
+	for (const record of records) {
+		const tableNumber = record.tableNumber;
+
+		const allParticipantNames = [
+			...record.users.map((u) => u.name),
+			...record.userIntents.map((ui) => ui.name),
+		].join(', ');
+
+		// Notify every real platform user on the record
+		for (const user of record.users) {
+			const teammates = [
+				...record.users.filter((u) => u.id !== user.id).map((u) => u.name),
+				...record.userIntents.map((ui) => ui.name),
+			];
+			const hasTeammates = teammates.length > 0;
+			promises.push(
+				createNotification({
+					userId: user.id,
+					type: NotificationType.TABLE_ASSIGNED,
+					title: 'notifications.titles.table_assigned',
+					message: hasTeammates
+						? 'notifications.messages.table_assigned_team'
+						: 'notifications.messages.table_assigned',
+					link,
+					data: { participantName: user.name, categoryName, competitionName, tableNumber, teammateNames: teammates.join(', ') },
+				}),
+			);
+		}
+
+		// If the creator is NOT already a participant, still notify them
+		const realUserIds = record.users.map((u) => u.id);
+		if (!realUserIds.includes(record.creatorId)) {
+			promises.push(
+				createNotification({
+					userId: record.creatorId,
+					type: NotificationType.TABLE_ASSIGNED,
+					title: 'notifications.titles.table_assigned',
+					message: 'notifications.messages.table_assigned_creator',
+					link,
+					data: { participantNames: allParticipantNames, categoryName, competitionName, tableNumber },
+				}),
+			);
+		}
+	}
+
+	await Promise.all(promises);
+}

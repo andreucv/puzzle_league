@@ -69,12 +69,19 @@
         {/if}
     </div>
 
-    <!-- Right side: date + actions -->
+    <!-- Right side: table number + date + actions -->
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
         class="relative flex items-center shrink-0 ml-auto"
     >
+        <!-- Table number badge (only for confirmed records with an assigned table) -->
+        {#if record.tableNumber != null}
+            <span class="badge preset-tonal-primary text-xs mr-2" data-testid="table-number-{record.id}">
+                {$t('manage_inscriptions.table_number', { number: record.tableNumber })}
+            </span>
+        {/if}
+
         <!-- Date (always visible, sits behind buttons when selected) -->
         {#if inscriptionDate}
             <span class="text-[0.7rem] leading-tight text-surface-400 dark:text-surface-500 text-right whitespace-nowrap">

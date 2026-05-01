@@ -306,6 +306,12 @@
     "confirm_accept_message": "Are you sure you want to accept this inscription?",
     "confirm_refuse_title": "Refuse inscription",
     "confirm_refuse_message": "Are you sure you want to refuse this inscription?",
+    "table_number": "Table {{number}}",
+    "publish_tables": "Publish Table Assignments",
+    "publish_tables_confirm_title": "Publish table assignments",
+    "publish_tables_confirm_message": "This will reassign table numbers sequentially and notify all confirmed participants. Continue?",
+    "publish_tables_success": "Table assignments published to {{count}} records.",
+    "publish_tables_error": "Failed to publish table assignments.",
     "confirm_button": "Confirm",
     "cancel_button": "Cancel",
     "status_pending": "Pending",
@@ -402,6 +408,7 @@
       "user_intent_claimed": "Participant claimed",
       "role_request_approved": "Role request approved",
       "role_request_rejected": "Role request rejected",
+      "table_assigned": "Table assigned",
       "general": "Notification"
     },
     "messages": {
@@ -416,6 +423,9 @@
       "user_intent_claimed": "{{intentName}} has been claimed by a registered user and is now linked to their account.",
       "role_request_approved": "Your request for the {{roleName}} role has been approved.",
       "role_request_rejected": "Your request for the {{roleName}} role has been rejected.",
+      "table_assigned": "{{participantName}}, you have been assigned Table {{tableNumber}} for the {{categoryName}} category in the {{competitionName}} competition.",
+      "table_assigned_team": "{{participantName}}, you have been assigned Table {{tableNumber}} for the {{categoryName}} category in the {{competitionName}} competition. Your teammates: {{teammateNames}}.",
+      "table_assigned_creator": "{{participantNames}} have been assigned Table {{tableNumber}} for the {{categoryName}} category in the {{competitionName}} competition.",
       "general": "You have a new notification."
     }
   },

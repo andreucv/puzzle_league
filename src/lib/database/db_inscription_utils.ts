@@ -434,9 +434,24 @@ export async function confirmInscription(recordId: string) {
                 }
             }
 
+            // Assign next sequential table number for this category
+            const maxTable = await tx.record.aggregate({
+                where: {
+                    categoryId: record.categoryId,
+                    status: InscriptionStatus.CONFIRMED,
+                    tableNumber: { not: null }
+                },
+                _max: { tableNumber: true }
+            });
+            const nextTableNumber = (maxTable._max.tableNumber ?? 0) + 1;
+
             const updatedRecord = await tx.record.update({
                 where: { id: recordId },
-                data: { status: InscriptionStatus.CONFIRMED },
+                data: {
+                    status: InscriptionStatus.CONFIRMED,
+                    tableNumber: nextTableNumber,
+                    confirmedAt: new Date()
+                },
                 include: {
                     users: {
                         select: { id: true, name: true, email: true, image: true }

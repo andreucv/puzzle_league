@@ -33,6 +33,7 @@
         ROLE_REQUEST_APPROVED: 'mdi:shield-check-outline',
         ROLE_REQUEST_REJECTED: 'mdi:shield-off-outline',
         USER_INTENT_CLAIMED: 'mdi:account-check-outline',
+        TABLE_ASSIGNED: 'mdi:table-furniture',
         GENERAL: 'mdi:bell-outline',
     };
 
@@ -46,6 +47,7 @@
         ROLE_REQUEST_APPROVED: 'text-success-500',
         ROLE_REQUEST_REJECTED: 'text-error-500',
         USER_INTENT_CLAIMED: 'text-primary-500',
+        TABLE_ASSIGNED: 'text-primary-500',
         GENERAL: 'text-surface-500',
     };
 

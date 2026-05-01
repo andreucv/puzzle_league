@@ -365,6 +365,12 @@
     "confirm_accept_message": "Estàs segur que vols acceptar aquesta inscripció?",
     "confirm_refuse_title": "Rebutjar inscripció",
     "confirm_refuse_message": "Estàs segur que vols rebutjar aquesta inscripció?",
+    "table_number": "Taula {{number}}",
+    "publish_tables": "Publicar Assignació de Taules",
+    "publish_tables_confirm_title": "Publicar assignació de taules",
+    "publish_tables_confirm_message": "Això reassignarà els números de taula seqüencialment i notificarà tots els participants confirmats. Continuar?",
+    "publish_tables_success": "Assignació de taules publicada per a {{count}} registres.",
+    "publish_tables_error": "Error en publicar l'assignació de taules.",
     "confirm_button": "Confirmar",
     "cancel_button": "Cancel·lar",
     "waitlisted": "En llista d'espera",
@@ -402,6 +408,7 @@
       "user_intent_claimed": "Participant reclamat",
       "role_request_approved": "Sol·licitud de rol aprovada",
       "role_request_rejected": "Sol·licitud de rol rebutjada",
+      "table_assigned": "Taula assignada",
       "general": "Notificació"
     },
     "messages": {
@@ -416,6 +423,9 @@
       "user_intent_claimed": "{{intentName}} ha estat reclamat per un usuari registrat i ara està vinculat al seu compte.",
       "role_request_approved": "La teva sol·licitud per al rol {{roleName}} ha estat aprovada.",
       "role_request_rejected": "La teva sol·licitud per al rol {{roleName}} ha estat rebutjada.",
+      "table_assigned": "{{participantName}}, se t'ha assignat la Taula {{tableNumber}} per a la categoria {{categoryName}} a la competició {{competitionName}}.",
+      "table_assigned_team": "{{participantName}}, se t'ha assignat la Taula {{tableNumber}} per a la categoria {{categoryName}} a la competició {{competitionName}}. Els teus companys: {{teammateNames}}.",
+      "table_assigned_creator": "A {{participantNames}} se'ls ha assignat la Taula {{tableNumber}} per a la categoria {{categoryName}} a la competició {{competitionName}}.",
       "general": "Tens una nova notificació."
     }
   },

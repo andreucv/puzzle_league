@@ -19,6 +19,8 @@
     .search-container {
         /* Outside a card: use card-like background */
         @apply preset-filled-surface-200-800;
+        /* Anchor the viewport on this element during search-driven reflows */
+        overflow-anchor: auto;
     }
 
     :global(.card) .search-container {

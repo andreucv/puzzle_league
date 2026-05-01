@@ -258,6 +258,9 @@
         return '';
     });
 
+    // Used to disable RecordList transitions during search to prevent viewport jitter
+    let isSearching = $derived(!!records?.searchQuery.trim());
+
 </script>
 
 <Card>
@@ -430,6 +433,7 @@
                 emptyMessage={$t('during_competition.no_pending_records')}
                 initialOpen={true}
                 forceOpen={records.searchQuery.trim() !== '' && records.filteredPending.length > 0}
+                {isSearching}
             />
 
             <RecordList
@@ -442,6 +446,7 @@
                 onAction={handleRecordUndoFinish}
                 emptyMessage={$t('during_competition.no_finished_records')}
                 forceOpen={records.searchQuery.trim() !== '' && records.filteredFinished.length > 0}
+                {isSearching}
             />
         {/if}
 
@@ -460,6 +465,7 @@
                 initialOpen={true}
                 alwaysShow={true}
                 forceOpen={records.searchQuery.trim() !== '' && records.filteredUnresolved.length > 0}
+                {isSearching}
             />
 
             <RecordList
@@ -473,6 +479,7 @@
                 {totalPieces}
                 emptyMessage={$t('during_competition.no_finished_records')}
                 forceOpen={records.searchQuery.trim() !== '' && records.filteredResolved.length > 0}
+                {isSearching}
             />
         {/if}
 

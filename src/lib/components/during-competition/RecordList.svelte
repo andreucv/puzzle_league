@@ -20,7 +20,8 @@
         emptyMessage,
         initialOpen = false,
         alwaysShow = false,
-        forceOpen = false
+        forceOpen = false,
+        isSearching = false
     }: {
         icon: any;
         label: string;
@@ -34,7 +35,12 @@
         initialOpen?: boolean;
         alwaysShow?: boolean;
         forceOpen?: boolean;
+        isSearching?: boolean;
     } = $props();
+
+    // Disable transitions during search to prevent viewport jitter from continuous
+    // height changes as records appear/disappear on every keystroke.
+    let transitionDuration = $derived(isSearching ? 0 : 200);
 
     // Selection state is owned by RecordList — no need to thread through parent
     let selectedRecord = $state<string | null>(null);
@@ -82,7 +88,7 @@
                     </div>
                 {:else if records.length > 0}
                     {#each records as record (record.id)}
-                        <div transition:slide={{ duration: 200 }} animate:flip={{ duration: 200 }}>
+                        <div transition:slide={{ duration: transitionDuration }} animate:flip={{ duration: transitionDuration }} style="overflow-anchor: none">
                             <RecordRow
                                 {record}
                                 {categoryRealStartTime}

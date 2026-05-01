@@ -2,6 +2,13 @@
     import MagnifyIcon from '@iconify-svelte/mdi/magnify';
 
     let { filter = $bindable(), placeholder } = $props()
+
+    // Scroll the search input to the top of the viewport on focus so the user
+    // has maximum visible space for results, especially on mobile with keyboard.
+    function handleFocus(e: FocusEvent) {
+        const el = (e.target as HTMLElement).closest('.search-container');
+        el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 </script>
 
 <div class="search-container rounded-lg">
@@ -9,7 +16,7 @@
         <div class="p-2">
             <MagnifyIcon width="1.2rem" height="1.2rem" class="text-surface-500" />
         </div>
-        <input class="input-full-width" placeholder={placeholder} bind:value={filter}/>
+        <input class="input-full-width" placeholder={placeholder} bind:value={filter} onfocus={handleFocus}/>
     </div>
 </div>
 

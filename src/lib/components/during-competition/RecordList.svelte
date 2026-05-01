@@ -81,7 +81,7 @@
         </button>
 
         {#if open}
-            <div class="max-h-96 overflow-y-auto">
+            <div class="{isSearching ? 'h-96' : 'max-h-96'} overflow-y-auto">
                 {#if loading}
                     <div class="flex items-center justify-center p-4">
                         <LoadingIcon class="animate-spin" width="1.5rem" height="1.5rem" />

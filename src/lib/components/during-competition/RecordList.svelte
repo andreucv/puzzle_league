@@ -63,7 +63,7 @@
     }
 </script>
 
-{#if records.length > 0 || loading || alwaysShow}
+{#if records.length > 0 || loading || alwaysShow || isSearching}
     <div class="space-y-2">
         <button
             class="btn btn-sm preset-tonal w-full justify-between"

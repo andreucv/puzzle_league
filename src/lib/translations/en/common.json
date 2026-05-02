@@ -424,7 +424,9 @@
       "payment_reminder": "Payment reminder",
       "payment_reminder_with_note": "Payment reminder",
       "payment_reminder_creator": "Payment reminder",
-      "payment_reminder_creator_with_note": "Payment reminder"
+      "payment_reminder_creator_with_note": "Payment reminder",
+      "payment_reminder_team": "Payment reminder",
+      "payment_reminder_team_with_note": "Payment reminder"
     },
     "messages": {
       "inscription_created": "You have been registered for {{categoryName}} in {{competitionName}} by {{registeredBy}}.",
@@ -445,7 +447,9 @@
       "payment_reminder": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition is pending payment. Please complete the payment to secure your spot.",
       "payment_reminder_with_note": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition is pending payment. Please complete the payment to secure your spot. Note from organizer: {{organizerNote}}",
       "payment_reminder_creator": "The inscription for {{participantNames}} in the {{categoryName}} category of the {{competitionName}} competition is pending payment.",
-      "payment_reminder_creator_with_note": "The inscription for {{participantNames}} in the {{categoryName}} category of the {{competitionName}} competition is pending payment. Note from organizer: {{organizerNote}}"
+      "payment_reminder_creator_with_note": "The inscription for {{participantNames}} in the {{categoryName}} category of the {{competitionName}} competition is pending payment. Note from organizer: {{organizerNote}}",
+      "payment_reminder_team": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition with {{teammateNames}} is pending payment. Please complete the payment to secure your spot.",
+      "payment_reminder_team_with_note": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition with {{teammateNames}} is pending payment. Please complete the payment to secure your spot. Note from organizer: {{organizerNote}}"
     }
   },
   "during_competition": {

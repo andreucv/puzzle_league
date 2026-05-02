@@ -424,7 +424,9 @@
       "payment_reminder": "Recordatorio de pago",
       "payment_reminder_with_note": "Recordatorio de pago",
       "payment_reminder_creator": "Recordatorio de pago",
-      "payment_reminder_creator_with_note": "Recordatorio de pago"
+      "payment_reminder_creator_with_note": "Recordatorio de pago",
+      "payment_reminder_team": "Recordatorio de pago",
+      "payment_reminder_team_with_note": "Recordatorio de pago"
     },
     "messages": {
       "inscription_created": "Has sido registrado en {{categoryName}} en {{competitionName}} por {{registeredBy}}.",
@@ -445,7 +447,9 @@
       "payment_reminder": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} está pendiente de pago. Por favor, completa el pago para asegurar tu plaza.",
       "payment_reminder_with_note": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} está pendiente de pago. Por favor, completa el pago para asegurar tu plaza. Nota del organizador: {{organizerNote}}",
       "payment_reminder_creator": "La inscripción de {{participantNames}} en la categoría {{categoryName}} de la competición {{competitionName}} está pendiente de pago.",
-      "payment_reminder_creator_with_note": "La inscripción de {{participantNames}} en la categoría {{categoryName}} de la competición {{competitionName}} está pendiente de pago. Nota del organizador: {{organizerNote}}"
+      "payment_reminder_creator_with_note": "La inscripción de {{participantNames}} en la categoría {{categoryName}} de la competición {{competitionName}} está pendiente de pago. Nota del organizador: {{organizerNote}}",
+      "payment_reminder_team": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} con {{teammateNames}} está pendiente de pago. Por favor, completa el pago para asegurar tu plaza.",
+      "payment_reminder_team_with_note": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} con {{teammateNames}} está pendiente de pago. Por favor, completa el pago para asegurar tu plaza. Nota del organizador: {{organizerNote}}"
     }
   },
   "during_competition": {

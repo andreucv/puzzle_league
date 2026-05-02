@@ -424,7 +424,9 @@
       "payment_reminder": "Recordatori de pagament",
       "payment_reminder_with_note": "Recordatori de pagament",
       "payment_reminder_creator": "Recordatori de pagament",
-      "payment_reminder_creator_with_note": "Recordatori de pagament"
+      "payment_reminder_creator_with_note": "Recordatori de pagament",
+      "payment_reminder_team": "Recordatori de pagament",
+      "payment_reminder_team_with_note": "Recordatori de pagament"
     },
     "messages": {
       "inscription_created": "Has estat registrat a {{categoryName}} a {{competitionName}} per {{registeredBy}}.",
@@ -445,7 +447,9 @@
       "payment_reminder": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} està pendent de pagament. Si us plau, completa el pagament per assegurar la teva plaça.",
       "payment_reminder_with_note": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} està pendent de pagament. Si us plau, completa el pagament per assegurar la teva plaça. Nota de l'organitzador: {{organizerNote}}",
       "payment_reminder_creator": "La inscripció de {{participantNames}} a la categoria {{categoryName}} de la competició {{competitionName}} està pendent de pagament.",
-      "payment_reminder_creator_with_note": "La inscripció de {{participantNames}} a la categoria {{categoryName}} de la competició {{competitionName}} està pendent de pagament. Nota de l'organitzador: {{organizerNote}}"
+      "payment_reminder_creator_with_note": "La inscripció de {{participantNames}} a la categoria {{categoryName}} de la competició {{competitionName}} està pendent de pagament. Nota de l'organitzador: {{organizerNote}}",
+      "payment_reminder_team": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} amb {{teammateNames}} està pendent de pagament. Si us plau, completa el pagament per assegurar la teva plaça.",
+      "payment_reminder_team_with_note": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} amb {{teammateNames}} està pendent de pagament. Si us plau, completa el pagament per assegurar la teva plaça. Nota de l'organitzador: {{organizerNote}}"
     }
   },
   "during_competition": {

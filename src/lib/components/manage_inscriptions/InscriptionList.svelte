@@ -2,26 +2,20 @@
     import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
     import ClockAlertOutlineIcon from '@iconify-svelte/mdi/clock-alert-outline';
     import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
-    import TableFurnitureIcon from '@iconify-svelte/mdi/table-furniture';
-    import ConfirmPopover from '$lib/components/common/ConfirmPopover.svelte';
-    import LoadingIcon from '@iconify-svelte/mdi/loading';
     import { t } from '$lib/translations';
     import CollapsibleSection from './CollapsibleSection.svelte';
     import InscriptionRow from './InscriptionRow.svelte';
 
-    let { records, processingRecordId = null, searchFilter = '', publishingTables = false, onConfirm, onRefuse, onPublishTables }: {
+    let { records, processingRecordId = null, searchFilter = '', onConfirm, onRefuse, onRemind }: {
         records: any[];
         processingRecordId?: string | null;
         searchFilter?: string;
-        publishingTables?: boolean;
         onConfirm: (id: string) => void;
         onRefuse: (id: string) => void;
-        onPublishTables?: () => void;
+        onRemind: (id: string, note?: string) => void;
     } = $props();
 
     let selectedRecordId: string | null = $state(null);
-    let showPublishConfirm = $state(false);
-    let isPublishing = $state(false);
 
     function toggleSelect(id: string) {
         selectedRecordId = selectedRecordId === id ? null : id;
@@ -48,17 +42,19 @@
     let confirmedRecords = $derived(byStatus(filteredRecords, 'CONFIRMED'));
 </script>
 
-{#snippet recordList(recs: any[], showConfirm: boolean, showRefuse: boolean)}
+{#snippet recordList(recs: any[], showConfirm: boolean, showRefuse: boolean, showRemind: boolean)}
     <div>
         {#each recs as record (record.id)}
             <InscriptionRow
                 {record}
                 {showConfirm}
                 {showRefuse}
+                {showRemind}
                 processing={processingRecordId === record.id}
                 selected={selectedRecordId === record.id}
                 {onConfirm}
                 {onRefuse}
+                {onRemind}
                 onSelect={toggleSelect}
             />
         {/each}
@@ -79,7 +75,7 @@
                     <span class="text-sm font-semibold" data-testid="record-status-badge">{$t('manage_inscriptions.pending_confirmation')}</span>
                     <span class="badge preset-tonal-warning text-xs">{pendingRecords.length}</span>
                 </div>
-                {@render recordList(pendingRecords, true, true)}
+                {@render recordList(pendingRecords, true, true, true)}
             </div>
         {/if}
 
@@ -92,7 +88,7 @@
                 badgeClass="preset-tonal-secondary"
                 testId="toggle-section-waitlisted"
             >
-                {@render recordList(waitlistedRecords, true, true)}
+                {@render recordList(waitlistedRecords, true, true, false)}
             </CollapsibleSection>
         {/if}
 
@@ -105,41 +101,7 @@
                 badgeClass="preset-tonal-success"
                 testId="toggle-section-confirmed"
             >
-                {@render recordList(confirmedRecords, false, true)}
-                {#if onPublishTables}
-                    <div class="mt-3 pt-3 border-t border-surface-200 dark:border-surface-700 flex justify-end">
-                        <div class="relative">
-                            <button
-                                type="button"
-                                class="btn preset-filled-primary-500 gap-2"
-                                disabled={publishingTables || isPublishing}
-                                onclick={() => showPublishConfirm = !showPublishConfirm}
-                                data-testid="publish-tables"
-                            >
-                                {#if publishingTables || isPublishing}
-                                    <LoadingIcon width="1.1rem" height="1.1rem" class="animate-spin" />
-                                {:else}
-                                    <TableFurnitureIcon width="1.1rem" height="1.1rem" />
-                                {/if}
-                                {$t('manage_inscriptions.publish_tables')}
-                            </button>
-                            {#if showPublishConfirm}
-                                <ConfirmPopover
-                                    title={$t('manage_inscriptions.publish_tables_confirm_title')}
-                                    message={$t('manage_inscriptions.publish_tables_confirm_message')}
-                                    colorClass="preset-filled-primary-500"
-                                    onConfirm={async () => {
-                                        isPublishing = true;
-                                        try { await onPublishTables?.(); }
-                                        finally { isPublishing = false; showPublishConfirm = false; }
-                                    }}
-                                    onCancel={() => showPublishConfirm = false}
-                                    isProcessing={isPublishing}
-                                />
-                            {/if}
-                        </div>
-                    </div>
-                {/if}
+                {@render recordList(confirmedRecords, false, true, false)}
             </CollapsibleSection>
         {/if}
     </div>

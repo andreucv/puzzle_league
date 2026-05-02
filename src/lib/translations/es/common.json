@@ -388,7 +388,18 @@
     "no-competitions-found": "No se encontraron competiciones",
     "open": "Abiertas",
     "past": "Pasadas",
-    "soon": "Pronto"
+    "soon": "Pronto",
+    "remind_payment": "Recordar pago",
+    "remind_all_pending": "Recordar a todos los pendientes ({{count}})",
+    "remind_success": "Recordatorio de pago enviado a {{count}} participante(s).",
+    "remind_bulk_success": "Recordatorio enviado a {{reminded}} participante(s). {{skipped}} omitidos (recordados recientemente).",
+    "remind_error": "Error al enviar el recordatorio de pago.",
+    "remind_cooldown": "Recordado recientemente",
+    "remind_note_placeholder": "Nota opcional para los participantes (máx. 200 caracteres)...",
+    "remind_confirm_title": "Enviar recordatorio de pago",
+    "remind_confirm_message": "Esto enviará una notificación y un correo electrónico para recordar a los participantes sobre el pago pendiente.",
+    "remind_bulk_confirm_message": "Esto enviará una notificación y un correo electrónico a todos los participantes pendientes en esta categoría que no hayan sido recordados en las últimas 48 horas.",
+    "last_reminded": "Recordado {{time}}"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -409,7 +420,11 @@
       "role_request_approved": "Solicitud de rol aprobada",
       "role_request_rejected": "Solicitud de rol rechazada",
       "table_assigned": "Mesa asignada",
-      "general": "Notificación"
+      "general": "Notificación",
+      "payment_reminder": "Recordatorio de pago",
+      "payment_reminder_with_note": "Recordatorio de pago",
+      "payment_reminder_creator": "Recordatorio de pago",
+      "payment_reminder_creator_with_note": "Recordatorio de pago"
     },
     "messages": {
       "inscription_created": "Has sido registrado en {{categoryName}} en {{competitionName}} por {{registeredBy}}.",
@@ -426,7 +441,11 @@
       "table_assigned": "{{participantName}}, se te ha asignado la Mesa {{tableNumber}} para la categoría {{categoryName}} en la competición {{competitionName}}.",
       "table_assigned_team": "{{participantName}}, se te ha asignado la Mesa {{tableNumber}} para la categoría {{categoryName}} en la competición {{competitionName}}. Tus compañeros: {{teammateNames}}.",
       "table_assigned_creator": "A {{participantNames}} se les ha asignado la Mesa {{tableNumber}} para la categoría {{categoryName}} en la competición {{competitionName}}.",
-      "general": "Tienes una nueva notificación."
+      "general": "Tienes una nueva notificación.",
+      "payment_reminder": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} está pendiente de pago. Por favor, completa el pago para asegurar tu plaza.",
+      "payment_reminder_with_note": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} está pendiente de pago. Por favor, completa el pago para asegurar tu plaza. Nota del organizador: {{organizerNote}}",
+      "payment_reminder_creator": "La inscripción de {{participantNames}} en la categoría {{categoryName}} de la competición {{competitionName}} está pendiente de pago.",
+      "payment_reminder_creator_with_note": "La inscripción de {{participantNames}} en la categoría {{categoryName}} de la competición {{competitionName}} está pendiente de pago. Nota del organizador: {{organizerNote}}"
     }
   },
   "during_competition": {

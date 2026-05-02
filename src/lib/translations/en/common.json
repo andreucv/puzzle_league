@@ -325,7 +325,18 @@
     "past": "Past",
     "live": "Live",
     "soon": "Soon",
-    "no-competitions-found": "No competitions found"
+    "no-competitions-found": "No competitions found",
+    "remind_payment": "Remind Payment",
+    "remind_all_pending": "Remind All Pending ({{count}})",
+    "remind_success": "Payment reminder sent to {{count}} participant(s).",
+    "remind_bulk_success": "Reminded {{reminded}} participant(s). {{skipped}} skipped (recently reminded).",
+    "remind_error": "Failed to send payment reminder.",
+    "remind_cooldown": "Recently reminded",
+    "remind_note_placeholder": "Optional note for participants (max 200 characters)...",
+    "remind_confirm_title": "Send payment reminder",
+    "remind_confirm_message": "This will send a notification and email to remind participants about pending payment.",
+    "remind_bulk_confirm_message": "This will send a notification and email to all pending participants in this category who haven't been reminded in the last 48 hours.",
+    "last_reminded": "Reminded {{time}}"
   },
   "puzzles": {
     "catalog_title": "Puzzle Catalog",
@@ -409,7 +420,11 @@
       "role_request_approved": "Role request approved",
       "role_request_rejected": "Role request rejected",
       "table_assigned": "Table assigned",
-      "general": "Notification"
+      "general": "Notification",
+      "payment_reminder": "Payment reminder",
+      "payment_reminder_with_note": "Payment reminder",
+      "payment_reminder_creator": "Payment reminder",
+      "payment_reminder_creator_with_note": "Payment reminder"
     },
     "messages": {
       "inscription_created": "You have been registered for {{categoryName}} in {{competitionName}} by {{registeredBy}}.",
@@ -426,7 +441,11 @@
       "table_assigned": "{{participantName}}, you have been assigned Table {{tableNumber}} for the {{categoryName}} category in the {{competitionName}} competition.",
       "table_assigned_team": "{{participantName}}, you have been assigned Table {{tableNumber}} for the {{categoryName}} category in the {{competitionName}} competition. Your teammates: {{teammateNames}}.",
       "table_assigned_creator": "{{participantNames}} have been assigned Table {{tableNumber}} for the {{categoryName}} category in the {{competitionName}} competition.",
-      "general": "You have a new notification."
+      "general": "You have a new notification.",
+      "payment_reminder": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition is pending payment. Please complete the payment to secure your spot.",
+      "payment_reminder_with_note": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition is pending payment. Please complete the payment to secure your spot. Note from organizer: {{organizerNote}}",
+      "payment_reminder_creator": "The inscription for {{participantNames}} in the {{categoryName}} category of the {{competitionName}} competition is pending payment.",
+      "payment_reminder_creator_with_note": "The inscription for {{participantNames}} in the {{categoryName}} category of the {{competitionName}} competition is pending payment. Note from organizer: {{organizerNote}}"
     }
   },
   "during_competition": {

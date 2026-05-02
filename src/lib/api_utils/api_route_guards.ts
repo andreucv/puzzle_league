@@ -65,6 +65,7 @@ const ROUTE_GUARDS: [RegExp, RouteGuard][] = [
   // ---- Inscription endpoints (recordId → competition → ORGANIZER) ----
   [/^\/api\/inscriptions\/[^/]+\/confirm$/, { guard: 'inscriptionOrganizer' }],
   [/^\/api\/inscriptions\/[^/]+\/refuse$/, { guard: 'inscriptionOrganizer' }],
+  [/^\/api\/inscriptions\/[^/]+\/remind$/, { guard: 'inscriptionOrganizer' }],
 
   // ---- Category-scoped: ORGANIZER on parent competition (for judge management) ----
   [/^\/api\/categories\/[^/]+\/judges\/[^/]+$/, { guard: 'categoryOrganizer' }],
@@ -79,6 +80,7 @@ const ROUTE_GUARDS: [RegExp, RouteGuard][] = [
   [/^\/api\/categories\/[^/]+\/complete$/, { guard: 'categoryOrganizer' }],
   [/^\/api\/categories\/[^/]+\/resume$/, { guard: 'categoryOrganizer' }],
   [/^\/api\/categories\/[^/]+\/publish-tables$/, { guard: 'categoryOrganizer' }],
+  [/^\/api\/categories\/[^/]+\/remind-pending$/, { guard: 'categoryOrganizer' }],
 
   // ---- Record-scoped: JUDGE or ORGANIZER via category chain ----
   [/^\/api\/records\/[^/]+\/pieces$/, { guard: 'recordJudge' }],

@@ -9,6 +9,7 @@ import { sendEmail } from '$lib/emails/send_email_utils';
 /** Notification types that should also trigger an email. */
 const EMAIL_ENABLED_TYPES = new Set<NotificationType>([
 	NotificationType.INSCRIPTION_CONFIRMED,
+	NotificationType.PAYMENT_REMINDER,
 ]);
 
 function shouldSendMail(type: NotificationType): boolean {
@@ -47,8 +48,7 @@ export async function createNotification({
 		if (data) {
 			for (const [k, v] of Object.entries(data)) emailData[k] = String(v);
 		}
-		// Fire-and-forget: email failures must not block the notification flow
-		sendEmail([userId], type, link, emailData, actorName, translationKey).catch((err) => {
+		await sendEmail([userId], type, link, emailData, actorName, translationKey).catch((err) => {
 			console.error(`[createNotification] Email send failed for user ${userId}:`, err);
 		});
 	}
@@ -75,8 +75,7 @@ export async function createNotificationForUsers(
 		if (data) {
 			for (const [k, v] of Object.entries(data)) emailData[k] = String(v);
 		}
-		// Fire-and-forget: email failures must not block the notification flow
-		sendEmail(userIds, type, link, emailData, actorName, translationKey).catch((err) => {
+		await sendEmail(userIds, type, link, emailData, actorName, translationKey).catch((err) => {
 			console.error(`[createNotificationForUsers] Email send failed:`, err);
 		});
 	}

@@ -13,6 +13,8 @@ const NOTIFICATION_TYPE_KEY: Record<string, string> = {
 	ROLE_REQUEST_APPROVED: 'role_request_approved',
 	ROLE_REQUEST_REJECTED: 'role_request_rejected',
 	USER_INTENT_CLAIMED: 'user_intent_claimed',
+	TABLE_ASSIGNED: 'table_assigned',
+	PAYMENT_REMINDER: 'payment_reminder',
 	GENERAL: 'general',
 };
 

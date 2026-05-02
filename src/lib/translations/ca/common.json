@@ -388,7 +388,18 @@
     "no-competitions-found": "No s'han trobat competicions",
     "open": "Obertes",
     "past": "Passades",
-    "soon": "Pròximament"
+    "soon": "Pròximament",
+    "remind_payment": "Recordar pagament",
+    "remind_all_pending": "Recordar a tots els pendents ({{count}})",
+    "remind_success": "Recordatori de pagament enviat a {{count}} participant(s).",
+    "remind_bulk_success": "Recordatori enviat a {{reminded}} participant(s). {{skipped}} omesos (recordats recentment).",
+    "remind_error": "Error en enviar el recordatori de pagament.",
+    "remind_cooldown": "Recordat recentment",
+    "remind_note_placeholder": "Nota opcional per als participants (màx. 200 caràcters)...",
+    "remind_confirm_title": "Enviar recordatori de pagament",
+    "remind_confirm_message": "Això enviarà una notificació i un correu electrònic per recordar als participants sobre el pagament pendent.",
+    "remind_bulk_confirm_message": "Això enviarà una notificació i un correu electrònic a tots els participants pendents en aquesta categoria que no hagin estat recordats en les últimes 48 hores.",
+    "last_reminded": "Recordat {{time}}"
   },
   "notifications": {
     "title": "Notificacions",
@@ -409,7 +420,11 @@
       "role_request_approved": "Sol·licitud de rol aprovada",
       "role_request_rejected": "Sol·licitud de rol rebutjada",
       "table_assigned": "Taula assignada",
-      "general": "Notificació"
+      "general": "Notificació",
+      "payment_reminder": "Recordatori de pagament",
+      "payment_reminder_with_note": "Recordatori de pagament",
+      "payment_reminder_creator": "Recordatori de pagament",
+      "payment_reminder_creator_with_note": "Recordatori de pagament"
     },
     "messages": {
       "inscription_created": "Has estat registrat a {{categoryName}} a {{competitionName}} per {{registeredBy}}.",
@@ -426,7 +441,11 @@
       "table_assigned": "{{participantName}}, se t'ha assignat la Taula {{tableNumber}} per a la categoria {{categoryName}} a la competició {{competitionName}}.",
       "table_assigned_team": "{{participantName}}, se t'ha assignat la Taula {{tableNumber}} per a la categoria {{categoryName}} a la competició {{competitionName}}. Els teus companys: {{teammateNames}}.",
       "table_assigned_creator": "A {{participantNames}} se'ls ha assignat la Taula {{tableNumber}} per a la categoria {{categoryName}} a la competició {{competitionName}}.",
-      "general": "Tens una nova notificació."
+      "general": "Tens una nova notificació.",
+      "payment_reminder": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} està pendent de pagament. Si us plau, completa el pagament per assegurar la teva plaça.",
+      "payment_reminder_with_note": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} està pendent de pagament. Si us plau, completa el pagament per assegurar la teva plaça. Nota de l'organitzador: {{organizerNote}}",
+      "payment_reminder_creator": "La inscripció de {{participantNames}} a la categoria {{categoryName}} de la competició {{competitionName}} està pendent de pagament.",
+      "payment_reminder_creator_with_note": "La inscripció de {{participantNames}} a la categoria {{categoryName}} de la competició {{competitionName}} està pendent de pagament. Nota de l'organitzador: {{organizerNote}}"
     }
   },
   "during_competition": {

@@ -308,7 +308,14 @@ export async function getInscriptionsForCompetition(competitionId: number) {
                         { status: 'asc' },
                         { createdAt: 'asc' }
                     ],
-                    include: {
+                    select: {
+                        id: true,
+                        createdAt: true,
+                        status: true,
+                        confirmedAt: true,
+                        lastRemindedAt: true,
+                        tableNumber: true,
+                        creatorId: true,
                         users: {
                             select: {
                                 id: true,
@@ -434,22 +441,10 @@ export async function confirmInscription(recordId: string) {
                 }
             }
 
-            // Assign next sequential table number for this category
-            const maxTable = await tx.record.aggregate({
-                where: {
-                    categoryId: record.categoryId,
-                    status: InscriptionStatus.CONFIRMED,
-                    tableNumber: { not: null }
-                },
-                _max: { tableNumber: true }
-            });
-            const nextTableNumber = (maxTable._max.tableNumber ?? 0) + 1;
-
             const updatedRecord = await tx.record.update({
                 where: { id: recordId },
                 data: {
                     status: InscriptionStatus.CONFIRMED,
-                    tableNumber: nextTableNumber,
                     confirmedAt: new Date()
                 },
                 include: {

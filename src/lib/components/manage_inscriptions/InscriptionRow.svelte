@@ -5,21 +5,41 @@
     import AccountEditOutlineIcon from '@iconify-svelte/mdi/account-edit-outline';
     import CheckIcon from '@iconify-svelte/mdi/check';
     import CloseIcon from '@iconify-svelte/mdi/close';
+    import BellRingOutlineIcon from '@iconify-svelte/mdi/bell-ring-outline';
     import ChevronRightIcon from '@iconify-svelte/mdi/chevron-right';
     import ConfirmActionButton from '$lib/components/common/buttons/ConfirmActionButton.svelte';
+    import ConfirmPopover from '$lib/components/common/ConfirmPopover.svelte';
+    import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/inscription';
 
-    let { record, showConfirm = false, showRefuse = false, processing = false, selected = false, onConfirm, onRefuse, onSelect }: {
+    let { record, showConfirm = false, showRefuse = false, showRemind = false, processing = false, selected = false, onConfirm, onRefuse, onRemind, onSelect }: {
         record: any;
         showConfirm?: boolean;
         showRefuse?: boolean;
+        showRemind?: boolean;
         processing?: boolean;
         selected?: boolean;
         onConfirm?: (id: string) => void;
         onRefuse?: (id: string) => void;
+        onRemind?: (id: string, note?: string) => void;
         onSelect?: (id: string) => void;
     } = $props();
 
-    let hasActions = $derived(showConfirm || showRefuse);
+    let hasActions = $derived(showConfirm || showRefuse || showRemind);
+    let showReminderPopover = $state(false);
+
+    let isOnCooldown = $derived(() => {
+        if (!record.lastRemindedAt) return false;
+        return Date.now() - new Date(record.lastRemindedAt).getTime() < PAYMENT_REMINDER_COOLDOWN_MS;
+    });
+
+    function formatRelativeTime(date: string | Date): string {
+        const ms = Date.now() - new Date(date).getTime();
+        const hours = Math.floor(ms / (1000 * 60 * 60));
+        if (hours < 1) return '<1h';
+        if (hours < 24) return `${hours}h`;
+        const days = Math.floor(hours / 24);
+        return `${days}d`;
+    }
 
     function formatDateTime(date: string | Date): { time: string; date: string } {
         const d = new Date(date);
@@ -84,9 +104,16 @@
 
         <!-- Date (always visible, sits behind buttons when selected) -->
         {#if inscriptionDate}
-            <span class="text-[0.7rem] leading-tight text-surface-400 dark:text-surface-500 text-right whitespace-nowrap">
-                {inscriptionDate.date} · {inscriptionDate.time}
-            </span>
+            <div class="text-right whitespace-nowrap">
+                <span class="text-[0.7rem] leading-tight text-surface-400 dark:text-surface-500">
+                    {inscriptionDate.date} · {inscriptionDate.time}
+                </span>
+                {#if showRemind && record.lastRemindedAt}
+                    <div class="text-[0.6rem] leading-tight {isOnCooldown() ? 'text-warning-500' : 'text-surface-400 dark:text-surface-500'}">
+                        {$t('manage_inscriptions.last_reminded', { time: formatRelativeTime(record.lastRemindedAt) })}
+                    </div>
+                {/if}
+            </div>
         {/if}
 
         <!-- Chevron (always rendered when hasActions to keep layout stable) -->
@@ -97,6 +124,34 @@
         <!-- Action buttons overlay when selected -->
         {#if selected}
             <div class="absolute inset-0 flex items-center justify-end gap-3 z-10 pointer-events-none">
+                {#if showRemind}
+                    <div class="pointer-events-auto relative" onclick={(e) => e.stopPropagation()}>
+                        <button
+                            type="button"
+                            class="btn-icon w-4 h-4 preset-filled-warning-500 rounded-full"
+                            disabled={processing || isOnCooldown()}
+                            onclick={() => showReminderPopover = !showReminderPopover}
+                            data-testid="remind-inscription"
+                        >
+                            <BellRingOutlineIcon width="1rem" height="1rem" />
+                        </button>
+                        {#if showReminderPopover}
+                            <ConfirmPopover
+                                title={$t('manage_inscriptions.remind_confirm_title')}
+                                message={$t('manage_inscriptions.remind_confirm_message')}
+                                colorClass="preset-filled-warning-500"
+                                onConfirm={(note) => {
+                                    showReminderPopover = false;
+                                    onRemind?.(record.id, note);
+                                    onSelect?.(record.id);
+                                }}
+                                onCancel={() => showReminderPopover = false}
+                                isProcessing={processing}
+                                inputConfig={{ placeholder: $t('manage_inscriptions.remind_note_placeholder'), maxLength: 200 }}
+                            />
+                        {/if}
+                    </div>
+                {/if}
                 {#if showConfirm}
                     <div class="pointer-events-auto" onclick={(e) => e.stopPropagation()}>
                     <ConfirmActionButton

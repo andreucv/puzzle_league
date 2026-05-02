@@ -155,6 +155,7 @@ enum NotificationType {
   ROLE_REQUEST_REJECTED
   USER_INTENT_CLAIMED
   TABLE_ASSIGNED
+  PAYMENT_REMINDER
   GENERAL
 }
 
@@ -239,6 +240,7 @@ model Record {
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   confirmedAt      DateTime?
+  lastRemindedAt   DateTime?
   finishTime       DateTime?
   tableNumber      Int?
   nPiecesCompleted Int?

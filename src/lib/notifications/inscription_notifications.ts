@@ -1,4 +1,4 @@
-import { createNotification } from './notifications';
+import { createNotification, createNotificationForUsers } from './notifications';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
 import { getCategoryTypeName } from '$lib/utils/category_utils';
@@ -91,6 +91,119 @@ export async function notifyInscriptionConfirmed(
 	}
 
 	await Promise.all(promises);
+}
+
+// ---------------------------------------------------------------------------
+// Payment reminder notification
+// ---------------------------------------------------------------------------
+
+interface PaymentReminderRecord {
+	creatorId: string;
+	users: { id: string; name: string }[];
+	userIntents: { name: string }[];
+	category: {
+		competitionId: number;
+		description: string;
+		subname: string | null;
+		type: CategoryType;
+		competition: { name: string };
+	};
+}
+
+/**
+ * Send PAYMENT_REMINDER notifications to all platform users on the given records.
+ * Creators who are NOT participants receive a per-record notification that
+ * includes participant names so they can distinguish between records.
+ * Optionally includes an organizer note appended to the message.
+ */
+export async function notifyPaymentReminder(
+	records: PaymentReminderRecord[],
+	actorName?: string,
+	note?: string,
+): Promise<number> {
+	if (records.length === 0) return 0;
+
+	// All records share the same category context
+	const firstRecord = records[0];
+	const typeLabel = getCategoryTypeName(firstRecord.category.type);
+	const categoryName = firstRecord.category.subname
+		? `${typeLabel} - ${firstRecord.category.subname}`
+		: typeLabel;
+	const competitionName = firstRecord.category.competition.name;
+	const link = `/competitions/competition_details/${firstRecord.category.competitionId}`;
+
+	const hasNote = !!note?.trim();
+	const baseData: Record<string, string> = { categoryName, competitionName };
+	if (hasNote) baseData.organizerNote = note!.trim();
+
+	const notifiedUserIds = new Set<string>();
+	const promises: Promise<unknown>[] = [];
+
+	// Collect participant user IDs (users on records) and creator IDs that aren't participants
+	const participantIds = new Set<string>();
+	const creatorRecords: { creatorId: string; participantNames: string }[] = [];
+
+	for (const record of records) {
+		const realUserIds = record.users.map((u) => u.id);
+
+		for (const uid of realUserIds) {
+			participantIds.add(uid);
+			notifiedUserIds.add(uid);
+		}
+
+		const creatorIsParticipant = realUserIds.includes(record.creatorId);
+		if (!creatorIsParticipant) {
+			const allParticipantNames = [
+				...record.users.map((u) => u.name),
+				...record.userIntents.map((ui) => ui.name),
+			].join(', ');
+			creatorRecords.push({ creatorId: record.creatorId, participantNames: allParticipantNames });
+			notifiedUserIds.add(record.creatorId);
+		}
+	}
+
+	// Notify all participants with the standard message (bulk)
+	if (participantIds.size > 0) {
+		promises.push(
+			createNotificationForUsers(
+				[...participantIds],
+				NotificationType.PAYMENT_REMINDER,
+				'notifications.titles.payment_reminder',
+				hasNote
+					? 'notifications.messages.payment_reminder_with_note'
+					: 'notifications.messages.payment_reminder',
+				link,
+				baseData,
+				actorName,
+				hasNote ? 'payment_reminder_with_note' : undefined,
+			),
+		);
+	}
+
+	// Notify creators who aren't participants with per-record messages
+	for (const { creatorId, participantNames } of creatorRecords) {
+		const creatorData = { ...baseData, participantNames };
+		promises.push(
+			createNotification({
+				userId: creatorId,
+				type: NotificationType.PAYMENT_REMINDER,
+				title: hasNote
+					? 'notifications.titles.payment_reminder_with_note'
+					: 'notifications.titles.payment_reminder',
+				message: hasNote
+					? 'notifications.messages.payment_reminder_creator_with_note'
+					: 'notifications.messages.payment_reminder_creator',
+				link,
+				data: creatorData,
+				actorName,
+				translationKey: hasNote ? 'payment_reminder_creator_with_note' : 'payment_reminder_creator',
+			}),
+		);
+	}
+
+	await Promise.all(promises);
+
+	return notifiedUserIds.size;
 }
 
 // ---------------------------------------------------------------------------

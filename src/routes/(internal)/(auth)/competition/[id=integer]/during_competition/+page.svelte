@@ -70,6 +70,7 @@
     let activeCategories = $derived(visibleCategories.filter((c) => c.status === 'LIVE'));
     let stoppedCategories = $derived(visibleCategories.filter((c) => c.status === 'STOPPED'));
     let upcomingCategories = $derived(visibleCategories.filter((c) => c.status === 'NOT_STARTED'));
+    let completedCategories = $derived(visibleCategories.filter((c) => c.status === 'COMPLETE'));
     let finishedCategories = $derived(visibleCategories.filter((c) => c.status === 'COMPLETE' || c.status === 'CANCELED'));
     let hasLiveOrStopped = $derived(activeCategories.length > 0 || stoppedCategories.length > 0);
 
@@ -149,6 +150,31 @@
         <div class="p-2 rounded-lg bg-error-500/10 border border-error-500/30 text-sm text-error-600 flex items-center gap-2">
             <WifiOffIcon width="1rem" height="1rem" />
             {$t('during_competition.connection_error')}
+        </div>
+    {/if}
+
+    <!-- Category Workflow Overview -->
+    {#if visibleCategories.length > 0}
+        <div class="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap text-xs">
+            <span class="inline-flex items-center gap-1">
+                <span class="text-surface-500">{$t('during_competition.status_not_started')}</span>
+                <span class="inline-flex items-center justify-center h-5 min-w-5 px-1 rounded-full text-[0.65rem] font-bold {upcomingCategories.length > 0 ? 'bg-surface-300 dark:bg-surface-600 text-surface-800 dark:text-surface-100' : 'bg-surface-200 dark:bg-surface-700 text-surface-400 dark:text-surface-500'}">{upcomingCategories.length}</span>
+            </span>
+            <span class="text-surface-300">→</span>
+            <span class="inline-flex items-center gap-1">
+                <span class="text-surface-500">{$t('during_competition.status_live')}</span>
+                <span class="inline-flex items-center justify-center h-5 min-w-5 px-1 rounded-full text-[0.65rem] font-bold {activeCategories.length > 0 ? 'bg-warning-200 dark:bg-warning-800 text-warning-800 dark:text-warning-100' : 'bg-surface-200 dark:bg-surface-700 text-surface-400 dark:text-surface-500'}">{activeCategories.length}</span>
+            </span>
+            <span class="text-surface-300">→</span>
+            <span class="inline-flex items-center gap-1">
+                <span class="text-surface-500">{$t('during_competition.status_stopped')}</span>
+                <span class="inline-flex items-center justify-center h-5 min-w-5 px-1 rounded-full text-[0.65rem] font-bold {stoppedCategories.length > 0 ? 'bg-warning-200 dark:bg-warning-800 text-warning-800 dark:text-warning-100' : 'bg-surface-200 dark:bg-surface-700 text-surface-400 dark:text-surface-500'}">{stoppedCategories.length}</span>
+            </span>
+            <span class="text-surface-300">→</span>
+            <span class="inline-flex items-center gap-1">
+                <span class="text-surface-500">{$t('during_competition.status_complete')}</span>
+                <span class="inline-flex items-center justify-center h-5 min-w-5 px-1 rounded-full text-[0.65rem] font-bold {completedCategories.length > 0 ? 'bg-success-200 dark:bg-success-800 text-success-800 dark:text-success-100' : 'bg-surface-200 dark:bg-surface-700 text-surface-400 dark:text-surface-500'}">{completedCategories.length}</span>
+            </span>
         </div>
     {/if}
 

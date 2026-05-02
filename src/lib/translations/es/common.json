@@ -530,7 +530,12 @@
     "resume_success": "Categoría reanudada correctamente",
     "resume_error": "Error al reanudar la categoría",
     "restart_success": "Categoría reiniciada correctamente",
-    "restart_error": "Error al reiniciar la categoría"
+    "restart_error": "Error al reiniciar la categoría",
+    "workflow_overview": "Flujo de Categorías",
+    "status_not_started": "No Iniciada",
+    "status_live": "En Curso",
+    "status_stopped": "Detenida",
+    "status_complete": "Completada"
   },
   "results": {
     "title": "Resultados",

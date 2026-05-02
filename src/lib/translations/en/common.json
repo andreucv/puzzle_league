@@ -530,7 +530,12 @@
     "resume_success": "Category resumed successfully",
     "resume_error": "Failed to resume category",
     "restart_success": "Category restarted successfully",
-    "restart_error": "Failed to restart category"
+    "restart_error": "Failed to restart category",
+    "workflow_overview": "Category Workflow",
+    "status_not_started": "Not Started",
+    "status_live": "Live",
+    "status_stopped": "Stopped",
+    "status_complete": "Complete"
   },
   "results": {
     "title": "Results",

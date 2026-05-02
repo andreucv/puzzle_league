@@ -530,7 +530,12 @@
     "resume_success": "Categoria represa correctament",
     "resume_error": "Error en reprendre la categoria",
     "restart_success": "Categoria reiniciada correctament",
-    "restart_error": "Error en reiniciar la categoria"
+    "restart_error": "Error en reiniciar la categoria",
+    "workflow_overview": "Flux de Categories",
+    "status_not_started": "No Iniciada",
+    "status_live": "En Curs",
+    "status_stopped": "Aturada",
+    "status_complete": "Completada"
   },
   "results": {
     "title": "Resultats",

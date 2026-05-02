@@ -139,66 +139,78 @@ export async function notifyPaymentReminder(
 	const notifiedUserIds = new Set<string>();
 	const promises: Promise<unknown>[] = [];
 
-	// Collect participant user IDs (users on records) and creator IDs that aren't participants
-	const participantIds = new Set<string>();
-	const creatorRecords: { creatorId: string; participantNames: string }[] = [];
-
 	for (const record of records) {
 		const realUserIds = record.users.map((u) => u.id);
+		const creatorIsParticipant = realUserIds.includes(record.creatorId);
 
-		for (const uid of realUserIds) {
-			participantIds.add(uid);
-			notifiedUserIds.add(uid);
+		// Notify each participant with their teammates listed
+		for (const user of record.users) {
+			const teammates = [
+				...record.users.filter((u) => u.id !== user.id).map((u) => u.name),
+				...record.userIntents.map((ui) => ui.name),
+			];
+			const hasTeammates = teammates.length > 0;
+			const teammateNames = teammates.join(', ');
+
+			let messageKey: string;
+			let translationKey: string | undefined;
+			if (hasNote && hasTeammates) {
+				messageKey = 'notifications.messages.payment_reminder_team_with_note';
+				translationKey = 'payment_reminder_team_with_note';
+			} else if (hasTeammates) {
+				messageKey = 'notifications.messages.payment_reminder_team';
+				translationKey = 'payment_reminder_team';
+			} else if (hasNote) {
+				messageKey = 'notifications.messages.payment_reminder_with_note';
+				translationKey = 'payment_reminder_with_note';
+			} else {
+				messageKey = 'notifications.messages.payment_reminder';
+				translationKey = undefined;
+			}
+
+			const userData = { ...baseData, teammateNames };
+			promises.push(
+				createNotification({
+					userId: user.id,
+					type: NotificationType.PAYMENT_REMINDER,
+					title: hasNote
+						? 'notifications.titles.payment_reminder_with_note'
+						: 'notifications.titles.payment_reminder',
+					message: messageKey,
+					link,
+					data: userData,
+					actorName,
+					translationKey,
+				}),
+			);
+			notifiedUserIds.add(user.id);
 		}
 
-		const creatorIsParticipant = realUserIds.includes(record.creatorId);
+		// Notify creators who aren't participants with per-record messages including participant names
 		if (!creatorIsParticipant) {
 			const allParticipantNames = [
 				...record.users.map((u) => u.name),
 				...record.userIntents.map((ui) => ui.name),
 			].join(', ');
-			creatorRecords.push({ creatorId: record.creatorId, participantNames: allParticipantNames });
+			const creatorData = { ...baseData, participantNames: allParticipantNames };
+			promises.push(
+				createNotification({
+					userId: record.creatorId,
+					type: NotificationType.PAYMENT_REMINDER,
+					title: hasNote
+						? 'notifications.titles.payment_reminder_creator_with_note'
+						: 'notifications.titles.payment_reminder_creator',
+					message: hasNote
+						? 'notifications.messages.payment_reminder_creator_with_note'
+						: 'notifications.messages.payment_reminder_creator',
+					link,
+					data: creatorData,
+					actorName,
+					translationKey: hasNote ? 'payment_reminder_creator_with_note' : 'payment_reminder_creator',
+				}),
+			);
 			notifiedUserIds.add(record.creatorId);
 		}
-	}
-
-	// Notify all participants with the standard message (bulk)
-	if (participantIds.size > 0) {
-		promises.push(
-			createNotificationForUsers(
-				[...participantIds],
-				NotificationType.PAYMENT_REMINDER,
-				'notifications.titles.payment_reminder',
-				hasNote
-					? 'notifications.messages.payment_reminder_with_note'
-					: 'notifications.messages.payment_reminder',
-				link,
-				baseData,
-				actorName,
-				hasNote ? 'payment_reminder_with_note' : undefined,
-			),
-		);
-	}
-
-	// Notify creators who aren't participants with per-record messages
-	for (const { creatorId, participantNames } of creatorRecords) {
-		const creatorData = { ...baseData, participantNames };
-		promises.push(
-			createNotification({
-				userId: creatorId,
-				type: NotificationType.PAYMENT_REMINDER,
-				title: hasNote
-					? 'notifications.titles.payment_reminder_with_note'
-					: 'notifications.titles.payment_reminder',
-				message: hasNote
-					? 'notifications.messages.payment_reminder_creator_with_note'
-					: 'notifications.messages.payment_reminder_creator',
-				link,
-				data: creatorData,
-				actorName,
-				translationKey: hasNote ? 'payment_reminder_creator_with_note' : 'payment_reminder_creator',
-			}),
-		);
 	}
 
 	await Promise.all(promises);

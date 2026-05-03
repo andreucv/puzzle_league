@@ -62,7 +62,8 @@
                 totalRecords: liveCat.totalRecords,
                 finishedRecords: liveCat.finishedRecords,
                 realStartTime: liveCat.realStartTime ?? cat.realStartTime,
-                realEndTime: liveCat.realEndTime ?? cat.realEndTime
+                realEndTime: liveCat.realEndTime ?? cat.realEndTime,
+                extraMinutes: liveCat.extraMinutes
             };
         });
     });

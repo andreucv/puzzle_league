@@ -8,6 +8,7 @@
     import SearchInput from '$lib/components/SearchInput.svelte';
     import { useCategoryRecords } from './useCategoryRecords.svelte';
     import { executeCategoryAction, type CategoryAction, type CategoryActionResult } from '$lib/api/category-actions';
+    import type { OverflowAction } from './types';
     import { showSuccessToast, showErrorToast } from '$lib/utils/toast';
     import { t } from '$lib/translations';
     import { untrack } from 'svelte';
@@ -27,6 +28,7 @@
     import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
     import AccountGroupIcon from '@iconify-svelte/mdi/account-group';
     import PuzzlePieceIcon from '@iconify-svelte/mdi/puzzle';
+    import PlusCircleOutlineIcon from '@iconify-svelte/mdi/plus-circle-outline';
     import FormatListBulletedIcon from '@iconify-svelte/mdi/format-list-bulleted';
 
     import type { CategoryData } from '$lib/types/category';
@@ -59,6 +61,25 @@
             return () => clearInterval(interval);
         }
     });
+
+    // --- Countdown timer (LIVE only) ---
+    let theoreticalDurationMs = $derived(
+        category.startTime && category.endTime
+            ? new Date(category.endTime).getTime() - new Date(category.startTime).getTime()
+            : 0
+    );
+
+    let totalDurationMs = $derived(
+        theoreticalDurationMs + (category.extraMinutes * 60_000)
+    );
+
+    let elapsedMs = $derived(
+        isLive && category.realStartTime
+            ? currentTime.getTime() - new Date(category.realStartTime).getTime()
+            : 0
+    );
+
+    let remainingMs = $derived(Math.max(0, totalDurationMs - elapsedMs));
 
     // --- Records (LIVE and STOPPED) ---
     const records = untrack(() => hasRecords)
@@ -121,13 +142,51 @@
         }
     }
 
+    // --- Add time handler (organizer, LIVE only) ---
+    let addingTime = $state(false);
+    let showAddTimePopover = $state(false);
+
+    async function handleAddTime(minutes: number) {
+        addingTime = true;
+        showAddTimePopover = false;
+        try {
+            const res = await fetch(`/api/categories/${category.id}/add-time`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ minutes })
+            });
+            if (res.ok) {
+                showSuccessToast($t('during_competition.add_time_success', { minutes }));
+            } else {
+                const data = await res.json().catch(() => ({}));
+                showErrorToast($t('during_competition.add_time_error'), data.error);
+            }
+        } catch {
+            showErrorToast($t('during_competition.add_time_error'));
+        } finally {
+            addingTime = false;
+        }
+    }
+
     // --- Overflow menu actions ---
     let overflowActions = $derived.by(() => {
         if (!isOrganizer) return [];
-        const actions: { icon: any; colorClass: string; confirmTitle: string; confirmMessage: string; onConfirm: () => void; testId: string; label: string }[] = [];
+        const actions: OverflowAction[] = [];
+
+        // Manage judges link for all states except COMPLETE and CANCELED
+        if (!isComplete && !isCanceled) {
+            actions.push({
+                kind: 'link',
+                icon: AccountGroupIcon,
+                label: $t('during_competition.manage_judges'),
+                href: `/competition/${category.competitionId}/manage_judges`,
+                testId: `manage-judges-${category.id}`
+            });
+        }
 
         if (isUpcoming || isLive) {
             actions.push({
+                kind: 'confirm',
                 icon: CancelIcon,
                 colorClass: 'preset-filled-warning-500',
                 confirmTitle: $t('during_competition.cancel_confirm_title'),
@@ -140,6 +199,7 @@
 
         if (isStopped) {
             actions.push({
+                kind: 'confirm',
                 icon: PlayIcon,
                 colorClass: 'preset-filled-primary-500',
                 confirmTitle: $t('during_competition.resume_confirm_title'),
@@ -149,6 +209,7 @@
                 label: $t('during_competition.resume_category')
             });
             actions.push({
+                kind: 'confirm',
                 icon: CancelIcon,
                 colorClass: 'preset-filled-warning-500',
                 confirmTitle: $t('during_competition.cancel_confirm_title'),
@@ -158,6 +219,7 @@
                 label: $t('during_competition.cancel_category')
             });
             actions.push({
+                kind: 'confirm',
                 icon: RestartIcon,
                 colorClass: 'preset-filled-error-500',
                 confirmTitle: $t('during_competition.restart_confirm_title'),
@@ -170,6 +232,7 @@
 
         if (isComplete || isCanceled) {
             actions.push({
+                kind: 'confirm',
                 icon: RestartIcon,
                 colorClass: 'preset-filled-warning-500',
                 confirmTitle: $t('during_competition.restart_confirm_title'),
@@ -286,7 +349,7 @@
                     {/if}
 
                     <!-- Overflow menu (when there are actions) -->
-                    {#if overflowActions.length > 0 && !(isComplete || isCanceled)}
+                    {#if overflowActions.length > 0}
                         <OverflowMenu actions={overflowActions} testId={overflowMenuTestId} />
                     {/if}
 
@@ -371,7 +434,53 @@
             </div>
         {:else if isLive}
             <div class="flex justify-between flex-wrap items-center gap-4 text-sm">
-                {#if category.realStartTime}
+                {#if category.realStartTime && theoreticalDurationMs > 0}
+                    <div class="relative">
+                        {#if isOrganizer}
+                            <button
+                                type="button"
+                                class="flex items-center gap-1 px-2 py-0.5 rounded-full border transition-colors
+                                    {remainingMs < 60_000 && remainingMs > 0
+                                        ? 'text-error-500 border-error-500/40 bg-error-500/10 animate-pulse'
+                                        : remainingMs === 0
+                                            ? 'text-error-500 border-error-500/40 bg-error-500/10'
+                                            : remainingMs < 900_000
+                                                ? 'border-warning-500/40 bg-warning-500/10 text-warning-700 dark:text-warning-300 hover:bg-warning-500/20'
+                                                : 'border-success-500/40 bg-success-500/10 text-success-700 dark:text-success-300 hover:bg-success-500/20'}"
+                                onclick={() => showAddTimePopover = !showAddTimePopover}
+                            >
+                                <TimerSandIcon width="1rem" height="1rem" />
+                                {formatCountdown(remainingMs)}
+                                <PlusCircleOutlineIcon width="0.85rem" height="0.85rem" class="opacity-60" />
+                            </button>
+                        {:else}
+                            <span class="flex items-center gap-1 {remainingMs < 60_000 && remainingMs > 0 ? 'text-error-500 animate-pulse' : remainingMs === 0 ? 'text-error-500' : remainingMs < 900_000 ? 'text-warning-500' : 'text-success-500'}">
+                                <TimerSandIcon width="1rem" height="1rem" />
+                                {formatCountdown(remainingMs)}
+                            </span>
+                        {/if}
+                        {#if showAddTimePopover && isOrganizer}
+                            <!-- svelte-ignore a11y_click_events_have_key_events -->
+                            <!-- svelte-ignore a11y_no_static_element_interactions -->
+                            <div class="fixed inset-0 z-40" onclick={() => showAddTimePopover = false}></div>
+                            <div class="absolute left-0 top-full mt-1 z-50 bg-surface-50-950 border border-surface-300-700 rounded-lg shadow-lg p-2">
+                                <p class="text-xs text-surface-500 mb-1.5 whitespace-nowrap">{$t('during_competition.add_time_label')}</p>
+                                <div class="flex items-center gap-1">
+                                    {#each [5, 10, 15] as minutes}
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm preset-tonal-warning text-xs"
+                                            disabled={addingTime}
+                                            onclick={() => handleAddTime(minutes)}
+                                        >
+                                            +{minutes}m
+                                        </button>
+                                    {/each}
+                                </div>
+                            </div>
+                        {/if}
+                    </div>
+                {:else if category.realStartTime}
                     <span class="flex items-center gap-1">
                         <TimerSandIcon width="1rem" height="1rem" />
                         {calculateDuration(new Date(category.realStartTime), currentTime)}
@@ -487,8 +596,9 @@
         {#if isUpcoming && isOrganizer}
             <a
                 href="/competition/{category.competitionId}/manage_judges"
-                class="text-xs text-primary-500 hover:underline"
+                class="btn btn-sm preset-tonal-primary gap-1 w-fit"
             >
+                <AccountGroupIcon width="0.9rem" height="0.9rem" />
                 {$t('during_competition.manage_judges')}
             </a>
         {/if}

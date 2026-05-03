@@ -15,6 +15,7 @@ export interface CompetitionEventState {
 		finishedRecords: number;
 		realStartTime: string | null;
 		realEndTime: string | null;
+		extraMinutes: number;
 	}>;
 }
 
@@ -61,11 +62,20 @@ export interface RecordPiecesUpdatedEvent {
 	nPiecesCompleted: number;
 }
 
+export interface CategoryTimeExtendedEvent {
+	type: 'category.time_extended';
+	categoryId: number;
+	competitionId: number;
+	extraMinutes: number;
+	addedMinutes: number;
+}
+
 export type CompetitionEvent =
 	| CategoryStatusChangedEvent
 	| RecordFinishedEvent
 	| RecordUnfinishedEvent
-	| RecordPiecesUpdatedEvent;
+	| RecordPiecesUpdatedEvent
+	| CategoryTimeExtendedEvent;
 
 // Monotonic counter for generating unique event versions on the client side.
 // Each applied event gets a unique version so downstream effects can detect changes.
@@ -131,6 +141,17 @@ export function applyCompetitionEvent(
 			// Pieces updates don't change the category-level state shape,
 			// but signal the results page to re-fetch
 			return state;
+		}
+		case 'category.time_extended': {
+			return {
+				...state,
+				version: nextEventVersion(),
+				categories: state.categories.map((cat) =>
+					cat.id === event.categoryId
+						? { ...cat, extraMinutes: event.extraMinutes }
+						: cat
+				)
+			};
 		}
 	}
 }

@@ -7,8 +7,10 @@ export interface CategoryData {
 	subname?: string | null;
 	status: string;
 	startTime?: string;
+	endTime?: string;
 	realStartTime: string | null;
 	realEndTime: string | null;
+	extraMinutes: number;
 	totalRecords: number;
 	finishedRecords: number;
 	competitionId: number;

@@ -223,6 +223,7 @@ model Category {
   endTime       DateTime
   realStartTime DateTime?
   realEndTime   DateTime?
+  extraMinutes  Int            @default(0)
   status        CategoryStatus @default(NOT_STARTED)
   maxParties    Int?
   price         Int            @default(0)

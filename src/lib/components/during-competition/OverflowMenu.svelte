@@ -1,16 +1,7 @@
 <script lang="ts">
     import ConfirmActionButton from '$lib/components/common/buttons/ConfirmActionButton.svelte';
     import DotsVerticalIcon from '@iconify-svelte/mdi/dots-vertical';
-
-    interface OverflowAction {
-        icon: any;
-        colorClass: string;
-        confirmTitle: string;
-        confirmMessage: string;
-        onConfirm: () => void;
-        testId: string;
-        label: string;
-    }
+    import type { OverflowAction } from './types';
 
     let {
         actions,

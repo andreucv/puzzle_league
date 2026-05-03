@@ -49,7 +49,11 @@
         };
     }
 
-    let inscriptionDate = $derived(record.createdAt ? formatDateTime(record.createdAt) : null);
+    // Show confirmedAt for confirmed records, createdAt for pending/waitlisted
+    let displayDate = $derived(
+        record.status === 'CONFIRMED' ? record.confirmedAt : record.createdAt
+    );
+    let inscriptionDate = $derived(displayDate ? formatDateTime(displayDate) : null);
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->

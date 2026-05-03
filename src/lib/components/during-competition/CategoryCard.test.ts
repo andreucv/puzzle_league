@@ -275,10 +275,9 @@ describe('CategoryCard', () => {
 			expect(screen.getByText('during_competition.view_results')).toBeInTheDocument();
 		});
 
-		it('does not show overflow menu', () => {
+		it('shows overflow menu with restart action', () => {
 			renderCard(completeCategory);
-			expect(screen.queryByTestId('overflow-menu-1')).not.toBeInTheDocument();
-			expect(screen.queryByTestId('overflow-menu-stopped-1')).not.toBeInTheDocument();
+			expect(screen.getByTestId('overflow-menu-1')).toBeInTheDocument();
 		});
 
 		it('does not fetch records', () => {

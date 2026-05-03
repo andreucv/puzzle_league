@@ -6,6 +6,7 @@
     import InboxOutlineIcon from '@iconify-svelte/mdi/inbox-outline';
     import TableFurnitureIcon from '@iconify-svelte/mdi/table-furniture';
     import LoadingIcon from '@iconify-svelte/mdi/loading';
+    import HistoryIcon from '@iconify-svelte/mdi/history';
     import { invalidateAll } from '$app/navigation';
     import { t } from '$lib/translations';
     import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
@@ -15,6 +16,7 @@
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
     import SearchInput from '$lib/components/SearchInput.svelte';
     import InscriptionList from '$lib/components/manage_inscriptions/InscriptionList.svelte';
+    import CollapsibleSection from '$lib/components/manage_inscriptions/CollapsibleSection.svelte';
     import ConfirmPopover from '$lib/components/common/ConfirmPopover.svelte';
     import BellRingOutlineIcon from '@iconify-svelte/mdi/bell-ring-outline';
     import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/inscription';
@@ -23,6 +25,13 @@
 
     let competition = $derived(data.competition);
     let categoriesWithInscriptions = $derived(data.categoriesWithInscriptions || []);
+    // Only NOT_STARTED categories in the main view; started/completed ones go in a collapsed section
+    let activeCategories = $derived(
+        categoriesWithInscriptions.filter((c: any) => c.status === 'NOT_STARTED')
+    );
+    let startedCategories = $derived(
+        categoriesWithInscriptions.filter((c: any) => c.status !== 'NOT_STARTED')
+    );
     let registrationOpen = $state(data.competition.registrationOpen);
     let searchFilter = $state('');
 
@@ -201,109 +210,134 @@
     {/if}
 
     <!-- Categories with inscriptions -->
-    <div class="space-y-6">
-        {#each categoriesWithInscriptions as category (category.id)}
-            <Card>
-                <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
-                    <CategoryCardTitle type={category.type} subname={category.subname ?? ''}/>
-                    {#if category.maxParties}
-                        {@const remaining = category.maxParties - category.records.filter((r: any) => r.status === 'CONFIRMED').length}
-                        <span class="text-sm {remaining > 0 ? 'text-surface-600 dark:text-surface-400' : 'text-error-600 dark:text-error-400'}">
-                            <SeatOutlineIcon width="1rem" height="1rem" class="inline-block align-text-bottom mr-1" />
-                            {remaining} {$t('manage_inscriptions.seats_remaining')}
-                        </span>
-                    {/if}
+    {#snippet categoryCard(category: any, showActions: boolean)}
+        <Card>
+            <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
+                <CategoryCardTitle type={category.type} subname={category.subname ?? ''}/>
+                {#if category.maxParties}
+                    {@const confirmedCount = category.records.filter((r: any) => r.status === 'CONFIRMED').length}
+                    {@const remaining = category.maxParties - confirmedCount}
+                    <span class="text-sm {remaining > 0 ? 'text-surface-600 dark:text-surface-400' : 'text-error-600 dark:text-error-400'}">
+                        <SeatOutlineIcon width="1rem" height="1rem" class="inline-block align-text-bottom mr-1" />
+                        {$t('manage_inscriptions.seats_available', { accepted: confirmedCount, max: category.maxParties })}
+                    </span>
+                {/if}
+            </div>
+
+            <InscriptionList
+                records={category.records}
+                {processingRecordId}
+                {searchFilter}
+                onConfirm={handleConfirm}
+                onRefuse={handleRefuse}
+                onRemind={handleRemind}
+            />
+
+            <!-- Action buttons only for active (NOT_STARTED) categories -->
+            {#if showActions}
+            <!-- Bulk remind pending button -->
+            {@const pendingRecords = category.records.filter((r: any) => r.status === 'PENDING_CONFIRMATION')}
+            {@const eligiblePendingCount = pendingRecords.filter((r: any) => {
+                if (!r.lastRemindedAt) return true;
+                return Date.now() - new Date(r.lastRemindedAt).getTime() >= PAYMENT_REMINDER_COOLDOWN_MS;
+            }).length}
+            {#if pendingRecords.length > 0}
+                <div class="border-t border-surface-200 dark:border-surface-700">
+                    <div class="relative w-full">
+                        <button
+                            type="button"
+                            class="btn preset-filled-warning-500 gap-2 w-full"
+                            disabled={remindingCategoryId === category.id || eligiblePendingCount === 0}
+                            onclick={() => remindingCategoryId = remindingCategoryId === category.id ? null : category.id}
+                            data-testid="bulk-remind-pending"
+                        >
+                            {#if remindingCategoryId === category.id}
+                                <LoadingIcon width="1.1rem" height="1.1rem" class="animate-spin" />
+                            {:else}
+                                <BellRingOutlineIcon width="1.1rem" height="1.1rem" />
+                            {/if}
+                            {$t('manage_inscriptions.remind_all_pending', { count: eligiblePendingCount })}
+                        </button>
+                        {#if remindingCategoryId === category.id && eligiblePendingCount > 0}
+                            <ConfirmPopover
+                                title={$t('manage_inscriptions.remind_confirm_title')}
+                                message={$t('manage_inscriptions.remind_bulk_confirm_message')}
+                                colorClass="preset-filled-warning-500"
+                                onConfirm={async (note) => {
+                                    const catId = category.id;
+                                    remindingCategoryId = null;
+                                    await handleBulkRemind(catId, note);
+                                }}
+                                onCancel={() => remindingCategoryId = null}
+                                isProcessing={false}
+                                inputConfig={{ placeholder: $t('manage_inscriptions.remind_note_placeholder'), maxLength: 200 }}
+                            />
+                        {/if}
+                    </div>
                 </div>
+            {/if}
 
-                <InscriptionList
-                    records={category.records}
-                    {processingRecordId}
-                    {searchFilter}
-                    onConfirm={handleConfirm}
-                    onRefuse={handleRefuse}
-                    onRemind={handleRemind}
-                />
-
-                <!-- Bulk remind pending button -->
-                {@const pendingRecords = category.records.filter((r: any) => r.status === 'PENDING_CONFIRMATION')}
-                {@const eligiblePendingCount = pendingRecords.filter((r: any) => {
-                    if (!r.lastRemindedAt) return true;
-                    return Date.now() - new Date(r.lastRemindedAt).getTime() >= PAYMENT_REMINDER_COOLDOWN_MS;
-                }).length}
-                {#if pendingRecords.length > 0}
-                    <div class="border-t border-surface-200 dark:border-surface-700">
-                        <div class="relative w-full">
-                            <button
-                                type="button"
-                                class="btn preset-filled-warning-500 gap-2 w-full"
-                                disabled={remindingCategoryId === category.id || eligiblePendingCount === 0}
-                                onclick={() => remindingCategoryId = remindingCategoryId === category.id ? null : category.id}
-                                data-testid="bulk-remind-pending"
-                            >
-                                {#if remindingCategoryId === category.id}
-                                    <LoadingIcon width="1.1rem" height="1.1rem" class="animate-spin" />
-                                {:else}
-                                    <BellRingOutlineIcon width="1.1rem" height="1.1rem" />
-                                {/if}
-                                {$t('manage_inscriptions.remind_all_pending', { count: eligiblePendingCount })}
-                            </button>
-                            {#if remindingCategoryId === category.id && eligiblePendingCount > 0}
-                                <ConfirmPopover
-                                    title={$t('manage_inscriptions.remind_confirm_title')}
-                                    message={$t('manage_inscriptions.remind_bulk_confirm_message')}
-                                    colorClass="preset-filled-warning-500"
-                                    onConfirm={async (note) => {
-                                        const catId = category.id;
-                                        remindingCategoryId = null;
-                                        await handleBulkRemind(catId, note);
-                                    }}
-                                    onCancel={() => remindingCategoryId = null}
-                                    isProcessing={false}
-                                    inputConfig={{ placeholder: $t('manage_inscriptions.remind_note_placeholder'), maxLength: 200 }}
-                                />
+            <!-- Assign tables button: placed at the card level for quick 1-click access -->
+            {@const confirmedCount = category.records.filter((r: any) => r.status === 'CONFIRMED').length}
+            {#if confirmedCount > 0}
+                <div class="border-t border-surface-200 dark:border-surface-700">
+                    <div class="relative w-full">
+                        <button
+                            type="button"
+                            class="btn preset-filled-primary-500 gap-2 w-full"
+                            disabled={publishingCategoryId === category.id}
+                            onclick={() => confirmingCategoryId = confirmingCategoryId === category.id ? null : category.id}
+                            data-testid="publish-tables"
+                        >
+                            {#if publishingCategoryId === category.id}
+                                <LoadingIcon width="1.1rem" height="1.1rem" class="animate-spin" />
+                            {:else}
+                                <TableFurnitureIcon width="1.1rem" height="1.1rem" />
                             {/if}
-                        </div>
+                            {$t('manage_inscriptions.publish_tables')}
+                        </button>
+                        {#if confirmingCategoryId === category.id}
+                            <ConfirmPopover
+                                title={$t('manage_inscriptions.publish_tables_confirm_title')}
+                                message={$t('manage_inscriptions.publish_tables_confirm_message')}
+                                colorClass="preset-filled-primary-500"
+                                onConfirm={async () => {
+                                    confirmingCategoryId = null;
+                                    await handlePublishTables(category.id);
+                                }}
+                                onCancel={() => confirmingCategoryId = null}
+                                isProcessing={publishingCategoryId === category.id}
+                            />
+                        {/if}
                     </div>
-                {/if}
+                </div>
+            {/if}
+            {/if}
+        </Card>
+    {/snippet}
 
-                <!-- Assign tables button: placed at the card level for quick 1-click access -->
-                {@const confirmedCount = category.records.filter((r: any) => r.status === 'CONFIRMED').length}
-                {#if confirmedCount > 0}
-                    <div class="border-t border-surface-200 dark:border-surface-700">
-                        <div class="relative w-full">
-                            <button
-                                type="button"
-                                class="btn preset-filled-primary-500 gap-2 w-full"
-                                disabled={publishingCategoryId === category.id}
-                                onclick={() => confirmingCategoryId = confirmingCategoryId === category.id ? null : category.id}
-                                data-testid="publish-tables"
-                            >
-                                {#if publishingCategoryId === category.id}
-                                    <LoadingIcon width="1.1rem" height="1.1rem" class="animate-spin" />
-                                {:else}
-                                    <TableFurnitureIcon width="1.1rem" height="1.1rem" />
-                                {/if}
-                                {$t('manage_inscriptions.publish_tables')}
-                            </button>
-                            {#if confirmingCategoryId === category.id}
-                                <ConfirmPopover
-                                    title={$t('manage_inscriptions.publish_tables_confirm_title')}
-                                    message={$t('manage_inscriptions.publish_tables_confirm_message')}
-                                    colorClass="preset-filled-primary-500"
-                                    onConfirm={async () => {
-                                        confirmingCategoryId = null;
-                                        await handlePublishTables(category.id);
-                                    }}
-                                    onCancel={() => confirmingCategoryId = null}
-                                    isProcessing={publishingCategoryId === category.id}
-                                />
-                            {/if}
-                        </div>
-                    </div>
-                {/if}
-            </Card>
+    <div class="space-y-6">
+        {#each activeCategories as category (category.id)}
+            {@render categoryCard(category, true)}
         {/each}
     </div>
+
+    <!-- Started / completed categories (collapsed by default) -->
+    {#if startedCategories.length > 0}
+        <CollapsibleSection
+            icon={HistoryIcon}
+            label={$t('manage_inscriptions.started_categories')}
+            count={startedCategories.length}
+            badgeClass="preset-tonal-secondary"
+            testId="toggle-section-started-categories"
+        >
+            <div class="space-y-6">
+                {#each startedCategories as category (category.id)}
+                    {@render categoryCard(category, false)}
+                {/each}
+            </div>
+        </CollapsibleSection>
+    {/if}
 
     {#if categoriesWithInscriptions.length === 0}
         <div class="card p-8 text-center">

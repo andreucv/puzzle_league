@@ -1,5 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { prisma } from '$lib/database/database';
+import { prisma } from '$lib/database/create_prisma_client';
 import { CategoryStatus } from '$lib/.prisma/generated/prisma/enums';
 import { publishCompetitionEvent } from '$lib/events/server/ably';
 

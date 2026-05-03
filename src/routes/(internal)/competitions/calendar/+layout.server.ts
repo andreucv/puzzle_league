@@ -1,4 +1,4 @@
-import { getMonthCompetitions } from '$lib/database/database';
+import { getMonthCompetitions } from '$lib/database/db_competition';
 
 export const load = async () => {
     const date = new Date();

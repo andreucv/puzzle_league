@@ -1,6 +1,6 @@
 import type { PageServerLoad } from "./$types";
-import { getUpcomingRegisteredCompetitions, getParticipatedCompetitions, getStartedRegisteredCompetitions } from "$lib/database/database";
-import { getNearCompetitions, getLastUserResults, getUserInscriptionStatuses } from "$lib/database/db_competition_utils";
+import { getUpcomingRegisteredCompetitions, getParticipatedCompetitions, getStartedRegisteredCompetitions } from "$lib/database/db_competition";
+import { getNearCompetitions, getLastUserResults, getUserInscriptionStatuses } from "$lib/database/db_competition";
 
 export const load: PageServerLoad = async ({ parent }) => {
 	const { user } = await parent();

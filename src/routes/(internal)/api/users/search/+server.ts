@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getUsers } from '$lib/database/database';
+import { getUsers } from '$lib/database/db_user';
 
 export const GET: RequestHandler = async (event) => {
     const query = event.url.searchParams.get('q');

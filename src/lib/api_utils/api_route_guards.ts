@@ -5,7 +5,7 @@ import {
   requireCategoryJudge,
   requireRecordJudge,
 } from '$lib/api_utils/api_auth';
-import { prisma } from '$lib/database/database';
+import { prisma } from '$lib/database/create_prisma_client';
 
 // ---------------------------------------------------------------------------
 // Guard levels

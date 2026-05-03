@@ -1,7 +1,7 @@
 import type { PageServerLoad, Actions } from "./$types";
-import { getCompetitionWithCategories, getCompetitionCategories} from "$lib/database/database";
+import { getCompetitionWithCategories, getCompetitionCategories} from "$lib/database/db_competition";
 import { getCategoryEntriesFromCompetition, removeUserFromCategory } from "$lib/database/db_inscription_utils";
-import { getDuringCompetitionAccess } from "$lib/database/db_competition_utils";
+import { getDuringCompetitionAccess } from "$lib/database/db_competition";
 
 
 export const load: PageServerLoad = async ( event ) => {

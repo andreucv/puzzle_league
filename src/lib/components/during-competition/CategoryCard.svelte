@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { calculateDuration } from '$lib/utils/category_utils';
+    import { calculateDuration, formatCountdown } from '$lib/utils/category_utils';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
     import Card from '$lib/components/common/card/Card.svelte';
     import RecordList from './RecordList.svelte';

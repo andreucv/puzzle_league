@@ -1,5 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { getDuringCompetitionAccess } from '$lib/database/db_competition_utils';
+import { getDuringCompetitionAccess } from '$lib/database/db_competition';
 import { createAblyJwt } from '$lib/events/server/ably-jwt';
 
 export const GET = async (event: RequestEvent) => {

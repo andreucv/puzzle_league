@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
-import { getOrganisedCompetitions } from '$lib/database/database';
+import { getOrganisedCompetitions } from '$lib/database/db_competition';
 import { auth } from '$lib/auth';
 import { fail } from '@sveltejs/kit';
 

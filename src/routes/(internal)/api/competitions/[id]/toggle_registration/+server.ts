@@ -1,5 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { getCompetition, updateCompetition } from '$lib/database/database';
+import { getCompetition, updateCompetition } from '$lib/database/db_competition';
 
 export const POST = async (event: RequestEvent) => {
 	try {

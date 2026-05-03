@@ -1,5 +1,5 @@
 import type { PageServerLoad } from "./$types";
-import { getCompetition } from "$lib/database/database";
+import { getCompetition } from "$lib/database/db_competition";
 import { getInscriptionsForCompetition } from "$lib/database/db_inscription_utils";
 import { prisma } from "$lib/database/create_prisma_client";
 import { redirect } from "@sveltejs/kit";

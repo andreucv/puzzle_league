@@ -1,6 +1,7 @@
 import { auth } from "$lib/auth";
 import type { PageServerLoad } from "./$types";
-import { prisma, createRequest, getRequestsByUserId } from '$lib/database/database';
+import { createRequest, getRequestsByUserId } from '$lib/database/db_request';
+import { prisma } from '$lib/database/create_prisma_client';
 import { Role } from '$lib/.prisma/generated/prisma/enums';
 import { error, fail } from '@sveltejs/kit';
 import type { Actions } from './$types';

@@ -1,6 +1,6 @@
 import type { LayoutServerLoad } from "./$types";
 import { loadTranslations, locales, translations } from "$lib/translations";
-import { getUserWithRoles } from "$lib/database/database";
+import { getUserWithRoles } from "$lib/database/db_user";
 
 // Locale priority: DB user preference > Accept-Language header > default "es"
 function determineLocale(locals, request) {

@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
-import { prisma } from '$lib/database/database';
+import { prisma } from '$lib/database/create_prisma_client';
 import { error, fail } from '@sveltejs/kit';
 import { validatePhone, savePhoneForUser, deletePhoneForUser } from '$lib/utils/phone_utils';
 import { locales } from '$lib/translations';

@@ -1,4 +1,4 @@
-import { getMonthCompetitions } from '$lib/database/database';
+import { getMonthCompetitions } from '$lib/database/db_competition';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 

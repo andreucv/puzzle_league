@@ -8,17 +8,22 @@ export type CategoryActionResult =
 
 export async function executeCategoryAction(
 	categoryId: number,
-	action: CategoryAction
+	action: CategoryAction,
+	body?: Record<string, unknown>
 ): Promise<CategoryActionResult> {
 	try {
-		const res = await fetch(`/api/categories/${categoryId}/${action}`, { method: 'POST' });
-		const body = await res.json();
+		const res = await fetch(`/api/categories/${categoryId}/${action}`, {
+			method: 'POST',
+			headers: body ? { 'Content-Type': 'application/json' } : undefined,
+			body: body ? JSON.stringify(body) : undefined,
+		});
+		const responseBody = await res.json();
 
 		if (res.ok) {
-			return { ok: true, category: body.category };
+			return { ok: true, category: responseBody.category };
 		}
 
-		return { ok: false, error: body.error ?? `Failed to ${action} category` };
+		return { ok: false, error: responseBody.error ?? `Failed to ${action} category` };
 	} catch {
 		return { ok: false, error: `Network error while trying to ${action} category` };
 	}

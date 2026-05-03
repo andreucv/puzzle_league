@@ -30,6 +30,7 @@
     import PuzzlePieceIcon from '@iconify-svelte/mdi/puzzle';
     import PlusCircleOutlineIcon from '@iconify-svelte/mdi/plus-circle-outline';
     import FormatListBulletedIcon from '@iconify-svelte/mdi/format-list-bulleted';
+    import TimerOffOutlineIcon from '@iconify-svelte/mdi/timer-off-outline';
 
     import type { CategoryData } from '$lib/types/category';
 
@@ -131,9 +132,19 @@
         return puzzles.reduce((sum, p) => sum + p.pieces, 0);
     });
 
+    // --- Auto-stop toggle for starting categories ---
+    let autoStopEnabled = $state(false);
+
     // --- Category action handler ---
     async function handleCategoryAction(action: CategoryAction) {
-        const result = await executeCategoryAction(category.id, action);
+        let body: Record<string, unknown> | undefined;
+        if (action === 'start' && autoStopEnabled && category.startTime && category.endTime) {
+            const durationMs = new Date(category.endTime).getTime() - new Date(category.startTime).getTime();
+            const extraMs = category.extraMinutes * 60_000;
+            const deadline = new Date(Date.now() + durationMs + extraMs);
+            body = { autoStop: true, deadline: deadline.toISOString() };
+        }
+        const result = await executeCategoryAction(category.id, action, body);
         if (result.ok) {
             onCategoryActionComplete?.(category.id, action, result);
             showSuccessToast($t(`during_competition.${action}_success`));
@@ -432,6 +443,13 @@
                     {category.totalRecords} {$t('during_competition.entries')}
                 </span>
             </div>
+            {#if isOrganizer}
+                <label class="flex items-center gap-2 text-sm cursor-pointer" data-testid="auto-stop-toggle-{category.id}">
+                    <input type="checkbox" class="checkbox" bind:checked={autoStopEnabled} />
+                    <TimerOffOutlineIcon width="1rem" height="1rem" />
+                    <span>{$t('during_competition.auto_stop_label')}</span>
+                </label>
+            {/if}
         {:else if isLive}
             <div class="flex justify-between flex-wrap items-center gap-4 text-sm">
                 {#if category.realStartTime && theoreticalDurationMs > 0}
@@ -490,6 +508,12 @@
                     <FlagCheckeredIcon width="1rem" height="1rem" />
                     {effectiveFinishedCount}/{category.totalRecords}
                 </span>
+                {#if category.autoStop}
+                    <span class="badge preset-tonal-warning gap-1 text-xs" data-testid="auto-stop-badge-{category.id}">
+                        <TimerOffOutlineIcon width="0.8rem" height="0.8rem" />
+                        {$t('during_competition.auto_stop')}
+                    </span>
+                {/if}
             </div>
         {:else if isStopped}
             <div class="flex items-center gap-4 text-sm text-surface-600-400">

@@ -223,11 +223,13 @@ model Category {
   endTime       DateTime
   realStartTime DateTime?
   realEndTime   DateTime?
-  extraMinutes  Int            @default(0)
-  status        CategoryStatus @default(NOT_STARTED)
-  maxParties    Int?
-  price         Int            @default(0)
-  competitionId Int
+  extraMinutes      Int            @default(0)
+  status            CategoryStatus @default(NOT_STARTED)
+  autoStop          Boolean        @default(false)
+  autoStopMessageId String?
+  maxParties        Int?
+  price             Int            @default(0)
+  competitionId     Int
   competition   Competition    @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   records       Record[]
   puzzles       Puzzle[]

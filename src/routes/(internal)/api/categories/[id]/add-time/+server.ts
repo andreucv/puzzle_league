@@ -2,6 +2,7 @@ import { json, type RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/create_prisma_client';
 import { CategoryStatus } from '$lib/.prisma/generated/prisma/enums';
 import { publishCompetitionEvent } from '$lib/events/server/ably';
+import { getAutoStopScheduler } from '$lib/services/auto-stop-singleton';
 
 const ALLOWED_MINUTES = [5, 10, 15];
 
@@ -22,7 +23,16 @@ export const POST = async (event: RequestEvent) => {
 
 		const category = await prisma.category.findUnique({
 			where: { id: categoryId },
-			select: { id: true, status: true, competitionId: true }
+			select: {
+				id: true,
+				status: true,
+				competitionId: true,
+				autoStop: true,
+				realStartTime: true,
+				startTime: true,
+				endTime: true,
+				extraMinutes: true,
+			}
 		});
 
 		if (!category) {
@@ -45,6 +55,18 @@ export const POST = async (event: RequestEvent) => {
 			extraMinutes: updatedCategory.extraMinutes,
 			addedMinutes: minutes
 		});
+
+		// Reschedule auto-stop if enabled
+		if (category.autoStop && category.realStartTime) {
+			const scheduler = getAutoStopScheduler();
+			if (scheduler) {
+				const durationMs = category.endTime.getTime() - category.startTime.getTime();
+				const newDeadline = new Date(
+					category.realStartTime.getTime() + durationMs + (updatedCategory.extraMinutes * 60_000)
+				);
+				await scheduler.rescheduleAutoStop(categoryId, category.competitionId, newDeadline);
+			}
+		}
 
 		return json({ success: true, extraMinutes: updatedCategory.extraMinutes });
 	} catch (error) {

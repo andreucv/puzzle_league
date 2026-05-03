@@ -3,6 +3,7 @@
     import PlayCircleOutlineIcon from '@iconify-svelte/mdi/play-circle-outline';
     import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
     import CancelIcon from '@iconify-svelte/mdi/cancel';
+    import PauseCircleOutlineIcon from '@iconify-svelte/mdi/pause-circle-outline';
 
     import { t } from '$lib/translations';
 
@@ -10,6 +11,7 @@
 
     function getCategoryStatusBadge(status: string): { label: string; classes: string; icon: typeof CheckCircleIcon } {
         if (status === 'LIVE') return { label: $t('category_status.in_progress'), classes: 'preset-filled-warning-500', icon: PlayCircleOutlineIcon };
+        if (status === 'STOPPED') return { label: $t('category_status.stopped'), classes: 'preset-filled-warning-500', icon: PauseCircleOutlineIcon };
         if (status === 'COMPLETE') return { label: $t('category_status.completed'), classes: 'preset-filled-success-500', icon: CheckCircleIcon };
         if (status === 'CANCELED') return { label: $t('category_status.canceled'), classes: 'preset-filled-error-500', icon: CancelIcon };
         return { label: $t('category_status.not_started'), classes: 'preset-filled-surface-400-600', icon: TimerSandIcon };

@@ -427,7 +427,9 @@
       "payment_reminder_creator": "Payment reminder",
       "payment_reminder_creator_with_note": "Payment reminder",
       "payment_reminder_team": "Payment reminder",
-      "payment_reminder_team_with_note": "Payment reminder"
+      "payment_reminder_team_with_note": "Payment reminder",
+      "auto_stop_success": "Category auto-stopped",
+      "auto_stop_failed": "Auto-stop failed"
     },
     "messages": {
       "inscription_created": "You have been registered for {{categoryName}} in {{competitionName}} by {{registeredBy}}.",
@@ -450,7 +452,9 @@
       "payment_reminder_creator": "The inscription for {{participantNames}} in the {{categoryName}} category of the {{competitionName}} competition is pending payment.",
       "payment_reminder_creator_with_note": "The inscription for {{participantNames}} in the {{categoryName}} category of the {{competitionName}} competition is pending payment. Note from organizer: {{organizerNote}}",
       "payment_reminder_team": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition with {{teammateNames}} is pending payment. Please complete the payment to secure your spot.",
-      "payment_reminder_team_with_note": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition with {{teammateNames}} is pending payment. Please complete the payment to secure your spot. Note from organizer: {{organizerNote}}"
+      "payment_reminder_team_with_note": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition with {{teammateNames}} is pending payment. Please complete the payment to secure your spot. Note from organizer: {{organizerNote}}",
+      "auto_stop_success": "A category in {{competitionName}} has been automatically stopped at its deadline.",
+      "auto_stop_failed": "Auto-stop failed for a category in {{competitionName}}. Please stop it manually."
     }
   },
   "during_competition": {
@@ -539,7 +543,9 @@
     "status_complete": "Complete",
     "add_time_success": "+{minutes} minutes added",
     "add_time_error": "Failed to add time",
-    "add_time_label": "Add extra time"
+    "add_time_label": "Add extra time",
+    "auto_stop_label": "Auto-stop at deadline",
+    "auto_stop": "Auto-stop"
   },
   "results": {
     "title": "Results",
@@ -577,7 +583,9 @@
   "category_status": {
     "not_started": "Not Started",
     "in_progress": "In Progress",
-    "completed": "Completed"
+    "stopped": "Stopped",
+    "completed": "Completed",
+    "canceled": "Canceled"
   },
   "public_profile": {
     "title": "User Profile",

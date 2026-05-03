@@ -1,5 +1,6 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { stopCategory, CategoryNotFoundError, InvalidStatusTransitionError } from '$lib/services/category-lifecycle';
+import { getAutoStopScheduler } from '$lib/services/auto-stop-singleton';
 
 export const POST = async (event: RequestEvent) => {
   try {
@@ -9,7 +10,8 @@ export const POST = async (event: RequestEvent) => {
       return json({ error: 'Invalid category ID' }, { status: 400 });
     }
 
-    const category = await stopCategory(categoryId);
+    const scheduler = getAutoStopScheduler();
+    const category = await stopCategory(categoryId, scheduler ? { scheduler } : undefined);
     return json({ category });
   } catch (error) {
     if (error instanceof CategoryNotFoundError) {

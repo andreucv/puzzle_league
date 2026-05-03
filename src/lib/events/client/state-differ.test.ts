@@ -12,6 +12,8 @@ function makeState(categories: Array<{ id: number; status: string; finishedRecor
 			finishedRecords: c.finishedRecords ?? 0,
 			realStartTime: null,
 			realEndTime: null,
+			extraMinutes: 0,
+			autoStop: false,
 		})),
 	};
 }

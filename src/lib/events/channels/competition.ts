@@ -16,6 +16,7 @@ export function buildEventStateFromCategories(
 		realStartTime: Date | string | null;
 		realEndTime: Date | string | null;
 		extraMinutes?: number;
+		autoStop?: boolean;
 	}>
 ): CompetitionEventState {
 	const mapped = categories.map((c) => ({
@@ -25,7 +26,8 @@ export function buildEventStateFromCategories(
 		finishedRecords: c.finishedRecords,
 		realStartTime: c.realStartTime instanceof Date ? c.realStartTime.toISOString() : (c.realStartTime ?? null),
 		realEndTime: c.realEndTime instanceof Date ? c.realEndTime.toISOString() : (c.realEndTime ?? null),
-		extraMinutes: c.extraMinutes ?? 0
+		extraMinutes: c.extraMinutes ?? 0,
+		autoStop: c.autoStop ?? false
 	}));
 
 	const versionPayload = mapped.map(c => `${c.id}:${c.status}:${c.finishedRecords}:${c.totalRecords}`).join('|');
@@ -44,6 +46,7 @@ export async function resolveCompetitionState(params: { id: number }): Promise<C
 			realStartTime: true,
 			realEndTime: true,
 			extraMinutes: true,
+			autoStop: true,
 			_count: {
 				select: {
 					records: { where: { status: InscriptionStatus.CONFIRMED } }
@@ -74,7 +77,8 @@ export async function resolveCompetitionState(params: { id: number }): Promise<C
 		finishedRecords: finishedMap.get(cat.id) ?? 0,
 		realStartTime: cat.realStartTime?.toISOString() ?? null,
 		realEndTime: cat.realEndTime?.toISOString() ?? null,
-		extraMinutes: cat.extraMinutes
+		extraMinutes: cat.extraMinutes,
+		autoStop: cat.autoStop
 	}));
 
 	// Compute version hash from category data

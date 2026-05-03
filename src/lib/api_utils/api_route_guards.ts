@@ -40,6 +40,7 @@ interface RouteGuard {
 const ROUTE_GUARDS: [RegExp, RouteGuard][] = [
   // ---- Public ----
   [/^\/api\/competitions\/bymonth\//, { guard: 'public' }],
+  [/^\/api\/webhooks\//, { guard: 'public' }],  // Webhook endpoints use internal signature verification
 
   // ---- Authenticated only (any logged-in user) ----
   [/^\/api\/notifications\/unread-count$/, { guard: 'authenticated' }],

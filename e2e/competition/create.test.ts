@@ -130,7 +130,7 @@ function formatDateToCalendarLabel(date: Date = new Date()): string {
 
 /** Navigates to the create competition page and asserts the heading is visible. */
 async function navigateToCreateForm(page: Page) {
-    await page.goto('/competition/edit');
+    await page.goto('/competition/edit', { waitUntil: 'networkidle' });
     await expect(page.getByRole('heading', { name: 'Create new competition' }).first()).toBeVisible();
 }
 
@@ -173,7 +173,10 @@ async function selectDateOnPicker(picker: Locator, date: Date) {
 
 /** Enables multi-day mode by clicking the toggle switch. */
 async function enableMultiDay(page: Page) {
-    await page.getByRole('switch', { name: 'Multi-day competition' }).click();
+    const toggle = page.getByRole('switch', { name: 'Multi-day competition' });
+    await toggle.click();
+    // Confirm the click actually registered (can miss if page isn't fully hydrated)
+    await expect(toggle).toHaveAttribute('aria-checked', 'true');
 }
 
 /**

@@ -1,6 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
-import { getPendingRequests, acceptRequest, rejectRequest, getRoleAssignments } from '$lib/database/database';
+import { getPendingRequests, acceptRequest, rejectRequest } from '$lib/database/db_request';
+import { getRoleAssignments } from '$lib/database/db_user';
 import { auth } from '$lib/auth';
 import { createNotification } from '$lib/notifications/notifications';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';

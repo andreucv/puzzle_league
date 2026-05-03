@@ -1,7 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getCompetition, getCompetitionCategories } from '$lib/database/database';
-import { getDuringCompetitionAccess } from '$lib/database/db_competition_utils';
+import { getCompetition, getCompetitionCategories } from '$lib/database/db_competition';
+import { getDuringCompetitionAccess } from '$lib/database/db_competition';
 import { buildEventStateFromCategories } from '$lib/events/channels/competition';
 
 export const load: PageServerLoad = async ({ params, locals, url }) => {

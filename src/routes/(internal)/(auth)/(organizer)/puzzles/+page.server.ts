@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
-import { getPuzzles } from '$lib/database/database';
+import { getPuzzles } from '$lib/database/db_puzzle';
 
 export const load: PageServerLoad = async () => {
     try {

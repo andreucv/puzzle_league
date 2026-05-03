@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { prisma } from '$lib/database/database';
+import { prisma } from '$lib/database/create_prisma_client';
 
 export const POST: RequestHandler = async (event) => {
   try {

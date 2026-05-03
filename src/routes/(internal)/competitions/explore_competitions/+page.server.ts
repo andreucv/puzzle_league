@@ -1,6 +1,6 @@
 import type { PageServerLoad } from "./$types";
 import { error } from "@sveltejs/kit";
-import { prisma } from "$lib/database/database";
+import { prisma } from "$lib/database/create_prisma_client";
 
 export const load: PageServerLoad = async ({ locals }) => {
     const userId = locals.user?.id;

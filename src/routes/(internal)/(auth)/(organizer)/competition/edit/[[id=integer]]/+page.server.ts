@@ -1,6 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { Action, Actions, PageServerLoad } from '../$types';
-import { updateCompetition, getCompetitionWithCategories } from '$lib/database/database';
+import { updateCompetition, getCompetitionWithCategories } from '$lib/database/db_competition';
 import { CategoryType, CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
 import { auth } from '$lib/auth';
 import { z } from 'zod';

@@ -1,4 +1,4 @@
-import { prisma } from '$lib/database/database';
+import { prisma } from '$lib/database/create_prisma_client';
 
 export type PhoneValidationResult =
     | { valid: true; phonePrefix: string; phoneNumber: string }

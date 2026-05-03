@@ -1,6 +1,6 @@
 import type { LayoutServerLoad } from "./$types";
 import { redirect } from "@sveltejs/kit";
-import { getRoleAssignments } from "$lib/database/database";
+import { getRoleAssignments } from "$lib/database/db_user";
 import { Role } from '$lib/.prisma/generated/prisma/enums';
 
 /**

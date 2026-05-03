@@ -1,6 +1,6 @@
 import type { PageServerLoad } from "./$types";
 import { error } from "@sveltejs/kit";
-import { getUpcomingCompetitions } from "$lib/database/db_competition_utils";
+import { getUpcomingCompetitions } from "$lib/database/db_competition";
 
 export const load: PageServerLoad = async (event) => {
     const BATCH_SIZE = 10;

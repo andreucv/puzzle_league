@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getCompetitionResults } from '$lib/database/database';
+import { getCompetitionResults } from '$lib/database/db_competition';
 import { Role } from '$lib/.prisma/generated/prisma/enums';
 
 export const load: PageServerLoad = async ({ params, parent }) => {

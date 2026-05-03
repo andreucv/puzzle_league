@@ -1,6 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import type { Action, Actions, PageServerLoad } from './$types';
-import { createCompetition, getAllLeagues } from '$lib/database/database';
+import { createCompetition } from '$lib/database/db_competition';
+import { getAllLeagues } from '$lib/database/db_league';
 import type { Competition, Category, Prisma } from '$lib/.prisma/generated/prisma/client';
 import { CategoryType } from '$lib/.prisma/generated/prisma/enums';
 import { auth } from '$lib/auth';

@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { searchPuzzles } from '$lib/database/database';
+import { searchPuzzles } from '$lib/database/db_puzzle';
 
 export const GET: RequestHandler = async ({ url }) => {
     try {

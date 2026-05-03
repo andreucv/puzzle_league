@@ -8,6 +8,7 @@ import StubIcon from '../../../tests/mocks/StubIcon.svelte';
 
 function makeAction(overrides: Record<string, any> = {}) {
 	return {
+		kind: 'confirm' as const,
 		icon: StubIcon,
 		colorClass: 'preset-filled-warning-500',
 		confirmTitle: 'Confirm?',

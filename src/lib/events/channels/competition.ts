@@ -15,6 +15,7 @@ export function buildEventStateFromCategories(
 		finishedRecords: number;
 		realStartTime: Date | string | null;
 		realEndTime: Date | string | null;
+		extraMinutes?: number;
 	}>
 ): CompetitionEventState {
 	const mapped = categories.map((c) => ({
@@ -23,7 +24,8 @@ export function buildEventStateFromCategories(
 		totalRecords: c.totalRecords,
 		finishedRecords: c.finishedRecords,
 		realStartTime: c.realStartTime instanceof Date ? c.realStartTime.toISOString() : (c.realStartTime ?? null),
-		realEndTime: c.realEndTime instanceof Date ? c.realEndTime.toISOString() : (c.realEndTime ?? null)
+		realEndTime: c.realEndTime instanceof Date ? c.realEndTime.toISOString() : (c.realEndTime ?? null),
+		extraMinutes: c.extraMinutes ?? 0
 	}));
 
 	const versionPayload = mapped.map(c => `${c.id}:${c.status}:${c.finishedRecords}:${c.totalRecords}`).join('|');
@@ -41,6 +43,7 @@ export async function resolveCompetitionState(params: { id: number }): Promise<C
 			status: true,
 			realStartTime: true,
 			realEndTime: true,
+			extraMinutes: true,
 			_count: {
 				select: {
 					records: { where: { status: InscriptionStatus.CONFIRMED } }
@@ -70,7 +73,8 @@ export async function resolveCompetitionState(params: { id: number }): Promise<C
 		totalRecords: cat._count.records,
 		finishedRecords: finishedMap.get(cat.id) ?? 0,
 		realStartTime: cat.realStartTime?.toISOString() ?? null,
-		realEndTime: cat.realEndTime?.toISOString() ?? null
+		realEndTime: cat.realEndTime?.toISOString() ?? null,
+		extraMinutes: cat.extraMinutes
 	}));
 
 	// Compute version hash from category data

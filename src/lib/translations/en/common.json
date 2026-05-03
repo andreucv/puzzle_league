@@ -535,7 +535,10 @@
     "status_not_started": "Not Started",
     "status_live": "Live",
     "status_stopped": "Stopped",
-    "status_complete": "Complete"
+    "status_complete": "Complete",
+    "add_time_success": "+{minutes} minutes added",
+    "add_time_error": "Failed to add time",
+    "add_time_label": "Add extra time"
   },
   "results": {
     "title": "Results",

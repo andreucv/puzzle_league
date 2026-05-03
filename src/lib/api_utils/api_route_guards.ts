@@ -79,6 +79,7 @@ const ROUTE_GUARDS: [RegExp, RouteGuard][] = [
   [/^\/api\/categories\/[^/]+\/stop$/, { guard: 'categoryOrganizer' }],
   [/^\/api\/categories\/[^/]+\/complete$/, { guard: 'categoryOrganizer' }],
   [/^\/api\/categories\/[^/]+\/resume$/, { guard: 'categoryOrganizer' }],
+  [/^\/api\/categories\/[^/]+\/add-time$/, { guard: 'categoryOrganizer' }],
   [/^\/api\/categories\/[^/]+\/publish-tables$/, { guard: 'categoryOrganizer' }],
   [/^\/api\/categories\/[^/]+\/remind-pending$/, { guard: 'categoryOrganizer' }],
 

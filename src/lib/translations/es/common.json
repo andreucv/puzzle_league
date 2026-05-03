@@ -535,7 +535,10 @@
     "status_not_started": "No Iniciada",
     "status_live": "En Curso",
     "status_stopped": "Detenida",
-    "status_complete": "Completada"
+    "status_complete": "Completada",
+    "add_time_success": "+{minutes} minutos añadidos",
+    "add_time_error": "Error al añadir tiempo",
+    "add_time_label": "Añadir tiempo extra"
   },
   "results": {
     "title": "Resultados",

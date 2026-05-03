@@ -14,6 +14,7 @@
     import type { CategoryData } from '$lib/types/category';
     import type { CategoryStatusChangedEvent } from '$lib/events/types';
     import type { CategoryAction, CategoryActionResult } from '$lib/api/category-actions';
+    import { showSuccessToast } from '$lib/utils/toast';
 
     let { data } = $props();
 
@@ -105,6 +106,18 @@
         return new Map(state.categories.map(c =>
             [c.id, `${c.status}:${c.finishedRecords}:${c.totalRecords}`]
         ));
+    });
+
+    // Show toast when a category is auto-stopped via QStash webhook
+    $effect(() => {
+        const event = ablyStream.lastRemoteEvent;
+        if (event?.type === 'category.status_changed' && event.autoStop) {
+            const cat = staticCategories.find(c => c.id === event.categoryId);
+            showSuccessToast(
+                $t('during_competition.auto_stop'),
+                cat?.description ?? ''
+            );
+        }
     });
 
     type StreamMode = 'connected' | 'connecting' | 'error' | 'disconnected';

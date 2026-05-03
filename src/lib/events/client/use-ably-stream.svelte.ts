@@ -22,6 +22,7 @@ export function useAblyStream(
 	let state = $state<CompetitionEventState | null>(initialState);
 	let status = $state<ConnectionStatus>('disconnected');
 	let lastUpdated = $state<Date | null>(null);
+	let lastRemoteEvent = $state<CompetitionEvent | null>(null);
 	let error = $state<string | null>(null);
 	let hasSuspended = false;
 
@@ -40,6 +41,7 @@ export function useAblyStream(
 		if (state) {
 			state = applyCompetitionEvent(state, event);
 		}
+		lastRemoteEvent = event;
 		lastUpdated = new Date();
 		error = null;
 	});
@@ -84,6 +86,7 @@ export function useAblyStream(
 		get state() { return state; },
 		get status() { return status; },
 		get lastUpdated() { return lastUpdated; },
+		get lastRemoteEvent() { return lastRemoteEvent; },
 		get error() { return error; },
 		updateState,
 		applyLocalEvent,

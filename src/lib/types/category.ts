@@ -11,6 +11,7 @@ export interface CategoryData {
 	realStartTime: string | null;
 	realEndTime: string | null;
 	extraMinutes: number;
+	autoStop: boolean;
 	totalRecords: number;
 	finishedRecords: number;
 	competitionId: number;

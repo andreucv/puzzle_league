@@ -40,6 +40,7 @@ function makeCategory(overrides: Record<string, any> = {}) {
 		realStartTime: null,
 		realEndTime: null,
 		extraMinutes: 0,
+		autoStop: false,
 		totalRecords: 5,
 		finishedRecords: 0,
 		competitionId: 42,

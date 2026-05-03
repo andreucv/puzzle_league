@@ -3,6 +3,17 @@ import { CategoryStatus, CompetitionStatus, InscriptionStatus } from '$lib/.pris
 import { publishCompetitionEvent } from '$lib/events/server/ably';
 import { createNotificationForUsers } from '$lib/notifications/notifications';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import type { AutoStopScheduler } from './auto-stop-scheduler';
+
+interface AutoStopOptions {
+	scheduler?: AutoStopScheduler;
+	isAutoStop?: boolean;
+}
+
+interface StartAutoStopOptions extends AutoStopOptions {
+	autoStop: true;
+	deadline: Date;
+}
 
 export class CategoryNotFoundError extends Error {
 	constructor(categoryId: number) {
@@ -32,7 +43,16 @@ interface CategoryWithCounts {
 async function findCategoryOrThrow(categoryId: number) {
 	const category = await prisma.category.findUnique({
 		where: { id: categoryId },
-		select: { id: true, status: true, competitionId: true }
+		select: {
+			id: true,
+			status: true,
+			competitionId: true,
+			autoStop: true,
+			startTime: true,
+			endTime: true,
+			extraMinutes: true,
+			realStartTime: true,
+		}
 	});
 	if (!category) throw new CategoryNotFoundError(categoryId);
 	return category;
@@ -64,7 +84,7 @@ async function publishStatusChanged(
 	});
 }
 
-export async function startCategory(categoryId: number): Promise<CategoryWithCounts> {
+export async function startCategory(categoryId: number, options?: StartAutoStopOptions): Promise<CategoryWithCounts> {
 	const { totalRecords, finishedRecords } = await getRecordCounts(categoryId);
 
 	const updatedCategory = await prisma.category.update({
@@ -114,23 +134,37 @@ export async function startCategory(categoryId: number): Promise<CategoryWithCou
 		realStartTime: updatedCategory.realStartTime?.toISOString() ?? null
 	});
 
+	// Schedule auto-stop if requested
+	if (options?.autoStop) {
+		await options.scheduler.scheduleAutoStop(categoryId, updatedCategory.competitionId, options.deadline);
+	}
+
 	return { ...updatedCategory, totalRecords, finishedRecords };
 }
 
-export async function stopCategory(categoryId: number): Promise<CategoryWithCounts> {
+export async function stopCategory(categoryId: number, options?: AutoStopOptions): Promise<CategoryWithCounts> {
 	const category = await findCategoryOrThrow(categoryId);
 
 	if (category.status !== CategoryStatus.LIVE) {
 		throw new InvalidStatusTransitionError('Only LIVE categories can be stopped');
 	}
 
-	const now = new Date();
+	// When auto-stopping, use the exact deadline (realStartTime + duration + extraMinutes)
+	// to avoid showing extra seconds from QStash delivery latency
+	let endTime: Date;
+	if (options?.isAutoStop && category.realStartTime) {
+		const durationMs = new Date(category.endTime).getTime() - new Date(category.startTime).getTime();
+		const extraMs = category.extraMinutes * 60_000;
+		endTime = new Date(category.realStartTime.getTime() + durationMs + extraMs);
+	} else {
+		endTime = new Date();
+	}
 
 	const [updatedCategory, totalRecords, finishedRecords] = await prisma.$transaction([
 		prisma.category.update({
 			where: { id: categoryId },
 			data: {
-				realEndTime: now,
+				realEndTime: endTime,
 				status: CategoryStatus.STOPPED
 			}
 		}),
@@ -143,13 +177,19 @@ export async function stopCategory(categoryId: number): Promise<CategoryWithCoun
 	]);
 
 	await publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status, {
-		realEndTime: updatedCategory.realEndTime?.toISOString() ?? null
+		realEndTime: updatedCategory.realEndTime?.toISOString() ?? null,
+		autoStop: options?.isAutoStop ?? false
 	});
+
+	// Cancel any scheduled auto-stop
+	if (options?.scheduler) {
+		await options.scheduler.cancelAutoStop(categoryId);
+	}
 
 	return { ...updatedCategory, totalRecords, finishedRecords };
 }
 
-export async function cancelCategory(categoryId: number): Promise<CategoryWithCounts> {
+export async function cancelCategory(categoryId: number, options?: AutoStopOptions): Promise<CategoryWithCounts> {
 	const category = await findCategoryOrThrow(categoryId);
 
 	if (category.status === CategoryStatus.COMPLETE) {
@@ -165,6 +205,11 @@ export async function cancelCategory(categoryId: number): Promise<CategoryWithCo
 	});
 
 	publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status);
+
+	// Cancel any scheduled auto-stop
+	if (options?.scheduler) {
+		await options.scheduler.cancelAutoStop(categoryId);
+	}
 
 	const { totalRecords, finishedRecords } = await getRecordCounts(categoryId);
 	return { ...updatedCategory, totalRecords, finishedRecords };
@@ -230,7 +275,7 @@ export async function resumeCategory(categoryId: number): Promise<CategoryWithCo
 	return { ...updatedCategory, totalRecords, finishedRecords };
 }
 
-export async function restartCategory(categoryId: number): Promise<CategoryWithCounts> {
+export async function restartCategory(categoryId: number, options?: AutoStopOptions): Promise<CategoryWithCounts> {
 	const category = await findCategoryOrThrow(categoryId);
 
 	if (
@@ -267,6 +312,18 @@ export async function restartCategory(categoryId: number): Promise<CategoryWithC
 		realStartTime: updatedCategory.realStartTime?.toISOString() ?? null,
 		realEndTime: null
 	});
+
+	// Cancel old auto-stop, then re-schedule if category has autoStop enabled
+	if (options?.scheduler) {
+		await options.scheduler.cancelAutoStop(categoryId);
+
+		if (category.autoStop) {
+			const durationMs = new Date(category.endTime).getTime() - new Date(category.startTime).getTime();
+			const extraMs = category.extraMinutes * 60_000;
+			const deadline = new Date(Date.now() + durationMs + extraMs);
+			await options.scheduler.scheduleAutoStop(categoryId, updatedCategory.competitionId, deadline);
+		}
+	}
 
 	return { ...updatedCategory, totalRecords, finishedRecords: 0 };
 }

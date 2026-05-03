@@ -16,6 +16,7 @@ export interface CompetitionEventState {
 		realStartTime: string | null;
 		realEndTime: string | null;
 		extraMinutes: number;
+		autoStop: boolean;
 	}>;
 }
 
@@ -37,6 +38,7 @@ export interface CategoryStatusChangedEvent {
 	status: string;
 	realStartTime?: string | null;
 	realEndTime?: string | null;
+	autoStop?: boolean;
 }
 
 export interface RecordFinishedEvent {

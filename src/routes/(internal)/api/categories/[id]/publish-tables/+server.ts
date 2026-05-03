@@ -29,6 +29,7 @@ export const POST = async (event: RequestEvent) => {
 			orderBy: [{ confirmedAt: 'asc' }, { createdAt: 'asc' }],
 			select: {
 				id: true,
+				tableNumber: true,
 				creatorId: true,
 				users: { select: { id: true, name: true } },
 				userIntents: { select: { name: true } }
@@ -38,6 +39,11 @@ export const POST = async (event: RequestEvent) => {
 		if (records.length === 0) {
 			return json({ error: 'No confirmed records to assign tables to' }, { status: 400 });
 		}
+
+		// Build a map of previous table numbers for deduplication
+		const previousTables = new Map(
+			records.map(r => [r.id, r.tableNumber])
+		);
 
 		// Reassign table numbers sequentially (compacting any gaps)
 		await prisma.$transaction(
@@ -49,15 +55,21 @@ export const POST = async (event: RequestEvent) => {
 			)
 		);
 
-		// Send notifications with the new table assignments
+		// Only notify users whose table number actually changed
 		const recordsWithTables = records.map((record, index) => ({
 			...record,
 			tableNumber: index + 1
 		}));
 
-		await notifyTableAssignments(recordsWithTables, category);
+		const changedRecords = recordsWithTables.filter(
+			r => r.tableNumber !== previousTables.get(r.id)
+		);
 
-		return json({ success: true, assignedCount: records.length });
+		if (changedRecords.length > 0) {
+			await notifyTableAssignments(changedRecords, category);
+		}
+
+		return json({ success: true, assignedCount: records.length, notifiedCount: changedRecords.length });
 	} catch (error) {
 		console.error('Error publishing table assignments:', error);
 		return json({ error: 'Failed to publish table assignments' }, { status: 500 });

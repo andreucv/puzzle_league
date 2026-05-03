@@ -41,15 +41,27 @@
             <div class="absolute right-0 top-full mt-1 z-50 bg-surface-50-950 border border-surface-300-700 rounded-lg shadow-lg min-w-40">
                 <div class="p-1 space-y-1">
                     {#each actions as action (action.testId)}
-                        <ConfirmActionButton
-                            icon={action.icon}
-                            colorClass={action.colorClass}
-                            confirmTitle={action.confirmTitle}
-                            confirmMessage={action.confirmMessage}
-                            onConfirm={() => { action.onConfirm(); close(); }}
-                            testId={action.testId}
-                            label={action.label}
-                        />
+                        {#if action.kind === 'link'}
+                            <a
+                                href={action.href}
+                                class="flex items-center gap-2 w-full px-3 py-1.5 text-sm rounded-md hover:bg-surface-200-800 transition-colors"
+                                data-testid={action.testId}
+                                onclick={close}
+                            >
+                                <action.icon width="1rem" height="1rem" />
+                                {action.label}
+                            </a>
+                        {:else}
+                            <ConfirmActionButton
+                                icon={action.icon}
+                                colorClass={action.colorClass}
+                                confirmTitle={action.confirmTitle}
+                                confirmMessage={action.confirmMessage}
+                                onConfirm={() => { action.onConfirm(); close(); }}
+                                testId={action.testId}
+                                label={action.label}
+                            />
+                        {/if}
                     {/each}
                 </div>
             </div>

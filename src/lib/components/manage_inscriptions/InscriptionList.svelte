@@ -39,7 +39,13 @@
     let filteredRecords = $derived(filterBySearch(records));
     let pendingRecords = $derived(byStatus(filteredRecords, 'PENDING_CONFIRMATION'));
     let waitlistedRecords = $derived(byStatus(filteredRecords, 'WAITLISTED'));
-    let confirmedRecords = $derived(byStatus(filteredRecords, 'CONFIRMED'));
+    // Confirmed records sorted by confirmedAt ASC (earliest confirmed first)
+    let confirmedRecords = $derived(
+        byStatus(filteredRecords, 'CONFIRMED')
+            .sort((a: any, b: any) =>
+                new Date(a.confirmedAt).getTime() - new Date(b.confirmedAt).getTime()
+            )
+    );
 </script>
 
 {#snippet recordList(recs: any[], showConfirm: boolean, showRefuse: boolean, showRemind: boolean)}

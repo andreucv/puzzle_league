@@ -14,12 +14,12 @@
     import AccountPlusOutlineIcon from '@iconify-svelte/mdi/account-plus-outline';
     import AccountBoxPlusOutlineIcon from '@iconify-svelte/mdi/account-box-plus-outline';
     import FormatListBulletedIcon from '@iconify-svelte/mdi/format-list-bulleted';
-    import { getInscriptionStatusTonalClass, getInscriptionStatusIcon, getInscriptionStatusLabel } from '$lib/utils/inscription_utils';
+    import { getRegistrationStatusTonalClass, getRegistrationStatusIcon, getRegistrationStatusLabel } from '$lib/utils/registration_utils';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
     type PartyUser = { id: string; name: string; email: string; image: string | null };
-    type UserIntentInfo = { id: string; name: string; claimedById: string | null };
-    type UserRecord = { id?: string; status?: string; users?: PartyUser[]; userIntents?: UserIntentInfo[] };
+    type ExternalParticipantInfo = { id: string; name: string; claimedById: string | null };
+    type UserEntry = { id?: string; status?: string; users?: PartyUser[]; externalParticipants?: ExternalParticipantInfo[] };
 
     let {
         category,
@@ -27,26 +27,26 @@
         isMultiDay = false,
         showRegistration = false,
         records = [],
-        inscriptionStatus = undefined,
+        registrationStatus = undefined,
         party = null,
-        userIntents = null,
+        externalParticipants = null,
         seatsAvailable = undefined
     }: {
         category: CategoryWithPuzzles;
         isCreator?: boolean;
         isMultiDay?: boolean;
         showRegistration?: boolean;
-        records?: UserRecord[];
-        inscriptionStatus?: string;
+        records?: UserEntry[];
+        registrationStatus?: string;
         party?: PartyUser[] | null;
-        userIntents?: UserIntentInfo[] | null;
+        externalParticipants?: ExternalParticipantInfo[] | null;
         seatsAvailable?: number;
     } = $props();
 
     const normalizedRecords = $derived(
         records.length > 0
             ? records
-            : [{ status: inscriptionStatus, users: party ?? [], userIntents: userIntents ?? [] }]
+            : [{ status: registrationStatus, users: party ?? [], externalParticipants: externalParticipants ?? [] }]
     );
 </script>
 
@@ -117,13 +117,13 @@
             </a>
         {:else if category.status === 'LIVE' || category.status === 'STOPPED'}
             <!-- Inscription summary (non-clickable) + results link for running categories -->
-            {#if normalizedRecords.some((record) => (record.users?.length ?? 0) > 0 || (record.userIntents?.length ?? 0) > 0)}
+            {#if normalizedRecords.some((record) => (record.users?.length ?? 0) > 0 || (record.externalParticipants?.length ?? 0) > 0)}
                 <div class="flex flex-col gap-2 overflow-hidden">
                     {#each normalizedRecords as record, index (record.id ?? `${category.id}-${index}`)}
                         {@const recordUsers = record.users ?? []}
-                        {@const recordIntents = record.userIntents ?? []}
-                        {@const StatusIcon = getInscriptionStatusIcon(record.status)}
-                        {#if recordUsers.length > 0 || recordIntents.length > 0}
+                        {@const entryExternalParticipants = record.externalParticipants ?? []}
+                        {@const StatusIcon = getRegistrationStatusIcon(record.status)}
+                        {#if recordUsers.length > 0 || entryExternalParticipants.length > 0}
                             <div class="flex items-center gap-2 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-50/70 dark:bg-surface-800/60 px-2 py-1 overflow-hidden">
                                 <div class="flex items-center gap-2 min-w-0 flex-1">
                                     <div class="flex -space-x-1.5 shrink-0">
@@ -133,19 +133,19 @@
                                                 <Avatar.Fallback>{user.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
                                             </Avatar>
                                         {/each}
-                                        {#each recordIntents as intent}
+                                        {#each entryExternalParticipants as ep}
                                             <Avatar class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-surface-900 shadow-sm bg-primary-100 dark:bg-primary-900/40">
-                                                <Avatar.Fallback>{intent.name.substring(0,2)}</Avatar.Fallback>
+                                                <Avatar.Fallback>{ep.name.substring(0,2)}</Avatar.Fallback>
                                             </Avatar>
                                         {/each}
                                     </div>
                                     <span class="text-xs text-surface-600 dark:text-surface-400 truncate">
-                                        {[...recordUsers.map(u => u.name), ...recordIntents.map(i => i.name)].join(', ')}
+                                        {[...recordUsers.map(u => u.name), ...entryExternalParticipants.map(ep => ep.name)].join(', ')}
                                     </span>
                                 </div>
-                                <span class={`badge text-xs flex items-center gap-1 shrink-0 ${getInscriptionStatusTonalClass(record.status)}`} data-testid="category-status-badge">
+                                <span class={`badge text-xs flex items-center gap-1 shrink-0 ${getRegistrationStatusTonalClass(record.status)}`} data-testid="category-status-badge">
                                     <StatusIcon width="0.8rem" height="0.8rem" />
-                                    {getInscriptionStatusLabel(record.status, $t) || 'Open'}
+                                    {getRegistrationStatusLabel(record.status, $t) || 'Open'}
                                 </span>
                             </div>
                         {/if}
@@ -166,14 +166,14 @@
                 {$t('competition_details.view_live_results')}
             </a>
         {:else}
-        <a href="/competitions/competition_details/{category.competitionId}/inscription" class="block mt-auto -mb-0.5 hover:opacity-80 transition-opacity overflow-hidden">
-            {#if normalizedRecords.some((record) => (record.users?.length ?? 0) > 0 || (record.userIntents?.length ?? 0) > 0)}
+        <a href="/competitions/competition_details/{category.competitionId}/registration" class="block mt-auto -mb-0.5 hover:opacity-80 transition-opacity overflow-hidden">
+            {#if normalizedRecords.some((record) => (record.users?.length ?? 0) > 0 || (record.externalParticipants?.length ?? 0) > 0)}
                 <div class="flex flex-col gap-2 overflow-hidden">
                     {#each normalizedRecords as record, index (record.id ?? `${category.id}-${index}`)}
                         {@const recordUsers = record.users ?? []}
-                        {@const recordIntents = record.userIntents ?? []}
-                        {@const StatusIcon = getInscriptionStatusIcon(record.status)}
-                        {#if recordUsers.length > 0 || recordIntents.length > 0}
+                        {@const entryExternalParticipants = record.externalParticipants ?? []}
+                        {@const StatusIcon = getRegistrationStatusIcon(record.status)}
+                        {#if recordUsers.length > 0 || entryExternalParticipants.length > 0}
                             <div class="flex items-center gap-2 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-50/70 dark:bg-surface-800/60 px-2 py-1 overflow-hidden">
                                 <div class="flex items-center gap-2 min-w-0 flex-1">
                                     <div class="flex -space-x-1.5 shrink-0">
@@ -183,19 +183,19 @@
                                                 <Avatar.Fallback>{user.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
                                             </Avatar>
                                         {/each}
-                                        {#each recordIntents as intent}
+                                        {#each entryExternalParticipants as ep}
                                             <Avatar class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-surface-900 shadow-sm bg-primary-100 dark:bg-primary-900/40">
-                                                <Avatar.Fallback>{intent.name.substring(0,2)}</Avatar.Fallback>
+                                                <Avatar.Fallback>{ep.name.substring(0,2)}</Avatar.Fallback>
                                             </Avatar>
                                         {/each}
                                     </div>
                                     <span class="text-xs text-surface-600 dark:text-surface-400 truncate">
-                                        {[...recordUsers.map(u => u.name), ...recordIntents.map(i => i.name)].join(', ')}
+                                        {[...recordUsers.map(u => u.name), ...entryExternalParticipants.map(ep => ep.name)].join(', ')}
                                     </span>
                                 </div>
-                                <span class={`badge text-xs flex items-center gap-1 shrink-0 ${getInscriptionStatusTonalClass(record.status)}`} data-testid="category-status-badge">
+                                <span class={`badge text-xs flex items-center gap-1 shrink-0 ${getRegistrationStatusTonalClass(record.status)}`} data-testid="category-status-badge">
                                     <StatusIcon width="0.8rem" height="0.8rem" />
-                                    {getInscriptionStatusLabel(record.status, $t) || 'Open'}
+                                    {getRegistrationStatusLabel(record.status, $t) || 'Open'}
                                 </span>
                             </div>
                         {/if}

@@ -166,7 +166,7 @@ export async function getOnboardingFlags(userId: string) {
     return prisma.user.findUnique({
         where: { id: userId },
         select: {
-            userIntentsLastChecked: true,
+            externalParticipantsLastChecked: true,
             name: true,
             createdAt: true,
             emailVerified: true,
@@ -180,12 +180,12 @@ export async function getOnboardingFlags(userId: string) {
     });
 }
 
-export async function getUnclaimedIntentsMatchingName(userName: string) {
-    const allUnclaimed = await prisma.userIntent.findMany({
+export async function getUnclaimedExternalParticipantsMatchingName(userName: string) {
+    const allUnclaimed = await prisma.externalParticipant.findMany({
         where: { claimedById: null },
         include: {
             createdBy: { select: { id: true, name: true } },
-            records: {
+            entries: {
                 include: {
                     category: {
                         include: {
@@ -200,28 +200,28 @@ export async function getUnclaimedIntentsMatchingName(userName: string) {
 
     const userNameLower = userName.toLowerCase();
     return allUnclaimed.filter((ui) => {
-        const intentNameLower = ui.name.toLowerCase();
-        return intentNameLower.includes(userNameLower) || userNameLower.includes(intentNameLower);
+        const nameLower = ui.name.toLowerCase();
+        return nameLower.includes(userNameLower) || userNameLower.includes(nameLower);
     });
 }
 
-export async function hasMatchingUnclaimedIntents(userName: string): Promise<boolean> {
-    const unclaimed = await prisma.userIntent.findMany({
+export async function hasMatchingUnclaimedExternalParticipants(userName: string): Promise<boolean> {
+    const unclaimed = await prisma.externalParticipant.findMany({
         where: { claimedById: null },
         select: { name: true },
         take: 100,
     });
     const userNameLower = userName.toLowerCase();
     return unclaimed.some((ui) => {
-        const intentNameLower = ui.name.toLowerCase();
-        return intentNameLower.includes(userNameLower) || userNameLower.includes(intentNameLower);
+        const nameLower = ui.name.toLowerCase();
+        return nameLower.includes(userNameLower) || userNameLower.includes(nameLower);
     });
 }
 
-export async function markUserIntentsChecked(userId: string) {
+export async function markExternalParticipantsChecked(userId: string) {
     return prisma.user.update({
         where: { id: userId },
-        data: { userIntentsLastChecked: new Date() },
+        data: { externalParticipantsLastChecked: new Date() },
     });
 }
 
@@ -232,37 +232,37 @@ export async function markEmailVerificationSkipped(userId: string) {
     });
 }
 
-export async function claimUserIntents(userId: string, userIntentIds: string[]) {
+export async function claimExternalParticipants(userId: string, externalParticipantIds: string[]) {
     return prisma.$transaction(async (tx) => {
-        const intents = await tx.userIntent.findMany({
-            where: { id: { in: userIntentIds }, claimedById: null },
+        const externalParticipants = await tx.externalParticipant.findMany({
+            where: { id: { in: externalParticipantIds }, claimedById: null },
             include: {
-                records: true,
+                entries: true,
                 createdBy: { select: { id: true, name: true } },
             },
         });
 
-        if (intents.length !== userIntentIds.length) {
+        if (externalParticipants.length !== externalParticipantIds.length) {
             throw new Error('Some participations are already claimed or not found.');
         }
 
-        for (const intent of intents) {
-            await tx.userIntent.update({
-                where: { id: intent.id },
+        for (const externalParticipant of externalParticipants) {
+            await tx.externalParticipant.update({
+                where: { id: externalParticipant.id },
                 data: { claimedById: userId },
             });
 
-            for (const record of intent.records) {
-                await tx.record.update({
+            for (const record of externalParticipant.entries) {
+                await tx.entry.update({
                     where: { id: record.id },
                     data: {
                         users: { connect: { id: userId } },
-                        userIntents: { disconnect: { id: intent.id } },
+                        externalParticipants: { disconnect: { id: externalParticipant.id } },
                     },
                 });
             }
         }
 
-        return intents;
+        return externalParticipants;
     });
 }

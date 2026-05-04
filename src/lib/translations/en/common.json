@@ -24,11 +24,11 @@
     "image_alt": "Puzzle image",
     "your_last_results": "Your last results",
     "no_last_results": "No results yet",
-    "my_inscriptions": "My Inscriptions",
+    "my_registrations": "My Inscriptions",
     "live_now": "Live Now",
     "no_live_competitions": "No live competitions right now",
     "no_near_competitions": "No upcoming competitions near you",
-    "inscription_status": {
+    "registration_status": {
       "pending_confirmation": "Pending Confirmation",
       "confirmed": "Confirmed",
       "waitlisted": "Waitlisted",
@@ -200,7 +200,7 @@
   "competition_details": {
     "feature_not_available": "Feature not available yet",
     "seats_available": "seats available",
-    "manage_inscription": "Your inscription",
+    "manage_registration": "Your inscription",
     "no_categories": "No categories have been added to this competition yet.",
     "organized_by": "Organized by",
     "edit_button": "Edit Competition",
@@ -224,7 +224,7 @@
     "claim_selected": "Claim selected",
     "skip": "Skip for now"
   },
-  "inscription": {
+  "registration": {
     "title": "Category Registration",
     "submitting": "Submitting registrations...",
     "registration_closed": "Registration is currently closed for this competition.",
@@ -285,7 +285,7 @@
     "judges_copied": "Judges copied to all categories.",
     "error": "An error occurred. Please try again."
   },
-  "manage_inscriptions": {
+  "manage_registrations": {
     "title": "Manage Inscriptions",
     "pending_confirmation": "Pending Confirmation",
     "confirmed": "Confirmed",
@@ -409,15 +409,15 @@
     "empty_detail": "You'll be notified here when something important happens.",
     "just_now": "just now",
     "titles": {
-      "inscription_created": "New inscription",
-      "inscription_confirmed": "Inscription confirmed",
-      "inscription_confirmed_team": "Inscription confirmed",
-      "inscription_confirmed_nonplatform": "Inscription confirmed",
-      "inscription_refused": "Inscription refused",
-      "inscription_waitlisted": "Inscription waitlisted",
+      "registration_created": "New inscription",
+      "registration_confirmed": "Inscription confirmed",
+      "registration_confirmed_team": "Inscription confirmed",
+      "registration_confirmed_nonplatform": "Inscription confirmed",
+      "registration_refused": "Inscription refused",
+      "registration_waitlisted": "Inscription waitlisted",
       "competition_started": "Competition started",
       "competition_cancelled": "Competition cancelled",
-      "user_intent_claimed": "Participant claimed",
+      "external_participant_claimed": "Participant claimed",
       "role_request_approved": "Role request approved",
       "role_request_rejected": "Role request rejected",
       "table_assigned": "Table assigned",
@@ -432,15 +432,15 @@
       "auto_stop_failed": "Auto-stop failed"
     },
     "messages": {
-      "inscription_created": "You have been registered for {{categoryName}} in {{competitionName}} by {{registeredBy}}.",
-      "inscription_confirmed": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition has been confirmed by {{confirmedBy}}.",
-      "inscription_confirmed_team": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition has been confirmed by {{confirmedBy}}. Your teammates: {{teammateNames}}.",
-      "inscription_confirmed_nonplatform": "The inscription for {{participantNames}} in the {{categoryName}} category of the {{competitionName}} competition has been confirmed by {{confirmedBy}}.",
-      "inscription_refused": "Your inscription for {{categoryName}} has been refused.",
-      "inscription_waitlisted": "Your inscription for {{categoryName}} has been waitlisted. The category is currently full.",
+      "registration_created": "You have been registered for {{categoryName}} in {{competitionName}} by {{registeredBy}}.",
+      "registration_confirmed": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition has been confirmed by {{confirmedBy}}.",
+      "registration_confirmed_team": "Your inscription for the {{categoryName}} category in the {{competitionName}} competition has been confirmed by {{confirmedBy}}. Your teammates: {{teammateNames}}.",
+      "registration_confirmed_nonplatform": "The inscription for {{participantNames}} in the {{categoryName}} category of the {{competitionName}} competition has been confirmed by {{confirmedBy}}.",
+      "registration_refused": "Your inscription for {{categoryName}} has been refused.",
+      "registration_waitlisted": "Your inscription for {{categoryName}} has been waitlisted. The category is currently full.",
       "competition_started": "The competition {{competitionName}} has started!",
       "competition_cancelled": "The competition {{competitionName}} has been cancelled.",
-      "user_intent_claimed": "{{intentName}} has been claimed by a registered user and is now linked to their account.",
+      "external_participant_claimed": "{{intentName}} has been claimed by a registered user and is now linked to their account.",
       "role_request_approved": "Your request for the {{roleName}} role has been approved.",
       "role_request_rejected": "Your request for the {{roleName}} role has been rejected.",
       "table_assigned": "{{participantName}}, you have been assigned Table {{tableNumber}} for the {{categoryName}} category in the {{competitionName}} competition.",

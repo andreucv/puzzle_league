@@ -24,11 +24,11 @@
     "image_alt": "Imatge de puzzles",
     "your_last_results": "Els teus últims resultats",
     "no_last_results": "Encara no tens resultats",
-    "my_inscriptions": "Les meves Inscripcions",
+    "my_registrations": "Les meves Inscripcions",
     "live_now": "En Directe",
     "no_live_competitions": "No hi ha competicions en directe ara",
     "no_near_competitions": "No hi ha pròximes competicions a prop teu",
-    "inscription_status": {
+    "registration_status": {
       "pending_confirmation": "Pendent de confirmació",
       "confirmed": "Confirmada",
       "waitlisted": "En espera",
@@ -97,7 +97,7 @@
   "competition_details": {
     "feature_not_available": "Funció no disponible actualment",
     "seats_available": "places disponibles",
-    "manage_inscription": "La teva inscripció",
+    "manage_registration": "La teva inscripció",
     "no_categories": "Encara no s'han afegit categories a aquesta competició.",
     "organized_by": "Organitzat per",
     "edit_button": "Edita la competició",
@@ -121,7 +121,7 @@
     "claim_selected": "Reclama seleccionades",
     "skip": "Omet per ara"
   },
-  "inscription": {
+  "registration": {
     "title": "Inscripció a categories",
     "submitting": "Enviant inscripcions...",
     "registration_closed": "Les inscripcions estan tancades per aquesta competició.",
@@ -348,7 +348,7 @@
     "judges_copied": "Jutges copiats a totes les categories.",
     "error": "S'ha produït un error. Torna-ho a provar."
   },
-  "manage_inscriptions": {
+  "manage_registrations": {
     "confirm_error": "Error al confirmar la inscripció",
     "confirmed": "Confirmada",
     "confirmed_success": "Inscripció confirmada correctament.",
@@ -409,15 +409,15 @@
     "empty_detail": "Aquí et notificarem quan passi alguna cosa important.",
     "just_now": "ara mateix",
     "titles": {
-      "inscription_created": "Nova inscripció",
-      "inscription_confirmed": "Inscripció confirmada",
-      "inscription_confirmed_team": "Inscripció confirmada",
-      "inscription_confirmed_nonplatform": "Inscripció confirmada",
-      "inscription_refused": "Inscripció rebutjada",
-      "inscription_waitlisted": "Inscripció en llista d'espera",
+      "registration_created": "Nova inscripció",
+      "registration_confirmed": "Inscripció confirmada",
+      "registration_confirmed_team": "Inscripció confirmada",
+      "registration_confirmed_nonplatform": "Inscripció confirmada",
+      "registration_refused": "Inscripció rebutjada",
+      "registration_waitlisted": "Inscripció en llista d'espera",
       "competition_started": "Competició iniciada",
       "competition_cancelled": "Competició cancel·lada",
-      "user_intent_claimed": "Participant reclamat",
+      "external_participant_claimed": "Participant reclamat",
       "role_request_approved": "Sol·licitud de rol aprovada",
       "role_request_rejected": "Sol·licitud de rol rebutjada",
       "table_assigned": "Taula assignada",
@@ -430,15 +430,15 @@
       "payment_reminder_team_with_note": "Recordatori de pagament"
     },
     "messages": {
-      "inscription_created": "Has estat registrat a {{categoryName}} a {{competitionName}} per {{registeredBy}}.",
-      "inscription_confirmed": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} ha estat confirmada per {{confirmedBy}}.",
-      "inscription_confirmed_team": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} ha estat confirmada per {{confirmedBy}}. Els teus companys d'equip: {{teammateNames}}.",
-      "inscription_confirmed_nonplatform": "La inscripció de {{participantNames}} a la categoria {{categoryName}} de la competició {{competitionName}} ha estat confirmada per {{confirmedBy}}.",
-      "inscription_refused": "La teva inscripció per a {{categoryName}} ha estat rebutjada.",
-      "inscription_waitlisted": "La teva inscripció per a {{categoryName}} està en llista d'espera. La categoria està plena.",
+      "registration_created": "Has estat registrat a {{categoryName}} a {{competitionName}} per {{registeredBy}}.",
+      "registration_confirmed": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} ha estat confirmada per {{confirmedBy}}.",
+      "registration_confirmed_team": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} ha estat confirmada per {{confirmedBy}}. Els teus companys d'equip: {{teammateNames}}.",
+      "registration_confirmed_nonplatform": "La inscripció de {{participantNames}} a la categoria {{categoryName}} de la competició {{competitionName}} ha estat confirmada per {{confirmedBy}}.",
+      "registration_refused": "La teva inscripció per a {{categoryName}} ha estat rebutjada.",
+      "registration_waitlisted": "La teva inscripció per a {{categoryName}} està en llista d'espera. La categoria està plena.",
       "competition_started": "La competició {{competitionName}} ha començat!",
       "competition_cancelled": "La competició {{competitionName}} ha estat cancel·lada.",
-      "user_intent_claimed": "{{intentName}} ha estat reclamat per un usuari registrat i ara està vinculat al seu compte.",
+      "external_participant_claimed": "{{intentName}} ha estat reclamat per un usuari registrat i ara està vinculat al seu compte.",
       "role_request_approved": "La teva sol·licitud per al rol {{roleName}} ha estat aprovada.",
       "role_request_rejected": "La teva sol·licitud per al rol {{roleName}} ha estat rebutjada.",
       "table_assigned": "{{participantName}}, se t'ha assignat la Taula {{tableNumber}} per a la categoria {{categoryName}} a la competició {{competitionName}}.",

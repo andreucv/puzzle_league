@@ -324,7 +324,7 @@
                     class="flex-1"
                     use:enhance={createEnhanceHandler((msg) => (claimError = msg), 'claimError')}
                 >
-                    <input type="hidden" name="userIntentIds" value={Array.from(selectedIds).join(',')} />
+                    <input type="hidden" name="externalParticipantIds" value={Array.from(selectedIds).join(',')} />
                     <button
                         type="submit"
                         class="btn preset-filled-primary-500 w-full"

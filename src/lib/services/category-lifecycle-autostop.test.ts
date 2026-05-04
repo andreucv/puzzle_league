@@ -14,7 +14,7 @@ vi.mock('$lib/database/create_prisma_client', () => ({
 			update: vi.fn(),
 			updateMany: vi.fn(),
 		},
-		record: {
+		entry: {
 			count: vi.fn(),
 			findMany: vi.fn(),
 			updateMany: vi.fn(),
@@ -49,9 +49,9 @@ describe('category-lifecycle auto-stop integration', () => {
 		vi.clearAllMocks();
 		scheduler = createMockScheduler();
 
-		// Default mock for record counts
-		(prisma.record.count as any).mockResolvedValue(0);
-		(prisma.record.findMany as any).mockResolvedValue([]);
+		// Default mock for entry counts
+		(prisma.entry.count as any).mockResolvedValue(0);
+		(prisma.entry.findMany as any).mockResolvedValue([]);
 		(prisma.competition.updateMany as any).mockResolvedValue({ count: 0 });
 	});
 
@@ -100,7 +100,7 @@ describe('category-lifecycle auto-stop integration', () => {
 
 			(prisma.$transaction as any).mockResolvedValue([
 				{ id: 1, competitionId: 42, status: 'STOPPED', realEndTime: new Date() },
-				5, // totalRecords
+				5, // totalEntries
 				2, // finishedRecords
 			]);
 
@@ -147,7 +147,7 @@ describe('category-lifecycle auto-stop integration', () => {
 				{ count: 0 }, // record updateMany
 			]);
 
-			(prisma.record.count as any).mockResolvedValue(3);
+			(prisma.entry.count as any).mockResolvedValue(3);
 
 			await restartCategory(1, { scheduler });
 
@@ -171,7 +171,7 @@ describe('category-lifecycle auto-stop integration', () => {
 				{ count: 0 }, // record updateMany
 			]);
 
-			(prisma.record.count as any).mockResolvedValue(3);
+			(prisma.entry.count as any).mockResolvedValue(3);
 
 			await restartCategory(1, { scheduler });
 

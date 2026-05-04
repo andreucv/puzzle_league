@@ -12,8 +12,8 @@ export interface CategoryData {
 	realEndTime: string | null;
 	extraMinutes: number;
 	autoStop: boolean;
-	totalRecords: number;
-	finishedRecords: number;
+	totalEntries: number;
+	finishedEntries: number;
 	competitionId: number;
 	puzzles?: { pieces: number }[];
 }

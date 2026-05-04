@@ -14,7 +14,7 @@ export const GET = async (event: RequestEvent) => {
       include: {
         categories: {
           include: {
-            records: {
+            entries: {
               include: {
                 users: true
               }

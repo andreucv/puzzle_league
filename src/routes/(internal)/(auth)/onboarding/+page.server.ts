@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { getOnboardingFlags, getUnclaimedIntentsMatchingName, claimUserIntents, markUserIntentsChecked, markEmailVerificationSkipped } from '$lib/database/db_user';
+import { getOnboardingFlags, getUnclaimedExternalParticipantsMatchingName, claimExternalParticipants, markExternalParticipantsChecked, markEmailVerificationSkipped } from '$lib/database/db_user';
 import { saveLocaleForUser, skipLocalePrompt, isValidLocale } from '$lib/utils/locale_utils';
 import { validatePhone, savePhoneForUser } from '$lib/utils/phone_utils';
 import { resolveOnboardingSteps } from './services/onboarding-flow';
@@ -18,14 +18,14 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 		throw redirect(302, '/');
 	}
 
-	// Load unclaimed intents matching the user's name for the claim step
-	const unclaimedIntents = steps.includes('claim')
-		? await getUnclaimedIntentsMatchingName(dbUser!.name!)
+	// Load unclaimed external participants matching the user's name for the claim step
+	const unclaimedExternalParticipants = steps.includes('claim')
+		? await getUnclaimedExternalParticipantsMatchingName(dbUser!.name!)
 		: [];
 
 	return {
 		steps,
-		unclaimedIntents,
+		unclaimedExternalParticipants,
 		userName: dbUser?.name ?? '',
 		userEmail: locals.user!.email,
 	};
@@ -72,27 +72,27 @@ export const actions: Actions = {
 		if (!user) return fail(401, { error: 'Unauthorized' });
 
 		const formData = await request.formData();
-		const idsRaw = formData.get('userIntentIds')?.toString() ?? '';
-		const userIntentIds = idsRaw ? idsRaw.split(',').filter(Boolean) : [];
+		const idsRaw = formData.get('externalParticipantIds')?.toString() ?? '';
+		const externalParticipantIds = idsRaw ? idsRaw.split(',').filter(Boolean) : [];
 
-		if (userIntentIds.length === 0) {
+		if (externalParticipantIds.length === 0) {
 			return fail(400, { claimError: 'No participations selected.' });
 		}
 
 		try {
-			const result = await claimUserIntents(user.id, userIntentIds);
+			const result = await claimExternalParticipants(user.id, externalParticipantIds);
 
 			// Send notifications (non-blocking, best-effort)
 			const { createNotification } = await import('$lib/notifications/notifications');
 			const { NotificationType } = await import('$lib/.prisma/generated/prisma/enums');
-			for (const intent of result) {
+			for (const ep of result) {
 				await createNotification({
-					userId: intent.createdById,
-					type: NotificationType.USER_INTENT_CLAIMED,
-					title: 'notifications.titles.user_intent_claimed',
-					message: 'notifications.messages.user_intent_claimed',
+					userId: ep.createdById,
+					type: NotificationType.EXTERNAL_PARTICIPANT_CLAIMED,
+					title: 'notifications.titles.external_participant_claimed',
+					message: 'notifications.messages.external_participant_claimed',
 					link: '/competitions/explore_competitions',
-					data: { intentName: intent.name },
+					data: { externalParticipantName: ep.name },
 				});
 			}
 		} catch (err) {
@@ -110,7 +110,7 @@ export const actions: Actions = {
 		if (!user) return fail(401, { error: 'Unauthorized' });
 
 		try {
-			await markUserIntentsChecked(user.id);
+			await markExternalParticipantsChecked(user.id);
 		} catch (err) {
 			console.error('Error marking claim as skipped:', err);
 			return fail(500, { error: 'Something went wrong. Please try again.' });

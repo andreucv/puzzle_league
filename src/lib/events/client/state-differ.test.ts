@@ -2,14 +2,14 @@ import { describe, it, expect } from 'vitest';
 import { diffCompetitionState } from './state-differ';
 import type { CompetitionEventState } from '../types';
 
-function makeState(categories: Array<{ id: number; status: string; finishedRecords?: number }>): CompetitionEventState {
+function makeState(categories: Array<{ id: number; status: string; finishedEntries?: number }>): CompetitionEventState {
 	return {
 		version: 'test',
 		categories: categories.map(c => ({
 			id: c.id,
 			status: c.status,
-			totalRecords: 5,
-			finishedRecords: c.finishedRecords ?? 0,
+			totalEntries: 5,
+			finishedEntries: c.finishedEntries ?? 0,
 			realStartTime: null,
 			realEndTime: null,
 			extraMinutes: 0,
@@ -80,15 +80,15 @@ describe('diffCompetitionState', () => {
 	});
 
 	it('detects new finishes', () => {
-		const prev = makeState([{ id: 1, status: 'LIVE', finishedRecords: 2 }]);
-		const next = makeState([{ id: 1, status: 'LIVE', finishedRecords: 4 }]);
+		const prev = makeState([{ id: 1, status: 'LIVE', finishedEntries: 2 }]);
+		const next = makeState([{ id: 1, status: 'LIVE', finishedEntries: 4 }]);
 		const changes = diffCompetitionState(prev, next);
 		expect(changes).toEqual([{ type: 'new_finishes', categoryId: 1, count: 2 }]);
 	});
 
 	it('detects status change + new finishes together', () => {
-		const prev = makeState([{ id: 1, status: 'LIVE', finishedRecords: 3 }]);
-		const next = makeState([{ id: 1, status: 'STOPPED', finishedRecords: 5 }]);
+		const prev = makeState([{ id: 1, status: 'LIVE', finishedEntries: 3 }]);
+		const next = makeState([{ id: 1, status: 'STOPPED', finishedEntries: 5 }]);
 		const changes = diffCompetitionState(prev, next);
 		expect(changes).toHaveLength(2);
 		expect(changes).toContainEqual({ type: 'category_stopped', categoryId: 1 });
@@ -96,18 +96,18 @@ describe('diffCompetitionState', () => {
 	});
 
 	it('returns empty when nothing changed', () => {
-		const state = makeState([{ id: 1, status: 'LIVE', finishedRecords: 3 }]);
+		const state = makeState([{ id: 1, status: 'LIVE', finishedEntries: 3 }]);
 		expect(diffCompetitionState(state, state)).toEqual([]);
 	});
 
 	it('handles multiple categories independently', () => {
 		const prev = makeState([
 			{ id: 1, status: 'NOT_STARTED' },
-			{ id: 2, status: 'LIVE', finishedRecords: 1 },
+			{ id: 2, status: 'LIVE', finishedEntries: 1 },
 		]);
 		const next = makeState([
 			{ id: 1, status: 'LIVE' },
-			{ id: 2, status: 'LIVE', finishedRecords: 3 },
+			{ id: 2, status: 'LIVE', finishedEntries: 3 },
 		]);
 		const changes = diffCompetitionState(prev, next);
 		expect(changes).toHaveLength(2);

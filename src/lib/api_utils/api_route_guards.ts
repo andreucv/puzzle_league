@@ -3,7 +3,7 @@ import { Role } from '$lib/.prisma/generated/prisma/enums';
 import {
   requireCompetitionRole,
   requireCategoryJudge,
-  requireRecordJudge,
+  requireEntryJudge,
 } from '$lib/api_utils/api_auth';
 import { prisma } from '$lib/database/create_prisma_client';
 
@@ -18,8 +18,8 @@ type GuardLevel =
   | 'competitionJudgeOrOrganizer'
   | 'categoryOrganizer'       // category [id] but requires ORGANIZER on parent competition
   | 'categoryJudge'           // category [id] requires JUDGE or ORGANIZER
-  | 'recordJudge'             // record [id] requires JUDGE or ORGANIZER via category chain
-  | 'inscriptionOrganizer';   // inscription [id] is a recordId → lookup competition → ORGANIZER
+  | 'entryJudge'              // entry [id] requires JUDGE or ORGANIZER via category chain
+  | 'inscriptionOrganizer';   // inscription [id] is an entryId → lookup competition → ORGANIZER
 
 interface RouteGuard {
   guard: GuardLevel;
@@ -48,9 +48,9 @@ const ROUTE_GUARDS: [RegExp, RouteGuard][] = [
   [/^\/api\/notifications$/, { guard: 'authenticated' }],
   [/^\/api\/users\/search$/, { guard: 'authenticated' }],
   [/^\/api\/puzzles\/search$/, { guard: 'authenticated' }],
-  [/^\/api\/user-intents\/claim$/, { guard: 'authenticated' }],
-  [/^\/api\/user-intents\/unclaimed$/, { guard: 'authenticated' }],
-  [/^\/api\/user-intents$/, { guard: 'authenticated' }],
+  [/^\/api\/external-participants\/claim$/, { guard: 'authenticated' }],
+  [/^\/api\/external-participants\/unclaimed$/, { guard: 'authenticated' }],
+  [/^\/api\/external-participants$/, { guard: 'authenticated' }],
   [/^\/api\/events\/notifications$/, { guard: 'authenticated' }],
 
   // ---- Competition-scoped: ORGANIZER ----
@@ -63,17 +63,17 @@ const ROUTE_GUARDS: [RegExp, RouteGuard][] = [
   // ---- Competition-scoped: JUDGE or ORGANIZER ----
   [/^\/api\/events\/competition\/[^/]+$/, { guard: 'competitionJudgeOrOrganizer' }],
 
-  // ---- Inscription endpoints (recordId → competition → ORGANIZER) ----
-  [/^\/api\/inscriptions\/[^/]+\/confirm$/, { guard: 'inscriptionOrganizer' }],
-  [/^\/api\/inscriptions\/[^/]+\/refuse$/, { guard: 'inscriptionOrganizer' }],
-  [/^\/api\/inscriptions\/[^/]+\/remind$/, { guard: 'inscriptionOrganizer' }],
+  // ---- Registration endpoints (entryId → competition → ORGANIZER) ----
+  [/^\/api\/registrations\/[^/]+\/confirm$/, { guard: 'inscriptionOrganizer' }],
+  [/^\/api\/registrations\/[^/]+\/refuse$/, { guard: 'inscriptionOrganizer' }],
+  [/^\/api\/registrations\/[^/]+\/remind$/, { guard: 'inscriptionOrganizer' }],
 
   // ---- Category-scoped: ORGANIZER on parent competition (for judge management) ----
   [/^\/api\/categories\/[^/]+\/judges\/[^/]+$/, { guard: 'categoryOrganizer' }],
   [/^\/api\/categories\/[^/]+\/judges$/, { guard: 'categoryOrganizer' }],
 
   // ---- Category-scoped: JUDGE or ORGANIZER ----
-  [/^\/api\/categories\/[^/]+\/records$/, { guard: 'categoryJudge' }],
+  [/^\/api\/categories\/[^/]+\/entries$/, { guard: 'categoryJudge' }],
   [/^\/api\/categories\/[^/]+\/start$/, { guard: 'categoryJudge' }],
 
   // ---- Category-scoped: ORGANIZER only (state transitions) ----
@@ -84,9 +84,9 @@ const ROUTE_GUARDS: [RegExp, RouteGuard][] = [
   [/^\/api\/categories\/[^/]+\/publish-tables$/, { guard: 'categoryOrganizer' }],
   [/^\/api\/categories\/[^/]+\/remind-pending$/, { guard: 'categoryOrganizer' }],
 
-  // ---- Record-scoped: JUDGE or ORGANIZER via category chain ----
-  [/^\/api\/records\/[^/]+\/pieces$/, { guard: 'recordJudge' }],
-  [/^\/api\/records\/[^/]+\/result$/, { guard: 'recordJudge' }],
+  // ---- Entry-scoped: JUDGE or ORGANIZER via category chain ----
+  [/^\/api\/entries\/[^/]+\/pieces$/, { guard: 'entryJudge' }],
+  [/^\/api\/entries\/[^/]+\/result$/, { guard: 'entryJudge' }],
 ];
 
 // ---------------------------------------------------------------------------
@@ -155,20 +155,20 @@ export async function enforceRouteGuard(event: RequestEvent): Promise<Response |
     }
 
     case 'inscriptionOrganizer': {
-      // The [id] param is a record ID (string/UUID), not a competition ID.
-      // Look up the record → category → competitionId.
-      const recordId = extractStringId(pathname);
-      if (!recordId) {
-        return jsonError('Invalid record ID', 400);
+      // The [id] param is an entry ID (string/UUID), not a competition ID.
+      // Look up the entry → category → competitionId.
+      const entryId = extractStringId(pathname);
+      if (!entryId) {
+        return jsonError('Invalid entry ID', 400);
       }
-      const record = await prisma.record.findUnique({
-        where: { id: recordId },
+      const entry = await prisma.entry.findUnique({
+        where: { id: entryId },
         select: { category: { select: { competitionId: true } } },
       });
-      if (!record) {
-        return jsonError('Record not found', 404);
+      if (!entry) {
+        return jsonError('Entry not found', 404);
       }
-      const result = await requireCompetitionRole(event, record.category.competitionId, [Role.ORGANIZER]);
+      const result = await requireCompetitionRole(event, entry.category.competitionId, [Role.ORGANIZER]);
       return result.authorized ? null : result.response;
     }
 
@@ -197,12 +197,12 @@ export async function enforceRouteGuard(event: RequestEvent): Promise<Response |
       return result.authorized ? null : result.response;
     }
 
-    case 'recordJudge': {
-      const recordId = extractStringId(pathname);
-      if (!recordId) {
-        return jsonError('Invalid record ID', 400);
+    case 'entryJudge': {
+      const entryId = extractStringId(pathname);
+      if (!entryId) {
+        return jsonError('Invalid entry ID', 400);
       }
-      const result = await requireRecordJudge(event, recordId);
+      const result = await requireEntryJudge(event, entryId);
       return result.authorized ? null : result.response;
     }
 

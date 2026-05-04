@@ -1,5 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { getCategoryRecords } from '$lib/database/db_category_records';
+import { getCategoryRecords } from '$lib/database/db_category_entries';
 
 export const GET = async (event: RequestEvent) => {
   try {

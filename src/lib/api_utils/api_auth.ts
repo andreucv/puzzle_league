@@ -129,28 +129,28 @@ export async function requireCategoryJudge(
   return requireCompetitionRole(event, category.competitionId, [Role.JUDGE, Role.ORGANIZER]);
 }
 
-/** Check if user is judge for a record's category */
-export async function requireRecordJudge(
+/** Check if user is judge for an entry's category */
+export async function requireEntryJudge(
   event: RequestEvent,
-  recordId: string
+  entryId: string
 ): Promise<AuthResult> {
   const authResult = await requireAuth(event);
   if (!authResult.authorized) return authResult;
 
-  const record = await prisma.record.findUnique({
-    where: { id: recordId },
+  const entry = await prisma.entry.findUnique({
+    where: { id: entryId },
     select: { categoryId: true }
   });
 
-  if (!record) {
+  if (!entry) {
     return {
       authorized: false,
-      response: new Response(JSON.stringify({ error: 'Record not found' }), {
+      response: new Response(JSON.stringify({ error: 'Entry not found' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' }
       })
     };
   }
 
-  return requireCategoryJudge(event, record.categoryId);
+  return requireCategoryJudge(event, entry.categoryId);
 }

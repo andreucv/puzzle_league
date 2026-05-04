@@ -2,7 +2,7 @@
     import { calculateDuration, formatCountdown } from '$lib/utils/category_utils';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
     import Card from '$lib/components/common/card/Card.svelte';
-    import RecordList from './RecordList.svelte';
+    import EntryList from './EntryList.svelte';
     import OverflowMenu from './OverflowMenu.svelte';
     import ConfirmActionButton from '$lib/components/common/buttons/ConfirmActionButton.svelte';
     import SearchInput from '$lib/components/common/SearchInput.svelte';
@@ -101,7 +101,7 @@
     let localFinishedCount = $state<number | null>(null);
 
     $effect(() => {
-        category.finishedRecords;
+        category.finishedEntries;
         localFinishedCount = null;
     });
 
@@ -117,11 +117,11 @@
         }
     });
 
-    let effectiveFinishedCount = $derived(localFinishedCount ?? category.finishedRecords);
+    let effectiveFinishedCount = $derived(localFinishedCount ?? category.finishedEntries);
 
     let progressPercent = $derived(
-        category.totalRecords > 0
-            ? Math.round((effectiveFinishedCount / category.totalRecords) * 100)
+        category.totalEntries > 0
+            ? Math.round((effectiveFinishedCount / category.totalEntries) * 100)
             : 0
     );
 
@@ -263,11 +263,11 @@
 
     // --- Record action handlers ---
     // Each handler performs an optimistic local update after a successful API call.
-    // Selection clearing is handled by RecordList internally.
+    // Selection clearing is handled by EntryList internally.
 
     async function handleRecordFinish(recordId: string) {
         if (!records) return;
-        const response = await fetch(`/api/records/${recordId}/result`, {
+        const response = await fetch(`/api/entries/${recordId}/result`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ finishTime: new Date().toISOString() })
@@ -284,7 +284,7 @@
 
     async function handleRecordUndoFinish(recordId: string) {
         if (!records) return;
-        const response = await fetch(`/api/records/${recordId}/result`, { method: 'DELETE' });
+        const response = await fetch(`/api/entries/${recordId}/result`, { method: 'DELETE' });
         if (response.ok) {
             records.allRecords = records.allRecords.map((r: any) =>
                 r.id === recordId ? { ...r, finishTime: null } : r
@@ -295,7 +295,7 @@
 
     async function handleSubmitPieces(recordId: string, data?: { nPiecesCompleted: number }) {
         if (!records || !data) return;
-        const res = await fetch(`/api/records/${recordId}/pieces`, {
+        const res = await fetch(`/api/entries/${recordId}/pieces`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nPiecesCompleted: data.nPiecesCompleted })
@@ -312,7 +312,7 @@
 
     async function handleUndoPieces(recordId: string) {
         if (!records) return;
-        const res = await fetch(`/api/records/${recordId}/pieces`, { method: 'DELETE' });
+        const res = await fetch(`/api/entries/${recordId}/pieces`, { method: 'DELETE' });
         if (res.ok) {
             records.allRecords = records.allRecords.map((r: any) =>
                 r.id === recordId ? { ...r, nPiecesCompleted: null } : r
@@ -332,7 +332,7 @@
         return '';
     });
 
-    // Used to disable RecordList transitions during search to prevent viewport jitter
+    // Used to disable EntryList transitions during search to prevent viewport jitter
     let isSearching = $derived(!!records?.searchQuery.trim());
 
 </script>
@@ -440,7 +440,7 @@
                 </span>
                 <span class="flex items-center gap-1">
                     <AccountGroupIcon width="1rem" height="1rem" />
-                    {category.totalRecords} {$t('during_competition.entries')}
+                    {category.totalEntries} {$t('during_competition.entries')}
                 </span>
             </div>
             {#if isOrganizer}
@@ -506,7 +506,7 @@
                 {/if}
                 <span class="flex items-center gap-1">
                     <FlagCheckeredIcon width="1rem" height="1rem" />
-                    {effectiveFinishedCount}/{category.totalRecords}
+                    {effectiveFinishedCount}/{category.totalEntries}
                 </span>
                 {#if category.autoStop}
                     <span class="badge preset-tonal-warning gap-1 text-xs" data-testid="auto-stop-badge-{category.id}">
@@ -525,7 +525,7 @@
                 {/if}
                 <span class="flex items-center gap-1">
                     <FlagCheckeredIcon width="1rem" height="1rem" />
-                    {records?.resolvedRecords.length ?? 0}/{category.totalRecords}
+                    {records?.resolvedRecords.length ?? 0}/{category.totalEntries}
                 </span>
             </div>
         {:else if isComplete || isCanceled}
@@ -538,7 +538,7 @@
                 {/if}
                 <span class="flex items-center gap-1">
                     <FlagCheckeredIcon width="1rem" height="1rem" />
-                    {category.finishedRecords}/{category.totalRecords}
+                    {category.finishedEntries}/{category.totalEntries}
                 </span>
             </div>
         {/if}
@@ -555,7 +555,7 @@
 
         <!-- Record lists (LIVE) -->
         {#if isLive && records}
-            <RecordList
+            <EntryList
                 icon={ClockOutlineIcon}
                 label={$t('during_competition.pending_records')}
                 records={records.filteredPending}
@@ -569,7 +569,7 @@
                 {isSearching}
             />
 
-            <RecordList
+            <EntryList
                 icon={CheckCircleIcon}
                 label={$t('during_competition.finished_records')}
                 records={records.filteredFinished}
@@ -585,7 +585,7 @@
 
         <!-- Record lists (STOPPED) -->
         {#if isStopped && records}
-            <RecordList
+            <EntryList
                 icon={PuzzlePieceIcon}
                 label={$t('during_competition.dnf_records')}
                 records={records.filteredUnresolved}
@@ -601,7 +601,7 @@
                 {isSearching}
             />
 
-            <RecordList
+            <EntryList
                 icon={FlagCheckeredIcon}
                 label={$t('during_competition.finished_records')}
                 records={records.filteredResolved}

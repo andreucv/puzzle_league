@@ -27,7 +27,7 @@ model User {
   phonePromptLastChecked              DateTime?
   locale                              String?
   localePromptLastChecked             DateTime?
-  userIntentsLastChecked              DateTime?
+  externalParticipantsLastChecked     DateTime?              @map("userIntentsLastChecked")
   emailVerificationPromptLastChecked  DateTime?
   publicProfileVisibility     Boolean          @default(true)
   publicResultsVisibility     Boolean          @default(true)
@@ -35,15 +35,15 @@ model User {
   updatedAt                   DateTime
   sessions               Session[]
   accounts               Account[]
-  records                Record[]         @relation("RecordParticipants")
-  createdRecords         Record[]         @relation("RecordCreator")
+  entries                Entry[]                  @relation("EntryParticipants")
+  createdEntries         Entry[]                  @relation("EntryCreator")
   roleAssignments        RoleAssignment[]
   requests               Request[]
   leaguePoints           LeaguePoints[]
   competitions           Competition[]
-  notifications          Notification[]   @relation("NotificationRecipient")
-  createdUserIntents     UserIntent[]     @relation("UserIntentCreator")
-  claimedUserIntents     UserIntent[]     @relation("UserIntentClaimer")
+  notifications          Notification[]           @relation("NotificationRecipient")
+  createdExternalParticipants  ExternalParticipant[]  @relation("ExternalParticipantCreator")
+  claimedExternalParticipants  ExternalParticipant[]  @relation("ExternalParticipantClaimer")
   judgedCategories       Category[]       @relation("CategoryJudges")
 
   @@unique([email])
@@ -138,22 +138,22 @@ enum RequestStatus {
   REJECTED
 }
 
-enum InscriptionStatus {
+enum RegistrationStatus {
   PENDING_CONFIRMATION
   CONFIRMED
   WAITLISTED
 }
 
 enum NotificationType {
-  INSCRIPTION_CREATED
-  INSCRIPTION_CONFIRMED
-  INSCRIPTION_REFUSED
-  INSCRIPTION_WAITLISTED
+  REGISTRATION_CREATED
+  REGISTRATION_CONFIRMED
+  REGISTRATION_REFUSED
+  REGISTRATION_WAITLISTED
   COMPETITION_STARTED
   COMPETITION_CANCELLED
   ROLE_REQUEST_APPROVED
   ROLE_REQUEST_REJECTED
-  USER_INTENT_CLAIMED
+  EXTERNAL_PARTICIPANT_CLAIMED
   TABLE_ASSIGNED
   PAYMENT_REMINDER
   GENERAL
@@ -231,42 +231,42 @@ model Category {
   price             Int            @default(0)
   competitionId     Int
   competition   Competition    @relation(fields: [competitionId], references: [id], onDelete: Cascade)
-  records       Record[]
+  entries       Entry[]
   puzzles       Puzzle[]
   judges        User[]         @relation("CategoryJudges")
 
   @@map("category")
 }
 
-model Record {
-  id               String            @id @default(cuid())
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+model Entry {
+  id               String             @id @default(cuid())
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
   confirmedAt      DateTime?
   lastRemindedAt   DateTime?
   finishTime       DateTime?
   tableNumber      Int?
   nPiecesCompleted Int?
-  status           InscriptionStatus @default(PENDING_CONFIRMATION)
+  status           RegistrationStatus @default(PENDING_CONFIRMATION)
   categoryId       Int
-  category         Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  users            User[]            @relation("RecordParticipants")
-  userIntents      UserIntent[]      @relation("RecordUserIntents")
+  category         Category           @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  users            User[]             @relation("EntryParticipants")
+  externalParticipants  ExternalParticipant[]  @relation("EntryExternalParticipants")
   creatorId        String
-  creator          User              @relation("RecordCreator", fields: [creatorId], references: [id], onDelete: SetDefault)
+  creator          User               @relation("EntryCreator", fields: [creatorId], references: [id], onDelete: SetDefault)
 
   @@map("record")
 }
 
-model UserIntent {
+model ExternalParticipant {
   id          String   @id @default(cuid())
   name        String
   createdAt   DateTime @default(now())
   createdById String
-  createdBy   User     @relation("UserIntentCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  createdBy   User     @relation("ExternalParticipantCreator", fields: [createdById], references: [id], onDelete: Cascade)
   claimedById String?
-  claimedBy   User?    @relation("UserIntentClaimer", fields: [claimedById], references: [id], onDelete: SetNull)
-  records     Record[] @relation("RecordUserIntents")
+  claimedBy   User?    @relation("ExternalParticipantClaimer", fields: [claimedById], references: [id], onDelete: SetNull)
+  entries     Entry[]  @relation("EntryExternalParticipants")
 
   @@map("user_intent")
 }

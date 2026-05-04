@@ -37,7 +37,7 @@ export const POST = async (event: RequestEvent) => {
     });
 
     // Notify all registered participants
-    const participantIds = await prisma.record.findMany({
+    const participantIds = await prisma.entry.findMany({
       where: {
         category: { competitionId },
       },

@@ -23,7 +23,7 @@ async function main() {
             phonePrefix: null,
             phoneNumber: null,
             phonePromptLastChecked: null,
-            userIntentsLastChecked: null,
+            externalParticipantsLastChecked: null,
             emailVerified: false,
             emailVerificationPromptLastChecked: null,
         },

@@ -1,8 +1,8 @@
 import type { SeedContext, RecordSeedInput, SeededRecord } from '../types';
-import { InscriptionStatus } from '../../../src/lib/.prisma/generated/prisma/enums';
+import { RegistrationStatus } from '../../../src/lib/.prisma/generated/prisma/enums';
 
 /**
- * Creates inscription records for a category.
+ * Creates registration records for a category.
  * Each record connects to one or more users as participants.
  */
 export async function createRecords(
@@ -18,7 +18,7 @@ export async function createRecords(
             data: {
                 categoryId: input.categoryId,
                 creatorId: input.creatorId,
-                status: InscriptionStatus[input.status],
+                status: RegistrationStatus[input.status],
                 users: {
                     connect: input.userIds.map(id => ({ id })),
                 },

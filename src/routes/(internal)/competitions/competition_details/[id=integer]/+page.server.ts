@@ -1,6 +1,7 @@
 import type { PageServerLoad, Actions } from "./$types";
 import { getCompetitionWithCategories, getCompetitionCategories} from "$lib/database/db_competition";
-import { getCategoryEntriesFromCompetition, removeUserFromCategory } from "$lib/database/db_inscription_utils";
+import { getCategoryEntriesFromCompetition } from "$lib/database/db_entry";
+import { removeUserFromCategory } from "$lib/database/db_registration";
 import { getDuringCompetitionAccess } from "$lib/database/db_competition";
 
 

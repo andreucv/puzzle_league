@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
-import { prisma } from '$lib/database/create_prisma_client';
+import { getUserAccountProvider, updateUserLocation, updateUserVisibility, updateUserLocale } from '$lib/database/db_user';
 import { error, fail } from '@sveltejs/kit';
 import { validatePhone, savePhoneForUser, deletePhoneForUser } from '$lib/utils/phone_utils';
 import { locales } from '$lib/translations';
@@ -9,14 +9,9 @@ export const load: PageServerLoad = async ({ parent }) => {
 	const { user } = await parent();
 
     try {
-        const account = await prisma.account.findFirst({
-            where: { userId: user.id },
-            select: { providerId: true }
-        });
+        const account = await getUserAccountProvider(user.id);
         console.log('Loaded account for user:', { user: user, account });
-        return {
-            account: account ? { provider: account.providerId } : { provider: 'credential' }
-        };
+        return { account };
     } catch (err) {
         console.error('Error loading profile:', err);
         throw error(500, { message: 'Unable to load your profile. Please try again later.', code: 'DB_ERROR' });
@@ -35,10 +30,7 @@ export const actions: Actions = {
         const postalCode = formData.get('postalCode')?.toString().trim() || null;
 
         try {
-            await prisma.user.update({
-                where: { id: user.id },
-                data: { country, postalCode, updatedAt: new Date() }
-            });
+            await updateUserLocation(user.id, country, postalCode);
 
             return { success: true };
         } catch (err) {
@@ -99,10 +91,7 @@ export const actions: Actions = {
         }
 
         try {
-            await prisma.user.update({
-                where: { id: user.id },
-                data: { [field]: value, updatedAt: new Date() }
-            });
+            await updateUserVisibility(user.id, field, value);
 
             return { success: true };
         } catch (err) {
@@ -126,10 +115,7 @@ export const actions: Actions = {
         }
 
         try {
-            await prisma.user.update({
-                where: { id: user.id },
-                data: { locale, updatedAt: new Date() }
-            });
+            await updateUserLocale(user.id, locale);
 
             cookies.set('lang', locale, { path: '/', maxAge: 60 * 60 * 24 * 365 });
 

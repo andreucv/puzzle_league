@@ -1,6 +1,6 @@
 import type { PageServerLoad } from "./$types";
 import { getCompetition } from "$lib/database/db_competition";
-import { getInscriptionsForCompetition } from "$lib/database/db_inscription_utils";
+import { getInscriptionsForCompetition } from "$lib/database/db_entry";
 import { prisma } from "$lib/database/create_prisma_client";
 import { redirect } from "@sveltejs/kit";
 import { Role } from "$lib/.prisma/generated/prisma/enums";

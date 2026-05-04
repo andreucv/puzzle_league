@@ -1,5 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { confirmInscription } from '$lib/database/db_inscription_utils';
+import { confirmInscription } from '$lib/database/db_registration';
 import { prisma } from '$lib/database/create_prisma_client';
 import { notifyInscriptionConfirmed } from '$lib/notifications/inscription_notifications';
 

@@ -1,96 +1,22 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { prisma } from '$lib/database/create_prisma_client';
-import type { Prisma } from '$lib/.prisma/generated/prisma/client';
-import { InscriptionStatus } from '$lib/.prisma/generated/prisma/enums';
+import { getCategoryRecords } from '$lib/database/db_category_records';
 
 export const GET = async (event: RequestEvent) => {
   try {
     const categoryId = parseInt(event.params.id as string);
     const search = event.url.searchParams.get('search')?.trim() ?? '';
-    const finishedFilter = event.url.searchParams.get('finished');
+    const finishedFilter = event.url.searchParams.get('finished') as 'true' | 'false' | undefined;
 
     if (isNaN(categoryId)) {
       return json({ error: 'Invalid category ID' }, { status: 400 });
     }
 
-    // Build where clause with optional search filtering
-    const where: Prisma.RecordWhereInput = { categoryId };
-
-    // Only return CONFIRMED records to stay consistent with server-side counts
-    where.status = InscriptionStatus.CONFIRMED;
-
-    // Optionally filter by finished status
-    if (finishedFilter === 'true') {
-      where.finishTime = { not: null };
-    } else if (finishedFilter === 'false') {
-      where.finishTime = null;
-    }
-
-    if (search) {
-      const searchAsInt = parseInt(search);
-      const isNumeric = !isNaN(searchAsInt);
-
-      where.AND = [
-        // Only show unfinished records when searching (unless finishedFilter is set)
-        ...(finishedFilter == null ? [{ finishTime: null }] : []),
-        {
-          OR: [
-            // Search by participant name (partial, case-insensitive)
-            {
-              users: {
-                some: {
-                  name: { contains: search, mode: 'insensitive' }
-                }
-              }
-            },
-            // Search by user intent name (partial, case-insensitive)
-            {
-              userIntents: {
-                some: {
-                  name: { contains: search, mode: 'insensitive' }
-                }
-              }
-            },
-            // Search by table number (exact match)
-            ...(isNumeric ? [{ tableNumber: searchAsInt }] : []),
-            // Search by record ID (exact match)
-            { id: search }
-          ]
-        }
-      ];
-    }
-
-    // Fetch records
-    const records = await prisma.record.findMany({
-      where,
-      include: {
-        users: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true
-          }
-        },
-        userIntents: {
-          select: {
-            id: true,
-            name: true
-          }
-        }
-      },
-      orderBy: [
-        { finishTime: 'asc' },
-        { tableNumber: 'asc' }
-      ]
+    const records = await getCategoryRecords(categoryId, {
+      search: search || undefined,
+      finished: finishedFilter ?? undefined
     });
 
-    return json({
-      records: records.map(r => ({
-        ...r,
-        nPiecesCompleted: r.nPiecesCompleted
-      }))
-    });
+    return json({ records });
   } catch (error) {
     console.error('Error fetching category entries:', error);
     return json({ error: 'Failed to fetch category entries' }, { status: 500 });

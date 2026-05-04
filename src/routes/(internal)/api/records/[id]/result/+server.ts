@@ -1,6 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { prisma } from '$lib/database/create_prisma_client';
-import { CategoryStatus } from '$lib/.prisma/generated/prisma/enums';
+import { recordFinishTime, undoFinishTime, EntryNotFoundError, InvalidEntryStateError } from '$lib/database/db_entry';
 import { publishCompetitionEvent } from '$lib/events/server/ably';
 
 export const POST = async (event: RequestEvent) => {
@@ -12,31 +11,7 @@ export const POST = async (event: RequestEvent) => {
       return json({ error: 'Invalid entry ID' }, { status: 400 });
     }
 
-    // Enforce: finish actions only allowed while category is LIVE
-    const record = await prisma.record.findUnique({
-      where: { id: recordId },
-      select: { category: { select: { status: true } } }
-    });
-    if (!record) {
-      return json({ error: 'Record not found' }, { status: 404 });
-    }
-    if (record.category.status !== CategoryStatus.LIVE) {
-      return json({ error: 'Finish actions are only allowed while the category is LIVE' }, { status: 409 });
-    }
-
-    const updatedEntry = await prisma.record.update({
-      where: { id: recordId },
-      data: {
-        finishTime: finishTime ? new Date(finishTime) : new Date(),
-        tableNumber: tableNumber ? parseInt(tableNumber) : undefined
-      },
-      include: {
-        users: true,
-        category: true
-      }
-    });
-
-    console.log('Recorded result for entry', { recordId, finishTime: updatedEntry.finishTime, tableNumber: updatedEntry.tableNumber });
+    const updatedEntry = await recordFinishTime(recordId, finishTime, tableNumber);
 
     await publishCompetitionEvent(updatedEntry.category.competitionId, 'record.finished', {
       recordId: updatedEntry.id,
@@ -45,10 +20,14 @@ export const POST = async (event: RequestEvent) => {
       finishTime: updatedEntry.finishTime!.toISOString()
     });
 
-    console.log('Published record.finished event for record', { recordId: updatedEntry.id, categoryId: updatedEntry.categoryId, competitionId: updatedEntry.category.competitionId });
-
     return json({ record: updatedEntry });
   } catch (error) {
+    if (error instanceof EntryNotFoundError) {
+      return json({ error: error.message }, { status: 404 });
+    }
+    if (error instanceof InvalidEntryStateError) {
+      return json({ error: error.message }, { status: 409 });
+    }
     console.error('Error recording result:', error);
     return json({ error: 'Failed to record result' }, { status: 500 });
   }
@@ -62,26 +41,7 @@ export const DELETE = async (event: RequestEvent) => {
       return json({ error: 'Invalid record ID' }, { status: 400 });
     }
 
-    // Enforce: undo-finish actions only allowed while category is LIVE
-    const record = await prisma.record.findUnique({
-      where: { id: recordId },
-      select: { category: { select: { status: true } } }
-    });
-    if (!record) {
-      return json({ error: 'Record not found' }, { status: 404 });
-    }
-    if (record.category.status !== CategoryStatus.LIVE) {
-      return json({ error: 'Undo-finish actions are only allowed while the category is LIVE' }, { status: 409 });
-    }
-
-    const updatedRecord = await prisma.record.update({
-      where: { id: recordId },
-      data: { finishTime: null },
-      include: {
-        users: true,
-        category: true
-      }
-    });
+    const updatedRecord = await undoFinishTime(recordId);
 
     await publishCompetitionEvent(updatedRecord.category.competitionId, 'record.unfinished', {
       recordId: updatedRecord.id,
@@ -91,6 +51,12 @@ export const DELETE = async (event: RequestEvent) => {
 
     return json({ record: updatedRecord });
   } catch (error) {
+    if (error instanceof EntryNotFoundError) {
+      return json({ error: error.message }, { status: 404 });
+    }
+    if (error instanceof InvalidEntryStateError) {
+      return json({ error: error.message }, { status: 409 });
+    }
     console.error('Error undoing record finish:', error);
     return json({ error: 'Failed to undo record finish' }, { status: 500 });
   }

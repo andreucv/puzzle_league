@@ -1,60 +1,17 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { getOnboardingFlags, hasMatchingUnclaimedIntents, getUnclaimedIntentsMatchingName, markUserIntentsChecked, markEmailVerificationSkipped, claimUserIntents } from '$lib/database/db_user';
+import { getOnboardingFlags, getUnclaimedIntentsMatchingName, claimUserIntents, markUserIntentsChecked, markEmailVerificationSkipped } from '$lib/database/db_user';
 import { saveLocaleForUser, skipLocalePrompt, isValidLocale } from '$lib/utils/locale_utils';
 import { validatePhone, savePhoneForUser } from '$lib/utils/phone_utils';
-
-/** Onboarding steps the wizard can show. Order matters. */
-export type OnboardingStep = 'language' | 'claim' | 'phone' | 'verify-email';
+import { resolveOnboardingSteps } from './services/onboarding-flow';
+export type { OnboardingStep } from './services/onboarding-flow';
 
 export const load: PageServerLoad = async ({ parent, locals }) => {
 	const { user } = await parent();
 
-	// Query onboarding-specific flags not available via getUserWithRoles
 	const dbUser = await getOnboardingFlags(user.id);
 
-	// Determine which steps are needed
-	const steps: OnboardingStep[] = [];
-
-	// Step 1: Language (if not yet set or prompted)
-	if (!user.localePromptLastChecked && !user.locale) {
-		steps.push('language');
-	}
-
-	// Step 2: Claim participations (only for new users with matching intents)
-	// Check if this user was already prompted for intents
-	if (dbUser && !dbUser.userIntentsLastChecked) {
-		const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-		if (new Date(dbUser.createdAt) > fiveMinutesAgo) {
-			const userName = dbUser.name;
-			if (userName) {
-				const hasMatch = await hasMatchingUnclaimedIntents(userName);
-				if (hasMatch) {
-					steps.push('claim');
-				} else {
-					// No matches — mark as checked so hooks don't re-evaluate
-					await markUserIntentsChecked(user.id);
-				}
-			} else {
-				// No user name — mark as checked
-				await markUserIntentsChecked(user.id);
-			}
-		} else {
-			// Not a new user — mark as checked
-			await markUserIntentsChecked(user.id);
-		}
-	}
-
-	// Step 3: Phone (if not yet set or prompted)
-	if (!user.phonePromptLastChecked && !user.phoneNumber) {
-		steps.push('phone');
-	}
-
-	// Step 4: Email verification (email/password users only, not yet verified or skipped)
-	const isEmailPasswordUser = dbUser ? dbUser.accounts.length > 0 : false;
-	if (isEmailPasswordUser && dbUser && !dbUser.emailVerified && !dbUser.emailVerificationPromptLastChecked) {
-		steps.push('verify-email');
-	}
+	const steps = await resolveOnboardingSteps(user, dbUser);
 
 	// If no onboarding steps needed, redirect to home
 	if (steps.length === 0) {

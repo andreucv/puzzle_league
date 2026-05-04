@@ -3,7 +3,7 @@
     import Icon from '@iconify/svelte';
     import Card from '$lib/components/common/card/Card.svelte';
     import { t } from '$lib/translations';
-    import { notificationState } from '../../../shareds/notifications.svelte';
+    import { notificationState } from '$lib/stores/notifications.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
 
     let notifications = $state<DbNotification[]>([]);

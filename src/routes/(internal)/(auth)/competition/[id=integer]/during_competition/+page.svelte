@@ -13,7 +13,7 @@
     import { untrack } from 'svelte';
     import type { CategoryData } from '$lib/types/category';
     import type { CategoryStatusChangedEvent } from '$lib/events/types';
-    import type { CategoryAction, CategoryActionResult } from '$lib/api/category-actions';
+    import type { CategoryAction, CategoryActionResult } from '$lib/components/during-competition/category-actions';
     import { showSuccessToast } from '$lib/utils/toast';
 
     let { data } = $props();

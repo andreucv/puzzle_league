@@ -5,7 +5,7 @@
     import { superForm } from 'sveltekit-superforms';
     import { FileUpload } from '@skeletonlabs/skeleton-svelte';
     import { CldImage } from 'svelte-cloudinary';
-    import LoadingOverlay from '$lib/components/LoadingOverlay.svelte';
+    import LoadingOverlay from '$lib/components/common/LoadingOverlay.svelte';
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
     import { t } from '$lib/translations';
 

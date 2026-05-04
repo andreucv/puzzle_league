@@ -3,7 +3,7 @@
     import type { RoleAssignment } from '$lib/.prisma/generated/prisma/browser';
     import { authClient } from "$lib/auth_client";
     import { goto } from "$app/navigation";
-    import UserCard from "$lib/components/UserCard.svelte";
+    import UserCard from "./components/UserCard.svelte";
 
     import {t} from '$lib/translations';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';

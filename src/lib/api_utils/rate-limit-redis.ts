@@ -16,7 +16,7 @@
  *      export const apiRateLimiter = createRateLimiter({ ..., store });
  */
 
-import type { RateLimitStore, RateLimitEntry } from '../utils/rate-limit';
+import type { RateLimitStore, RateLimitEntry } from './rate-limit';
 
 export class RedisRateLimitStore implements RateLimitStore {
   // private redis: Redis;

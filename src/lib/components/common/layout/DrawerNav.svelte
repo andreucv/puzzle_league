@@ -9,7 +9,7 @@
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import ShieldCheckOutlineIcon from '@iconify-svelte/mdi/shield-check-outline';
 
-    import { drawerState } from '../../shareds/drawer.svelte';
+    import { drawerState } from '$lib/stores/drawer.svelte';
     import { t } from '$lib/translations';
     import { page } from '$app/state';
 

@@ -1,6 +1,6 @@
 <script lang="ts">
     import Icon from '@iconify/svelte';
-    import SearchInput from '$lib/components/SearchInput.svelte';
+    import SearchInput from '$lib/components/common/SearchInput.svelte';
     import { CldImage } from 'svelte-cloudinary';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import { t } from '$lib/translations';

@@ -7,7 +7,7 @@
     let user = $derived(page.data.user);
     let currentPath = $derived(page.url.pathname);
 
-    import { drawerState } from '../../shareds/drawer.svelte';
+    import { drawerState } from '$lib/stores/drawer.svelte';
 
     // TODO: Replace with Ably subscription when notifications channel is implemented
     let hasUnread = $state(false);

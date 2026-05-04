@@ -68,17 +68,19 @@ describe('Login Page', () => {
 		await fireEvent.click(screen.getByTestId('create-account-link'));
 
 		const emailInput = screen.getByTestId('input-email');
+		const nameInput = screen.getByTestId('input-name');
 		const passwordInput = screen.getByTestId('input-password');
 		const confirmInput = screen.getByTestId('input-password-confirm');
 
 		await fireEvent.input(emailInput, { target: { value: 'test@example.com' } });
+		await fireEvent.input(nameInput, { target: { value: 'Test User' } });
 		await fireEvent.input(passwordInput, { target: { value: 'password1' } });
 		await fireEvent.input(confirmInput, { target: { value: 'password2' } });
 
 		await fireEvent.click(screen.getByTestId('register-submit'));
 
 		const errorEl = screen.getByTestId('login-error-message');
-		expect(errorEl.textContent).toBe('Passwords do not match');
+		expect(errorEl.textContent).toBe('auth.passwords_not_match');
 	});
 
 	it('can switch back to login mode from register mode', async () => {

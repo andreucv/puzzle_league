@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/svelte';
 
-vi.mock('$lib/translations', async () => import('../../tests/mocks/translations'));
-vi.mock('$lib/auth_client', async () => import('../../tests/mocks/auth_client'));
-vi.mock('$app/stores', async () => import('../../tests/mocks/app_stores'));
-vi.mock('../../shareds/drawer.svelte', () => ({
+vi.mock('$lib/translations', async () => import('../../../../tests/mocks/translations'));
+vi.mock('$lib/auth_client', async () => import('../../../../tests/mocks/auth_client'));
+vi.mock('$app/stores', async () => import('../../../../tests/mocks/app_stores'));
+vi.mock('$lib/stores/drawer.svelte', () => ({
 	drawerState: { open: false },
 }));
 

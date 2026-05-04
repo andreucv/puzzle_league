@@ -2,17 +2,17 @@ import type { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 
 /** Map NotificationType enum values to the translation key suffix. */
 const NOTIFICATION_TYPE_KEY: Record<string, string> = {
-	INSCRIPTION_CREATED: 'inscription_created',
-	INSCRIPTION_CONFIRMED: 'inscription_confirmed',
-	INSCRIPTION_CONFIRMED_TEAM: 'inscription_confirmed_team',
-	INSCRIPTION_CONFIRMED_NONPLATFORM: 'inscription_confirmed_nonplatform',
-	INSCRIPTION_REFUSED: 'inscription_refused',
-	INSCRIPTION_WAITLISTED: 'inscription_waitlisted',
+	REGISTRATION_CREATED: 'registration_created',
+	REGISTRATION_CONFIRMED: 'registration_confirmed',
+	REGISTRATION_CONFIRMED_TEAM: 'registration_confirmed_team',
+	REGISTRATION_CONFIRMED_NONPLATFORM: 'registration_confirmed_nonplatform',
+	REGISTRATION_REFUSED: 'registration_refused',
+	REGISTRATION_WAITLISTED: 'registration_waitlisted',
 	COMPETITION_STARTED: 'competition_started',
 	COMPETITION_CANCELLED: 'competition_cancelled',
 	ROLE_REQUEST_APPROVED: 'role_request_approved',
 	ROLE_REQUEST_REJECTED: 'role_request_rejected',
-	USER_INTENT_CLAIMED: 'user_intent_claimed',
+	EXTERNAL_PARTICIPANT_CLAIMED: 'external_participant_claimed',
 	TABLE_ASSIGNED: 'table_assigned',
 	PAYMENT_REMINDER: 'payment_reminder',
 	GENERAL: 'general',
@@ -45,7 +45,7 @@ async function loadTranslationsForLocale(locale: string): Promise<Record<string,
 
 /**
  * Resolve a dot-separated key from a nested object.
- * e.g. resolveKey(obj, 'notifications.titles.inscription_confirmed')
+ * e.g. resolveKey(obj, 'notifications.titles.registration_confirmed')
  */
 function resolveKey(obj: Record<string, unknown>, key: string): string | undefined {
 	let current: unknown = obj;

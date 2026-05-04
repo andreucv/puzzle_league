@@ -11,8 +11,8 @@ export interface CompetitionEventState {
 	categories: Array<{
 		id: number;
 		status: string;
-		totalRecords: number;
-		finishedRecords: number;
+		totalEntries: number;
+		finishedEntries: number;
 		realStartTime: string | null;
 		realEndTime: string | null;
 		extraMinutes: number;
@@ -106,12 +106,12 @@ export function applyCompetitionEvent(
 								status: event.status,
 								realStartTime: event.realStartTime !== undefined ? event.realStartTime : cat.realStartTime,
 								realEndTime: event.realEndTime !== undefined ? event.realEndTime : cat.realEndTime,
-								// On restart, reset finished records
-								finishedRecords:
-									event.status === 'LIVE' &&
-									(cat.status === 'COMPLETE' || cat.status === 'CANCELED' || cat.status === 'STOPPED')
-										? 0
-										: cat.finishedRecords
+							// On restart, reset finished entries
+							finishedEntries:
+								event.status === 'LIVE' &&
+								(cat.status === 'COMPLETE' || cat.status === 'CANCELED' || cat.status === 'STOPPED')
+									? 0
+									: cat.finishedEntries
 							}
 						: cat
 				)
@@ -123,7 +123,7 @@ export function applyCompetitionEvent(
 				version: nextEventVersion(),
 				categories: state.categories.map((cat) =>
 					cat.id === event.categoryId
-						? { ...cat, finishedRecords: cat.finishedRecords + 1 }
+					? { ...cat, finishedEntries: cat.finishedEntries + 1 }
 						: cat
 				)
 			};
@@ -134,7 +134,7 @@ export function applyCompetitionEvent(
 				version: nextEventVersion(),
 				categories: state.categories.map((cat) =>
 					cat.id === event.categoryId
-						? { ...cat, finishedRecords: Math.max(0, cat.finishedRecords - 1) }
+					? { ...cat, finishedEntries: Math.max(0, cat.finishedEntries - 1) }
 						: cat
 				)
 			};

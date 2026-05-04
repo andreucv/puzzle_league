@@ -78,18 +78,18 @@
     // (b) Partial — no finishTime, has nPiecesCompleted, sorted by nPiecesCompleted desc
     // (c) DNS — neither finishTime nor nPiecesCompleted
     const finishedRecords = $derived(
-        selectedCategory ? selectedCategory.records.filter((r) => r.finishTime != null) : []
+        selectedCategory ? selectedCategory.entries.filter((r) => r.finishTime != null) : []
     );
     const partialRecords = $derived(
         selectedCategory
-            ? selectedCategory.records
+            ? selectedCategory.entries
                 .filter((r) => r.finishTime == null && r.nPiecesCompleted != null)
                 .sort((a, b) => (b.nPiecesCompleted ?? 0) - (a.nPiecesCompleted ?? 0))
             : []
     );
     const dnsRecords = $derived(
         selectedCategory
-            ? selectedCategory.records.filter((r) => r.finishTime == null && r.nPiecesCompleted == null)
+            ? selectedCategory.entries.filter((r) => r.finishTime == null && r.nPiecesCompleted == null)
             : []
     );
 
@@ -104,7 +104,7 @@
     const puzzle: App.ResultPuzzleData | undefined = $derived(selectedCategory?.puzzles[0]);
 
     // Stats
-    const totalEntries = $derived(selectedCategory?._count.records ?? 0);
+    const totalEntries = $derived(selectedCategory?._count.entries ?? 0);
     const finishedCount = $derived(finishedRecords.length);
     const categoryDuration = $derived.by(() => {
         if (!selectedCategory?.realStartTime) return null;
@@ -409,7 +409,7 @@
                                                                 {/if}
                                                             </div>
                                                         {/each}
-                                                        {#each record.userIntents as ui}
+                                                        {#each record.externalParticipants as ui}
                                                             <div class="flex items-center gap-2">
                                                                 <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
                                                                     <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
@@ -492,7 +492,7 @@
                                                                     {/if}
                                                                 </div>
                                                             {/each}
-                                                            {#each record.userIntents as ui}
+                                                            {#each record.externalParticipants as ui}
                                                                 <div class="flex items-center gap-2">
                                                                     <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
                                                                         <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
@@ -551,7 +551,7 @@
                                                         {/if}
                                                     </div>
                                                 {/each}
-                                                {#each record.userIntents as ui}
+                                                {#each record.externalParticipants as ui}
                                                     <div class="flex items-center gap-2">
                                                         <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
                                                             <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
@@ -628,7 +628,7 @@
                                                             {/if}
                                                         </div>
                                                     {/each}
-                                                    {#each record.userIntents as ui}
+                                                    {#each record.externalParticipants as ui}
                                                         <div class="flex items-center gap-2">
                                                             <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
                                                                 <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />

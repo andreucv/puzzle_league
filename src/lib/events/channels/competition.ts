@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { InscriptionStatus } from '$lib/.prisma/generated/prisma/enums';
+import { RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
 import type { CompetitionEventState } from '../types';
 import crypto from 'node:crypto';
 
@@ -11,8 +11,8 @@ export function buildEventStateFromCategories(
 	categories: Array<{
 		id: number;
 		status: string;
-		totalRecords: number;
-		finishedRecords: number;
+		totalEntries: number;
+		finishedEntries: number;
 		realStartTime: Date | string | null;
 		realEndTime: Date | string | null;
 		extraMinutes?: number;
@@ -22,15 +22,15 @@ export function buildEventStateFromCategories(
 	const mapped = categories.map((c) => ({
 		id: c.id,
 		status: c.status,
-		totalRecords: c.totalRecords,
-		finishedRecords: c.finishedRecords,
+		totalEntries: c.totalEntries,
+		finishedEntries: c.finishedEntries,
 		realStartTime: c.realStartTime instanceof Date ? c.realStartTime.toISOString() : (c.realStartTime ?? null),
 		realEndTime: c.realEndTime instanceof Date ? c.realEndTime.toISOString() : (c.realEndTime ?? null),
 		extraMinutes: c.extraMinutes ?? 0,
 		autoStop: c.autoStop ?? false
 	}));
 
-	const versionPayload = mapped.map(c => `${c.id}:${c.status}:${c.finishedRecords}:${c.totalRecords}`).join('|');
+	const versionPayload = mapped.map(c => `${c.id}:${c.status}:${c.finishedEntries}:${c.totalEntries}`).join('|');
 	const version = crypto.createHash('md5').update(versionPayload).digest('hex').slice(0, 12);
 
 	return { version, categories: mapped };
@@ -49,7 +49,7 @@ export async function resolveCompetitionState(params: { id: number }): Promise<C
 			autoStop: true,
 			_count: {
 				select: {
-					records: { where: { status: InscriptionStatus.CONFIRMED } }
+					entries: { where: { status: RegistrationStatus.CONFIRMED } }
 				}
 			}
 		}
@@ -58,11 +58,11 @@ export async function resolveCompetitionState(params: { id: number }): Promise<C
 	const categoryIdList = categories.map(c => c.id);
 
 	// Single grouped query instead of N+1 individual counts
-	const finishedGroups = await prisma.record.groupBy({
+	const finishedGroups = await prisma.entry.groupBy({
 		by: ['categoryId'],
 		where: {
 			categoryId: { in: categoryIdList },
-			status: InscriptionStatus.CONFIRMED,
+			status: RegistrationStatus.CONFIRMED,
 			finishTime: { not: null }
 		},
 		_count: { id: true }
@@ -73,8 +73,8 @@ export async function resolveCompetitionState(params: { id: number }): Promise<C
 	const enriched = categories.map((cat) => ({
 		id: cat.id,
 		status: cat.status,
-		totalRecords: cat._count.records,
-		finishedRecords: finishedMap.get(cat.id) ?? 0,
+		totalEntries: cat._count.entries,
+		finishedEntries: finishedMap.get(cat.id) ?? 0,
 		realStartTime: cat.realStartTime?.toISOString() ?? null,
 		realEndTime: cat.realEndTime?.toISOString() ?? null,
 		extraMinutes: cat.extraMinutes,
@@ -82,7 +82,7 @@ export async function resolveCompetitionState(params: { id: number }): Promise<C
 	}));
 
 	// Compute version hash from category data
-	const versionPayload = enriched.map(c => `${c.id}:${c.status}:${c.finishedRecords}:${c.totalRecords}`).join('|');
+	const versionPayload = enriched.map(c => `${c.id}:${c.status}:${c.finishedEntries}:${c.totalEntries}`).join('|');
 	const version = crypto.createHash('md5').update(versionPayload).digest('hex').slice(0, 12);
 
 	return { version, categories: enriched };

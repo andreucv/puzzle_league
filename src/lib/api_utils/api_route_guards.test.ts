@@ -23,20 +23,20 @@ describe('extractIntId', () => {
 	});
 
 	it('returns null for UUID-only paths', () => {
-		expect(extractIntId('/api/records/abc-def-123/result')).toBeNull();
+		expect(extractIntId('/api/entries/abc-def-123/result')).toBeNull();
 	});
 });
 
 describe('extractStringId', () => {
-	it('extracts string ID from /api/records/abc-def-123/result', () => {
-		expect(extractStringId('/api/records/abc-def-123/result')).toBe('abc-def-123');
+	it('extracts string ID from /api/entries/abc-def-123/result', () => {
+		expect(extractStringId('/api/entries/abc-def-123/result')).toBe('abc-def-123');
 	});
 
 	it('extracts numeric-looking string from /api/competitions/42', () => {
 		expect(extractStringId('/api/competitions/42')).toBe('42');
 	});
 
-	it('returns null for bare /api/records', () => {
+	it('returns null for bare /api/entries', () => {
 		// The regex expects at least /api/<resource>/<id>
 		expect(extractStringId('/api/')).toBeNull();
 	});

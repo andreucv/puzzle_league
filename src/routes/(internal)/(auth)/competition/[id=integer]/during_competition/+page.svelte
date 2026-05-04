@@ -1,7 +1,7 @@
 <script lang="ts">
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
     import CategoryCard from '$lib/components/during-competition/CategoryCard.svelte';
-    import CollapsibleSection from '$lib/components/manage_inscriptions/CollapsibleSection.svelte';
+    import CollapsibleSection from '$lib/components/manage_registrations/CollapsibleSection.svelte';
     import { useAblyStream } from '$lib/events/client/use-ably-stream.svelte';
     import PlayCircleOutlineIcon from '@iconify-svelte/mdi/play-circle-outline';
     import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
@@ -60,8 +60,8 @@
             return {
                 ...cat,
                 status: liveCat.status,
-                totalRecords: liveCat.totalRecords,
-                finishedRecords: liveCat.finishedRecords,
+                totalEntries: liveCat.totalEntries,
+                finishedEntries: liveCat.finishedEntries,
                 realStartTime: liveCat.realStartTime ?? cat.realStartTime,
                 realEndTime: liveCat.realEndTime ?? cat.realEndTime,
                 extraMinutes: liveCat.extraMinutes
@@ -104,7 +104,7 @@
         const state = ablyStream.state;
         if (!state) return new Map<number, string>();
         return new Map(state.categories.map(c =>
-            [c.id, `${c.status}:${c.finishedRecords}:${c.totalRecords}`]
+            [c.id, `${c.status}:${c.finishedEntries}:${c.totalEntries}`]
         ));
     });
 

@@ -8,7 +8,7 @@ import { sendEmail } from '$lib/emails/send_email_utils';
 
 /** Notification types that should also trigger an email. */
 const EMAIL_ENABLED_TYPES = new Set<NotificationType>([
-	NotificationType.INSCRIPTION_CONFIRMED,
+	NotificationType.REGISTRATION_CONFIRMED,
 	NotificationType.PAYMENT_REMINDER,
 ]);
 

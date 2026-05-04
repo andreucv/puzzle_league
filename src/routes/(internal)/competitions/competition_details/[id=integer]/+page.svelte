@@ -203,7 +203,7 @@
 
                 <!-- Action Buttons -->
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <EndPageActionButton icon={AccountPlusIcon} href="/competitions/competition_details/{competition?.id}/inscription" colorClass="preset-filled-success-500" disabled={!(currentUser && competition?.registrationOpen)} text={$t('competition_details.manage_inscription')} testId="signup-button" />
+                    <EndPageActionButton icon={AccountPlusIcon} href="/competitions/competition_details/{competition?.id}/registration" colorClass="preset-filled-success-500" disabled={!(currentUser && competition?.registrationOpen)} text={$t('competition_details.manage_registration')} testId="signup-button" />
                     {#if categories.some(c => c.status === 'LIVE' || c.status === 'STOPPED')}
                         <EndPageActionButton icon={FormatListBulletedIcon} href="/competitions/competition_details/{competition?.id}/results" text={$t('competition_details.view_live_results')} />
                     {/if}
@@ -212,7 +212,7 @@
                     {/if}
                     {#if isOrganizer}
                         <EndPageActionButton icon={PencilIcon} href="/competition/edit/{competition?.id}" text={$t('competition_details.edit_button')} />
-                        <EndPageActionButton icon={ClipboardCheckOutlineIcon} href="/competition/{competition?.id}/manage_inscriptions" text={$t('manage_inscriptions.title')} testId="manage-inscriptions-button" />
+                        <EndPageActionButton icon={ClipboardCheckOutlineIcon} href="/competition/{competition?.id}/manage_registrations" text={$t('manage_registrations.title')} testId="manage-inscriptions-button" />
                     {/if}
                     <EndPageActionButton icon={ArrowLeftIcon} href="/competitions/explore_competitions/" colorClass="preset-tonal" text={$t('competition_details.back_to_competitions_button')} />
                 </div>
@@ -224,7 +224,7 @@
                         <span>{$t('competition_details.registration_closed_banner')}</span>
                     </div>
                 {:else if !currentUser}
-                    <a href="/login?redirect={encodeURIComponent(`/competitions/competition_details/${competition?.id}/inscription`)}" class="flex items-center gap-2 p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-300 dark:border-primary-700 text-sm hover:opacity-80 transition-opacity">
+                    <a href="/login?redirect={encodeURIComponent(`/competitions/competition_details/${competition?.id}/registration`)}" class="flex items-center gap-2 p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-300 dark:border-primary-700 text-sm hover:opacity-80 transition-opacity">
                         <LoginIcon width="1.2rem" height="1.2rem" class="text-primary-500 shrink-0" />
                         <span>{$t('competition_details.login_to_register')}</span>
                     </a>

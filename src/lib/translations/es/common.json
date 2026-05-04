@@ -24,11 +24,11 @@
     "image_alt": "Imagen de puzzles",
     "your_last_results": "Tus últimos resultados",
     "no_last_results": "Aún no tienes resultados",
-    "my_inscriptions": "Mis Inscripciones",
+    "my_registrations": "Mis Inscripciones",
     "live_now": "En Directo",
     "no_live_competitions": "No hay competiciones en directo ahora",
     "no_near_competitions": "No hay próximas competiciones cerca de ti",
-    "inscription_status": {
+    "registration_status": {
       "pending_confirmation": "Pendiente de confirmación",
       "confirmed": "Confirmada",
       "waitlisted": "En espera",
@@ -200,7 +200,7 @@
   "competition_details": {
     "feature_not_available": "Función no dispoible actualmente",
     "seats_available": "plazas disponibles",
-    "manage_inscription": "Tu inscripción",
+    "manage_registration": "Tu inscripción",
     "no_categories": "Aún no se han añadido categorías a esta competición.",
     "organized_by": "Organizado por",
     "edit_button": "Edita la competición",
@@ -224,7 +224,7 @@
     "claim_selected": "Reclamar seleccionadas",
     "skip": "Omitir por ahora"
   },
-  "inscription": {
+  "registration": {
     "title": "Inscripción a categorías",
     "submitting": "Enviando inscripciones...",
     "registration_closed": "Las inscripciones están cerradas para esta competición.",
@@ -348,7 +348,7 @@
     "judges_copied": "Jueces copiados a todas las categorías.",
     "error": "Ha ocurrido un error. Inténtalo de nuevo."
   },
-  "manage_inscriptions": {
+  "manage_registrations": {
     "confirm_error": "Error al confirmar la inscripción",
     "confirmed": "Confirmada",
     "confirmed_success": "Inscripción confirmada con éxito.",
@@ -409,15 +409,15 @@
     "empty_detail": "Aquí te notificaremos cuando ocurra algo importante.",
     "just_now": "ahora mismo",
     "titles": {
-      "inscription_created": "Nueva inscripción",
-      "inscription_confirmed": "Inscripción confirmada",
-      "inscription_confirmed_team": "Inscripción confirmada",
-      "inscription_confirmed_nonplatform": "Inscripción confirmada",
-      "inscription_refused": "Inscripción rechazada",
-      "inscription_waitlisted": "Inscripción en lista de espera",
+      "registration_created": "Nueva inscripción",
+      "registration_confirmed": "Inscripción confirmada",
+      "registration_confirmed_team": "Inscripción confirmada",
+      "registration_confirmed_nonplatform": "Inscripción confirmada",
+      "registration_refused": "Inscripción rechazada",
+      "registration_waitlisted": "Inscripción en lista de espera",
       "competition_started": "Competición iniciada",
       "competition_cancelled": "Competición cancelada",
-      "user_intent_claimed": "Participante reclamado",
+      "external_participant_claimed": "Participante reclamado",
       "role_request_approved": "Solicitud de rol aprobada",
       "role_request_rejected": "Solicitud de rol rechazada",
       "table_assigned": "Mesa asignada",
@@ -430,15 +430,15 @@
       "payment_reminder_team_with_note": "Recordatorio de pago"
     },
     "messages": {
-      "inscription_created": "Has sido registrado en {{categoryName}} en {{competitionName}} por {{registeredBy}}.",
-      "inscription_confirmed": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} ha sido confirmada por {{confirmedBy}}.",
-      "inscription_confirmed_team": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} ha sido confirmada por {{confirmedBy}}. Tus compañeros de equipo: {{teammateNames}}.",
-      "inscription_confirmed_nonplatform": "La inscripción de {{participantNames}} en la categoría {{categoryName}} de la competición {{competitionName}} ha sido confirmada por {{confirmedBy}}.",
-      "inscription_refused": "Tu inscripción para {{categoryName}} ha sido rechazada.",
-      "inscription_waitlisted": "Tu inscripción para {{categoryName}} está en lista de espera. La categoría está llena.",
+      "registration_created": "Has sido registrado en {{categoryName}} en {{competitionName}} por {{registeredBy}}.",
+      "registration_confirmed": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} ha sido confirmada por {{confirmedBy}}.",
+      "registration_confirmed_team": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} ha sido confirmada por {{confirmedBy}}. Tus compañeros de equipo: {{teammateNames}}.",
+      "registration_confirmed_nonplatform": "La inscripción de {{participantNames}} en la categoría {{categoryName}} de la competición {{competitionName}} ha sido confirmada por {{confirmedBy}}.",
+      "registration_refused": "Tu inscripción para {{categoryName}} ha sido rechazada.",
+      "registration_waitlisted": "Tu inscripción para {{categoryName}} está en lista de espera. La categoría está llena.",
       "competition_started": "¡La competición {{competitionName}} ha comenzado!",
       "competition_cancelled": "La competición {{competitionName}} ha sido cancelada.",
-      "user_intent_claimed": "{{intentName}} ha sido reclamado por un usuario registrado y ahora está vinculado a su cuenta.",
+      "external_participant_claimed": "{{intentName}} ha sido reclamado por un usuario registrado y ahora está vinculado a su cuenta.",
       "role_request_approved": "Tu solicitud para el rol {{roleName}} ha sido aprobada.",
       "role_request_rejected": "Tu solicitud para el rol {{roleName}} ha sido rechazada.",
       "table_assigned": "{{participantName}}, se te ha asignado la Mesa {{tableNumber}} para la categoría {{categoryName}} en la competición {{competitionName}}.",

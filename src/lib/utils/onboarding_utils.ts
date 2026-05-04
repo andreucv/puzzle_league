@@ -18,7 +18,7 @@ export async function hasIncompleteOnboarding(userId: string): Promise<boolean> 
 			localePromptLastChecked: true,
 			phoneNumber: true,
 			phonePromptLastChecked: true,
-			userIntentsLastChecked: true,
+			externalParticipantsLastChecked: true,
 			emailVerified: true,
 			emailVerificationPromptLastChecked: true,
 			accounts: {
@@ -33,11 +33,11 @@ export async function hasIncompleteOnboarding(userId: string): Promise<boolean> 
 
 	const needsLocale = !user.localePromptLastChecked && !user.locale;
 	const needsPhone = !user.phonePromptLastChecked && !user.phoneNumber;
-	const needsIntentCheck = !user.userIntentsLastChecked;
+	const needsExternalParticipantCheck = !user.externalParticipantsLastChecked;
 
 	// Email verification only applies to email/password users (providerId = 'credential')
 	const isEmailPasswordUser = user.accounts.length > 0;
 	const needsEmailVerification = isEmailPasswordUser && !user.emailVerified && !user.emailVerificationPromptLastChecked;
 
-	return needsLocale || needsPhone || needsIntentCheck || needsEmailVerification;
+	return needsLocale || needsPhone || needsExternalParticipantCheck || needsEmailVerification;
 }

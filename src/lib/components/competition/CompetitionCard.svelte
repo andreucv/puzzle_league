@@ -25,7 +25,7 @@
     import CheckAllIcon from '@iconify-svelte/mdi/check-all';
     import DoorOpenIcon from '@iconify-svelte/mdi/door-open';
     import DoorClosedLockIcon from '@iconify-svelte/mdi/door-closed-lock';
-    import { getInscriptionStatusChipClass, getInscriptionStatusIcon } from '$lib/utils/inscription_utils';
+    import { getRegistrationStatusChipClass, getRegistrationStatusIcon } from '$lib/utils/registration_utils';
 
     interface Props {
         competition: Competition & {
@@ -82,7 +82,7 @@
     }
 
     // Get the inscription status for the current user in a category
-    function getUserInscriptionStatus(category: any): string | null {
+    function getUserRegistrationStatus(category: any): string | null {
         if (!currentUserId || !category.records) return null;
         const record = category.records.find((r: any) =>
             r.users?.some((u: any) => u.id === currentUserId)
@@ -190,11 +190,11 @@
                     <div class="flex items-center gap-1.5 flex-wrap">
                         {#each competition.categories as category (category.id)}
                             {@const registered = isUserInCategory(category)}
-                            {@const status = getUserInscriptionStatus(category)}
+                            {@const status = getUserRegistrationStatus(category)}
                             {@const CategoryIcon = categoryTypeIcons[category.type] ?? ShapeIcon}
-                            {@const StatusIcon = registered && status ? getInscriptionStatusIcon(status) : null}
+                            {@const StatusIcon = registered && status ? getRegistrationStatusIcon(status) : null}
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs
-                                {registered ? getInscriptionStatusChipClass(status) : 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'}">
+                                {registered ? getRegistrationStatusChipClass(status) : 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'}">
                                 <CategoryIcon width="0.8rem" height="0.8rem" />
                                 {getCategoryTypeName(category.type as any)}
                                 {#if StatusIcon}

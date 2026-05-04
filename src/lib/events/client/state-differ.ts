@@ -56,11 +56,11 @@ export function diffCompetitionState(
 		}
 
 		// Record progress
-		if (cat.finishedRecords > prevCat.finishedRecords) {
+		if (cat.finishedEntries > prevCat.finishedEntries) {
 			changes.push({
 				type: 'new_finishes',
 				categoryId: cat.id,
-				count: cat.finishedRecords - prevCat.finishedRecords
+				count: cat.finishedEntries - prevCat.finishedEntries
 			});
 		}
 	}

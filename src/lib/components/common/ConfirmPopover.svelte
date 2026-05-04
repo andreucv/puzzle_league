@@ -132,7 +132,7 @@
                 onclick={onCancel}
             >
                 <CloseIcon width="1rem" height="1rem" />
-                {$t('manage_inscriptions.cancel_button')}
+                {$t('manage_registrations.cancel_button')}
             </button>
             <button
                 type="button"
@@ -146,7 +146,7 @@
                 {:else}
                     <CheckIcon width="1rem" height="1rem" />
                 {/if}
-                {$t('manage_inscriptions.confirm_button')}
+                {$t('manage_registrations.confirm_button')}
             </button>
         </div>
     </div>

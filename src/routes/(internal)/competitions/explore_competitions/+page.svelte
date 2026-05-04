@@ -31,19 +31,19 @@
 
     // Tab definitions with counts
     const tabs = $derived([
-        { id: 'ALL', label: $t('manage_inscriptions.all'), count: competitions.length },
-        { id: 'NOT_STARTED', label: $t('manage_inscriptions.soon'), count: competitions.filter(c => c.status === 'NOT_STARTED').length },
-        { id: 'STARTED', label: $t('manage_inscriptions.live'), count: competitions.filter(c => c.status === 'STARTED').length },
-        { id: 'FINISHED', label: $t('manage_inscriptions.past'), count: competitions.filter(c => c.status === 'FINISHED' || c.status === 'CANCELLED').length },
+        { id: 'ALL', label: $t('manage_registrations.all'), count: competitions.length },
+        { id: 'NOT_STARTED', label: $t('manage_registrations.soon'), count: competitions.filter(c => c.status === 'NOT_STARTED').length },
+        { id: 'STARTED', label: $t('manage_registrations.live'), count: competitions.filter(c => c.status === 'STARTED').length },
+        { id: 'FINISHED', label: $t('manage_registrations.past'), count: competitions.filter(c => c.status === 'FINISHED' || c.status === 'CANCELLED').length },
     ]);
 
     // Smart preset definitions
     const presets = $derived([
-        { id: 'this-week', label: $t('manage_inscriptions.7-days'), icon: 'mdi:calendar-week' },
-        { id: 'this-month', label: $t('manage_inscriptions.30-days'), icon: 'mdi:calendar-week' },
-        { id: 'registered', label: $t('inscription.registered'), icon: 'mdi:account-check', disabled: !hasRegistrations },
-        { id: 'near-me', label: $t('manage_inscriptions.near-me'), icon: 'mdi:map-marker-radius', disabled: !hasUserLocation },
-        { id: 'open-registration', label: $t('manage_inscriptions.open'), icon: 'mdi:door-open' },
+        { id: 'this-week', label: $t('manage_registrations.7-days'), icon: 'mdi:calendar-week' },
+        { id: 'this-month', label: $t('manage_registrations.30-days'), icon: 'mdi:calendar-week' },
+        { id: 'registered', label: $t('registration.registered'), icon: 'mdi:account-check', disabled: !hasRegistrations },
+        { id: 'near-me', label: $t('manage_registrations.near-me'), icon: 'mdi:map-marker-radius', disabled: !hasUserLocation },
+        { id: 'open-registration', label: $t('manage_registrations.open'), icon: 'mdi:door-open' },
     ]);
 
     // Filtered competitions based on all filters

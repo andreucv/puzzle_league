@@ -1,10 +1,10 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { CategoryStatus, CompetitionStatus, InscriptionStatus } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, CompetitionStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
 import { publishCompetitionEvent } from '$lib/events/server/ably';
 import { createNotificationForUsers } from '$lib/notifications/notifications';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
-import { notifyTableAssignments, notifyPaymentReminder } from '$lib/notifications/inscription_notifications';
-import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/inscription';
+import { notifyTableAssignments, notifyPaymentReminder } from '$lib/notifications/registration_notifications';
+import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/registration';
 import type { AutoStopScheduler } from './auto-stop-scheduler';
 
 interface AutoStopOptions {
@@ -37,7 +37,7 @@ interface CategoryWithCounts {
 	status: string;
 	realStartTime: Date | null;
 	realEndTime: Date | null;
-	totalRecords: number;
+	totalEntries: number;
 	finishedRecords: number;
 	[key: string]: unknown;
 }
@@ -60,16 +60,16 @@ async function findCategoryOrThrow(categoryId: number) {
 	return category;
 }
 
-async function getRecordCounts(categoryId: number): Promise<{ totalRecords: number; finishedRecords: number }> {
-	const [totalRecords, finishedRecords] = await Promise.all([
-		prisma.record.count({
-			where: { categoryId, status: InscriptionStatus.CONFIRMED }
+async function getEntryCounts(categoryId: number): Promise<{ totalEntries: number; finishedRecords: number }> {
+	const [totalEntries, finishedRecords] = await Promise.all([
+		prisma.entry.count({
+			where: { categoryId, status: RegistrationStatus.CONFIRMED }
 		}),
-		prisma.record.count({
-			where: { categoryId, status: InscriptionStatus.CONFIRMED, finishTime: { not: null } }
+		prisma.entry.count({
+			where: { categoryId, status: RegistrationStatus.CONFIRMED, finishTime: { not: null } }
 		})
 	]);
-	return { totalRecords, finishedRecords };
+	return { totalEntries, finishedRecords };
 }
 
 async function publishStatusChanged(
@@ -87,7 +87,7 @@ async function publishStatusChanged(
 }
 
 export async function startCategory(categoryId: number, options?: StartAutoStopOptions): Promise<CategoryWithCounts> {
-	const { totalRecords, finishedRecords } = await getRecordCounts(categoryId);
+	const { totalEntries, finishedRecords } = await getEntryCounts(categoryId);
 
 	const updatedCategory = await prisma.category.update({
 		where: { id: categoryId },
@@ -113,7 +113,7 @@ export async function startCategory(categoryId: number, options?: StartAutoStopO
 			select: { name: true }
 		});
 
-		const participantIds = await prisma.record.findMany({
+		const participantIds = await prisma.entry.findMany({
 			where: { category: { competitionId: updatedCategory.competitionId } },
 			select: { users: { select: { id: true } } }
 		});
@@ -141,7 +141,7 @@ export async function startCategory(categoryId: number, options?: StartAutoStopO
 		await options.scheduler.scheduleAutoStop(categoryId, updatedCategory.competitionId, options.deadline);
 	}
 
-	return { ...updatedCategory, totalRecords, finishedRecords };
+	return { ...updatedCategory, totalEntries, finishedRecords };
 }
 
 export async function stopCategory(categoryId: number, options?: AutoStopOptions): Promise<CategoryWithCounts> {
@@ -162,7 +162,7 @@ export async function stopCategory(categoryId: number, options?: AutoStopOptions
 		endTime = new Date();
 	}
 
-	const [updatedCategory, totalRecords, finishedRecords] = await prisma.$transaction([
+	const [updatedCategory, totalEntries, finishedRecords] = await prisma.$transaction([
 		prisma.category.update({
 			where: { id: categoryId },
 			data: {
@@ -170,11 +170,11 @@ export async function stopCategory(categoryId: number, options?: AutoStopOptions
 				status: CategoryStatus.STOPPED
 			}
 		}),
-		prisma.record.count({
-			where: { categoryId, status: InscriptionStatus.CONFIRMED }
+		prisma.entry.count({
+			where: { categoryId, status: RegistrationStatus.CONFIRMED }
 		}),
-		prisma.record.count({
-			where: { categoryId, status: InscriptionStatus.CONFIRMED, finishTime: { not: null } }
+		prisma.entry.count({
+			where: { categoryId, status: RegistrationStatus.CONFIRMED, finishTime: { not: null } }
 		})
 	]);
 
@@ -188,7 +188,7 @@ export async function stopCategory(categoryId: number, options?: AutoStopOptions
 		await options.scheduler.cancelAutoStop(categoryId);
 	}
 
-	return { ...updatedCategory, totalRecords, finishedRecords };
+	return { ...updatedCategory, totalEntries, finishedRecords };
 }
 
 export async function cancelCategory(categoryId: number, options?: AutoStopOptions): Promise<CategoryWithCounts> {
@@ -213,8 +213,8 @@ export async function cancelCategory(categoryId: number, options?: AutoStopOptio
 		await options.scheduler.cancelAutoStop(categoryId);
 	}
 
-	const { totalRecords, finishedRecords } = await getRecordCounts(categoryId);
-	return { ...updatedCategory, totalRecords, finishedRecords };
+	const { totalEntries, finishedRecords } = await getEntryCounts(categoryId);
+	return { ...updatedCategory, totalEntries, finishedRecords };
 }
 
 export async function completeCategory(categoryId: number): Promise<CategoryWithCounts> {
@@ -249,8 +249,8 @@ export async function completeCategory(categoryId: number): Promise<CategoryWith
 
 	await publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status);
 
-	const { totalRecords, finishedRecords } = await getRecordCounts(categoryId);
-	return { ...updatedCategory, totalRecords, finishedRecords };
+	const { totalEntries, finishedRecords } = await getEntryCounts(categoryId);
+	return { ...updatedCategory, totalEntries, finishedRecords };
 }
 
 export async function resumeCategory(categoryId: number): Promise<CategoryWithCounts> {
@@ -268,13 +268,13 @@ export async function resumeCategory(categoryId: number): Promise<CategoryWithCo
 		}
 	});
 
-	const { totalRecords, finishedRecords } = await getRecordCounts(categoryId);
+	const { totalEntries, finishedRecords } = await getEntryCounts(categoryId);
 
 	await publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status, {
 		realEndTime: null
 	});
 
-	return { ...updatedCategory, totalRecords, finishedRecords };
+	return { ...updatedCategory, totalEntries, finishedRecords };
 }
 
 export async function restartCategory(categoryId: number, options?: AutoStopOptions): Promise<CategoryWithCounts> {
@@ -297,8 +297,8 @@ export async function restartCategory(categoryId: number, options?: AutoStopOpti
 				realEndTime: null
 			}
 		}),
-		prisma.record.updateMany({
-			where: { categoryId, status: InscriptionStatus.CONFIRMED },
+		prisma.entry.updateMany({
+			where: { categoryId, status: RegistrationStatus.CONFIRMED },
 			data: {
 				finishTime: null,
 				nPiecesCompleted: null
@@ -306,8 +306,8 @@ export async function restartCategory(categoryId: number, options?: AutoStopOpti
 		})
 	]);
 
-	const totalRecords = await prisma.record.count({
-		where: { categoryId, status: InscriptionStatus.CONFIRMED }
+	const totalEntries = await prisma.entry.count({
+		where: { categoryId, status: RegistrationStatus.CONFIRMED }
 	});
 
 	await publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status, {
@@ -327,7 +327,7 @@ export async function restartCategory(categoryId: number, options?: AutoStopOpti
 		}
 	}
 
-	return { ...updatedCategory, totalRecords, finishedRecords: 0 };
+	return { ...updatedCategory, totalEntries, finishedRecords: 0 };
 }
 
 // ---------------------------------------------------------------------------
@@ -405,15 +405,15 @@ export async function publishTableAssignments(categoryId: number) {
 
 	if (!category) throw new CategoryNotFoundError(categoryId);
 
-	const records = await prisma.record.findMany({
-		where: { categoryId, status: InscriptionStatus.CONFIRMED },
+	const records = await prisma.entry.findMany({
+		where: { categoryId, status: RegistrationStatus.CONFIRMED },
 		orderBy: [{ confirmedAt: 'asc' }, { createdAt: 'asc' }],
 		select: {
 			id: true,
 			tableNumber: true,
 			creatorId: true,
 			users: { select: { id: true, name: true } },
-			userIntents: { select: { name: true } }
+			externalParticipants: { select: { name: true } }
 		}
 	});
 
@@ -427,7 +427,7 @@ export async function publishTableAssignments(categoryId: number) {
 	// Reassign table numbers sequentially (compacting any gaps)
 	await prisma.$transaction(
 		records.map((record, index) =>
-			prisma.record.update({
+			prisma.entry.update({
 				where: { id: record.id },
 				data: { tableNumber: index + 1 }
 			})
@@ -461,10 +461,10 @@ export async function remindPendingPayments(
 ) {
 	const cooldownThreshold = new Date(Date.now() - PAYMENT_REMINDER_COOLDOWN_MS);
 
-	const eligibleRecords = await prisma.record.findMany({
+	const eligibleEntries = await prisma.entry.findMany({
 		where: {
 			categoryId,
-			status: InscriptionStatus.PENDING_CONFIRMATION,
+			status: RegistrationStatus.PENDING_CONFIRMATION,
 			OR: [
 				{ lastRemindedAt: null },
 				{ lastRemindedAt: { lt: cooldownThreshold } }
@@ -481,28 +481,28 @@ export async function remindPendingPayments(
 				}
 			},
 			users: { select: { id: true, name: true } },
-			userIntents: { select: { name: true } }
+			externalParticipants: { select: { name: true } }
 		}
 	});
 
-	const totalPending = await prisma.record.count({
-		where: { categoryId, status: InscriptionStatus.PENDING_CONFIRMATION }
+	const totalPending = await prisma.entry.count({
+		where: { categoryId, status: RegistrationStatus.PENDING_CONFIRMATION }
 	});
 
-	const skippedCount = totalPending - eligibleRecords.length;
+	const skippedCount = totalPending - eligibleEntries.length;
 
-	if (eligibleRecords.length === 0) {
+	if (eligibleEntries.length === 0) {
 		return { remindedCount: 0, skippedCount };
 	}
 
 	const now = new Date();
-	await prisma.record.updateMany({
-		where: { id: { in: eligibleRecords.map((r) => r.id) } },
+	await prisma.entry.updateMany({
+		where: { id: { in: eligibleEntries.map((r) => r.id) } },
 		data: { lastRemindedAt: now }
 	});
 
 	const remindedCount = await notifyPaymentReminder(
-		eligibleRecords,
+		eligibleEntries,
 		options?.actorName,
 		options?.note
 	);

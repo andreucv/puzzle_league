@@ -57,7 +57,7 @@ declare global {
             image: string | null;
             publicResultsVisibility: boolean;
         }
-        interface ResultUserIntent {
+        interface ResultExternalParticipant {
             id: string;
             name: string;
         }
@@ -67,7 +67,7 @@ declare global {
             tableNumber: number | null;
             nPiecesCompleted: number | null;
             users: ResultRecordUser[];
-            userIntents: ResultUserIntent[];
+            externalParticipants: ResultExternalParticipant[];
         }
         interface ResultCategory {
             id: number;
@@ -79,8 +79,8 @@ declare global {
             realStartTime: Date | null;
             realEndTime: Date | null;
             puzzles: ResultPuzzleData[];
-            records: ResultRecord[];
-            _count: { records: number };
+            entries: ResultRecord[];
+            _count: { entries: number };
         }
     }
 }

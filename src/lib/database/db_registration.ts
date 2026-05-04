@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { CategoryStatus, InscriptionStatus, NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, RegistrationStatus, NotificationType } from '$lib/.prisma/generated/prisma/enums';
 import { getMaxRecordsPerCategory } from '$lib/utils/category_utils';
 import { createNotification } from '$lib/notifications/notifications';
 
@@ -10,14 +10,14 @@ import { createNotification } from '$lib/notifications/notifications';
 interface CategorySignup {
     categoryId: number;
     teammateIds: string[];
-    userIntentNames?: string[];  // new non-registered participants to create
-    userIntentIds?: string[];    // existing unclaimed UserIntents to reuse
+    externalParticipantNames?: string[];  // new non-registered participants to create
+    externalParticipantIds?: string[];    // existing unclaimed ExternalParticipants to reuse
     registeredBySelf?: boolean; // default true; set false when currentUser is not a party member
 }
 
 // ---------------------------------------------------------------------------
 // Registration mutations — sign-up, unregister, confirm, refuse.
-// Split from the former db_inscription_utils.ts to separate orchestration
+// Split from the former db_registration_utils.ts to separate orchestration
 // concerns from read-only query concerns (now in db_entry.ts).
 // ---------------------------------------------------------------------------
 
@@ -66,7 +66,7 @@ export async function signUpUsersToCompetition(
             for (const [catId, batchCount] of batchCountPerCategory) {
                 const category = categories.find(c => c.id === catId)!;
                 const maxRecords = getMaxRecordsPerCategory(category.type);
-                const existingCount = await tx.record.count({
+                const existingCount = await tx.entry.count({
                     where: {
                         categoryId: catId,
                         creatorId: currentUserId
@@ -98,13 +98,13 @@ export async function signUpUsersToCompetition(
                 const allPartyUserIds = signup.registeredBySelf === false
                     ? [...signup.teammateIds]
                     : [currentUserId, ...signup.teammateIds];
-                const intentNames = signup.userIntentNames || [];
-                const intentIds = signup.userIntentIds || [];
-                const totalPartySize = allPartyUserIds.length + intentNames.length + intentIds.length;
+                const extParticipantNames = signup.externalParticipantNames || [];
+                const extParticipantIds = signup.externalParticipantIds || [];
+                const totalPartySize = allPartyUserIds.length + extParticipantNames.length + extParticipantIds.length;
 
-                // Check that no user in this party is already inscribed in the category
+                // Check that no user in this party is already registered in the category
                 if (allPartyUserIds.length > 0) {
-                    const alreadyInscribed = await tx.record.findMany({
+                    const alreadyRegistered = await tx.entry.findMany({
                         where: {
                             categoryId: signup.categoryId,
                             users: { some: { id: { in: allPartyUserIds } } }
@@ -113,22 +113,22 @@ export async function signUpUsersToCompetition(
                             users: { select: { id: true, name: true } }
                         }
                     });
-                    if (alreadyInscribed.length > 0) {
-                        const duplicateUsers = alreadyInscribed
+                    if (alreadyRegistered.length > 0) {
+                        const duplicateUsers = alreadyRegistered
                             .flatMap(r => r.users)
                             .filter(u => allPartyUserIds.includes(u.id));
                         const uniqueNames = [...new Set(duplicateUsers.map(u => u.name))];
-                        throw new Error(`User(s) already inscribed in category ${category.description || category.type}: ${uniqueNames.join(', ')}`);
+                        throw new Error(`User(s) already registered in category ${category.description || category.type}: ${uniqueNames.join(', ')}`);
                     }
                 }
 
-                if (intentIds.length > 0) {
-                    const validIntents = await tx.userIntent.findMany({
-                        where: { id: { in: intentIds }, claimedById: null, createdById: currentUserId },
+                if (extParticipantIds.length > 0) {
+                    const validExternalParticipants = await tx.externalParticipant.findMany({
+                        where: { id: { in: extParticipantIds }, claimedById: null, createdById: currentUserId },
                         select: { id: true }
                     });
-                    if (validIntents.length !== intentIds.length) {
-                        throw new Error('Some user intents were not found or are already claimed');
+                    if (validExternalParticipants.length !== extParticipantIds.length) {
+                        throw new Error('Some external participants were not found or are already claimed');
                     }
                 }
 
@@ -141,20 +141,20 @@ export async function signUpUsersToCompetition(
                 }
 
                 // Determine initial status: WAITLISTED when category is already full
-                let initialStatus = InscriptionStatus.PENDING_CONFIRMATION as InscriptionStatus;
+                let initialStatus = RegistrationStatus.PENDING_CONFIRMATION as RegistrationStatus;
                 if (category.maxParties) {
-                    const confirmedCount = await tx.record.count({
+                    const confirmedCount = await tx.entry.count({
                         where: {
                             categoryId: signup.categoryId,
-                            status: InscriptionStatus.CONFIRMED
+                            status: RegistrationStatus.CONFIRMED
                         }
                     });
                     if (confirmedCount >= category.maxParties) {
-                        initialStatus = InscriptionStatus.WAITLISTED;
+                        initialStatus = RegistrationStatus.WAITLISTED;
                     }
                 }
 
-                const record = await tx.record.create({
+                const record = await tx.entry.create({
                     data: {
                         categoryId: signup.categoryId,
                         creatorId: currentUserId,
@@ -162,15 +162,15 @@ export async function signUpUsersToCompetition(
                         users: {
                             connect: allPartyUserIds.map(id => ({ id }))
                         },
-                        userIntents: (intentNames.length > 0 || intentIds.length > 0) ? {
-                            ...(intentNames.length > 0 ? {
-                                create: intentNames.map(name => ({
+                        externalParticipants: (extParticipantNames.length > 0 || extParticipantIds.length > 0) ? {
+                            ...(extParticipantNames.length > 0 ? {
+                                create: extParticipantNames.map(name => ({
                                     name,
                                     createdById: currentUserId
                                 }))
                             } : {}),
-                            ...(intentIds.length > 0 ? {
-                                connect: intentIds.map(id => ({ id }))
+                            ...(extParticipantIds.length > 0 ? {
+                                connect: extParticipantIds.map(id => ({ id }))
                             } : {})
                         } : undefined
                     },
@@ -183,7 +183,7 @@ export async function signUpUsersToCompetition(
                                 image: true
                             }
                         },
-                        userIntents: {
+                        externalParticipants: {
                             select: {
                                 id: true,
                                 name: true
@@ -208,7 +208,7 @@ export async function signUpUsersToCompetition(
             return createdRecords;
         });
 
-        // Notify users (other than the current user) about the inscription
+        // Notify users (other than the current user) about the registration
         for (const record of result) {
             const otherUserIds = record.users
                 .map((u) => u.id)
@@ -222,9 +222,9 @@ export async function signUpUsersToCompetition(
                 otherUserIds.map((userId) =>
                     createNotification({
                         userId,
-                        type: NotificationType.INSCRIPTION_CREATED,
-                        title: 'notifications.titles.inscription_created',
-                        message: 'notifications.messages.inscription_created',
+                        type: NotificationType.REGISTRATION_CREATED,
+                        title: 'notifications.titles.registration_created',
+                        message: 'notifications.messages.registration_created',
                         link,
                         data: {
                             categoryName: categoryDesc,
@@ -257,7 +257,7 @@ export async function signUpUsersToCompetition(
 
 export async function removeUserFromCategory(categoryId: number, userId: string) {
     try {
-        const result = await prisma.record.deleteMany({
+        const result = await prisma.entry.deleteMany({
             where: {
                 categoryId,
                 users: {
@@ -277,7 +277,7 @@ export async function removeUserFromCategory(categoryId: number, userId: string)
 
 export async function removeRecordById(recordId: string, userId: string) {
     try {
-        const record = await prisma.record.findUnique({
+        const record = await prisma.entry.findUnique({
             where: { id: recordId },
             include: { users: { select: { id: true } } }
         });
@@ -293,11 +293,11 @@ export async function removeRecordById(recordId: string, userId: string) {
             throw new Error('Not authorized to delete this record');
         }
 
-        if (record.status !== InscriptionStatus.PENDING_CONFIRMATION && record.status !== InscriptionStatus.CONFIRMED && record.status !== InscriptionStatus.WAITLISTED) {
+        if (record.status !== RegistrationStatus.PENDING_CONFIRMATION && record.status !== RegistrationStatus.CONFIRMED && record.status !== RegistrationStatus.WAITLISTED) {
             throw new Error('Cannot unregister a record that is not pending confirmation, confirmed, or waitlisted');
         }
 
-        await prisma.record.delete({ where: { id: recordId } });
+        await prisma.entry.delete({ where: { id: recordId } });
         return { success: true };
     } catch (error) {
         console.error('Error removing record:', error);
@@ -306,13 +306,13 @@ export async function removeRecordById(recordId: string, userId: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Accept / Refuse inscriptions (organizer actions)
+// Accept / Refuse registrations (organizer actions)
 // ---------------------------------------------------------------------------
 
-export async function confirmInscription(recordId: string) {
+export async function confirmRegistration(recordId: string) {
     try {
         const result = await prisma.$transaction(async (tx) => {
-            const record = await tx.record.findUnique({
+            const record = await tx.entry.findUnique({
                 where: { id: recordId },
                 include: {
                     category: {
@@ -325,27 +325,27 @@ export async function confirmInscription(recordId: string) {
                 throw new Error('Record not found');
             }
 
-            if (record.status !== InscriptionStatus.PENDING_CONFIRMATION && record.status !== InscriptionStatus.WAITLISTED) {
-                throw new Error('Only pending or waitlisted inscriptions can be confirmed');
+            if (record.status !== RegistrationStatus.PENDING_CONFIRMATION && record.status !== RegistrationStatus.WAITLISTED) {
+                throw new Error('Only pending or waitlisted registrations can be confirmed');
             }
 
             if (record.category.maxParties) {
-                const confirmedCount = await tx.record.count({
+                const confirmedCount = await tx.entry.count({
                     where: {
                         categoryId: record.categoryId,
-                        status: InscriptionStatus.CONFIRMED
+                        status: RegistrationStatus.CONFIRMED
                     }
                 });
 
                 if (confirmedCount >= record.category.maxParties) {
-                    throw new Error('Category is full — maximum number of confirmed inscriptions reached');
+                    throw new Error('Category is full — maximum number of confirmed registrations reached');
                 }
             }
 
-            const updatedRecord = await tx.record.update({
+            const updatedRecord = await tx.entry.update({
                 where: { id: recordId },
                 data: {
-                    status: InscriptionStatus.CONFIRMED,
+                    status: RegistrationStatus.CONFIRMED,
                     confirmedAt: new Date()
                 },
                 include: {
@@ -360,7 +360,7 @@ export async function confirmInscription(recordId: string) {
 
         return { success: true, data: result };
     } catch (error) {
-        console.error('Error accepting inscription:', error);
+        console.error('Error accepting registration:', error);
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -368,10 +368,10 @@ export async function confirmInscription(recordId: string) {
     }
 }
 
-export async function refuseInscription(recordId: string) {
+export async function refuseRegistration(recordId: string) {
     try {
         // Fetch record with users before deletion (needed for notifications)
-        const record = await prisma.record.findUnique({
+        const record = await prisma.entry.findUnique({
             where: { id: recordId },
             include: {
                 users: {
@@ -387,18 +387,18 @@ export async function refuseInscription(recordId: string) {
             throw new Error('Record not found');
         }
 
-        if (record.status !== InscriptionStatus.PENDING_CONFIRMATION && record.status !== InscriptionStatus.WAITLISTED) {
-            throw new Error('Only pending confirmation or waitlisted inscriptions can be refused');
+        if (record.status !== RegistrationStatus.PENDING_CONFIRMATION && record.status !== RegistrationStatus.WAITLISTED) {
+            throw new Error('Only pending confirmation or waitlisted registrations can be refused');
         }
 
         // Delete the record from the database
-        await prisma.record.delete({
+        await prisma.entry.delete({
             where: { id: recordId }
         });
 
         return { success: true, data: record };
     } catch (error) {
-        console.error('Error refusing inscription:', error);
+        console.error('Error refusing registration:', error);
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error occurred'

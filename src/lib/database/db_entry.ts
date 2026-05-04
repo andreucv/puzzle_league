@@ -9,7 +9,7 @@ import { CategoryStatus } from '$lib/.prisma/generated/prisma/enums';
 
 export async function getCategoryEntriesFromCompetition(competitionId: number, userId: string) {
     try {
-        const records = await prisma.record.findMany({
+        const entries = await prisma.entry.findMany({
             where: {
                 category: {
                     competitionId
@@ -28,7 +28,7 @@ export async function getCategoryEntriesFromCompetition(competitionId: number, u
                         image: true
                     }
                 },
-                userIntents: {
+                externalParticipants: {
                     select: {
                         id: true,
                         name: true,
@@ -48,20 +48,20 @@ export async function getCategoryEntriesFromCompetition(competitionId: number, u
             }
         });
 
-        return records;
+        return entries;
     } catch (error) {
         console.error('Error getting parties from competition:', error);
         throw error;
     }
 }
 
-export async function getInscriptionsForCompetition(competitionId: number) {
+export async function getRegistrationsForCompetition(competitionId: number) {
     try {
         const categories = await prisma.category.findMany({
             where: { competitionId },
             orderBy: { startTime: 'asc' },
             include: {
-                records: {
+                entries: {
                     orderBy: [
                         { status: 'asc' },
                         { createdAt: 'asc' }
@@ -82,7 +82,7 @@ export async function getInscriptionsForCompetition(competitionId: number) {
                                 image: true
                             }
                         },
-                        userIntents: {
+                        externalParticipants: {
                             select: {
                                 id: true,
                                 name: true,
@@ -103,13 +103,13 @@ export async function getInscriptionsForCompetition(competitionId: number) {
 
         return categories;
     } catch (error) {
-        console.error('Error getting inscriptions for competition:', error);
+        console.error('Error getting registrations for competition:', error);
         throw error;
     }
 }
 
 export async function getInscribedUserIdsByCategory(competitionId: number): Promise<Record<number, string[]>> {
-    const records = await prisma.record.findMany({
+    const entries = await prisma.entry.findMany({
         where: {
             category: { competitionId },
         },
@@ -120,13 +120,13 @@ export async function getInscribedUserIdsByCategory(competitionId: number): Prom
     });
 
     const result: Record<number, string[]> = {};
-    for (const record of records) {
-        if (!result[record.categoryId]) {
-            result[record.categoryId] = [];
+    for (const entry of entries) {
+        if (!result[entry.categoryId]) {
+            result[entry.categoryId] = [];
         }
-        for (const user of record.users) {
-            if (!result[record.categoryId].includes(user.id)) {
-                result[record.categoryId].push(user.id);
+        for (const user of entry.users) {
+            if (!result[entry.categoryId].includes(user.id)) {
+                result[entry.categoryId].push(user.id);
             }
         }
     }
@@ -157,7 +157,7 @@ export async function recordFinishTime(
     finishTime?: string,
     tableNumber?: string
 ) {
-    const record = await prisma.record.findUnique({
+    const record = await prisma.entry.findUnique({
         where: { id: recordId },
         select: { category: { select: { status: true } } }
     });
@@ -167,7 +167,7 @@ export async function recordFinishTime(
         throw new InvalidEntryStateError('Finish actions are only allowed while the category is LIVE');
     }
 
-    return prisma.record.update({
+    return prisma.entry.update({
         where: { id: recordId },
         data: {
             finishTime: finishTime ? new Date(finishTime) : new Date(),
@@ -179,7 +179,7 @@ export async function recordFinishTime(
 
 /** Undo a finish time for an entry. Only allowed while the category is LIVE. */
 export async function undoFinishTime(recordId: string) {
-    const record = await prisma.record.findUnique({
+    const record = await prisma.entry.findUnique({
         where: { id: recordId },
         select: { category: { select: { status: true } } }
     });
@@ -189,7 +189,7 @@ export async function undoFinishTime(recordId: string) {
         throw new InvalidEntryStateError('Undo-finish actions are only allowed while the category is LIVE');
     }
 
-    return prisma.record.update({
+    return prisma.entry.update({
         where: { id: recordId },
         data: { finishTime: null },
         include: { users: true, category: true }
@@ -198,7 +198,7 @@ export async function undoFinishTime(recordId: string) {
 
 /** Update the piece count for a DNF entry. Only allowed while the category is STOPPED. */
 export async function updatePiecesCompleted(recordId: string, nPiecesCompleted: number) {
-    const record = await prisma.record.findUnique({
+    const record = await prisma.entry.findUnique({
         where: { id: recordId },
         select: { finishTime: true, category: { select: { status: true } } }
     });
@@ -211,7 +211,7 @@ export async function updatePiecesCompleted(recordId: string, nPiecesCompleted: 
         throw new InvalidEntryStateError('Pieces can only be set on DNF records (finishTime must be null)');
     }
 
-    return prisma.record.update({
+    return prisma.entry.update({
         where: { id: recordId },
         data: { nPiecesCompleted },
         include: { users: { select: { id: true, name: true, email: true } } }
@@ -220,7 +220,7 @@ export async function updatePiecesCompleted(recordId: string, nPiecesCompleted: 
 
 /** Reset the piece count for a DNF entry. Only allowed while the category is STOPPED. */
 export async function resetPiecesCompleted(recordId: string) {
-    const record = await prisma.record.findUnique({
+    const record = await prisma.entry.findUnique({
         where: { id: recordId },
         select: { nPiecesCompleted: true, finishTime: true, category: { select: { status: true } } }
     });
@@ -233,7 +233,7 @@ export async function resetPiecesCompleted(recordId: string) {
         throw new InvalidEntryStateError('Cannot reset pieces on a record with a finish time');
     }
 
-    return prisma.record.update({
+    return prisma.entry.update({
         where: { id: recordId },
         data: { nPiecesCompleted: null },
         include: { users: { select: { id: true, name: true, email: true } } }

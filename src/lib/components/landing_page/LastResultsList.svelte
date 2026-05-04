@@ -19,7 +19,7 @@
         image: string | null;
     }
 
-    interface ResultUserIntent {
+    interface ResultExternalParticipant {
         id: string;
         name: string;
     }
@@ -36,9 +36,9 @@
         nPiecesCompleted: number | null;
         position: number | null;
         totalFinished: number;
-        totalRecords: number;
+        totalEntries: number;
         users: ResultUser[];
-        userIntents: ResultUserIntent[];
+        externalParticipants: ResultExternalParticipant[];
         category: {
             id: number;
             description: string;
@@ -90,8 +90,8 @@
                 names.push(user.name);
             }
         }
-        for (const intent of result.userIntents) {
-            names.push(intent.name + ' *');
+        for (const ep of result.externalParticipants) {
+            names.push(ep.name + ' *');
         }
         return names;
     }

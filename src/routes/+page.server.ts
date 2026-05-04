@@ -1,6 +1,6 @@
 import type { PageServerLoad } from "./$types";
 import { getUpcomingRegisteredCompetitions, getParticipatedCompetitions, getStartedRegisteredCompetitions } from "$lib/database/db_competition";
-import { getNearCompetitions, getLastUserResults, getUserInscriptionStatuses } from "$lib/database/db_competition";
+import { getNearCompetitions, getLastUserResults, getUserRegistrationStatuses } from "$lib/database/db_competition";
 
 export const load: PageServerLoad = async ({ parent }) => {
 	const { user } = await parent();
@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ parent }) => {
 				nearCompetitions: null,
 				lastResults: null,
 				startedCompetitions: null,
-				inscriptionStatuses: null,
+				registrationStatuses: null,
 			}
 		};
 	}
@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ parent }) => {
 			nearCompetitions: getNearCompetitions(6, user.country ?? undefined, user?.postalCode ?? undefined, false, user.id),
 			lastResults: getLastUserResults(user.id, 5),
 			startedCompetitions: getStartedRegisteredCompetitions(user.id),
-			inscriptionStatuses: getUserInscriptionStatuses(user.id),
+			registrationStatuses: getUserRegistrationStatuses(user.id),
 		}
 	};
 };

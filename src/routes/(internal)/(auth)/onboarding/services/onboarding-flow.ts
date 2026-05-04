@@ -1,6 +1,6 @@
 import {
-	hasMatchingUnclaimedIntents,
-	markUserIntentsChecked
+	hasMatchingUnclaimedExternalParticipants,
+	markExternalParticipantsChecked
 } from '$lib/database/db_user';
 
 /** Onboarding steps the wizard can show. Order matters. */
@@ -16,7 +16,7 @@ interface UserOnboardingContext {
 interface DbUserOnboardingContext {
 	createdAt: Date;
 	name: string | null;
-	userIntentsLastChecked: Date | null;
+	externalParticipantsLastChecked: Date | null;
 	emailVerified: boolean;
 	emailVerificationPromptLastChecked: Date | null;
 	accounts: { id: string }[];
@@ -39,22 +39,22 @@ export async function resolveOnboardingSteps(
 	}
 
 	// Step 2: Claim participations (only for new users with matching intents)
-	if (dbUser && !dbUser.userIntentsLastChecked) {
+	if (dbUser && !dbUser.externalParticipantsLastChecked) {
 		const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
 		if (new Date(dbUser.createdAt) > fiveMinutesAgo) {
 			const userName = dbUser.name;
 			if (userName) {
-				const hasMatch = await hasMatchingUnclaimedIntents(userName);
+				const hasMatch = await hasMatchingUnclaimedExternalParticipants(userName);
 				if (hasMatch) {
 					steps.push('claim');
 				} else {
-					await markUserIntentsChecked(user.id);
+					await markExternalParticipantsChecked(user.id);
 				}
 			} else {
-				await markUserIntentsChecked(user.id);
+				await markExternalParticipantsChecked(user.id);
 			}
 		} else {
-			await markUserIntentsChecked(user.id);
+			await markExternalParticipantsChecked(user.id);
 		}
 	}
 

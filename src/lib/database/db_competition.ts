@@ -1,4 +1,4 @@
-import { CategoryStatus, CompetitionStatus, InscriptionStatus, Role } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, CompetitionStatus, RegistrationStatus, Role } from '$lib/.prisma/generated/prisma/enums';
 import type { Prisma } from '$lib/.prisma/generated/prisma/client';
 import type { Competition, Category } from '$lib/.prisma/generated/prisma/browser';
 import { prisma } from '$lib/database/create_prisma_client';
@@ -53,7 +53,7 @@ export async function getCompetitionWithCategoriesAndEntries(competitionId: numb
                     orderBy: { startTime: 'asc' },
                     include: {
                         puzzles: true,
-                        records: {
+                        entries: {
                             include: {
                                 users: {
                                     select: {
@@ -110,8 +110,8 @@ export async function getCompetitionResults(competitionId: number) {
                                 image_cld_id: true
                             }
                         },
-                        records: {
-                            where: { status: InscriptionStatus.CONFIRMED },
+                        entries: {
+                            where: { status: RegistrationStatus.CONFIRMED },
                             orderBy: [
                                 { finishTime: 'asc' },
                                 { nPiecesCompleted: 'desc' }
@@ -125,7 +125,7 @@ export async function getCompetitionResults(competitionId: number) {
                                         publicResultsVisibility: true
                                     }
                                 },
-                                userIntents: {
+                                externalParticipants: {
                                     select: {
                                         id: true,
                                         name: true
@@ -134,7 +134,7 @@ export async function getCompetitionResults(competitionId: number) {
                             }
                         },
                         _count: {
-                            select: { records: { where: { status: InscriptionStatus.CONFIRMED } } }
+                            select: { entries: { where: { status: RegistrationStatus.CONFIRMED } } }
                         }
                     }
                 }
@@ -150,7 +150,7 @@ export async function getCompetitionResults(competitionId: number) {
 
 export async function getCompetitionCategories(
     competitionId: number
-): Promise<Array<Category & { totalRecords: number; finishedRecords: number; pendingRecords: number; confirmedRecords: number }>> {
+): Promise<Array<Category & { totalEntries: number; finishedEntries: number; pendingEntries: number; confirmedEntries: number }>> {
     try {
         // Fetch categories and all record counts in parallel (2 queries instead of 4N+1)
         const [categories, statusCounts, finishedCounts] = await Promise.all([
@@ -160,18 +160,18 @@ export async function getCompetitionCategories(
                 include: { puzzles: { select: { pieces: true } } }
             }),
             // Group record counts by categoryId and status in a single query
-            prisma.record.groupBy({
+            prisma.entry.groupBy({
                 by: ['categoryId', 'status'],
                 _count: true,
                 where: { category: { competitionId } }
             }),
             // Count finished (confirmed + has finishTime) per category
-            prisma.record.groupBy({
+            prisma.entry.groupBy({
                 by: ['categoryId'],
                 _count: true,
                 where: {
                     category: { competitionId },
-                    status: InscriptionStatus.CONFIRMED,
+                    status: RegistrationStatus.CONFIRMED,
                     finishTime: { not: null }
                 }
             })
@@ -183,8 +183,8 @@ export async function getCompetitionCategories(
         const statusMap = new Map<number, { confirmed: number; pending: number }>();
         for (const row of statusCounts) {
             const entry = statusMap.get(row.categoryId) ?? { confirmed: 0, pending: 0 };
-            if (row.status === InscriptionStatus.CONFIRMED) entry.confirmed = row._count;
-            if (row.status === InscriptionStatus.PENDING_CONFIRMATION) entry.pending = row._count;
+            if (row.status === RegistrationStatus.CONFIRMED) entry.confirmed = row._count;
+            if (row.status === RegistrationStatus.PENDING_CONFIRMATION) entry.pending = row._count;
             statusMap.set(row.categoryId, entry);
         }
 
@@ -192,10 +192,10 @@ export async function getCompetitionCategories(
             const counts = statusMap.get(category.id) ?? { confirmed: 0, pending: 0 };
             return {
                 ...(category as unknown as Category),
-                totalRecords: counts.confirmed,
-                finishedRecords: finishedMap.get(category.id) ?? 0,
-                pendingRecords: counts.pending,
-                confirmedRecords: counts.confirmed,
+                totalEntries: counts.confirmed,
+                finishedEntries: finishedMap.get(category.id) ?? 0,
+                pendingEntries: counts.pending,
+                confirmedEntries: counts.confirmed,
             };
         });
     } catch (error) {
@@ -353,7 +353,7 @@ export async function getNearCompetitions(n_objects: number, country?: string, p
         whereClause.NOT = {
             categories: {
                 some: {
-                    records: {
+                    entries: {
                         some: {
                             OR: [
                                 { users: { some: { id: userId } } },
@@ -387,7 +387,7 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
     const whereClause: any = {
         categories: {
             some: {
-                records: {
+                entries: {
                     some: {
                         users: {
                             some: {
@@ -410,7 +410,7 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
             categories: {
                 orderBy: { startTime: 'asc' },
                 include: {
-                    records: {
+                    entries: {
                         where: {
                             users: {
                                 some: {
@@ -469,14 +469,14 @@ export async function getParticipatedCompetitions(userId: string) {
     }
 }
 
-export async function getUserInscriptionStatuses(userId: string) {
+export async function getUserRegistrationStatuses(userId: string) {
     const competitions = await prisma.competition.findMany({
         where: {
             status: { in: [CompetitionStatus.NOT_STARTED, CompetitionStatus.STARTED] },
             startDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
             categories: {
                 some: {
-                    records: { some: { users: { some: { id: userId } } } }
+                    entries: { some: { users: { some: { id: userId } } } }
                 }
             }
         },
@@ -490,7 +490,7 @@ export async function getUserInscriptionStatuses(userId: string) {
                 orderBy: { startTime: 'asc' },
                 select: {
                     type: true,
-                    records: {
+                    entries: {
                         where: { users: { some: { id: userId } } },
                         select: { status: true }
                     }
@@ -508,7 +508,7 @@ export async function getUserInscriptionStatuses(userId: string) {
         status: competition.status,
         categories: competition.categories.map((category) => ({
             type: category.type,
-            recordStatus: category.records[0]?.status ?? null
+            entryStatus: category.entries[0]?.status ?? null
         }))
     }));
 }
@@ -520,10 +520,10 @@ export async function getUserInscriptionStatuses(userId: string) {
  */
 export async function getLastUserResults(userId: string, limit: number = 5) {
     // First, find the user's records in completed categories
-    const userRecords = await prisma.record.findMany({
+    const userEntries = await prisma.entry.findMany({
         where: {
             users: { some: { id: userId } },
-            status: InscriptionStatus.CONFIRMED,
+            status: RegistrationStatus.CONFIRMED,
             category: {
                 status: CategoryStatus.COMPLETE,
                 competition: {
@@ -547,7 +547,7 @@ export async function getLastUserResults(userId: string, limit: number = 5) {
             users: {
                 select: { id: true, name: true, image: true }
             },
-            userIntents: {
+            externalParticipants: {
                 select: { id: true, name: true }
             },
             category: {
@@ -570,8 +570,8 @@ export async function getLastUserResults(userId: string, limit: number = 5) {
                         }
                     },
                     // Include all confirmed records for position computation
-                    records: {
-                        where: { status: InscriptionStatus.CONFIRMED },
+                    entries: {
+                        where: { status: RegistrationStatus.CONFIRMED },
                         orderBy: [
                             { finishTime: 'asc' },
                             { tableNumber: 'asc' }
@@ -587,8 +587,8 @@ export async function getLastUserResults(userId: string, limit: number = 5) {
     });
 
     // Compute position for each of the user's records
-    return userRecords.map((record) => {
-        const allRecords = record.category.records;
+    return userEntries.map((record) => {
+        const allRecords = record.category.entries;
         const finishedRecords = allRecords.filter((r) => r.finishTime != null);
         const position = record.finishTime
             ? finishedRecords.findIndex((r) => r.id === record.id) + 1
@@ -600,9 +600,9 @@ export async function getLastUserResults(userId: string, limit: number = 5) {
             nPiecesCompleted: record.nPiecesCompleted,
             position,
             totalFinished: finishedRecords.length,
-            totalRecords: allRecords.length,
+            totalEntries: allRecords.length,
             users: record.users,
-            userIntents: record.userIntents,
+            externalParticipants: record.externalParticipants,
             category: {
                 id: record.category.id,
                 description: record.category.description,
@@ -759,7 +759,7 @@ export async function getExploreCompetitionsData(userId?: string) {
                 categories: {
                     orderBy: { startTime: 'asc' },
                     include: {
-                        records: {
+                        entries: {
                             include: {
                                 users: {
                                     select: {
@@ -778,10 +778,10 @@ export async function getExploreCompetitionsData(userId?: string) {
             },
         }),
         userId
-            ? prisma.record.findMany({
+            ? prisma.entry.findMany({
                 where: { users: { some: { id: userId } } },
                 select: { categoryId: true },
-            }).then(records => records.map(r => r.categoryId))
+            }).then(entries => entries.map(r => r.categoryId))
             : Promise.resolve([] as number[]),
     ]);
 

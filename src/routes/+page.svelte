@@ -4,13 +4,13 @@
     import ButtonLink from '$lib/components/landing_page/ButtonLink.svelte';
     import NearCompetitionsCaroussel from '$lib/components/landing_page/NearCompetitionsCaroussel.svelte';
     import LastResultsList from '$lib/components/landing_page/LastResultsList.svelte';
-    import InscriptionStatusCard from '$lib/components/landing_page/InscriptionStatusCard.svelte';
+    import RegistrationStatusCard from '$lib/components/landing_page/RegistrationStatusCard.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import { afterNavigate, invalidateAll } from '$app/navigation';
     import CalendarIcon from '@iconify-svelte/mdi/calendar';
 
     let { data } = $props();
-    // Re-fetch data when navigating back to the home page (e.g. after inscription)
+    // Re-fetch data when navigating back to the home page (e.g. after registration)
     afterNavigate(({ from }) => {
         if (from) {
             invalidateAll();
@@ -41,10 +41,10 @@
 {#if data.user}
     <div class="container mx-auto px-4 space-y-6 mb-8">
 
-        <!-- Inscription statuses -->
-        {#await data.props.inscriptionStatuses}
+        <!-- Registration statuses -->
+        {#await data.props.registrationStatuses}
             <section>
-                <GenericTitle text={$t('landing_page.my_inscriptions')} />
+                <GenericTitle text={$t('landing_page.my_registrations')} />
                 <div class="space-y-2">
                     {#each { length: 1 } as _}
                         <div class="card p-3 placeholder animate-pulse">
@@ -57,11 +57,11 @@
                     {/each}
                 </div>
             </section>
-        {:then inscriptionStatuses}
-            {#if inscriptionStatuses && inscriptionStatuses.length > 0}
+        {:then registrationStatuses}
+            {#if registrationStatuses && registrationStatuses.length > 0}
                 <section>
-                    <GenericTitle text={$t('landing_page.my_inscriptions')} />
-                    <InscriptionStatusCard inscriptions={inscriptionStatuses} />
+                    <GenericTitle text={$t('landing_page.my_registrations')} />
+                    <RegistrationStatusCard registrations={registrationStatuses} />
                 </section>
             {/if}
         {/await}

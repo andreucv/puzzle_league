@@ -1,14 +1,14 @@
 /**
  * Composable for managing category records — search, filtering, and fetching.
  * Used by CategoryCard for LIVE and STOPPED variants.
- * Selection state is managed by each RecordList instance internally.
+ * Selection state is managed by each EntryList instance internally.
  */
 
 export function matchesSearch(record: any, query: string): boolean {
     const q = query.toLowerCase();
     if (record.tableNumber != null && String(record.tableNumber).includes(q)) return true;
     if (record.users?.some((u: any) => u.name?.toLowerCase().includes(q))) return true;
-    if (record.userIntents?.some((ui: any) => ui.name?.toLowerCase().includes(q))) return true;
+    if (record.externalParticipants?.some((ui: any) => ui.name?.toLowerCase().includes(q))) return true;
     return false;
 }
 

@@ -41,8 +41,8 @@ function makeCategory(overrides: Record<string, any> = {}) {
 		realEndTime: null,
 		extraMinutes: 0,
 		autoStop: false,
-		totalRecords: 5,
-		finishedRecords: 0,
+		totalEntries: 5,
+		finishedEntries: 0,
 		competitionId: 42,
 		puzzles: [],
 		...overrides
@@ -82,7 +82,7 @@ describe('CategoryCard', () => {
 	// =====================================================================
 	describe('UPCOMING status', () => {
 		it('shows start time and entries count', () => {
-			renderCard({ status: 'NOT_STARTED', startTime: '2026-01-01T10:00:00Z', totalRecords: 5 });
+			renderCard({ status: 'NOT_STARTED', startTime: '2026-01-01T10:00:00Z', totalEntries: 5 });
 			expect(screen.getByText(/5 during_competition\.entries/)).toBeInTheDocument();
 		});
 
@@ -123,8 +123,8 @@ describe('CategoryCard', () => {
 		const liveCategory = {
 			status: 'LIVE',
 			realStartTime: '2026-01-01T10:00:00Z',
-			totalRecords: 10,
-			finishedRecords: 3
+			totalEntries: 10,
+			finishedEntries: 3
 		};
 
 		it('shows stop button for organizer', async () => {
@@ -191,8 +191,8 @@ describe('CategoryCard', () => {
 			status: 'STOPPED',
 			realStartTime: '2026-01-01T10:00:00Z',
 			realEndTime: '2026-01-01T10:30:00Z',
-			totalRecords: 8,
-			finishedRecords: 5
+			totalEntries: 8,
+			finishedEntries: 5
 		};
 
 		it('shows complete button for organizer', async () => {
@@ -246,8 +246,8 @@ describe('CategoryCard', () => {
 			status: 'COMPLETE',
 			realStartTime: '2026-01-01T10:00:00Z',
 			realEndTime: '2026-01-01T10:45:00Z',
-			totalRecords: 10,
-			finishedRecords: 10
+			totalEntries: 10,
+			finishedEntries: 10
 		};
 
 		it('shows completed badge for organizer', () => {
@@ -295,8 +295,8 @@ describe('CategoryCard', () => {
 			status: 'CANCELED',
 			realStartTime: '2026-01-01T10:00:00Z',
 			realEndTime: '2026-01-01T10:20:00Z',
-			totalRecords: 6,
-			finishedRecords: 2
+			totalEntries: 6,
+			finishedEntries: 2
 		};
 
 		it('shows canceled badge', () => {
@@ -332,7 +332,7 @@ describe('CategoryCard', () => {
 			nPiecesCompleted: null,
 			status: 'ACTIVE',
 			users: [{ id: 'u1', name: 'Alice', email: 'a@t.com', image: null }],
-			userIntents: []
+			externalParticipants: []
 		};
 		const finishedRecord = {
 			id: 'rec-2',
@@ -341,17 +341,17 @@ describe('CategoryCard', () => {
 			nPiecesCompleted: null,
 			status: 'FINISHED',
 			users: [{ id: 'u2', name: 'Bob', email: 'b@t.com', image: null }],
-			userIntents: []
+			externalParticipants: []
 		};
 
 		const liveCategory = {
 			status: 'LIVE',
 			realStartTime: '2026-01-01T10:00:00Z',
-			totalRecords: 2,
-			finishedRecords: 1
+			totalEntries: 2,
+			finishedEntries: 1
 		};
 
-		it('handleRecordFinish: POSTs to /api/records/{id}/result', async () => {
+		it('handleRecordFinish: POSTs to /api/entries/{id}/result', async () => {
 			fetchMock = mockFetchRecords([finishedRecord], [pendingRecord]);
 			vi.stubGlobal('fetch', fetchMock);
 
@@ -375,13 +375,13 @@ describe('CategoryCard', () => {
 
 			await waitFor(() => {
 				const postCalls = fetchMock.mock.calls.filter(
-					(c: any[]) => typeof c[0] === 'string' && c[0].includes('/api/records/rec-1/result')
+					(c: any[]) => typeof c[0] === 'string' && c[0].includes('/api/entries/rec-1/result')
 				);
 				expect(postCalls.length).toBeGreaterThan(0);
 			});
 		});
 
-		it('handleRecordUndoFinish: DELETEs /api/records/{id}/result', async () => {
+		it('handleRecordUndoFinish: DELETEs /api/entries/{id}/result', async () => {
 			fetchMock = mockFetchRecords([finishedRecord], [pendingRecord]);
 			vi.stubGlobal('fetch', fetchMock);
 
@@ -411,7 +411,7 @@ describe('CategoryCard', () => {
 
 			await waitFor(() => {
 				const deleteCalls = fetchMock.mock.calls.filter(
-					(c: any[]) => typeof c[0] === 'string' && c[0].includes('/api/records/rec-2/result')
+					(c: any[]) => typeof c[0] === 'string' && c[0].includes('/api/entries/rec-2/result')
 				);
 				expect(deleteCalls.length).toBeGreaterThan(0);
 			});
@@ -429,7 +429,7 @@ describe('CategoryCard', () => {
 			nPiecesCompleted: null,
 			status: 'ACTIVE',
 			users: [{ id: 'u3', name: 'Charlie', email: 'c@t.com', image: null }],
-			userIntents: []
+			externalParticipants: []
 		};
 		const resolvedRecord = {
 			id: 'rec-4',
@@ -438,18 +438,18 @@ describe('CategoryCard', () => {
 			nPiecesCompleted: null,
 			status: 'FINISHED',
 			users: [{ id: 'u4', name: 'Diana', email: 'd@t.com', image: null }],
-			userIntents: []
+			externalParticipants: []
 		};
 
 		const stoppedCategory = {
 			status: 'STOPPED',
 			realStartTime: '2026-01-01T10:00:00Z',
 			realEndTime: '2026-01-01T10:30:00Z',
-			totalRecords: 2,
-			finishedRecords: 1
+			totalEntries: 2,
+			finishedEntries: 1
 		};
 
-		it('handleSubmitPieces: POSTs to /api/records/{id}/pieces', async () => {
+		it('handleSubmitPieces: POSTs to /api/entries/{id}/pieces', async () => {
 			fetchMock = mockFetchRecords([resolvedRecord], [unresolvedRecord]);
 			vi.stubGlobal('fetch', fetchMock);
 
@@ -475,7 +475,7 @@ describe('CategoryCard', () => {
 
 			await waitFor(() => {
 				const piecesCalls = fetchMock.mock.calls.filter(
-					(c: any[]) => typeof c[0] === 'string' && c[0].includes('/api/records/rec-3/pieces')
+					(c: any[]) => typeof c[0] === 'string' && c[0].includes('/api/entries/rec-3/pieces')
 				);
 				expect(piecesCalls.length).toBeGreaterThan(0);
 			});

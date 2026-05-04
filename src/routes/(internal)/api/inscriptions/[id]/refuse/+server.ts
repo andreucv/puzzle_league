@@ -1,5 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { refuseInscription } from '$lib/database/db_inscription_utils';
+import { refuseInscription } from '$lib/database/db_registration';
 import { prisma } from '$lib/database/create_prisma_client';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 import { createNotificationForUsers } from '$lib/notifications/notifications';

@@ -1,6 +1,7 @@
 import type { PageServerLoad, Actions } from "./$types";
 import { getCompetitionWithCategories, getCompetitionCategories } from "$lib/database/db_competition";
-import { getCategoryEntriesFromCompetition, signUpUsersToCompetition, removeRecordById, getInscribedUserIdsByCategory } from "$lib/database/db_inscription_utils";
+import { getCategoryEntriesFromCompetition, getInscribedUserIdsByCategory } from "$lib/database/db_entry";
+import { signUpUsersToCompetition, removeRecordById } from "$lib/database/db_registration";
 import { redirect } from "@sveltejs/kit";
 import { createNotificationForUsers } from "$lib/notifications/notifications";
 import { NotificationType, InscriptionStatus } from "$lib/.prisma/generated/prisma/enums";

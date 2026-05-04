@@ -13,19 +13,21 @@ and tailwindcss for styling.
   - `shareds` - contains the stores used in the app
 - `e2e` - contains the end-to-end tests for the app
 - `prisma` - contains the Prisma schema and migrations
-- `doc` - contains the LLMs files for Svelte, SvelteKit and Skeleton UI
+- `docs` - contains the documentation of the project
 
 ## Technologies
 
-- [Svelte](https://svelte.dev/) - The framework used for building the app
-- [SvelteKit](https://kit.svelte.dev/) - The framework used for building the app
-- [Tailwind CSS](https://tailwindcss.com/) - The utility-first CSS framework used for styling the app
-- [Skeleton UI](https://www.skeleton.dev) - The UI library used for building the app
-- [Prisma](https://www.prisma.io/) - The ORM used for interacting with the database
-- [PostgreSQL](https://www.postgresql.org/) - The database used for storing the app data
-- [Vercel](https://vercel.com/) - The platform used for deploying the app
+- **Frontend**: [Svelte](https://svelte.dev/) with [SvelteKit](https://kit.svelte.dev/)
+- **Backend**: SvelteKit API routes (+server.ts)
+- **Database**: [PostgreSQL](https://www.postgresql.org/) with [Prisma](https://www.prisma.io/) ORM
+- **Auth**: Better Auth (with email/password + Google OAuth)
+- **Real-time**: Ably Pub/Sub (competition channels)
+- **Email**: Resend
+- **UI**: [Skeleton UI v4](https://www.skeleton.dev) + [Tailwind CSS](https://tailwindcss.com/)
+- **Deployment**: [Vercel](https://vercel.com/)
+- **Multi-language**: ca/es/en
 
-## Principles
+## IMPORTANT Principles
 - **Simplicity**: We look to not overcomplicate things. We want to keep the codebase simple and easy to understand.
 - **Maintainability**: We want to keep the codebase maintainable and easy to work with. We want to avoid technical debt and keep the codebase clean.
 - **Performance**: We want to keep the app performant and responsive. We want to avoid unnecessary re-renders and keep the app fast.
@@ -37,3 +39,7 @@ and tailwindcss for styling.
 - **Component-Based**: We organize our codebase around components. Each component is responsible for a specific piece of functionality and must be reused throughout the app.
 - **Utils**: We have a utils folder where we put all the utility functions that are used throughout the app. This helps us keep our codebase organized and makes it easy to find and reuse code.
 - **Tests**: We have e2e tests to test workflows, with seeding the needed information in the database before running the tests. We also have unit tests for our utility functions and components.
+
+## Skill usage
+Always check if a skill exists for the task at hand.
+When writing new code, always check the refactor-to-new-folder-structure skill to create the new files with the correct structure. When working on an existing file, check if there is a skill to refactor it to the new folder structure, and if so, use it to move the file to the correct location and update the imports accordingly.

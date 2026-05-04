@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { prisma } from '$lib/database/create_prisma_client';
+import { getOnboardingFlags, hasMatchingUnclaimedIntents, getUnclaimedIntentsMatchingName, markUserIntentsChecked, markEmailVerificationSkipped, claimUserIntents } from '$lib/database/db_user';
 import { saveLocaleForUser, skipLocalePrompt, isValidLocale } from '$lib/utils/locale_utils';
 import { validatePhone, savePhoneForUser } from '$lib/utils/phone_utils';
 
@@ -11,21 +11,7 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 	const { user } = await parent();
 
 	// Query onboarding-specific flags not available via getUserWithRoles
-	const dbUser = await prisma.user.findUnique({
-		where: { id: user.id },
-		select: {
-			userIntentsLastChecked: true,
-			name: true,
-			createdAt: true,
-			emailVerified: true,
-			emailVerificationPromptLastChecked: true,
-			accounts: {
-				where: { providerId: 'credential' },
-				select: { id: true },
-				take: 1,
-			},
-		},
-	});
+	const dbUser = await getOnboardingFlags(user.id);
 
 	// Determine which steps are needed
 	const steps: OnboardingStep[] = [];
@@ -42,38 +28,20 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 		if (new Date(dbUser.createdAt) > fiveMinutesAgo) {
 			const userName = dbUser.name;
 			if (userName) {
-				const unclaimed = await prisma.userIntent.findMany({
-					where: { claimedById: null },
-					select: { name: true },
-					take: 100,
-				});
-				const userNameLower = userName.toLowerCase();
-				const hasMatch = unclaimed.some((ui) => {
-					const intentNameLower = ui.name.toLowerCase();
-					return intentNameLower.includes(userNameLower) || userNameLower.includes(intentNameLower);
-				});
+				const hasMatch = await hasMatchingUnclaimedIntents(userName);
 				if (hasMatch) {
 					steps.push('claim');
 				} else {
 					// No matches — mark as checked so hooks don't re-evaluate
-					await prisma.user.update({
-						where: { id: user.id },
-						data: { userIntentsLastChecked: new Date() },
-					});
+					await markUserIntentsChecked(user.id);
 				}
 			} else {
 				// No user name — mark as checked
-				await prisma.user.update({
-					where: { id: user.id },
-					data: { userIntentsLastChecked: new Date() },
-				});
+				await markUserIntentsChecked(user.id);
 			}
 		} else {
 			// Not a new user — mark as checked
-			await prisma.user.update({
-				where: { id: user.id },
-				data: { userIntentsLastChecked: new Date() },
-			});
+			await markUserIntentsChecked(user.id);
 		}
 	}
 
@@ -95,30 +63,7 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 
 	// Load unclaimed intents matching the user's name for the claim step
 	const unclaimedIntents = steps.includes('claim')
-		? await (async () => {
-				const userName = dbUser!.name!;
-				const userNameLower = userName.toLowerCase();
-				const allUnclaimed = await prisma.userIntent.findMany({
-					where: { claimedById: null },
-					include: {
-						createdBy: { select: { id: true, name: true } },
-						records: {
-							include: {
-								category: {
-									include: {
-										competition: { select: { id: true, name: true } },
-									},
-								},
-							},
-						},
-					},
-					orderBy: { createdAt: 'desc' },
-				});
-				return allUnclaimed.filter((ui) => {
-					const intentNameLower = ui.name.toLowerCase();
-					return intentNameLower.includes(userNameLower) || userNameLower.includes(intentNameLower);
-				});
-			})()
+		? await getUnclaimedIntentsMatchingName(dbUser!.name!)
 		: [];
 
 	return {
@@ -178,39 +123,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			// Reuse the same claim logic as /api/user-intents/claim
-			const result = await prisma.$transaction(async (tx) => {
-				const intents = await tx.userIntent.findMany({
-					where: { id: { in: userIntentIds }, claimedById: null },
-					include: {
-						records: true,
-						createdBy: { select: { id: true, name: true } },
-					},
-				});
-
-				if (intents.length !== userIntentIds.length) {
-					throw new Error('Some participations are already claimed or not found.');
-				}
-
-				for (const intent of intents) {
-					await tx.userIntent.update({
-						where: { id: intent.id },
-						data: { claimedById: user.id },
-					});
-
-					for (const record of intent.records) {
-						await tx.record.update({
-							where: { id: record.id },
-							data: {
-								users: { connect: { id: user.id } },
-								userIntents: { disconnect: { id: intent.id } },
-							},
-						});
-					}
-				}
-
-				return intents;
-			});
+			const result = await claimUserIntents(user.id, userIntentIds);
 
 			// Send notifications (non-blocking, best-effort)
 			const { createNotification } = await import('$lib/notifications/notifications');
@@ -240,10 +153,7 @@ export const actions: Actions = {
 		if (!user) return fail(401, { error: 'Unauthorized' });
 
 		try {
-			await prisma.user.update({
-				where: { id: user.id },
-				data: { userIntentsLastChecked: new Date() },
-			});
+			await markUserIntentsChecked(user.id);
 		} catch (err) {
 			console.error('Error marking claim as skipped:', err);
 			return fail(500, { error: 'Something went wrong. Please try again.' });
@@ -292,10 +202,7 @@ export const actions: Actions = {
 		if (!user) return fail(401, { error: 'Unauthorized' });
 
 		try {
-			await prisma.user.update({
-				where: { id: user.id },
-				data: { emailVerificationPromptLastChecked: new Date() },
-			});
+			await markEmailVerificationSkipped(user.id);
 		} catch (err) {
 			console.error('Error marking email verification as skipped:', err);
 			return fail(500, { error: 'Something went wrong. Please try again.' });

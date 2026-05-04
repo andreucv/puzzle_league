@@ -2,6 +2,7 @@ import type { PageServerLoad } from "./$types";
 import { prisma } from "$lib/database/create_prisma_client";
 import { redirect } from "@sveltejs/kit";
 import { Role } from "$lib/.prisma/generated/prisma/enums";
+import { getCompetitionWithJudges } from "$lib/database/db_competition";
 
 export const load: PageServerLoad = async (event) => {
     const competitionId = parseInt(event.params.id);
@@ -10,21 +11,9 @@ export const load: PageServerLoad = async (event) => {
         throw redirect(302, '/competitions/explore_competitions');
     }
 
-    const competition = await prisma.competition.findUnique({
-        where: { id: competitionId },
-        include: {
-            categories: {
-                include: {
-                    judges: {
-                        select: { id: true, name: true, email: true }
-                    }
-                },
-                orderBy: { startTime: 'asc' }
-            }
-        }
-    });
+    const result = await getCompetitionWithJudges(competitionId);
 
-    if (!competition) {
+    if (!result) {
         throw redirect(302, '/competitions/explore_competitions');
     }
 
@@ -33,7 +22,7 @@ export const load: PageServerLoad = async (event) => {
         throw redirect(302, '/login?redirect=' + encodeURIComponent(event.url.pathname));
     }
 
-    const isCreator = competition.creatorId === userId;
+    const isCreator = result.competition.creatorId === userId;
     if (!isCreator) {
         const hasAccess = await prisma.roleAssignment.findFirst({
             where: {
@@ -51,16 +40,7 @@ export const load: PageServerLoad = async (event) => {
     }
 
     return {
-        competition: {
-            id: competition.id,
-            name: competition.name
-        },
-        categoriesWithJudges: competition.categories.map((cat) => ({
-            id: cat.id,
-            description: cat.description,
-            subname: cat.subname,
-            type: cat.type,
-            judges: cat.judges
-        }))
+        competition: result.competition,
+        categoriesWithJudges: result.categoriesWithJudges,
     };
 };

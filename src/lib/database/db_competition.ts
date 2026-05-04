@@ -747,3 +747,80 @@ export async function updateCompetitionStatus(competitionId: number, status: 'NO
         throw error;
     }
 }
+
+// ---------------------------------------------------------------------------
+// Explore competitions (with per-category registration data)
+// ---------------------------------------------------------------------------
+
+export async function getExploreCompetitionsData(userId?: string) {
+    const [competitions, registeredCategoryIds] = await Promise.all([
+        prisma.competition.findMany({
+            include: {
+                categories: {
+                    orderBy: { startTime: 'asc' },
+                    include: {
+                        records: {
+                            include: {
+                                users: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        image: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: {
+                startDate: 'asc'
+            },
+        }),
+        userId
+            ? prisma.record.findMany({
+                where: { users: { some: { id: userId } } },
+                select: { categoryId: true },
+            }).then(records => records.map(r => r.categoryId))
+            : Promise.resolve([] as number[]),
+    ]);
+
+    return { competitions, registeredCategoryIds };
+}
+
+// ---------------------------------------------------------------------------
+// Competition with judges (for manage judges page)
+// ---------------------------------------------------------------------------
+
+export async function getCompetitionWithJudges(competitionId: number) {
+    const competition = await prisma.competition.findUnique({
+        where: { id: competitionId },
+        include: {
+            categories: {
+                include: {
+                    judges: {
+                        select: { id: true, name: true, email: true }
+                    }
+                },
+                orderBy: { startTime: 'asc' }
+            }
+        }
+    });
+
+    if (!competition) return null;
+
+    return {
+        competition: {
+            id: competition.id,
+            name: competition.name,
+            creatorId: competition.creatorId,
+        },
+        categoriesWithJudges: competition.categories.map((cat) => ({
+            id: cat.id,
+            description: cat.description,
+            subname: cat.subname,
+            type: cat.type,
+            judges: cat.judges
+        }))
+    };
+}

@@ -3,6 +3,8 @@ import { CategoryStatus, CompetitionStatus, InscriptionStatus } from '$lib/.pris
 import { publishCompetitionEvent } from '$lib/events/server/ably';
 import { createNotificationForUsers } from '$lib/notifications/notifications';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { notifyTableAssignments, notifyPaymentReminder } from '$lib/notifications/inscription_notifications';
+import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/inscription';
 import type { AutoStopScheduler } from './auto-stop-scheduler';
 
 interface AutoStopOptions {
@@ -326,4 +328,184 @@ export async function restartCategory(categoryId: number, options?: AutoStopOpti
 	}
 
 	return { ...updatedCategory, totalRecords, finishedRecords: 0 };
+}
+
+// ---------------------------------------------------------------------------
+// Category operations (non-status-transition lifecycle actions)
+// ---------------------------------------------------------------------------
+
+const ALLOWED_ADD_TIME_MINUTES = [5, 10, 15];
+
+/**
+ * Add extra time to a LIVE category and optionally reschedule auto-stop.
+ * @returns The updated extraMinutes value.
+ */
+export async function addTimeToCategory(
+	categoryId: number,
+	minutes: number,
+	options?: { scheduler?: AutoStopScheduler }
+) {
+	if (!ALLOWED_ADD_TIME_MINUTES.includes(minutes)) {
+		throw new InvalidStatusTransitionError(`Minutes must be one of: ${ALLOWED_ADD_TIME_MINUTES.join(', ')}`);
+	}
+
+	const category = await prisma.category.findUnique({
+		where: { id: categoryId },
+		select: {
+			id: true,
+			status: true,
+			competitionId: true,
+			autoStop: true,
+			realStartTime: true,
+			startTime: true,
+			endTime: true,
+			extraMinutes: true
+		}
+	});
+
+	if (!category) throw new CategoryNotFoundError(categoryId);
+	if (category.status !== CategoryStatus.LIVE) {
+		throw new InvalidStatusTransitionError('Can only add time to LIVE categories');
+	}
+
+	const updatedCategory = await prisma.category.update({
+		where: { id: categoryId },
+		data: { extraMinutes: { increment: minutes } },
+		select: { extraMinutes: true }
+	});
+
+	await publishCompetitionEvent(category.competitionId, 'category.time_extended', {
+		categoryId,
+		competitionId: category.competitionId,
+		extraMinutes: updatedCategory.extraMinutes,
+		addedMinutes: minutes
+	});
+
+	// Reschedule auto-stop if enabled
+	if (category.autoStop && category.realStartTime && options?.scheduler) {
+		const durationMs = category.endTime.getTime() - category.startTime.getTime();
+		const newDeadline = new Date(
+			category.realStartTime.getTime() + durationMs + updatedCategory.extraMinutes * 60_000
+		);
+		await options.scheduler.rescheduleAutoStop(categoryId, category.competitionId, newDeadline);
+	}
+
+	return { extraMinutes: updatedCategory.extraMinutes };
+}
+
+/**
+ * Assign sequential table numbers to all confirmed records in a category,
+ * compacting any gaps. Notifies only participants whose table number changed.
+ */
+export async function publishTableAssignments(categoryId: number) {
+	const category = await prisma.category.findUnique({
+		where: { id: categoryId },
+		include: { competition: { select: { name: true } } }
+	});
+
+	if (!category) throw new CategoryNotFoundError(categoryId);
+
+	const records = await prisma.record.findMany({
+		where: { categoryId, status: InscriptionStatus.CONFIRMED },
+		orderBy: [{ confirmedAt: 'asc' }, { createdAt: 'asc' }],
+		select: {
+			id: true,
+			tableNumber: true,
+			creatorId: true,
+			users: { select: { id: true, name: true } },
+			userIntents: { select: { name: true } }
+		}
+	});
+
+	if (records.length === 0) {
+		return { assignedCount: 0, notifiedCount: 0 };
+	}
+
+	// Build a map of previous table numbers for change detection
+	const previousTables = new Map(records.map((r) => [r.id, r.tableNumber]));
+
+	// Reassign table numbers sequentially (compacting any gaps)
+	await prisma.$transaction(
+		records.map((record, index) =>
+			prisma.record.update({
+				where: { id: record.id },
+				data: { tableNumber: index + 1 }
+			})
+		)
+	);
+
+	const recordsWithTables = records.map((record, index) => ({
+		...record,
+		tableNumber: index + 1
+	}));
+
+	// Only notify users whose table number actually changed
+	const changedRecords = recordsWithTables.filter(
+		(r) => r.tableNumber !== previousTables.get(r.id)
+	);
+
+	if (changedRecords.length > 0) {
+		await notifyTableAssignments(changedRecords, category);
+	}
+
+	return { assignedCount: records.length, notifiedCount: changedRecords.length };
+}
+
+/**
+ * Send payment reminders to all eligible pending-confirmation records in a category.
+ * Respects a cooldown period to avoid spamming participants.
+ */
+export async function remindPendingPayments(
+	categoryId: number,
+	options?: { actorName?: string; note?: string }
+) {
+	const cooldownThreshold = new Date(Date.now() - PAYMENT_REMINDER_COOLDOWN_MS);
+
+	const eligibleRecords = await prisma.record.findMany({
+		where: {
+			categoryId,
+			status: InscriptionStatus.PENDING_CONFIRMATION,
+			OR: [
+				{ lastRemindedAt: null },
+				{ lastRemindedAt: { lt: cooldownThreshold } }
+			]
+		},
+		include: {
+			category: {
+				select: {
+					competitionId: true,
+					description: true,
+					subname: true,
+					type: true,
+					competition: { select: { name: true } }
+				}
+			},
+			users: { select: { id: true, name: true } },
+			userIntents: { select: { name: true } }
+		}
+	});
+
+	const totalPending = await prisma.record.count({
+		where: { categoryId, status: InscriptionStatus.PENDING_CONFIRMATION }
+	});
+
+	const skippedCount = totalPending - eligibleRecords.length;
+
+	if (eligibleRecords.length === 0) {
+		return { remindedCount: 0, skippedCount };
+	}
+
+	const now = new Date();
+	await prisma.record.updateMany({
+		where: { id: { in: eligibleRecords.map((r) => r.id) } },
+		data: { lastRemindedAt: now }
+	});
+
+	const remindedCount = await notifyPaymentReminder(
+		eligibleRecords,
+		options?.actorName,
+		options?.note
+	);
+
+	return { remindedCount, skippedCount };
 }

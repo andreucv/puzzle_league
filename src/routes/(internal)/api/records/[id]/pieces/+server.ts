@@ -1,6 +1,6 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/create_prisma_client';
-import { CategoryStatus } from '$lib/.prisma/generated/prisma/enums';
+import { updatePiecesCompleted, resetPiecesCompleted, EntryNotFoundError, InvalidEntryStateError } from '$lib/database/db_entry';
 import { publishCompetitionEvent } from '$lib/events/server/ably';
 
 export const POST = async (event: RequestEvent) => {
@@ -18,33 +18,7 @@ export const POST = async (event: RequestEvent) => {
 			return json({ error: 'nPiecesCompleted must be a non-negative integer' }, { status: 400 });
 		}
 
-		// Enforce: pieces updates only allowed when category is STOPPED and record is a DNF
-		const record = await prisma.record.findUnique({
-			where: { id: recordId },
-			select: { finishTime: true, category: { select: { status: true } } }
-		});
-
-		if (!record) {
-			return json({ error: 'Record not found' }, { status: 404 });
-		}
-
-		if (record.category.status !== CategoryStatus.STOPPED) {
-			return json({ error: 'Pieces can only be updated while the category is STOPPED' }, { status: 409 });
-		}
-
-		if (record.finishTime !== null) {
-			return json({ error: 'Pieces can only be set on DNF records (finishTime must be null)' }, { status: 409 });
-		}
-
-		const updatedRecord = await prisma.record.update({
-			where: { id: recordId },
-			data: { nPiecesCompleted },
-			include: {
-				users: {
-					select: { id: true, name: true, email: true }
-				}
-			}
-		});
+		const updatedRecord = await updatePiecesCompleted(recordId, nPiecesCompleted);
 
 		const cat = await prisma.category.findUnique({
 			where: { id: updatedRecord.categoryId },
@@ -61,6 +35,12 @@ export const POST = async (event: RequestEvent) => {
 
 		return json({ record: updatedRecord });
 	} catch (error) {
+		if (error instanceof EntryNotFoundError) {
+			return json({ error: error.message }, { status: 404 });
+		}
+		if (error instanceof InvalidEntryStateError) {
+			return json({ error: error.message }, { status: 409 });
+		}
 		console.error('Error updating pieces completed:', error);
 		return json({ error: 'Failed to update pieces completed' }, { status: 500 });
 	}
@@ -74,35 +54,16 @@ export const DELETE = async (event: RequestEvent) => {
 			return json({ error: 'Invalid record ID' }, { status: 400 });
 		}
 
-		const record = await prisma.record.findUnique({
-			where: { id: recordId },
-			select: { nPiecesCompleted: true, finishTime: true, category: { select: { status: true } } }
-		});
-
-		if (!record) {
-			return json({ error: 'Record not found' }, { status: 404 });
-		}
-
-		if (record.category.status !== CategoryStatus.STOPPED) {
-			return json({ error: 'Pieces can only be reset while the category is STOPPED' }, { status: 409 });
-		}
-
-		if (record.finishTime !== null) {
-			return json({ error: 'Cannot reset pieces on a record with a finish time' }, { status: 409 });
-		}
-
-		const updatedRecord = await prisma.record.update({
-			where: { id: recordId },
-			data: { nPiecesCompleted: null },
-			include: {
-				users: {
-					select: { id: true, name: true, email: true }
-				}
-			}
-		});
+		const updatedRecord = await resetPiecesCompleted(recordId);
 
 		return json({ record: updatedRecord });
 	} catch (error) {
+		if (error instanceof EntryNotFoundError) {
+			return json({ error: error.message }, { status: 404 });
+		}
+		if (error instanceof InvalidEntryStateError) {
+			return json({ error: error.message }, { status: 409 });
+		}
 		console.error('Error resetting pieces completed:', error);
 		return json({ error: 'Failed to reset pieces completed' }, { status: 500 });
 	}

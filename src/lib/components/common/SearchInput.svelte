@@ -1,7 +1,7 @@
 <script lang="ts">
     import MagnifyIcon from '@iconify-svelte/mdi/magnify';
 
-    let { filter = $bindable(), placeholder } = $props()
+    let { filter = $bindable(), placeholder, background_class = 'preset-filled-surface-200-800' } = $props()
 
     // Scroll the search input to the top of the viewport on focus so the user
     // has maximum visible space for results, especially on mobile with keyboard.
@@ -11,7 +11,7 @@
     }
 </script>
 
-<div class="search-container rounded-lg">
+<div class="search-container rounded-lg {background_class}">
     <div class="pt-1 pb-1 flex vertical-center">
         <div class="p-2">
             <MagnifyIcon width="1.2rem" height="1.2rem" class="text-surface-500" />
@@ -21,20 +21,6 @@
 </div>
 
 <style>
-    @reference "../../app.css";
-
-    .search-container {
-        /* Outside a card: use card-like background */
-        @apply preset-filled-surface-200-800;
-        /* Anchor the viewport on this element during search-driven reflows */
-        overflow-anchor: auto;
-    }
-
-    :global(.card) .search-container {
-        /* Inside a card: white (light) / darker surface (dark) */
-        @apply bg-white dark:bg-surface-900;
-    }
-
     .input-full-width {
         width: 100%;
         border: none;

@@ -14,8 +14,8 @@
 
     // Components
     import CustomDatePicker from "$lib/components/bits_ui/CustomDatePicker.svelte";
-    import LoadingOverlay from "$lib/components/LoadingOverlay.svelte";
-    import PuzzleLinkSection from "$lib/components/PuzzleLinkSection.svelte";
+    import LoadingOverlay from "$lib/components/common/LoadingOverlay.svelte";
+    import PuzzleLinkSection from "../components/PuzzleLinkSection.svelte";
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
 
     let { data } = $props();

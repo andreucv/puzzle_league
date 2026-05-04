@@ -2,7 +2,7 @@
     import Icon from '@iconify/svelte';
     import { t } from '$lib/translations';
     import { enhance } from '$app/forms';
-    import SearchInput from '$lib/components/SearchInput.svelte';
+    import SearchInput from '$lib/components/common/SearchInput.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
 
     export let data;

@@ -5,9 +5,9 @@
     import RecordList from './RecordList.svelte';
     import OverflowMenu from './OverflowMenu.svelte';
     import ConfirmActionButton from '$lib/components/common/buttons/ConfirmActionButton.svelte';
-    import SearchInput from '$lib/components/SearchInput.svelte';
+    import SearchInput from '$lib/components/common/SearchInput.svelte';
     import { useCategoryRecords } from './useCategoryRecords.svelte';
-    import { executeCategoryAction, type CategoryAction, type CategoryActionResult } from '$lib/api/category-actions';
+    import { executeCategoryAction, type CategoryAction, type CategoryActionResult } from './category-actions';
     import type { OverflowAction } from './types';
     import { showSuccessToast, showErrorToast } from '$lib/utils/toast';
     import { t } from '$lib/translations';

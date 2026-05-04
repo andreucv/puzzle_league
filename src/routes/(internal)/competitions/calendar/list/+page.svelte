@@ -1,7 +1,7 @@
 
 <script lang="ts">
 	import CompetitionCard from '$lib/components/competition/CompetitionCard.svelte';
-	import InfiniteScroll from '$lib/components/InfiniteScroll.svelte';
+	import InfiniteScroll from '$lib/components/common/InfiniteScroll.svelte';
 	import { t } from '$lib/translations';
 	import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
 	import type { Competition } from '@prisma/client';

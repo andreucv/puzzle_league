@@ -2,9 +2,9 @@
     import Icon from "@iconify/svelte";
     import PlusIcon from '@iconify-svelte/mdi/plus';
     import { t } from '$lib/translations';
-    import SearchInput from "$lib/components/SearchInput.svelte";
-    import FilterTabs from "$lib/components/FilterTabs.svelte";
-    import SmartPresetChips from "$lib/components/SmartPresetChips.svelte";
+    import SearchInput from "$lib/components/common/SearchInput.svelte";
+    import FilterTabs from "./components/FilterTabs.svelte";
+    import SmartPresetChips from "./components/SmartPresetChips.svelte";
     import CompetitionCard from "$lib/components/competition/CompetitionCard.svelte";
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import type { RoleAssignment } from '$lib/.prisma/generated/prisma/browser';

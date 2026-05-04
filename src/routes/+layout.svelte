@@ -1,22 +1,22 @@
 <script lang="ts">
     import '../app.css';
     import { Dialog, Portal, Toast } from '@skeletonlabs/skeleton-svelte';
-    import Header from '$lib/components/Header.svelte';
-    import Footer from '$lib/components/Footer.svelte';
+    import Header from '$lib/components/common/layout/Header.svelte';
+    import Footer from '$lib/components/common/layout/Footer.svelte';
     import CloseIcon from '@iconify-svelte/mdi/close';
     import { toaster } from '$lib/stores/toaster';
 
     let {children, data} = $props();
-    import { drawerState } from '../shareds/drawer.svelte';
+    import { drawerState } from '$lib/stores/drawer.svelte';
 
     // Lazy-load DrawerNav to reduce initial JS bundle — only loaded when drawer is first opened
-    let DrawerNav = $state<typeof import('$lib/components/DrawerNav.svelte').default | null>(null);
+    let DrawerNav = $state<typeof import('$lib/components/common/layout/DrawerNav.svelte').default | null>(null);
     let drawerEverOpened = $state(false);
 
     $effect(() => {
         if (drawerState.open && !drawerEverOpened) {
             drawerEverOpened = true;
-            import('$lib/components/DrawerNav.svelte').then(m => { DrawerNav = m.default; });
+            import('$lib/components/common/layout/DrawerNav.svelte').then(m => { DrawerNav = m.default; });
         }
     });
 

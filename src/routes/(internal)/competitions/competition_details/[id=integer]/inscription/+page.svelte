@@ -9,7 +9,7 @@
     import { getInscriptionStatusBadgeClass as getStatusBadgeClasses, getInscriptionStatusIconName as getStatusIcon, getInscriptionStatusBorderClass as getStatusBorderClass, getInscriptionStatusIconColor } from '$lib/utils/inscription_utils';
     import { formatTime } from '$lib/utils/datetime_utils';
     import { slide } from 'svelte/transition';
-    import LoadingOverlay from '$lib/components/LoadingOverlay.svelte';
+    import LoadingOverlay from '$lib/components/common/LoadingOverlay.svelte';
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
     import Card from '$lib/components/common/card/Card.svelte';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';

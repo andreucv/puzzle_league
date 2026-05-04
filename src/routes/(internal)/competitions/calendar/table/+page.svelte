@@ -1,6 +1,6 @@
 <script lang="ts">
 	import CompetitionItem from '$lib/components/competition/CompetitionItem.svelte';
-	import InfiniteScroll from '$lib/components/InfiniteScroll.svelte';
+	import InfiniteScroll from '$lib/components/common/InfiniteScroll.svelte';
 	import { t } from '$lib/translations';
 	import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
 	import type { Competition } from '@prisma/client';

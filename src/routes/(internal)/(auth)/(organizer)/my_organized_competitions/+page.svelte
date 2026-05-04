@@ -1,6 +1,6 @@
 <script lang="ts">
     import CompetitionCard from '$lib/components/competition/CompetitionCard.svelte';
-    import SearchInput from '$lib/components/SearchInput.svelte';
+    import SearchInput from '$lib/components/common/SearchInput.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import { t } from '$lib/translations';
     let { data } = $props();

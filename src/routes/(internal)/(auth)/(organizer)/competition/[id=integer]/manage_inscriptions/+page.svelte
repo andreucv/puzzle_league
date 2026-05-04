@@ -12,9 +12,9 @@
     import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
     import Card from '$lib/components/common/card/Card.svelte';
-    import ManageRegistrationStatus from '$lib/components/ManageRegistrationStatus.svelte';
+    import ManageRegistrationStatus from './components/ManageRegistrationStatus.svelte';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
-    import SearchInput from '$lib/components/SearchInput.svelte';
+    import SearchInput from '$lib/components/common/SearchInput.svelte';
     import InscriptionList from '$lib/components/manage_inscriptions/InscriptionList.svelte';
     import CollapsibleSection from '$lib/components/manage_inscriptions/CollapsibleSection.svelte';
     import ConfirmPopover from '$lib/components/common/ConfirmPopover.svelte';

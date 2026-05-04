@@ -3,7 +3,7 @@
     import type { RoleAssignment } from "@prisma/client";
     import { t, locale, locales, setLocale } from '$lib/translations';
     import { enhance } from '$app/forms';
-    import ThemeLightSwitch from './ThemeLightSwitch.svelte';
+    import ThemeLightSwitch from '$lib/components/common/ThemeLightSwitch.svelte';
     import langNames from '$lib/translations/lang.json';
 
     const langMap: Record<string, string> = langNames;

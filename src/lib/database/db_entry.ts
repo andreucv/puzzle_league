@@ -2,8 +2,8 @@ import { prisma } from '$lib/database/create_prisma_client';
 import { CategoryStatus } from '$lib/.prisma/generated/prisma/enums';
 
 // ---------------------------------------------------------------------------
-// Entry queries — read-only functions for fetching entries (records) and
-// related registration data. Split from the former db_inscription_utils.ts
+// Entry queries — read-only functions for fetching entries and
+// related registration data. Split from the former db_registration_utils.ts
 // to separate query concerns from mutation/orchestration concerns.
 // ---------------------------------------------------------------------------
 
@@ -108,7 +108,7 @@ export async function getRegistrationsForCompetition(competitionId: number) {
     }
 }
 
-export async function getInscribedUserIdsByCategory(competitionId: number): Promise<Record<number, string[]>> {
+export async function getRegisteredUserIdsByCategory(competitionId: number): Promise<Record<number, string[]>> {
     const entries = await prisma.entry.findMany({
         where: {
             category: { competitionId },
@@ -138,8 +138,8 @@ export async function getInscribedUserIdsByCategory(competitionId: number): Prom
 // ---------------------------------------------------------------------------
 
 export class EntryNotFoundError extends Error {
-    constructor(recordId: string) {
-        super(`Record ${recordId} not found`);
+    constructor(entryId: string) {
+        super(`Entry ${entryId} not found`);
         this.name = 'EntryNotFoundError';
     }
 }
@@ -153,22 +153,22 @@ export class InvalidEntryStateError extends Error {
 
 /** Record a finish time for an entry. Only allowed while the category is LIVE. */
 export async function recordFinishTime(
-    recordId: string,
+    entryId: string,
     finishTime?: string,
     tableNumber?: string
 ) {
-    const record = await prisma.entry.findUnique({
-        where: { id: recordId },
+    const entry = await prisma.entry.findUnique({
+        where: { id: entryId },
         select: { category: { select: { status: true } } }
     });
 
-    if (!record) throw new EntryNotFoundError(recordId);
-    if (record.category.status !== CategoryStatus.LIVE) {
+    if (!entry) throw new EntryNotFoundError(entryId);
+    if (entry.category.status !== CategoryStatus.LIVE) {
         throw new InvalidEntryStateError('Finish actions are only allowed while the category is LIVE');
     }
 
     return prisma.entry.update({
-        where: { id: recordId },
+        where: { id: entryId },
         data: {
             finishTime: finishTime ? new Date(finishTime) : new Date(),
             tableNumber: tableNumber ? parseInt(tableNumber) : undefined
@@ -178,63 +178,63 @@ export async function recordFinishTime(
 }
 
 /** Undo a finish time for an entry. Only allowed while the category is LIVE. */
-export async function undoFinishTime(recordId: string) {
-    const record = await prisma.entry.findUnique({
-        where: { id: recordId },
+export async function undoFinishTime(entryId: string) {
+    const entry = await prisma.entry.findUnique({
+        where: { id: entryId },
         select: { category: { select: { status: true } } }
     });
 
-    if (!record) throw new EntryNotFoundError(recordId);
-    if (record.category.status !== CategoryStatus.LIVE) {
+    if (!entry) throw new EntryNotFoundError(entryId);
+    if (entry.category.status !== CategoryStatus.LIVE) {
         throw new InvalidEntryStateError('Undo-finish actions are only allowed while the category is LIVE');
     }
 
     return prisma.entry.update({
-        where: { id: recordId },
+        where: { id: entryId },
         data: { finishTime: null },
         include: { users: true, category: true }
     });
 }
 
 /** Update the piece count for a DNF entry. Only allowed while the category is STOPPED. */
-export async function updatePiecesCompleted(recordId: string, nPiecesCompleted: number) {
-    const record = await prisma.entry.findUnique({
-        where: { id: recordId },
+export async function updatePiecesCompleted(entryId: string, nPiecesCompleted: number) {
+    const entry = await prisma.entry.findUnique({
+        where: { id: entryId },
         select: { finishTime: true, category: { select: { status: true } } }
     });
 
-    if (!record) throw new EntryNotFoundError(recordId);
-    if (record.category.status !== CategoryStatus.STOPPED) {
+    if (!entry) throw new EntryNotFoundError(entryId);
+    if (entry.category.status !== CategoryStatus.STOPPED) {
         throw new InvalidEntryStateError('Pieces can only be updated while the category is STOPPED');
     }
-    if (record.finishTime !== null) {
-        throw new InvalidEntryStateError('Pieces can only be set on DNF records (finishTime must be null)');
+    if (entry.finishTime !== null) {
+        throw new InvalidEntryStateError('Pieces can only be set on DNF entries (finishTime must be null)');
     }
 
     return prisma.entry.update({
-        where: { id: recordId },
+        where: { id: entryId },
         data: { nPiecesCompleted },
         include: { users: { select: { id: true, name: true, email: true } } }
     });
 }
 
 /** Reset the piece count for a DNF entry. Only allowed while the category is STOPPED. */
-export async function resetPiecesCompleted(recordId: string) {
-    const record = await prisma.entry.findUnique({
-        where: { id: recordId },
+export async function resetPiecesCompleted(entryId: string) {
+    const entry = await prisma.entry.findUnique({
+        where: { id: entryId },
         select: { nPiecesCompleted: true, finishTime: true, category: { select: { status: true } } }
     });
 
-    if (!record) throw new EntryNotFoundError(recordId);
-    if (record.category.status !== CategoryStatus.STOPPED) {
+    if (!entry) throw new EntryNotFoundError(entryId);
+    if (entry.category.status !== CategoryStatus.STOPPED) {
         throw new InvalidEntryStateError('Pieces can only be reset while the category is STOPPED');
     }
-    if (record.finishTime !== null) {
-        throw new InvalidEntryStateError('Cannot reset pieces on a record with a finish time');
+    if (entry.finishTime !== null) {
+        throw new InvalidEntryStateError('Cannot reset pieces on an entry with a finish time');
     }
 
     return prisma.entry.update({
-        where: { id: recordId },
+        where: { id: entryId },
         data: { nPiecesCompleted: null },
         include: { users: { select: { id: true, name: true, email: true } } }
     });

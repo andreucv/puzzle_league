@@ -101,7 +101,7 @@ describe('category-lifecycle auto-stop integration', () => {
 			(prisma.$transaction as any).mockResolvedValue([
 				{ id: 1, competitionId: 42, status: 'STOPPED', realEndTime: new Date() },
 				5, // totalEntries
-				2, // finishedRecords
+				2, // finishedEntries
 			]);
 
 			await stopCategory(1, { scheduler });

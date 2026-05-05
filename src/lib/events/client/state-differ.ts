@@ -55,7 +55,7 @@ export function diffCompetitionState(
 			}
 		}
 
-		// Record progress
+		// Entry progress
 		if (cat.finishedEntries > prevCat.finishedEntries) {
 			changes.push({
 				type: 'new_finishes',

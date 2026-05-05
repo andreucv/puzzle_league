@@ -5,15 +5,15 @@ import { notifyRegistrationConfirmed } from '$lib/notifications/registration_not
 
 export const POST = async (event: RequestEvent) => {
 	try {
-		const recordId = event.params.id as string;
+		const entryId = event.params.id as string;
 		const actorName = event.locals.user?.name || undefined;
 
-		if (!recordId) {
-			return json({ error: 'Invalid record ID' }, { status: 400 });
+		if (!entryId) {
+			return json({ error: 'Invalid entry ID' }, { status: 400 });
 		}
 
-		const record = await prisma.entry.findUnique({
-			where: { id: recordId },
+		const entry = await prisma.entry.findUnique({
+			where: { id: entryId },
 			include: {
 				category: {
 					select: {
@@ -29,17 +29,17 @@ export const POST = async (event: RequestEvent) => {
 			}
 		});
 
-		if (!record) {
-			return json({ error: 'Record not found' }, { status: 404 });
+		if (!entry) {
+			return json({ error: 'Entry not found' }, { status: 404 });
 		}
 
-		const result = await confirmRegistration(recordId);
+		const result = await confirmRegistration(entryId);
 
 		if (!result.success) {
 			return json({ error: result.error }, { status: 400 });
 		}
 
-		await notifyRegistrationConfirmed(record, actorName);
+		await notifyRegistrationConfirmed(entry, actorName);
 
 		return json({ success: true, data: result.data });
 	} catch (error) {

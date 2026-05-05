@@ -43,7 +43,7 @@
         seatsAvailable?: number;
     } = $props();
 
-    const normalizedRecords = $derived(
+    const normalizedEntries = $derived(
         records.length > 0
             ? records
             : [{ status: registrationStatus, users: party ?? [], externalParticipants: externalParticipants ?? [] }]
@@ -116,17 +116,17 @@
                 {$t('during_competition.view_results')}
             </a>
         {:else if category.status === 'LIVE' || category.status === 'STOPPED'}
-            <!-- Inscription summary (non-clickable) + results link for running categories -->
-            {#if normalizedRecords.some((record) => (record.users?.length ?? 0) > 0 || (record.externalParticipants?.length ?? 0) > 0)}
+            <!-- Registration summary (non-clickable) + results link for running categories -->
+            {#if normalizedEntries.some((entry) => (entry.users?.length ?? 0) > 0 || (entry.externalParticipants?.length ?? 0) > 0)}
                 <div class="flex flex-col gap-2 overflow-hidden">
-                    {#each normalizedRecords as record, index (record.id ?? `${category.id}-${index}`)}
-                        {@const recordUsers = record.users ?? []}
-                        {@const entryExternalParticipants = record.externalParticipants ?? []}
-                        {#if recordUsers.length > 0 || entryExternalParticipants.length > 0}
+                    {#each normalizedEntries as entry, index (entry.id ?? `${category.id}-${index}`)}
+                        {@const entryUsers = entry.users ?? []}
+                        {@const entryExternalParticipants = entry.externalParticipants ?? []}
+                        {#if entryUsers.length > 0 || entryExternalParticipants.length > 0}
                             <div class="flex items-center gap-2 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-50/70 dark:bg-surface-800/60 px-2 py-1 overflow-hidden">
                                 <div class="flex items-center gap-2 min-w-0 flex-1">
                                     <div class="flex -space-x-1.5 shrink-0">
-                                        {#each recordUsers as user}
+                                        {#each entryUsers as user}
                                             <Avatar class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-surface-900 shadow-sm">
                                                 <Avatar.Image src={user?.image ?? undefined} alt={user.name ?? 'User'} />
                                                 <Avatar.Fallback>{user.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
@@ -139,10 +139,10 @@
                                         {/each}
                                     </div>
                                     <span class="text-xs text-surface-600 dark:text-surface-400 truncate">
-                                        {[...recordUsers.map(u => u.name), ...entryExternalParticipants.map(ep => ep.name)].join(', ')}
+                                        {[...entryUsers.map(u => u.name), ...entryExternalParticipants.map(ep => ep.name)].join(', ')}
                                     </span>
                                 </div>
-                                <RegistrationStatusBadge status={record.status ?? ''} />
+                                <RegistrationStatusBadge status={entry.status ?? ''} />
                             </div>
                         {/if}
                     {/each}
@@ -163,16 +163,16 @@
             </a>
         {:else}
         <a href="/competitions/competition_details/{category.competitionId}/registration" class="block mt-auto -mb-0.5 hover:opacity-80 transition-opacity overflow-hidden">
-            {#if normalizedRecords.some((record) => (record.users?.length ?? 0) > 0 || (record.externalParticipants?.length ?? 0) > 0)}
+            {#if normalizedEntries.some((entry) => (entry.users?.length ?? 0) > 0 || (entry.externalParticipants?.length ?? 0) > 0)}
                 <div class="flex flex-col gap-2 overflow-hidden">
-                    {#each normalizedRecords as record, index (record.id ?? `${category.id}-${index}`)}
-                        {@const recordUsers = record.users ?? []}
-                        {@const entryExternalParticipants = record.externalParticipants ?? []}
-                        {#if recordUsers.length > 0 || entryExternalParticipants.length > 0}
+                    {#each normalizedEntries as entry, index (entry.id ?? `${category.id}-${index}`)}
+                        {@const entryUsers = entry.users ?? []}
+                        {@const entryExternalParticipants = entry.externalParticipants ?? []}
+                        {#if entryUsers.length > 0 || entryExternalParticipants.length > 0}
                             <div class="flex items-center gap-2 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-50/70 dark:bg-surface-800/60 px-2 py-1 overflow-hidden">
                                 <div class="flex items-center gap-2 min-w-0 flex-1">
                                     <div class="flex -space-x-1.5 shrink-0">
-                                        {#each recordUsers as user}
+                                        {#each entryUsers as user}
                                             <Avatar class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-surface-900 shadow-sm">
                                                 <Avatar.Image src={user?.image ?? undefined} alt={user.name ?? 'User'} />
                                                 <Avatar.Fallback>{user.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
@@ -185,10 +185,10 @@
                                         {/each}
                                     </div>
                                     <span class="text-xs text-surface-600 dark:text-surface-400 truncate">
-                                        {[...recordUsers.map(u => u.name), ...entryExternalParticipants.map(ep => ep.name)].join(', ')}
+                                        {[...entryUsers.map(u => u.name), ...entryExternalParticipants.map(ep => ep.name)].join(', ')}
                                     </span>
                                 </div>
-                                <EntryRegistrationStatusBadge status={record.status ?? ''} />
+                                <EntryRegistrationStatusBadge status={entry.status ?? ''} />
                             </div>
                         {/if}
                     {/each}

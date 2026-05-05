@@ -7,7 +7,7 @@ async function main() {
     const deleted = {
         notifications: (await prisma.notification.deleteMany()).count,
         leaguePoints: (await prisma.leaguePoints.deleteMany()).count,
-        records: (await prisma.record.deleteMany()).count,
+        entries: (await prisma.entry.deleteMany()).count,
         requests: (await prisma.request.deleteMany()).count,
         roleAssignments: (await prisma.roleAssignment.deleteMany()).count,
         categories: (await prisma.category.deleteMany()).count,

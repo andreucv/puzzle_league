@@ -6,18 +6,18 @@ import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/registration';
 
 export const POST = async (event: RequestEvent) => {
 	try {
-		const recordId = event.params.id as string;
+		const entryId = event.params.id as string;
 		const actorName = event.locals.user?.name || undefined;
 
-		if (!recordId) {
-			return json({ error: 'Invalid record ID' }, { status: 400 });
+		if (!entryId) {
+			return json({ error: 'Invalid entry ID' }, { status: 400 });
 		}
 
 		const body = await event.request.json().catch(() => ({}));
 		const note = typeof body.note === 'string' ? body.note.replace(/<[^>]*>/g, '').slice(0, 200) : undefined;
 
-		const record = await prisma.entry.findUnique({
-			where: { id: recordId },
+		const entry = await prisma.entry.findUnique({
+			where: { id: entryId },
 			include: {
 				category: {
 					select: {
@@ -33,16 +33,16 @@ export const POST = async (event: RequestEvent) => {
 			},
 		});
 
-		if (!record) {
-			return json({ error: 'Record not found' }, { status: 404 });
+		if (!entry) {
+			return json({ error: 'Entry not found' }, { status: 404 });
 		}
 
-		if (record.status !== RegistrationStatus.PENDING_CONFIRMATION) {
+		if (entry.status !== RegistrationStatus.PENDING_CONFIRMATION) {
 			return json({ error: 'Only pending registrations can be reminded' }, { status: 400 });
 		}
 
-		if (record.lastRemindedAt) {
-			const elapsed = Date.now() - record.lastRemindedAt.getTime();
+		if (entry.lastRemindedAt) {
+			const elapsed = Date.now() - entry.lastRemindedAt.getTime();
 			if (elapsed < PAYMENT_REMINDER_COOLDOWN_MS) {
 				return json({ error: 'Reminder already sent recently. Please wait before sending again.' }, { status: 429 });
 			}
@@ -50,11 +50,11 @@ export const POST = async (event: RequestEvent) => {
 
 		const now = new Date();
 		await prisma.entry.update({
-			where: { id: recordId },
+			where: { id: entryId },
 			data: { lastRemindedAt: now },
 		});
 
-		const remindedCount = await notifyPaymentReminder([record], actorName, note);
+		const remindedCount = await notifyPaymentReminder([entry], actorName, note);
 
 		return json({ success: true, remindedAt: now.toISOString(), remindedCount });
 	} catch (error) {

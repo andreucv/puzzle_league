@@ -1,22 +1,22 @@
 /**
- * Composable for managing category records — search, filtering, and fetching.
+ * Composable for managing category entries — search, filtering, and fetching.
  * Used by CategoryCard for LIVE and STOPPED variants.
  * Selection state is managed by each EntryList instance internally.
  */
 
-export function matchesSearch(record: any, query: string): boolean {
+export function matchesSearch(entry: any, query: string): boolean {
     const q = query.toLowerCase();
-    if (record.tableNumber != null && String(record.tableNumber).includes(q)) return true;
-    if (record.users?.some((u: any) => u.name?.toLowerCase().includes(q))) return true;
-    if (record.externalParticipants?.some((ui: any) => ui.name?.toLowerCase().includes(q))) return true;
+    if (entry.tableNumber != null && String(entry.tableNumber).includes(q)) return true;
+    if (entry.users?.some((u: any) => u.name?.toLowerCase().includes(q))) return true;
+    if (entry.externalParticipants?.some((ui: any) => ui.name?.toLowerCase().includes(q))) return true;
     return false;
 }
 
 /**
  * Mode 'split': fetches finished and unfinished separately (for LIVE — pending vs finished).
- * Mode 'unified': fetches all records once, splits client-side (for STOPPED — unresolved vs resolved).
+ * Mode 'unified': fetches all entries once, splits client-side (for STOPPED — unresolved vs resolved).
  */
-export function useCategoryRecords(getCategoryId: () => number, mode: 'split' | 'unified') {
+export function useCategoryEntries(getCategoryId: () => number, mode: 'split' | 'unified') {
     // Capture category ID once to avoid reactive reads inside $effect.
     // getCategoryId() is a closure over a reactive prop; calling it inside
     // an effect would make the effect re-run on every parent re-render.
@@ -25,42 +25,42 @@ export function useCategoryRecords(getCategoryId: () => number, mode: 'split' | 
     let searchQuery = $state('');
 
     // --- Core state: single source of truth ---
-    let allRecords = $state<any[]>([]);
+    let allEntries = $state<any[]>([]);
     let loading = $state(false);
 
     // --- Derived splits ---
     // Split mode (LIVE): pending vs finished
-    let pendingRecords = $derived(allRecords.filter(r => r.finishTime == null));
-    let finishedRecords = $derived(allRecords.filter(r => r.finishTime != null));
+    let pendingEntries = $derived(allEntries.filter(r => r.finishTime == null));
+    let finishedEntries = $derived(allEntries.filter(r => r.finishTime != null));
 
     // Unified mode (STOPPED): unresolved vs resolved
-    let unresolvedRecords = $derived(
-        allRecords.filter(r => r.finishTime == null && r.nPiecesCompleted == null)
+    let unresolvedEntries = $derived(
+        allEntries.filter(r => r.finishTime == null && r.nPiecesCompleted == null)
     );
-    let resolvedRecords = $derived(
-        allRecords.filter(r => r.finishTime != null || r.nPiecesCompleted != null)
+    let resolvedEntries = $derived(
+        allEntries.filter(r => r.finishTime != null || r.nPiecesCompleted != null)
     );
 
-    // Filtered records (search applied)
+    // Filtered entries (search applied)
     let filteredPending = $derived(
         searchQuery.trim()
-            ? pendingRecords.filter(r => matchesSearch(r, searchQuery.trim()))
-            : pendingRecords
+            ? pendingEntries.filter(r => matchesSearch(r, searchQuery.trim()))
+            : pendingEntries
     );
     let filteredFinished = $derived(
         searchQuery.trim()
-            ? finishedRecords.filter(r => matchesSearch(r, searchQuery.trim()))
-            : finishedRecords
+            ? finishedEntries.filter(r => matchesSearch(r, searchQuery.trim()))
+            : finishedEntries
     );
     let filteredUnresolved = $derived(
         searchQuery.trim()
-            ? unresolvedRecords.filter(r => matchesSearch(r, searchQuery.trim()))
-            : unresolvedRecords
+            ? unresolvedEntries.filter(r => matchesSearch(r, searchQuery.trim()))
+            : unresolvedEntries
     );
     let filteredResolved = $derived(
         searchQuery.trim()
-            ? resolvedRecords.filter(r => matchesSearch(r, searchQuery.trim()))
-            : resolvedRecords
+            ? resolvedEntries.filter(r => matchesSearch(r, searchQuery.trim()))
+            : resolvedEntries
     );
 
     // --- Initial load tracking (only show loading spinner on first fetch, not background refreshes) ---
@@ -72,19 +72,19 @@ export function useCategoryRecords(getCategoryId: () => number, mode: 'split' | 
     // --- Debounce timer: coalesce rapid refreshAll() calls into a single fetch ---
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
 
-    // --- Fetcher: single request for all confirmed records ---
-    async function fetchRecords(generation: number) {
+    // --- Fetcher: single request for all confirmed entries ---
+    async function fetchEntries(generation: number) {
         if (!initialLoad) loading = true;
         try {
-            const res = await fetch(`/api/categories/${categoryId}/records`);
+            const res = await fetch(`/api/categories/${categoryId}/entries`);
             if (generation !== fetchGeneration) return;
             if (res.ok) {
                 const data = await res.json();
                 if (generation !== fetchGeneration) return;
-                allRecords = data.records ?? [];
+                allEntries = data.records ?? [];
             }
         } catch (err) {
-            console.error('Failed to fetch records:', err);
+            console.error('Failed to fetch entries:', err);
         } finally {
             if (generation === fetchGeneration) {
                 loading = false;
@@ -95,7 +95,7 @@ export function useCategoryRecords(getCategoryId: () => number, mode: 'split' | 
 
     function doFetch() {
         const generation = ++fetchGeneration;
-        fetchRecords(generation);
+        fetchEntries(generation);
     }
 
     function refreshAll() {
@@ -117,22 +117,22 @@ export function useCategoryRecords(getCategoryId: () => number, mode: 'split' | 
         set searchQuery(v: string) { searchQuery = v; },
 
         // Core state
-        get allRecords() { return allRecords; },
-        set allRecords(v: any[]) { allRecords = v; },
+        get allEntries() { return allEntries; },
+        set allEntries(v: any[]) { allEntries = v; },
         get loading() { return loading; },
 
-        // Split mode (LIVE) — derived from allRecords
-        get pendingRecords() { return pendingRecords; },
-        get finishedRecords() { return finishedRecords; },
+        // Split mode (LIVE) — derived from allEntries
+        get pendingEntries() { return pendingEntries; },
+        get finishedEntries() { return finishedEntries; },
         get loadingPending() { return loading; },
         get loadingFinished() { return loading; },
         get filteredPending() { return filteredPending; },
         get filteredFinished() { return filteredFinished; },
 
-        // Unified mode (STOPPED) — derived from allRecords
+        // Unified mode (STOPPED) — derived from allEntries
         get loadingAll() { return loading; },
-        get unresolvedRecords() { return unresolvedRecords; },
-        get resolvedRecords() { return resolvedRecords; },
+        get unresolvedEntries() { return unresolvedEntries; },
+        get resolvedEntries() { return resolvedEntries; },
         get filteredUnresolved() { return filteredUnresolved; },
         get filteredResolved() { return filteredResolved; },
 

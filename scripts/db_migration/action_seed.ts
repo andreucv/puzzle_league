@@ -1,5 +1,5 @@
 import { prisma } from './create_prisma_client';
-import { InscriptionStatus, CategoryType } from '../../src/lib/.prisma/generated/prisma/client';
+import { RegistrationStatus, CategoryType } from '../../src/lib/.prisma/generated/prisma/client';
 import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
@@ -33,7 +33,7 @@ interface SeedCategory {
     endTime: string;
 }
 
-interface SeedRecord {
+interface SeedEntry {
     competitionIndex: number;
     categoryIndex: number;
     creatorIndex: number;
@@ -41,19 +41,19 @@ interface SeedRecord {
     status: string;
 }
 
-interface SeedUserIntent {
+interface SeedExternalParticipant {
     name: string;
     creatorIndex: number;
-    recordCompetitionIndex: number;
-    recordCategoryIndex: number;
+    entryCompetitionIndex: number;
+    entryCategoryIndex: number;
 }
 
 interface SeedData {
     users: SeedUser[];
     competitions: SeedCompetition[];
     categories: SeedCategory[];
-    records: SeedRecord[];
-    userIntents?: SeedUserIntent[];
+    records: SeedEntry[];
+    userIntents?: SeedExternalParticipant[];
 }
 
 async function main() {
@@ -136,9 +136,9 @@ async function main() {
         console.log(`   ✅ ${created.name} (ID: ${created.id}) — ${created.categories.length} categories`);
     }
 
-    // 3. Create records (inscriptions)
-    console.log(`📝 Creating ${seedData.records.length} records (inscriptions)...`);
-    let recordCount = 0;
+    // 3. Create entries (registrations)
+    console.log(`📝 Creating ${seedData.records.length} entries...`);
+    let entryCount = 0;
     for (const rec of seedData.records) {
         const catIds = categoryIdMap.get(rec.competitionIndex);
         if (!catIds) continue;
@@ -148,60 +148,60 @@ async function main() {
         const creatorDbId = dbUsers[rec.creatorIndex].id;
         const userConnections = rec.userIndices.map(i => ({ id: dbUsers[i].id }));
 
-        await prisma.record.create({
+        await prisma.entry.create({
             data: {
                 categoryId,
                 creatorId: creatorDbId,
-                status: rec.status as InscriptionStatus,
+                status: rec.status as RegistrationStatus,
                 users: { connect: userConnections },
             },
         });
-        recordCount++;
+        entryCount++;
     }
-    console.log(`   ✅ ${recordCount} records created`);
+    console.log(`   ✅ ${entryCount} entries created`);
 
-    // 4. Create user intents (non-registered participants)
+    // 4. Create external participants (non-registered participants)
     if (seedData.userIntents && seedData.userIntents.length > 0) {
-        console.log(`🔗 Creating ${seedData.userIntents.length} user intents...`);
-        let intentCount = 0;
+        console.log(`🔗 Creating ${seedData.userIntents.length} external participants...`);
+        let epCount = 0;
         for (const intent of seedData.userIntents) {
-            const catIds = categoryIdMap.get(intent.recordCompetitionIndex);
+            const catIds = categoryIdMap.get(intent.entryCompetitionIndex);
             if (!catIds) continue;
-            const categoryId = catIds[intent.recordCategoryIndex];
+            const categoryId = catIds[intent.entryCategoryIndex];
             if (categoryId === undefined) continue;
 
             const creatorDbId = dbUsers[intent.creatorIndex].id;
 
-            // Find the record for this category created by this user (or create a new one)
-            let record = await prisma.record.findFirst({
+            // Find the entry for this category created by this user (or create a new one)
+            let entry = await prisma.entry.findFirst({
                 where: {
                     categoryId,
                     creatorId: creatorDbId
                 }
             });
 
-            if (!record) {
-                // Create a record for this user intent
-                record = await prisma.record.create({
+            if (!entry) {
+                // Create an entry for this external participant
+                entry = await prisma.entry.create({
                     data: {
                         categoryId,
                         creatorId: creatorDbId,
-                        status: 'PENDING_CONFIRMATION' as InscriptionStatus,
+                        status: 'PENDING_CONFIRMATION' as RegistrationStatus,
                         users: { connect: { id: creatorDbId } }
                     }
                 });
             }
 
-            await prisma.userIntent.create({
+            await prisma.externalParticipant.create({
                 data: {
                     name: intent.name,
                     createdById: creatorDbId,
-                    records: { connect: { id: record.id } }
+                    entries: { connect: { id: entry.id } }
                 }
             });
-            intentCount++;
+            epCount++;
         }
-        console.log(`   ✅ ${intentCount} user intents created`);
+        console.log(`   ✅ ${epCount} external participants created`);
     }
 
     console.log('✅ Seed data inserted successfully!');

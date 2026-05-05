@@ -1,7 +1,7 @@
 import type { PageServerLoad, Actions } from "./$types";
 import { getCompetitionWithCategories, getCompetitionCategories } from "$lib/database/db_competition";
-import { getCategoryEntriesFromCompetition, getInscribedUserIdsByCategory } from "$lib/database/db_entry";
-import { signUpUsersToCompetition, removeRecordById } from "$lib/database/db_registration";
+import { getCategoryEntriesFromCompetition, getRegisteredUserIdsByCategory } from "$lib/database/db_entry";
+import { signUpUsersToCompetition, removeEntryById } from "$lib/database/db_registration";
 import { redirect } from "@sveltejs/kit";
 import { createNotificationForUsers } from "$lib/notifications/notifications";
 import { NotificationType, RegistrationStatus } from "$lib/.prisma/generated/prisma/enums";
@@ -20,16 +20,16 @@ export const load: PageServerLoad = async (event) => {
         throw redirect(302, '/competitions/explore_competitions');
     }
 
-    const [existingRecords, inscribedUserIds, categoriesWithCounts] = await Promise.all([
+    const [existingEntries, registeredUserIds, categoriesWithCounts] = await Promise.all([
         getCategoryEntriesFromCompetition(competitionId, user.id),
-        getInscribedUserIdsByCategory(competitionId),
+        getRegisteredUserIdsByCategory(competitionId),
         getCompetitionCategories(competitionId)
     ]);
 
     return {
         competition,
-        existingRecords: existingRecords || [],
-        inscribedUserIds,
+        existingEntries: existingEntries || [],
+        registeredUserIds,
         categoriesWithCounts,
     };
 };
@@ -61,16 +61,16 @@ export const actions: Actions = {
             if (result.success) {
                 // Notify users on waitlisted registrations
                 if (result.data) {
-                    for (const record of result.data) {
-                        if (record.status === RegistrationStatus.WAITLISTED) {
-                            const userIds = record.users.map((u: { id: string }) => u.id);
+                    for (const entry of result.data) {
+                        if (entry.status === RegistrationStatus.WAITLISTED) {
+                            const userIds = entry.users.map((u: { id: string }) => u.id);
                             await createNotificationForUsers(
                                 userIds,
                                 NotificationType.REGISTRATION_WAITLISTED,
                                 'notifications.titles.registration_waitlisted',
                                 'notifications.messages.registration_waitlisted',
-                                `/competitions/competition_details/${record.category.competition.id}`,
-                                { categoryName: record.category.description ?? record.category.type },
+                                `/competitions/competition_details/${entry.category.competition.id}`,
+                                { categoryName: entry.category.description ?? entry.category.type },
                             );
                         }
                     }
@@ -96,14 +96,14 @@ export const actions: Actions = {
         }
 
         const data = await request.formData();
-        const recordId = data.get('record_id')?.toString();
+        const entryId = data.get('entry_id')?.toString();
 
-        if (!recordId) {
-            return { success: false, message: 'Missing record ID' };
+        if (!entryId) {
+            return { success: false, message: 'Missing entry ID' };
         }
 
         try {
-            const result = await removeRecordById(recordId, user.id);
+            const result = await removeEntryById(entryId, user.id);
             if (result) {
                 return { success: true, message: 'Successfully unregistered' };
             }

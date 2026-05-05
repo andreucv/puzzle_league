@@ -93,7 +93,7 @@ test.describe('During Competition Workflow', () => {
     test('Given a participant assigned as judge, When navigating to during_competition page, Then it loads but lifecycle buttons are not visible', async () => {
         await navigateToDuringCompetition(participantPage, testData.competitionId);
 
-        // Page loads — wait for a record row or the category card content
+        // Page loads — wait for an entry row or the category card content
         await expect(participantPage.getByTestId(`start-category-${testData.categoryId}`)).not.toBeVisible();
     });
 
@@ -107,12 +107,12 @@ test.describe('During Competition Workflow', () => {
         // Category should now be LIVE — stop button appears
         await expect(organizerPage.getByTestId(`stop-category-${testData.categoryId}`)).toBeVisible({ timeout: 10000 });
 
-        // Record rows should be visible (pending records)
-        const recordRow = organizerPage.locator('[data-testid^="record-row-"]').first();
-        await expect(recordRow).toBeVisible({ timeout: 5000 });
+        // Entry rows should be visible (pending entries)
+        const entryRow = organizerPage.locator('[data-testid^="record-row-"]').first();
+        await expect(entryRow).toBeVisible({ timeout: 5000 });
     });
 
-    test('Given a judge, When viewing a LIVE category, Then lifecycle buttons are hidden but finish-record actions are available', async () => {
+    test('Given a judge, When viewing a LIVE category, Then lifecycle buttons are hidden but finish-entry actions are available', async () => {
         // Reload the page to see the updated LIVE state
         await navigateToDuringCompetition(participantPage, testData.competitionId);
 
@@ -120,17 +120,17 @@ test.describe('During Competition Workflow', () => {
         await expect(participantPage.getByTestId(`stop-category-${testData.categoryId}`)).not.toBeVisible();
         await expect(participantPage.getByTestId(`start-category-${testData.categoryId}`)).not.toBeVisible();
 
-        // Record rows should be visible
-        const recordRow = participantPage.getByTestId(`record-row-${testData.entryIds[0]}`);
-        await expect(recordRow).toBeVisible({ timeout: 5000 });
+        // Entry rows should be visible
+        const entryRow = participantPage.getByTestId(`record-row-${testData.entryIds[0]}`);
+        await expect(entryRow).toBeVisible({ timeout: 5000 });
 
-        // Click the record row to reveal finish action
-        await recordRow.click();
+        // Click the entry row to reveal finish action
+        await entryRow.click();
         await expect(participantPage.getByTestId(`finish-record-${testData.entryIds[0]}`)).toBeVisible();
     });
 
-    test('Given a judge, When finishing a record, Then the record moves to the finished list', async () => {
-        // Record row should already be selected from previous test; if not, click it
+    test('Given a judge, When finishing an entry, Then the entry moves to the finished list', async () => {
+        // Entry row should already be selected from previous test; if not, click it
         const finishButton = participantPage.getByTestId(`finish-record-${testData.entryIds[0]}`);
         if (!await finishButton.isVisible()) {
             await participantPage.getByTestId(`record-row-${testData.entryIds[0]}`).click();
@@ -139,21 +139,21 @@ test.describe('During Competition Workflow', () => {
 
         await finishButton.click();
 
-        // Record should now show a finish time (check icon with time)
-        const recordRow = participantPage.getByTestId(`record-row-${testData.entryIds[0]}`);
-        await expect(recordRow).toBeVisible({ timeout: 5000 });
+        // Entry should now show a finish time (check icon with time)
+        const entryRow = participantPage.getByTestId(`record-row-${testData.entryIds[0]}`);
+        await expect(entryRow).toBeVisible({ timeout: 5000 });
     });
 
-    test('Given an organizer finishing a record, When the judge is on the page, Then the judge sees the update via real-time sync', async () => {
+    test('Given an organizer finishing an entry, When the judge is on the page, Then the judge sees the update via real-time sync', async () => {
         // Organizer reloads to see current state
         await navigateToDuringCompetition(organizerPage, testData.competitionId);
 
         // Wait for records to load
-        const recordRow = organizerPage.getByTestId(`record-row-${testData.entryIds[1]}`);
-        await expect(recordRow).toBeVisible({ timeout: 5000 });
+        const entryRow = organizerPage.getByTestId(`record-row-${testData.entryIds[1]}`);
+        await expect(entryRow).toBeVisible({ timeout: 5000 });
 
         // Organizer clicks the record and finishes it
-        await recordRow.click();
+        await entryRow.click();
         const finishButton = organizerPage.getByTestId(`finish-record-${testData.entryIds[1]}`);
         await expect(finishButton).toBeVisible();
         await finishButton.click();

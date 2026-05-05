@@ -6,7 +6,7 @@
     import OverflowMenu from './OverflowMenu.svelte';
     import ConfirmActionButton from '$lib/components/common/buttons/ConfirmActionButton.svelte';
     import SearchInput from '$lib/components/common/SearchInput.svelte';
-    import { useCategoryRecords } from './useCategoryRecords.svelte';
+    import { useCategoryEntries } from './useCategoryEntries.svelte';
     import { executeCategoryAction, type CategoryAction, type CategoryActionResult } from './category-actions';
     import type { OverflowAction } from './types';
     import { showSuccessToast, showErrorToast } from '$lib/utils/toast';
@@ -82,12 +82,12 @@
 
     let remainingMs = $derived(Math.max(0, totalDurationMs - elapsedMs));
 
-    // --- Records (LIVE and STOPPED) ---
+    // --- Entries (LIVE and STOPPED) ---
     const records = untrack(() => hasRecords)
-        ? useCategoryRecords(() => category.id, untrack(() => isLive) ? 'split' : 'unified')
+        ? useCategoryEntries(() => category.id, untrack(() => isLive) ? 'split' : 'unified')
         : null;
 
-    // --- Re-fetch records when live version changes (external update from another judge) ---
+    // --- Re-fetch entries when live version changes (external update from another judge) ---
     let trackedVersion: string | null | undefined = undefined;
     $effect(() => {
         const v = liveVersion;
@@ -108,8 +108,8 @@
     // --- Debug: track record counts reactively ---
     $effect(() => {
         if (records) {
-            const pending = records.pendingRecords?.length ?? '?';
-            const finished = records.finishedRecords?.length ?? '?';
+            const pending = records.pendingEntries?.length ?? '?';
+            const finished = records.finishedEntries?.length ?? '?';
             // untrack category reads — we only care about count changes, not prop identity
             const id = untrack(() => category.id);
             const type = untrack(() => category.type);
@@ -273,10 +273,10 @@
             body: JSON.stringify({ finishTime: new Date().toISOString() })
         });
         if (response.ok) {
-            records.allRecords = records.allRecords.map((r: any) =>
+            records.allEntries = records.allEntries.map((r: any) =>
                 r.id === recordId ? { ...r, finishTime: new Date().toISOString() } : r
             );
-            localFinishedCount = records.finishedRecords.length;
+            localFinishedCount = records.finishedEntries.length;
             // No refreshAll() here — the Ably event will trigger a version change
             // which the version-tracking effect uses to refresh only this card's records.
         }
@@ -286,10 +286,10 @@
         if (!records) return;
         const response = await fetch(`/api/entries/${recordId}/result`, { method: 'DELETE' });
         if (response.ok) {
-            records.allRecords = records.allRecords.map((r: any) =>
+            records.allEntries = records.allEntries.map((r: any) =>
                 r.id === recordId ? { ...r, finishTime: null } : r
             );
-            localFinishedCount = records.finishedRecords.length;
+            localFinishedCount = records.finishedEntries.length;
         }
     }
 
@@ -301,7 +301,7 @@
             body: JSON.stringify({ nPiecesCompleted: data.nPiecesCompleted })
         });
         if (res.ok) {
-            records.allRecords = records.allRecords.map((r: any) =>
+            records.allEntries = records.allEntries.map((r: any) =>
                 r.id === recordId ? { ...r, nPiecesCompleted: data.nPiecesCompleted } : r
             );
         } else {
@@ -314,7 +314,7 @@
         if (!records) return;
         const res = await fetch(`/api/entries/${recordId}/pieces`, { method: 'DELETE' });
         if (res.ok) {
-            records.allRecords = records.allRecords.map((r: any) =>
+            records.allEntries = records.allEntries.map((r: any) =>
                 r.id === recordId ? { ...r, nPiecesCompleted: null } : r
             );
         }
@@ -423,7 +423,7 @@
 
         <!-- Search bar (LIVE + STOPPED) -->
         {#if records}
-            {#if isLive || (isStopped && records.allRecords.length > 0)}
+            {#if isLive || (isStopped && records.allEntries.length > 0)}
                 <SearchInput
                     bind:filter={records.searchQuery}
                     placeholder={$t('during_competition.search_placeholder')}
@@ -525,7 +525,7 @@
                 {/if}
                 <span class="flex items-center gap-1">
                     <FlagCheckeredIcon width="1rem" height="1rem" />
-                    {records?.resolvedRecords.length ?? 0}/{category.totalEntries}
+                    {records?.resolvedEntries.length ?? 0}/{category.totalEntries}
                 </span>
             </div>
         {:else if isComplete || isCanceled}

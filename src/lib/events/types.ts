@@ -41,24 +41,24 @@ export interface CategoryStatusChangedEvent {
 	autoStop?: boolean;
 }
 
-export interface RecordFinishedEvent {
-	type: 'record.finished';
-	recordId: string;
+export interface EntryFinishedEvent {
+	type: 'entry.finished';
+	entryId: string;
 	categoryId: number;
 	competitionId: number;
 	finishTime: string;
 }
 
-export interface RecordUnfinishedEvent {
-	type: 'record.unfinished';
-	recordId: string;
+export interface EntryUnfinishedEvent {
+	type: 'entry.unfinished';
+	entryId: string;
 	categoryId: number;
 	competitionId: number;
 }
 
-export interface RecordPiecesUpdatedEvent {
-	type: 'record.pieces_updated';
-	recordId: string;
+export interface EntryPiecesUpdatedEvent {
+	type: 'entry.pieces_updated';
+	entryId: string;
 	categoryId: number;
 	competitionId: number;
 	nPiecesCompleted: number;
@@ -74,9 +74,9 @@ export interface CategoryTimeExtendedEvent {
 
 export type CompetitionEvent =
 	| CategoryStatusChangedEvent
-	| RecordFinishedEvent
-	| RecordUnfinishedEvent
-	| RecordPiecesUpdatedEvent
+	| EntryFinishedEvent
+	| EntryUnfinishedEvent
+	| EntryPiecesUpdatedEvent
 	| CategoryTimeExtendedEvent;
 
 // Monotonic counter for generating unique event versions on the client side.
@@ -117,7 +117,7 @@ export function applyCompetitionEvent(
 				)
 			};
 		}
-		case 'record.finished': {
+		case 'entry.finished': {
 			return {
 				...state,
 				version: nextEventVersion(),
@@ -128,7 +128,7 @@ export function applyCompetitionEvent(
 				)
 			};
 		}
-		case 'record.unfinished': {
+		case 'entry.unfinished': {
 			return {
 				...state,
 				version: nextEventVersion(),
@@ -139,7 +139,7 @@ export function applyCompetitionEvent(
 				)
 			};
 		}
-		case 'record.pieces_updated': {
+		case 'entry.pieces_updated': {
 			// Pieces updates don't change the category-level state shape,
 			// but signal the results page to re-fetch
 			return state;

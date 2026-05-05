@@ -19,7 +19,7 @@ type GuardLevel =
   | 'categoryOrganizer'       // category [id] but requires ORGANIZER on parent competition
   | 'categoryJudge'           // category [id] requires JUDGE or ORGANIZER
   | 'entryJudge'              // entry [id] requires JUDGE or ORGANIZER via category chain
-  | 'inscriptionOrganizer';   // inscription [id] is an entryId → lookup competition → ORGANIZER
+  | 'registrationOrganizer';   // registration [id] is an entryId → lookup competition → ORGANIZER
 
 interface RouteGuard {
   guard: GuardLevel;
@@ -64,9 +64,9 @@ const ROUTE_GUARDS: [RegExp, RouteGuard][] = [
   [/^\/api\/events\/competition\/[^/]+$/, { guard: 'competitionJudgeOrOrganizer' }],
 
   // ---- Registration endpoints (entryId → competition → ORGANIZER) ----
-  [/^\/api\/registrations\/[^/]+\/confirm$/, { guard: 'inscriptionOrganizer' }],
-  [/^\/api\/registrations\/[^/]+\/refuse$/, { guard: 'inscriptionOrganizer' }],
-  [/^\/api\/registrations\/[^/]+\/remind$/, { guard: 'inscriptionOrganizer' }],
+  [/^\/api\/registrations\/[^/]+\/confirm$/, { guard: 'registrationOrganizer' }],
+  [/^\/api\/registrations\/[^/]+\/refuse$/, { guard: 'registrationOrganizer' }],
+  [/^\/api\/registrations\/[^/]+\/remind$/, { guard: 'registrationOrganizer' }],
 
   // ---- Category-scoped: ORGANIZER on parent competition (for judge management) ----
   [/^\/api\/categories\/[^/]+\/judges\/[^/]+$/, { guard: 'categoryOrganizer' }],
@@ -154,7 +154,7 @@ export async function enforceRouteGuard(event: RequestEvent): Promise<Response |
       return result.authorized ? null : result.response;
     }
 
-    case 'inscriptionOrganizer': {
+    case 'registrationOrganizer': {
       // The [id] param is an entry ID (string/UUID), not a competition ID.
       // Look up the entry → category → competitionId.
       const entryId = extractStringId(pathname);

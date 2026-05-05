@@ -41,10 +41,10 @@ export const load: PageServerLoad = async (event) => {
         }
     }
 
-    const categoriesWithInscriptions = await getRegistrationsForCompetition(competitionId);
+    const categoriesWithRegistrations = await getRegistrationsForCompetition(competitionId);
 
     return {
         competition,
-        categoriesWithInscriptions,
+        categoriesWithRegistrations,
     };
 };

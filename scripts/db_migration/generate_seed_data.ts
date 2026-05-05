@@ -34,7 +34,7 @@ interface SeedCategory {
     endTime: string;
 }
 
-interface SeedRecord {
+interface SeedEntry {
     competitionIndex: number;
     categoryIndex: number;
     creatorIndex: number;
@@ -46,7 +46,7 @@ interface SeedData {
     users: SeedUser[];
     competitions: SeedCompetition[];
     categories: SeedCategory[];
-    records: SeedRecord[];
+    records: SeedEntry[];
 }
 
 // ── User generation ──
@@ -170,14 +170,14 @@ function generateCategories(competitions: SeedCompetition[]): SeedCategory[] {
     return categories;
 }
 
-// ── Record (inscription) generation ──
+// ── Entry (registration) generation ──
 
 // Deterministic pseudo-random: seeded from category index to produce varied but reproducible counts
 function seededCount(catIdx: number, salt: number, min: number, max: number): number {
     return min + ((catIdx * 7 + salt * 13 + 3) % (max - min + 1));
 }
 
-function generateRecords(categories: SeedCategory[], totalUsers: number, startUserIndex = 0): SeedRecord[] {
+function generateEntries(categories: SeedCategory[], totalUsers: number, startUserIndex = 0): SeedEntry[] {
     // Build global-to-local category index map
     const catCountByComp = new Map<number, number>();
     const catGlobalToLocal = new Map<number, number>();
@@ -188,7 +188,7 @@ function generateRecords(categories: SeedCategory[], totalUsers: number, startUs
         catCountByComp.set(ci, localIdx + 1);
     }
 
-    const records: SeedRecord[] = [];
+    const entries: SeedEntry[] = [];
     let userCursor = startUserIndex;
 
     for (let catIdx = 0; catIdx < categories.length; catIdx++) {
@@ -215,7 +215,7 @@ function generateRecords(categories: SeedCategory[], totalUsers: number, startUs
                     userCursor++;
                 }
 
-                records.push({
+                entries.push({
                     competitionIndex: cat.competitionIndex,
                     categoryIndex: localCatIdx,
                     creatorIndex: userIndices[0],
@@ -226,7 +226,7 @@ function generateRecords(categories: SeedCategory[], totalUsers: number, startUs
         }
     }
 
-    return records;
+    return entries;
 }
 
 // ── Main ──
@@ -268,7 +268,7 @@ export function generateSeedData(): SeedData {
     const competitions = generateCompetitions(baseDate, creatorIndices);
     const categories = generateCategories(competitions);
     // Participants start from the first generated user (index M), cycling through them
-    const records = generateRecords(categories, users.length, M);
+    const records = generateEntries(categories, users.length, M);
 
     return { users, competitions, categories, records };
 }
@@ -282,4 +282,4 @@ console.log(`✅ Seed data generated: ${outPath}`);
 console.log(`   👥 ${data.users.length} users`);
 console.log(`   🏆 ${data.competitions.length} competitions`);
 console.log(`   📋 ${data.categories.length} categories`);
-console.log(`   📝 ${data.records.length} records`);
+console.log(`   📝 ${data.records.length} entries`);

@@ -5,10 +5,10 @@ import { publishCompetitionEvent } from '$lib/events/server/ably';
 
 export const POST = async (event: RequestEvent) => {
 	try {
-		const recordId = event.params.id as string;
+		const entryId = event.params.id as string;
 
-		if (!recordId) {
-			return json({ error: 'Invalid record ID' }, { status: 400 });
+		if (!entryId) {
+			return json({ error: 'Invalid entry ID' }, { status: 400 });
 		}
 
 		const body = await event.request.json();
@@ -18,22 +18,22 @@ export const POST = async (event: RequestEvent) => {
 			return json({ error: 'nPiecesCompleted must be a non-negative integer' }, { status: 400 });
 		}
 
-		const updatedRecord = await updatePiecesCompleted(recordId, nPiecesCompleted);
+		const updatedEntry = await updatePiecesCompleted(entryId, nPiecesCompleted);
 
 		const cat = await prisma.category.findUnique({
-			where: { id: updatedRecord.categoryId },
+			where: { id: updatedEntry.categoryId },
 			select: { competitionId: true }
 		});
 		if (cat) {
-			await publishCompetitionEvent(cat.competitionId, 'record.pieces_updated', {
-				recordId: updatedRecord.id,
-				categoryId: updatedRecord.categoryId,
+			await publishCompetitionEvent(cat.competitionId, 'entry.pieces_updated', {
+				entryId: updatedEntry.id,
+				categoryId: updatedEntry.categoryId,
 				competitionId: cat.competitionId,
 				nPiecesCompleted
 			});
 		}
 
-		return json({ record: updatedRecord });
+		return json({ entry: updatedEntry });
 	} catch (error) {
 		if (error instanceof EntryNotFoundError) {
 			return json({ error: error.message }, { status: 404 });
@@ -48,15 +48,15 @@ export const POST = async (event: RequestEvent) => {
 
 export const DELETE = async (event: RequestEvent) => {
 	try {
-		const recordId = event.params.id as string;
+		const entryId = event.params.id as string;
 
-		if (!recordId) {
-			return json({ error: 'Invalid record ID' }, { status: 400 });
+		if (!entryId) {
+			return json({ error: 'Invalid entry ID' }, { status: 400 });
 		}
 
-		const updatedRecord = await resetPiecesCompleted(recordId);
+		const updatedEntry = await resetPiecesCompleted(entryId);
 
-		return json({ record: updatedRecord });
+		return json({ entry: updatedEntry });
 	} catch (error) {
 		if (error instanceof EntryNotFoundError) {
 			return json({ error: error.message }, { status: 404 });

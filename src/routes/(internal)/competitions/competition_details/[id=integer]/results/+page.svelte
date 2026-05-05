@@ -73,39 +73,39 @@
     const isComplete = $derived(selectedCategory?.status === 'COMPLETE');
     const isActiveOrDone = $derived(isLive || isStopped || isComplete);
 
-    // Three-tier record classification:
+    // Three-tier entry classification:
     // (a) Finished — has finishTime, sorted by finishTime asc (from DB)
     // (b) Partial — no finishTime, has nPiecesCompleted, sorted by nPiecesCompleted desc
     // (c) DNS — neither finishTime nor nPiecesCompleted
-    const finishedRecords = $derived(
+    const finishedEntries = $derived(
         selectedCategory ? selectedCategory.entries.filter((r) => r.finishTime != null) : []
     );
-    const partialRecords = $derived(
+    const partialEntries = $derived(
         selectedCategory
             ? selectedCategory.entries
                 .filter((r) => r.finishTime == null && r.nPiecesCompleted != null)
                 .sort((a, b) => (b.nPiecesCompleted ?? 0) - (a.nPiecesCompleted ?? 0))
             : []
     );
-    const dnsRecords = $derived(
+    const dnsEntries = $derived(
         selectedCategory
             ? selectedCategory.entries.filter((r) => r.finishTime == null && r.nPiecesCompleted == null)
             : []
     );
 
-    // Combined ranked records: finished + partial (for position numbering)
-    const rankedRecords = $derived([...finishedRecords, ...partialRecords]);
+    // Combined ranked entries: finished + partial (for position numbering)
+    const rankedEntries = $derived([...finishedEntries, ...partialEntries]);
 
     const firstFinish = $derived(
-        finishedRecords.length > 0 && finishedRecords[0].finishTime
-            ? new Date(finishedRecords[0].finishTime)
+        finishedEntries.length > 0 && finishedEntries[0].finishTime
+            ? new Date(finishedEntries[0].finishTime)
             : null
     );
     const puzzle: App.ResultPuzzleData | undefined = $derived(selectedCategory?.puzzles[0]);
 
     // Stats
     const totalEntries = $derived(selectedCategory?._count.entries ?? 0);
-    const finishedCount = $derived(finishedRecords.length);
+    const finishedCount = $derived(finishedEntries.length);
     const categoryDuration = $derived.by(() => {
         if (!selectedCategory?.realStartTime) return null;
         const start = new Date(selectedCategory.realStartTime);
@@ -114,15 +114,15 @@
             if (selectedCategory.realEndTime) {
                 return calculateDuration(start, new Date(selectedCategory.realEndTime));
             }
-            const lastFinish = finishedRecords.length > 0
-                ? finishedRecords[finishedRecords.length - 1].finishTime
+            const lastFinish = finishedEntries.length > 0
+                ? finishedEntries[finishedEntries.length - 1].finishTime
                 : null;
             if (lastFinish) return calculateDuration(start, new Date(lastFinish));
         }
         return null;
     });
 
-    function isDNF(record: App.ResultRecord, category: App.ResultCategory): boolean {
+    function isDNF(record: App.ResultEntry, category: App.ResultCategory): boolean {
         if (!record.finishTime || !category.realEndTime) return false;
         const p = category.puzzles[0];
         if (!p) return false;
@@ -133,11 +133,11 @@
             && record.nPiecesCompleted < p.pieces;
     }
 
-    function isPartialRecord(record: App.ResultRecord): boolean {
+    function isPartialRecord(record: App.ResultEntry): boolean {
         return record.finishTime == null && record.nPiecesCompleted != null;
     }
 
-    function getCompletionPercent(record: App.ResultRecord): number | null {
+    function getCompletionPercent(record: App.ResultEntry): number | null {
         if (record.nPiecesCompleted == null || !puzzle) return null;
         return Math.round((record.nPiecesCompleted / puzzle.pieces) * 100);
     }
@@ -357,7 +357,7 @@
                     {/if}
 
                     <!-- Results table -->
-                    {#if rankedRecords.length > 0 || (isComplete && dnsRecords.length > 0)}
+                    {#if rankedEntries.length > 0 || (isComplete && dnsEntries.length > 0)}
                         <div class="{puzzle ? 'mt-4' : ''} -mx-4 -mb-2">
                             <!-- Desktop table -->
                             <div class="hidden sm:block">
@@ -370,7 +370,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {#each rankedRecords as record, i (record.id)}
+                                        {#each rankedEntries as record, i (record.id)}
                                             {@const pos = i + 1}
                                             {@const style = getPositionStyle(pos)}
                                             {@const dnf = isDNF(record, selectedCategory)}
@@ -463,7 +463,7 @@
                                         {/each}
                                         <!-- DNS records (only when category is complete) -->
                                         {#if isComplete}
-                                            {#each dnsRecords as record (record.id)}
+                                            {#each dnsEntries as record (record.id)}
                                                 <tr class="opacity-50">
                                                     <td class="w-11 py-3">
                                                         <div class="flex items-center justify-center">
@@ -514,7 +514,7 @@
 
                             <!-- Mobile stacked layout -->
                             <div class="sm:hidden space-y-0">
-                                {#each rankedRecords as record, i (record.id)}
+                                {#each rankedEntries as record, i (record.id)}
                                     {@const pos = i + 1}
                                     {@const style = getPositionStyle(pos)}
                                     {@const dnf = isDNF(record, selectedCategory)}
@@ -601,7 +601,7 @@
                                 {/each}
                                 <!-- DNS records mobile (only when complete) -->
                                 {#if isComplete}
-                                    {#each dnsRecords as record (record.id)}
+                                    {#each dnsEntries as record (record.id)}
                                         <div class="px-4 py-3 border-b border-surface-200/30 last:border-b-0 opacity-50">
                                             <div class="flex items-start justify-between gap-3">
                                                 <div class="w-6 shrink-0 flex items-center justify-center">

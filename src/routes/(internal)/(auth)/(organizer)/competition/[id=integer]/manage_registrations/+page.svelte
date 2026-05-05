@@ -24,13 +24,13 @@
     let { data } = $props();
 
     let competition = $derived(data.competition);
-    let categoriesWithInscriptions = $derived(data.categoriesWithInscriptions || []);
+    let categoriesWithRegistrations = $derived(data.categoriesWithRegistrations || []);
     // Only NOT_STARTED categories in the main view; started/completed ones go in a collapsed section
     let activeCategories = $derived(
-        categoriesWithInscriptions.filter((c: any) => c.status === 'NOT_STARTED')
+        categoriesWithRegistrations.filter((c: any) => c.status === 'NOT_STARTED')
     );
     let startedCategories = $derived(
-        categoriesWithInscriptions.filter((c: any) => c.status !== 'NOT_STARTED')
+        categoriesWithRegistrations.filter((c: any) => c.status !== 'NOT_STARTED')
     );
     let registrationOpen = $state(data.competition.registrationOpen);
     let searchFilter = $state('');
@@ -179,7 +179,7 @@
 
     <!-- Manage Registration Status -->
     <div>
-        <ManageRegistrationStatus competition_id={competition.id} competition_registration_status={registrationOpen} hasCategories={categoriesWithInscriptions.length > 0} onStatusChange={(status) => registrationOpen = status} />
+        <ManageRegistrationStatus competition_id={competition.id} competition_registration_status={registrationOpen} hasCategories={categoriesWithRegistrations.length > 0} onStatusChange={(status) => registrationOpen = status} />
     </div>
 
     <!-- User Search -->
@@ -209,7 +209,7 @@
         </div>
     {/if}
 
-    <!-- Categories with inscriptions -->
+    <!-- Categories with registrations -->
     {#snippet categoryCard(category: any, showActions: boolean)}
         <Card>
             <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
@@ -339,7 +339,7 @@
         </CollapsibleSection>
     {/if}
 
-    {#if categoriesWithInscriptions.length === 0}
+    {#if categoriesWithRegistrations.length === 0}
         <div class="card p-8 text-center">
             <InboxOutlineIcon class="text-6xl text-surface-400 mx-auto mb-4" />
             <h3 class="text-xl font-semibold mb-2">{$t('manage_registrations.no_categories')}</h3>

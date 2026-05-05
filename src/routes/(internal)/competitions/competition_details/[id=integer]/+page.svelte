@@ -212,12 +212,12 @@
                     {/if}
                     {#if isOrganizer}
                         <EndPageActionButton icon={PencilIcon} href="/competition/edit/{competition?.id}" text={$t('competition_details.edit_button')} />
-                        <EndPageActionButton icon={ClipboardCheckOutlineIcon} href="/competition/{competition?.id}/manage_registrations" text={$t('manage_registrations.title')} testId="manage-inscriptions-button" />
+                        <EndPageActionButton icon={ClipboardCheckOutlineIcon} href="/competition/{competition?.id}/manage_registrations" text={$t('manage_registrations.title')} testId="manage-registrations-button" />
                     {/if}
                     <EndPageActionButton icon={ArrowLeftIcon} href="/competitions/explore_competitions/" colorClass="preset-tonal" text={$t('competition_details.back_to_competitions_button')} />
                 </div>
 
-                <!-- Alert Banner: explain why inscription is not available -->
+                <!-- Alert Banner: explain why registration is not available -->
                 {#if !competition?.registrationOpen}
                     <div class="flex items-center gap-2 p-3 rounded-lg bg-warning-50 dark:bg-warning-900/20 border border-warning-300 dark:border-warning-700 text-sm">
                         <LockOutlineIcon width="1.2rem" height="1.2rem" class="text-warning-500 shrink-0" />

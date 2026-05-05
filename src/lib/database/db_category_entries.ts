@@ -3,20 +3,20 @@ import type { Prisma } from '$lib/.prisma/generated/prisma/client';
 import { RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
 
 // ---------------------------------------------------------------------------
-// Category-scoped record queries
+// Category-scoped entry queries
 // ---------------------------------------------------------------------------
 
-interface CategoryRecordsFilter {
+interface CategoryEntriesFilter {
 	search?: string;
 	/** 'true' = only finished, 'false' = only unfinished, undefined = all */
 	finished?: 'true' | 'false';
 }
 
 /**
- * Fetch confirmed records for a category with optional search and finished filtering.
- * Search matches participant name, external-participant name, table number, or record ID.
+ * Fetch confirmed entries for a category with optional search and finished filtering.
+ * Search matches participant name, external-participant name, table number, or entry ID.
  */
-export async function getCategoryRecords(categoryId: number, filter: CategoryRecordsFilter = {}) {
+export async function getCategoryEntries(categoryId: number, filter: CategoryEntriesFilter = {}) {
 	const { search, finished } = filter;
 
 	const where: Prisma.EntryWhereInput = {
@@ -36,7 +36,7 @@ export async function getCategoryRecords(categoryId: number, filter: CategoryRec
 		const isNumeric = !isNaN(searchAsInt);
 
 		where.AND = [
-			// Only show unfinished records when searching (unless finishedFilter is set)
+			// Only show unfinished entries when searching (unless finishedFilter is set)
 			...(finished == null ? [{ finishTime: null }] : []),
 			{
 				OR: [
@@ -58,14 +58,14 @@ export async function getCategoryRecords(categoryId: number, filter: CategoryRec
 					},
 					// Search by table number (exact match)
 					...(isNumeric ? [{ tableNumber: searchAsInt }] : []),
-					// Search by record ID (exact match)
+					// Search by entry ID (exact match)
 					{ id: search }
 				]
 			}
 		];
 	}
 
-	const records = await prisma.entry.findMany({
+	const entries = await prisma.entry.findMany({
 		where,
 		include: {
 			users: {
@@ -86,7 +86,7 @@ export async function getCategoryRecords(categoryId: number, filter: CategoryRec
 		orderBy: [{ finishTime: 'asc' }, { tableNumber: 'asc' }]
 	});
 
-	return records.map((r) => ({
+	return entries.map((r) => ({
 		...r,
 		nPiecesCompleted: r.nPiecesCompleted
 	}));

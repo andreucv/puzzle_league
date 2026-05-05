@@ -46,8 +46,8 @@ export function getPartySizeByCategoryType(type: CategoryType) {
     return partySizes[type] || 1;
 }
 
-export function getMaxRecordsPerCategory(type: CategoryType): number {
-    const maxRecords: Record<CategoryType, number> = {
+export function getMaxEntriesPerCategory(type: CategoryType): number {
+    const maxEntries: Record<CategoryType, number> = {
         INDIVIDUAL: 4,
         PAIRS: 2,
         TEAM: 1,
@@ -56,7 +56,7 @@ export function getMaxRecordsPerCategory(type: CategoryType): number {
         PUZZLE_CHESS: 1,
         OTHER: 1
     };
-    return maxRecords[type] || 1;
+    return maxEntries[type] || 1;
 }
 
 export function calculateDuration(startTime: Date, endTime: Date) {

@@ -586,31 +586,31 @@ export async function getLastUserResults(userId: string, limit: number = 5) {
         }
     });
 
-    // Compute position for each of the user's records
-    return userEntries.map((record) => {
-        const allRecords = record.category.entries;
-        const finishedRecords = allRecords.filter((r) => r.finishTime != null);
-        const position = record.finishTime
-            ? finishedRecords.findIndex((r) => r.id === record.id) + 1
+    // Compute position for each of the user's entries
+    return userEntries.map((entry) => {
+        const allEntries = entry.category.entries;
+        const finishedEntries = allEntries.filter((r) => r.finishTime != null);
+        const position = entry.finishTime
+            ? finishedEntries.findIndex((r) => r.id === entry.id) + 1
             : null; // DNF
 
         return {
-            id: record.id,
-            finishTime: record.finishTime,
-            nPiecesCompleted: record.nPiecesCompleted,
+            id: entry.id,
+            finishTime: entry.finishTime,
+            nPiecesCompleted: entry.nPiecesCompleted,
             position,
-            totalFinished: finishedRecords.length,
-            totalEntries: allRecords.length,
-            users: record.users,
-            externalParticipants: record.externalParticipants,
+            totalFinished: finishedEntries.length,
+            totalEntries: allEntries.length,
+            users: entry.users,
+            externalParticipants: entry.externalParticipants,
             category: {
-                id: record.category.id,
-                description: record.category.description,
-                type: record.category.type,
-                realStartTime: record.category.realStartTime,
-                puzzles: record.category.puzzles
+                id: entry.category.id,
+                description: entry.category.description,
+                type: entry.category.type,
+                realStartTime: entry.category.realStartTime,
+                puzzles: entry.category.puzzles
             },
-            competition: record.category.competition
+            competition: entry.category.competition
         };
     });
 }

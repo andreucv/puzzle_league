@@ -38,7 +38,7 @@ interface CategoryWithCounts {
 	realStartTime: Date | null;
 	realEndTime: Date | null;
 	totalEntries: number;
-	finishedRecords: number;
+	finishedEntries: number;
 	[key: string]: unknown;
 }
 
@@ -60,8 +60,8 @@ async function findCategoryOrThrow(categoryId: number) {
 	return category;
 }
 
-async function getEntryCounts(categoryId: number): Promise<{ totalEntries: number; finishedRecords: number }> {
-	const [totalEntries, finishedRecords] = await Promise.all([
+async function getEntryCounts(categoryId: number): Promise<{ totalEntries: number; finishedEntries: number }> {
+	const [totalEntries, finishedEntries] = await Promise.all([
 		prisma.entry.count({
 			where: { categoryId, status: RegistrationStatus.CONFIRMED }
 		}),
@@ -69,7 +69,7 @@ async function getEntryCounts(categoryId: number): Promise<{ totalEntries: numbe
 			where: { categoryId, status: RegistrationStatus.CONFIRMED, finishTime: { not: null } }
 		})
 	]);
-	return { totalEntries, finishedRecords };
+	return { totalEntries, finishedEntries };
 }
 
 async function publishStatusChanged(
@@ -87,7 +87,7 @@ async function publishStatusChanged(
 }
 
 export async function startCategory(categoryId: number, options?: StartAutoStopOptions): Promise<CategoryWithCounts> {
-	const { totalEntries, finishedRecords } = await getEntryCounts(categoryId);
+	const { totalEntries, finishedEntries } = await getEntryCounts(categoryId);
 
 	const updatedCategory = await prisma.category.update({
 		where: { id: categoryId },
@@ -141,7 +141,7 @@ export async function startCategory(categoryId: number, options?: StartAutoStopO
 		await options.scheduler.scheduleAutoStop(categoryId, updatedCategory.competitionId, options.deadline);
 	}
 
-	return { ...updatedCategory, totalEntries, finishedRecords };
+	return { ...updatedCategory, totalEntries, finishedEntries };
 }
 
 export async function stopCategory(categoryId: number, options?: AutoStopOptions): Promise<CategoryWithCounts> {
@@ -162,7 +162,7 @@ export async function stopCategory(categoryId: number, options?: AutoStopOptions
 		endTime = new Date();
 	}
 
-	const [updatedCategory, totalEntries, finishedRecords] = await prisma.$transaction([
+	const [updatedCategory, totalEntries, finishedEntries] = await prisma.$transaction([
 		prisma.category.update({
 			where: { id: categoryId },
 			data: {
@@ -188,7 +188,7 @@ export async function stopCategory(categoryId: number, options?: AutoStopOptions
 		await options.scheduler.cancelAutoStop(categoryId);
 	}
 
-	return { ...updatedCategory, totalEntries, finishedRecords };
+	return { ...updatedCategory, totalEntries, finishedEntries };
 }
 
 export async function cancelCategory(categoryId: number, options?: AutoStopOptions): Promise<CategoryWithCounts> {
@@ -213,8 +213,8 @@ export async function cancelCategory(categoryId: number, options?: AutoStopOptio
 		await options.scheduler.cancelAutoStop(categoryId);
 	}
 
-	const { totalEntries, finishedRecords } = await getEntryCounts(categoryId);
-	return { ...updatedCategory, totalEntries, finishedRecords };
+	const { totalEntries, finishedEntries } = await getEntryCounts(categoryId);
+	return { ...updatedCategory, totalEntries, finishedEntries };
 }
 
 export async function completeCategory(categoryId: number): Promise<CategoryWithCounts> {
@@ -249,8 +249,8 @@ export async function completeCategory(categoryId: number): Promise<CategoryWith
 
 	await publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status);
 
-	const { totalEntries, finishedRecords } = await getEntryCounts(categoryId);
-	return { ...updatedCategory, totalEntries, finishedRecords };
+	const { totalEntries, finishedEntries } = await getEntryCounts(categoryId);
+	return { ...updatedCategory, totalEntries, finishedEntries };
 }
 
 export async function resumeCategory(categoryId: number): Promise<CategoryWithCounts> {
@@ -268,13 +268,13 @@ export async function resumeCategory(categoryId: number): Promise<CategoryWithCo
 		}
 	});
 
-	const { totalEntries, finishedRecords } = await getEntryCounts(categoryId);
+	const { totalEntries, finishedEntries } = await getEntryCounts(categoryId);
 
 	await publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status, {
 		realEndTime: null
 	});
 
-	return { ...updatedCategory, totalEntries, finishedRecords };
+	return { ...updatedCategory, totalEntries, finishedEntries };
 }
 
 export async function restartCategory(categoryId: number, options?: AutoStopOptions): Promise<CategoryWithCounts> {
@@ -327,7 +327,7 @@ export async function restartCategory(categoryId: number, options?: AutoStopOpti
 		}
 	}
 
-	return { ...updatedCategory, totalEntries, finishedRecords: 0 };
+	return { ...updatedCategory, totalEntries, finishedEntries: 0 };
 }
 
 // ---------------------------------------------------------------------------

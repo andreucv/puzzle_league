@@ -53,7 +53,7 @@
     let displayDate = $derived(
         entry.status === 'CONFIRMED' ? entry.confirmedAt : entry.createdAt
     );
-    let inscriptionDate = $derived(displayDate ? formatDateTime(displayDate) : null);
+    let registrationDate = $derived(displayDate ? formatDateTime(displayDate) : null);
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -107,10 +107,10 @@
         {/if}
 
         <!-- Date (always visible, sits behind buttons when selected) -->
-        {#if inscriptionDate}
+        {#if registrationDate}
             <div class="text-right whitespace-nowrap">
                 <span class="text-[0.7rem] leading-tight text-surface-400 dark:text-surface-500">
-                    {inscriptionDate.date} · {inscriptionDate.time}
+                    {registrationDate.date} · {registrationDate.time}
                 </span>
                 {#if showRemind && entry.lastRemindedAt}
                     <div class="text-[0.6rem] leading-tight {isOnCooldown() ? 'text-warning-500' : 'text-surface-400 dark:text-surface-500'}">
@@ -135,7 +135,7 @@
                             class="btn-icon w-4 h-4 preset-filled-warning-500 rounded-full"
                             disabled={processing || isOnCooldown()}
                             onclick={() => showReminderPopover = !showReminderPopover}
-                            data-testid="remind-inscription"
+                            data-testid="remind-registration"
                         >
                             <BellRingOutlineIcon width="1rem" height="1rem" />
                         </button>

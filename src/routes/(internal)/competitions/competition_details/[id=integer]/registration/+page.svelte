@@ -5,9 +5,9 @@
     import { enhance } from '$app/forms';
     import { invalidateAll } from '$app/navigation';
     import { t } from '$lib/translations';
-    import { getCategoryTypeName, getCategoryTypeIcon, getMaxRecordsPerCategory } from '$lib/utils/category_utils';
+    import { getCategoryTypeName, getCategoryTypeIcon, getMaxEntriesPerCategory } from '$lib/utils/category_utils';
     import { getRegistrationStatusBorderClass as getStatusBorderClass } from '$lib/utils/registration_utils';
-    import RegistrationStatusBadge from '$lib/components/registration/RegistrationStatusBadge.svelte';
+    import RegistrationStatusBadge from '$lib/components/registration/EntryRegistrationStatusBadge.svelte';
     import { formatTime } from '$lib/utils/datetime_utils';
     import { slide } from 'svelte/transition';
     import LoadingOverlay from '$lib/components/common/LoadingOverlay.svelte';
@@ -22,8 +22,8 @@
     let currentUser = $derived(data.user);
     let competition = $derived(data.competition);
     let categories = $derived(competition?.categories || []);
-    let existingRecords = $derived(data.existingRecords || []);
-    let inscribedUserIds = $derived(data.inscribedUserIds as Record<number, string[]> || {});
+    let existingEntries = $derived(data.existingEntries || []);
+    let registeredUserIds = $derived(data.registeredUserIds as Record<number, string[]> || {});
     let categoriesWithCounts = $derived(data.categoriesWithCounts || []);
 
     let canRegister = $derived(competition?.registrationOpen);
@@ -83,20 +83,20 @@
     // Debounce timers
     let searchTimers: Map<number, ReturnType<typeof setTimeout>> = new Map();
 
-    // Get ALL existing records for a category (user is participant OR creator)
-    function getExistingRecords(categoryId: number) {
-        return existingRecords.filter((r: any) =>
+    // Get ALL existing entries for a category (user is participant OR creator)
+    function getExistingEntries(categoryId: number) {
+        return existingEntries.filter((r: any) =>
             r.categoryId === categoryId &&
             (r.status === 'PENDING_CONFIRMATION' || r.status === 'CONFIRMED' || r.status === 'WAITLISTED')
         );
     }
 
-    // Check if user can create more records for this category (accounts for queued slots)
+    // Check if user can create more entries for this category (accounts for queued slots)
     function canCreateMore(category: Category): boolean {
-        const records = getExistingRecords(category.id);
-        const createdByUser = records.filter((r: any) => r.creatorId === currentUser?.id).length;
+        const entries = getExistingEntries(category.id);
+        const createdByUser = entries.filter((r: any) => r.creatorId === currentUser?.id).length;
         const queuedCount = getSlots(category.id).length;
-        const maxEntries = getMaxRecordsPerCategory(category.type);
+        const maxEntries = getMaxEntriesPerCategory(category.type);
         return (createdByUser + queuedCount) < maxEntries;
     }
 
@@ -121,20 +121,20 @@
         return slot.users.length + slot.extParticipantNames.length + slot.existingExternalParticipants.length;
     }
 
-    // Check if current user is already inscribed or queued in a category
+    // Check if current user is already registered or queued in a category
     function isUserInCategory(categoryId: number): boolean {
-        const records = getExistingRecords(categoryId);
-        if (records.some((r: any) => r.users?.some((u: any) => u.id === currentUser?.id))) return true;
+        const entries = getExistingEntries(categoryId);
+        if (entries.some((r: any) => r.users?.some((u: any) => u.id === currentUser?.id))) return true;
         const slots = getSlots(categoryId);
         if (slots.some(s => s.users.some(u => u.id === currentUser?.id))) return true;
         return false;
     }
 
-    // Check if any user is already inscribed (DB records or pending slots) in a category
+    // Check if any user is already registered (DB entries or pending slots) in a category
     function isUserAlreadyInCategory(userId: string, categoryId: number, excludeSlotId?: number): boolean {
-        // Check existing DB records via server-loaded inscribed user IDs
-        const categoryInscribed = inscribedUserIds[categoryId] || [];
-        if (categoryInscribed.includes(userId)) return true;
+        // Check existing DB entries via server-loaded registered user IDs
+        const categoryRegistered = registeredUserIds[categoryId] || [];
+        if (categoryRegistered.includes(userId)) return true;
         // Check pending slots in the same category
         const slots = getSlots(categoryId);
         return slots.some(s => s.slotId !== excludeSlotId && s.users.some(u => u.id === userId));
@@ -418,9 +418,9 @@
         return (category.maxPartySize || 1) === 1;
     }
 
-    // Check if current user is a participant (not just creator) of a record
-    function isUserInRecord(record: any): boolean {
-        return record.users?.some((u: any) => u.id === currentUser?.id);
+    // Check if current user is a participant (not just creator) of an entry
+    function isUserInEntry(entry: any): boolean {
+        return entry.users?.some((u: any) => u.id === currentUser?.id);
     }
 
     function clearAllSignupState() {
@@ -487,9 +487,9 @@
     <!-- Categories -->
     <div class="space-y-4 pb-20">
         {#each categories as category (category.id)}
-            {@const records = getExistingRecords(category.id)}
-            {@const createdByUserCount = records.filter((r) => r.creatorId === currentUser?.id).length}
-            {@const maxEntries = getMaxRecordsPerCategory(category.type)}
+            {@const entries = getExistingEntries(category.id)}
+            {@const createdByUserCount = entries.filter((r) => r.creatorId === currentUser?.id).length}
+            {@const maxEntries = getMaxEntriesPerCategory(category.type)}
             {@const slots = getSlots(category.id)}
             {@const totalRegistrations = createdByUserCount + slots.length}
             {@const limitReached = totalRegistrations >= maxEntries}
@@ -548,7 +548,7 @@
                 </div>
 
                 <!-- Registration count badge -->
-                {#if records.length > 0 || slots.length > 0}
+                {#if entries.length > 0 || slots.length > 0}
                     <div class="flex items-center gap-2">
                         <!-- TODO: maxEntries is misleading for the user, if there is a category with less available spots than the maxEntries -->
                         <span class="badge {limitReached ? 'preset-filled-surface-200-800' : 'preset-tonal-primary'} text-xs p-2">
@@ -558,17 +558,17 @@
                     </div>
                 {/if}
 
-                <!-- Existing records list -->
-                {#if records.length > 0}
+                <!-- Existing entries list -->
+                {#if entries.length > 0}
                     <div class="space-y-2">
-                        {#each records as record (record.id)}
-                            <div class="flex items-center justify-between gap-2 p-3 border rounded-lg {getStatusBorderClass(record.status)}" data-testid="registration-entry-{record.id}">
+                        {#each entries as entry (entry.id)}
+                            <div class="flex items-center justify-between gap-2 p-3 border rounded-lg {getStatusBorderClass(entry.status)}" data-testid="registration-entry-{entry.id}">
                                 <div class="flex items-center gap-3 flex-wrap min-w-0">
                                     <!-- Status -->
-                                    <RegistrationStatusBadge status={record.status} translation={$t} />
+                                    <RegistrationStatusBadge status={entry.status} translation={$t} />
                                     <!-- Participants -->
                                     <div class="flex flex-wrap gap-1.5">
-                                        {#each record.users as member}
+                                        {#each entry.users as member}
                                             <div class="flex items-center gap-1 badge preset-tonal-primary p-1.5 pr-2">
                                                 <Avatar class="w-5 h-5">
                                                     <Avatar.Image src={member.image ?? undefined} alt={member.name ?? 'User'} />
@@ -577,7 +577,7 @@
                                                 <span class="text-xs">{member.name}{member.id === currentUser?.id ? ` (${$t('registration.you')})` : ''}</span>
                                             </div>
                                         {/each}
-                                        {#each record.externalParticipants || [] as intent}
+                                        {#each entry.externalParticipants || [] as intent}
                                             <div class="flex items-center gap-1 badge preset-tonal-warning p-1.5 pr-2">
                                                 <Icon icon="mdi:account-question" width="0.9rem" height="0.9rem" />
                                                 <span class="text-xs">{intent.name}</span>
@@ -585,7 +585,7 @@
                                         {/each}
                                     </div>
                                     <!-- Created by you indicator -->
-                                    {#if record.creatorId === currentUser?.id && !isUserInRecord(record)}
+                                    {#if entry.creatorId === currentUser?.id && !isUserInEntry(entry)}
                                         <span class="text-xs text-surface-500 italic">{$t('registration.created_by_you')}</span>
                                     {/if}
                                 </div>
@@ -597,7 +597,7 @@
                                             await invalidateAll();
                                         };
                                     }}>
-                                        <input type="hidden" name="record_id" value={record.id} />
+                                        <input type="hidden" name="entry_id" value={entry.id} />
                                         <button
                                             type="submit"
                                             class="btn-icon btn-icon-sm preset-filled-error-500 rounded-full shrink-0"
@@ -765,7 +765,7 @@
                                                         </Avatar>
                                                         <div class="text-sm flex-1">
                                                             <div class="font-medium">{user.name}</div>
-                                                            <div class="text-xs text-surface-500 italic">{$t('registration.already_inscribed')}</div>
+                                                            <div class="text-xs text-surface-500 italic">{$t('registration.already_registered')}</div>
                                                         </div>
                                                         <Icon icon="mdi:account-check" width="1rem" height="1rem" class="text-surface-400" />
                                                     </div>
@@ -829,7 +829,7 @@
                 {#if canRegisterForCategory(category)}
                     {#if !limitReached}
                         {#if individual}
-                            {@const hasExisting = slots.length > 0 || records.length > 0}
+                            {@const hasExisting = slots.length > 0 || entries.length > 0}
                             <button
                                 type="button"
                                 class="btn {hasExisting ? 'preset-tonal-success' : 'preset-filled-success-500'} w-full sm:w-auto"
@@ -839,7 +839,7 @@
                                 {hasExisting ? $t('registration.add_another') : $t('registration.sign_up')}
                             </button>
                         {:else}
-                            {@const hasExisting = slots.length > 0 || records.length > 0}
+                            {@const hasExisting = slots.length > 0 || entries.length > 0}
                             {@const isPairs = category.type === 'PAIRS' || category.type === 'JUNIOR_PAIRS'}
                             <button
                                 type="button"
@@ -858,7 +858,7 @@
                             {$t('registration.limit_reached')}
                         </p>
                     {/if}
-                {:else if records.length === 0 && slots.length === 0}
+                {:else if entries.length === 0 && slots.length === 0}
                     <p class="text-sm text-surface-500 italic">{$t('registration.registration_not_available')}</p>
                 {/if}
             </Card>
@@ -958,7 +958,7 @@
                                     <p class="text-sm font-semibold">{$t('registration.payment_warning_title')}</p>
                                 </div>
                                 <p class="text-xs text-warning-600 dark:text-warning-400">
-                                    {$t('registration.pending_confirmation_is_not_guaranteed_inscription')}
+                                    {$t('registration.pending_confirmation_not_guaranteed')}
                                 </p>
                                 <p class="text-xs text-surface-600 dark:text-surface-400">
                                     {$t('registration.payment_warning_message')}

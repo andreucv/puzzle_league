@@ -51,7 +51,7 @@ declare global {
             brand: string;
             image_cld_id: string | null;
         }
-        interface ResultRecordUser {
+        interface ResultEntryUser {
             id: string;
             name: string;
             image: string | null;
@@ -61,12 +61,12 @@ declare global {
             id: string;
             name: string;
         }
-        interface ResultRecord {
+        interface ResultEntry {
             id: string;
             finishTime: Date | null;
             tableNumber: number | null;
             nPiecesCompleted: number | null;
-            users: ResultRecordUser[];
+            users: ResultEntryUser[];
             externalParticipants: ResultExternalParticipant[];
         }
         interface ResultCategory {
@@ -79,7 +79,7 @@ declare global {
             realStartTime: Date | null;
             realEndTime: Date | null;
             puzzles: ResultPuzzleData[];
-            entries: ResultRecord[];
+            entries: ResultEntry[];
             _count: { entries: number };
         }
     }

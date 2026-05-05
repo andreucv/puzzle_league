@@ -4,23 +4,23 @@ import { publishCompetitionEvent } from '$lib/events/server/ably';
 
 export const POST = async (event: RequestEvent) => {
   try {
-    const recordId = event.params.id as string;
+    const entryId = event.params.id as string;
     const { finishTime, tableNumber } = await event.request.json();
 
-    if (!recordId) {
+    if (!entryId) {
       return json({ error: 'Invalid entry ID' }, { status: 400 });
     }
 
-    const updatedEntry = await recordFinishTime(recordId, finishTime, tableNumber);
+    const updatedEntry = await recordFinishTime(entryId, finishTime, tableNumber);
 
-    await publishCompetitionEvent(updatedEntry.category.competitionId, 'record.finished', {
-      recordId: updatedEntry.id,
+    await publishCompetitionEvent(updatedEntry.category.competitionId, 'entry.finished', {
+      entryId: updatedEntry.id,
       categoryId: updatedEntry.categoryId,
       competitionId: updatedEntry.category.competitionId,
       finishTime: updatedEntry.finishTime!.toISOString()
     });
 
-    return json({ record: updatedEntry });
+    return json({ entry: updatedEntry });
   } catch (error) {
     if (error instanceof EntryNotFoundError) {
       return json({ error: error.message }, { status: 404 });
@@ -35,21 +35,21 @@ export const POST = async (event: RequestEvent) => {
 
 export const DELETE = async (event: RequestEvent) => {
   try {
-    const recordId = event.params.id as string;
+    const entryId = event.params.id as string;
 
-    if (!recordId) {
-      return json({ error: 'Invalid record ID' }, { status: 400 });
+    if (!entryId) {
+      return json({ error: 'Invalid entry ID' }, { status: 400 });
     }
 
-    const updatedRecord = await undoFinishTime(recordId);
+    const updatedEntry = await undoFinishTime(entryId);
 
-    await publishCompetitionEvent(updatedRecord.category.competitionId, 'record.unfinished', {
-      recordId: updatedRecord.id,
-      categoryId: updatedRecord.categoryId,
-      competitionId: updatedRecord.category.competitionId
+    await publishCompetitionEvent(updatedEntry.category.competitionId, 'entry.unfinished', {
+      entryId: updatedEntry.id,
+      categoryId: updatedEntry.categoryId,
+      competitionId: updatedEntry.category.competitionId
     });
 
-    return json({ record: updatedRecord });
+    return json({ entry: updatedEntry });
   } catch (error) {
     if (error instanceof EntryNotFoundError) {
       return json({ error: error.message }, { status: 404 });
@@ -57,7 +57,7 @@ export const DELETE = async (event: RequestEvent) => {
     if (error instanceof InvalidEntryStateError) {
       return json({ error: error.message }, { status: 409 });
     }
-    console.error('Error undoing record finish:', error);
-    return json({ error: 'Failed to undo record finish' }, { status: 500 });
+    console.error('Error undoing entry finish:', error);
+    return json({ error: 'Failed to undo entry finish' }, { status: 500 });
   }
 };

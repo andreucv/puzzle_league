@@ -69,7 +69,7 @@
 
 {#if filteredEntries.length === 0}
     <p class="text-sm text-surface-500 italic">
-        {searchFilter.trim() ? $t('manage_registrations.no_results_for_search') : $t('manage_registrations.no_inscriptions')}
+        {searchFilter.trim() ? $t('manage_registrations.no_results_for_search') : $t('manage_registrations.no_registrations')}
     </p>
 {:else}
     <div class="space-y-3">

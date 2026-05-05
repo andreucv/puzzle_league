@@ -17,7 +17,7 @@
                 type: string;
                 startTime: Date;
                 endTime: Date;
-                records?: Array<{
+                entries?: Array<{
                     users?: Array<{
                         id: string;
                         name: string;
@@ -58,19 +58,19 @@
 
     // Check if current user is registered in a category
     function isUserInCategory(category: any): boolean {
-        if (!currentUserId || !category.records) return false;
-        return category.records.some((record: any) =>
-            record.users?.some((user: any) => user.id === currentUserId)
+        if (!currentUserId || !category.entries) return false;
+        return category.entries.some((entry: any) =>
+            entry.users?.some((user: any) => user.id === currentUserId)
         );
     }
 
-    // Get the inscription status for the current user in a category
+    // Get the registration status for the current user in a category
     function getUserRegistrationStatus(category: any): string | null {
-        if (!currentUserId || !category.records) return null;
-        const record = category.records.find((r: any) =>
+        if (!currentUserId || !category.entries) return null;
+        const entry = category.entries.find((r: any) =>
             r.users?.some((u: any) => u.id === currentUserId)
         );
-        return record?.status ?? null;
+        return entry?.status ?? null;
     }
 
     // Check if user is registered in any category of this competition

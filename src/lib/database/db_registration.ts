@@ -1,6 +1,6 @@
 import { prisma } from '$lib/database/create_prisma_client';
 import { CategoryStatus, RegistrationStatus, NotificationType } from '$lib/.prisma/generated/prisma/enums';
-import { getMaxRecordsPerCategory } from '$lib/utils/category_utils';
+import { getMaxEntriesPerCategory } from '$lib/utils/category_utils';
 import { createNotification } from '$lib/notifications/notifications';
 
 // ---------------------------------------------------------------------------
@@ -62,18 +62,18 @@ export async function signUpUsersToCompetition(
                 );
             }
 
-            // Check per-category record limits based on category type
+            // Check per-category entry limits based on category type
             for (const [catId, batchCount] of batchCountPerCategory) {
                 const category = categories.find(c => c.id === catId)!;
-                const maxRecords = getMaxRecordsPerCategory(category.type);
+                const maxEntries = getMaxEntriesPerCategory(category.type);
                 const existingCount = await tx.entry.count({
                     where: {
                         categoryId: catId,
                         creatorId: currentUserId
                     }
                 });
-                if (existingCount + batchCount > maxRecords) {
-                    throw new Error(`Maximum registrations reached for category ${category.description || category.type} (${maxRecords})`);
+                if (existingCount + batchCount > maxEntries) {
+                    throw new Error(`Maximum registrations reached for category ${category.description || category.type} (${maxEntries})`);
                 }
             }
 
@@ -275,32 +275,32 @@ export async function removeUserFromCategory(categoryId: number, userId: string)
     }
 }
 
-export async function removeRecordById(recordId: string, userId: string) {
+export async function removeEntryById(entryId: string, userId: string) {
     try {
-        const record = await prisma.entry.findUnique({
-            where: { id: recordId },
+        const entry = await prisma.entry.findUnique({
+            where: { id: entryId },
             include: { users: { select: { id: true } } }
         });
 
-        if (!record) {
-            throw new Error('Record not found');
+        if (!entry) {
+            throw new Error('Entry not found');
         }
 
-        const isCreator = record.creatorId === userId;
-        const isParticipant = record.users.some(u => u.id === userId);
+        const isCreator = entry.creatorId === userId;
+        const isParticipant = entry.users.some(u => u.id === userId);
 
         if (!isCreator && !isParticipant) {
-            throw new Error('Not authorized to delete this record');
+            throw new Error('Not authorized to delete this entry');
         }
 
-        if (record.status !== RegistrationStatus.PENDING_CONFIRMATION && record.status !== RegistrationStatus.CONFIRMED && record.status !== RegistrationStatus.WAITLISTED) {
-            throw new Error('Cannot unregister a record that is not pending confirmation, confirmed, or waitlisted');
+        if (entry.status !== RegistrationStatus.PENDING_CONFIRMATION && entry.status !== RegistrationStatus.CONFIRMED && entry.status !== RegistrationStatus.WAITLISTED) {
+            throw new Error('Cannot unregister an entry that is not pending confirmation, confirmed, or waitlisted');
         }
 
-        await prisma.entry.delete({ where: { id: recordId } });
+        await prisma.entry.delete({ where: { id: entryId } });
         return { success: true };
     } catch (error) {
-        console.error('Error removing record:', error);
+        console.error('Error removing entry:', error);
         throw error;
     }
 }
@@ -309,11 +309,11 @@ export async function removeRecordById(recordId: string, userId: string) {
 // Accept / Refuse registrations (organizer actions)
 // ---------------------------------------------------------------------------
 
-export async function confirmRegistration(recordId: string) {
+export async function confirmRegistration(entryId: string) {
     try {
         const result = await prisma.$transaction(async (tx) => {
-            const record = await tx.entry.findUnique({
-                where: { id: recordId },
+            const entry = await tx.entry.findUnique({
+                where: { id: entryId },
                 include: {
                     category: {
                         include: { competition: true }
@@ -321,29 +321,29 @@ export async function confirmRegistration(recordId: string) {
                 }
             });
 
-            if (!record) {
-                throw new Error('Record not found');
+            if (!entry) {
+                throw new Error('Entry not found');
             }
 
-            if (record.status !== RegistrationStatus.PENDING_CONFIRMATION && record.status !== RegistrationStatus.WAITLISTED) {
+            if (entry.status !== RegistrationStatus.PENDING_CONFIRMATION && entry.status !== RegistrationStatus.WAITLISTED) {
                 throw new Error('Only pending or waitlisted registrations can be confirmed');
             }
 
-            if (record.category.maxParties) {
+            if (entry.category.maxParties) {
                 const confirmedCount = await tx.entry.count({
                     where: {
-                        categoryId: record.categoryId,
+                        categoryId: entry.categoryId,
                         status: RegistrationStatus.CONFIRMED
                     }
                 });
 
-                if (confirmedCount >= record.category.maxParties) {
+                if (confirmedCount >= entry.category.maxParties) {
                     throw new Error('Category is full — maximum number of confirmed registrations reached');
                 }
             }
 
-            const updatedRecord = await tx.entry.update({
-                where: { id: recordId },
+            const updatedEntry = await tx.entry.update({
+                where: { id: entryId },
                 data: {
                     status: RegistrationStatus.CONFIRMED,
                     confirmedAt: new Date()
@@ -355,7 +355,7 @@ export async function confirmRegistration(recordId: string) {
                 }
             });
 
-            return updatedRecord;
+            return updatedEntry;
         });
 
         return { success: true, data: result };
@@ -368,11 +368,11 @@ export async function confirmRegistration(recordId: string) {
     }
 }
 
-export async function refuseRegistration(recordId: string) {
+export async function refuseRegistration(entryId: string) {
     try {
-        // Fetch record with users before deletion (needed for notifications)
-        const record = await prisma.entry.findUnique({
-            where: { id: recordId },
+        // Fetch entry with users before deletion (needed for notifications)
+        const entry = await prisma.entry.findUnique({
+            where: { id: entryId },
             include: {
                 users: {
                     select: { id: true, name: true, email: true, image: true }
@@ -383,20 +383,20 @@ export async function refuseRegistration(recordId: string) {
             }
         });
 
-        if (!record) {
-            throw new Error('Record not found');
+        if (!entry) {
+            throw new Error('Entry not found');
         }
 
-        if (record.status !== RegistrationStatus.PENDING_CONFIRMATION && record.status !== RegistrationStatus.WAITLISTED) {
+        if (entry.status !== RegistrationStatus.PENDING_CONFIRMATION && entry.status !== RegistrationStatus.WAITLISTED) {
             throw new Error('Only pending confirmation or waitlisted registrations can be refused');
         }
 
-        // Delete the record from the database
+        // Delete the entry from the database
         await prisma.entry.delete({
-            where: { id: recordId }
+            where: { id: entryId }
         });
 
-        return { success: true, data: record };
+        return { success: true, data: entry };
     } catch (error) {
         console.error('Error refusing registration:', error);
         return {

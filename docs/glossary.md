@@ -106,6 +106,3 @@ The number of pieces completed by an entry when the category time expires withou
 
 - **League points calculation** — strategy for calculating points from category results is not yet defined. Deferred to a future session.
 - **Payment processing** — currently off-platform only (organizer confirms receipt manually). In-app payments are planned for the future.
-- **Entry is called `Record` in the codebase** — the Prisma model uses `Record`, but the domain term is **Entry**.
-- **Registration is called `inscription` in the codebase** — routes, utils, and notifications use `inscription`, but the domain term is **Registration**.
-- **External Participant is called `UserIntent` in the codebase** — the Prisma model uses `UserIntent`, but the domain term is **External Participant**.

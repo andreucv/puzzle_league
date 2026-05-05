@@ -39,7 +39,7 @@ async function confirmFirstRegistration(page: Page, competitionId: number): Prom
     const confirmedToggle = page.getByTestId('toggle-section-confirmed');
     await expect(confirmedToggle).toBeVisible({ timeout: 5000 });
 
-    // Expand the Confirmed section and verify a record is inside
+    // Expand the Confirmed section and verify an entry is inside
     await confirmedToggle.click();
     await expect(page.locator('[data-testid^="registration-row-entry-"]')).toBeVisible({ timeout: 3000 });
 }
@@ -172,7 +172,7 @@ test.describe('Individual — Register Non-Platform User (External Participant)'
         await participantPage.getByRole('button', { name: 'Sign Up' }).first().click();
 
         // 2. Button should now say "Add another registration" since user is already in category
-        await participantPage.getByRole('button', { name: 'Add another inscription' }).first().click();
+        await participantPage.getByRole('button', { name: 'Add another registration' }).first().click();
 
         // 3. Team builder opens with search input — type the External Participant name
         const searchInput = participantPage.locator('input.input[placeholder*="Search"]');
@@ -189,19 +189,19 @@ test.describe('Individual — Register Non-Platform User (External Participant)'
         // 6. Submit both registrations
         await participantPage.getByTestId('submit-all-registrations').click();
 
-        // 7. Wait for submission and verify both records appear
+        // 7. Wait for submission and verify both entries appear
         await expect(participantPage.getByTestId('registration-status-badge').first()).toBeVisible({ timeout: 10000 });
         const badges = participantPage.getByTestId('registration-status-badge');
         await expect(badges).toHaveCount(2);
     });
 
-    test('Organizer sees both records including External Participant on manage registrations', async () => {
+    test('Organizer sees both entries including External Participant on manage registrations', async () => {
         await organizerPage.goto(`/competition/${competitionId}/manage_registrations`);
 
         // Should see the External Participant name in the registration list
         await expect(organizerPage.getByText(externalParticipantName, { exact: true })).toBeVisible();
 
-        // Should see 2 pending registration records
+        // Should see 2 pending registration entries
         await expect(organizerPage.locator('[data-testid^="registration-row-entry-"]')).toHaveCount(2);
     });
 });
@@ -264,15 +264,15 @@ test.describe('Group Category — Build Team with External Participant', () => {
         // 5. Submit
         await participantPage.getByTestId('submit-all-registrations').click();
 
-        // 6. Verify the record appears with Pending Confirmation status
+        // 6. Verify the entry appears with Pending Confirmation status
         await expect(participantPage.getByTestId('registration-status-badge').first()).toBeVisible({ timeout: 10000 });
         await expect(participantPage.getByTestId('registration-status-badge').first()).toHaveText('Pending Confirmation');
 
-        // 7. Verify the External Participant name is visible in the record
+        // 7. Verify the External Participant name is visible in the entry
         await expect(participantPage.getByText(teammateIntentName)).toBeVisible();
     });
 
-    test('Organizer sees the team record with External Participant on manage registrations', async () => {
+    test('Organizer sees the team entry with External Participant on manage registrations', async () => {
         await organizerPage.goto(`/competition/${competitionId}/manage_registrations`);
 
         // The teammate External Participant name should be visible
@@ -306,11 +306,11 @@ test.describe('Group Category — Build Team with External Participant', () => {
 });
 
 // ==============================================================================
-// Unregister from an Existing Record
+// Unregister from an Existing Entry
 // Workflow 10: Unregister after submitting
 // ==============================================================================
 
-test.describe('Unregister from Existing Record', () => {
+test.describe('Unregister from Existing Entry', () => {
     let organizerContext: BrowserContext;
     let participantContext: BrowserContext;
     let organizerPage: Page;
@@ -342,12 +342,12 @@ test.describe('Unregister from Existing Record', () => {
         await signUpIndividualAndSubmit(participantPage, competitionId);
         await expect(participantPage.getByTestId('registration-status-badge')).toHaveText('Pending Confirmation');
 
-        // Click the unregister button (red ✕ next to the record)
+        // Click the unregister button (red ✕ next to the entry)
         const unregisterButton = participantPage.locator('form[action="?/unregister"] button[type="submit"]');
         await expect(unregisterButton).toBeVisible();
         await unregisterButton.click();
 
-        // Record should disappear — no more status badges
+        // Entry should disappear — no more status badges
         await expect(participantPage.getByTestId('registration-status-badge')).toHaveCount(0, { timeout: 5000 });
     });
 
@@ -410,7 +410,7 @@ test.describe('Organizer Refuses Registration', () => {
         await expect(organizerPage.getByTestId('confirm-popover-action')).toBeVisible();
         await organizerPage.getByTestId('confirm-popover-action').click();
 
-        // After refusing, no more registration records should be visible
+        // After refusing, no more registration entries should be visible
         await expect(organizerPage.locator('[data-testid^="registration-entry-"]')).toHaveCount(0, { timeout: 5000 });
     });
 
@@ -421,7 +421,7 @@ test.describe('Organizer Refuses Registration', () => {
 
     test('Participant no longer sees the registration on the registration page', async () => {
         await participantPage.goto(`/competitions/competition_details/${competitionId}/registration`);
-        // Refused records are not shown (only PENDING_CONFIRMATION, CONFIRMED, WAITLISTED)
+        // Refused entries are not shown (only PENDING_CONFIRMATION, CONFIRMED, WAITLISTED)
         await expect(participantPage.getByTestId('registration-status-badge')).toHaveCount(0);
     });
 });
@@ -464,13 +464,13 @@ test.describe('Waitlisting', () => {
         // Organizer goes to registration page and signs up
         await signUpIndividualAndSubmit(organizerPage, competitionId);
 
-        // Verify on manage registrations page that the new record is waitlisted
+        // Verify on manage registrations page that the new entry is waitlisted
         await organizerPage.goto(`/competition/${competitionId}/manage_registrations`);
 
-        // The Waitlisted section should appear with 1 record
+        // The Waitlisted section should appear with 1 entry
         await expect(organizerPage.getByText('Waitlisted')).toBeVisible();
 
-        // The Confirmed section should also be visible with the participant's record
+        // The Confirmed section should also be visible with the participant's entry
         await expect(organizerPage.getByText('Confirmed')).toBeVisible();
     });
 
@@ -590,19 +590,19 @@ test.describe('Multi-Category Batch Submission', () => {
         // 6. Submit all at once
         await participantPage.getByTestId('submit-all-registrations').click();
 
-        // 7. Verify both records appear with Pending Confirmation status
+        // 7. Verify both entries appear with Pending Confirmation status
         await expect(participantPage.getByTestId('registration-status-badge').first()).toBeVisible({ timeout: 10000 });
         const badges = participantPage.getByTestId('registration-status-badge');
         await expect(badges).toHaveCount(2);
     });
 
-    test('Organizer sees both records across categories', async () => {
+    test('Organizer sees both entries across categories', async () => {
         await organizerPage.goto(`/competition/${competitionId}/manage_registrations`);
 
         // Should see the External Participant name from the pairs registration
         await expect(organizerPage.getByText(pairsIntentName)).toBeVisible();
 
-        // Should see 2 pending registration records across categories
+        // Should see 2 pending registration entries across categories
         await expect(organizerPage.locator('[data-testid^="registration-entry-"]')).toHaveCount(2);
     });
 });

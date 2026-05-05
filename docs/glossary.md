@@ -8,19 +8,17 @@ A platform for organizing and participating in speed puzzling competitions, wher
 
 **Competition**:
 A scheduled speed puzzling gathering at a physical location, containing one or more categories.
-_Avoid_: Event, tournament
 
 **Category**:
 A specific puzzle round within a competition, defined by its format (Individual, Pairs, Team, etc.), scheduled time, and maximum participants. Has its own lifecycle: NOT_STARTED → LIVE → STOPPED → COMPLETE (or CANCELED).
-_Avoid_: Round, event, modality
 
 **Entry**:
 A participant's slot in a category, tracking their registration status and eventually their finish time. In multi-person formats (Pairs, Team), an entry has multiple participants.
-_Avoid_: Record, submission, result
+_Avoid_: Record
 
 **Registration**:
 The act of signing up for one or more categories in a competition. Creates an entry per category.
-_Avoid_: Inscription, signup, enrollment
+_Avoid_: Inscription
 
 **League**:
 A competitive series of competitions where results accumulate into overall standings.

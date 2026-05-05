@@ -74,7 +74,7 @@
     "public_profile_visibility": "Profile visibility",
     "public_profile_visibility_description": "When enabled, any user (including non-registered visitors) can view your public profile. When disabled, only competition organizers and administrators can see it.",
     "public_results_visibility": "Results visibility",
-    "public_results_visibility_description": "When enabled, your name and avatar appear in competition results for everyone. When disabled, other participants see you as 'Anonymous Puzzler' — you can still see your own name.",
+    "public_results_visibility_description": "When enabled, your name and avatar appear in competition results for everyone. When disabled, other participants see you as 'Anonymous Participant' — you can still see your own name.",
     "language": "Language",
     "select_language": "Select language",
     "save": "Save"
@@ -577,7 +577,7 @@
     "live_updates_connecting": "Connecting",
     "live_updates_offline": "Offline",
     "progress": "Progress",
-    "anonymous_puzzler": "Anonymous Puzzler",
+    "anonymous_participant": "Anonymous Participant",
     "profile_hidden": "This profile is private"
   },
   "category_status": {

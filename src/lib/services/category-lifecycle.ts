@@ -394,7 +394,7 @@ export async function addTimeToCategory(
 }
 
 /**
- * Assign sequential table numbers to all confirmed records in a category,
+ * Assign sequential table numbers to all confirmed entries in a category,
  * compacting any gaps. Notifies only participants whose table number changed.
  */
 export async function publishTableAssignments(categoryId: number) {
@@ -405,7 +405,7 @@ export async function publishTableAssignments(categoryId: number) {
 
 	if (!category) throw new CategoryNotFoundError(categoryId);
 
-	const records = await prisma.entry.findMany({
+	const entries = await prisma.entry.findMany({
 		where: { categoryId, status: RegistrationStatus.CONFIRMED },
 		orderBy: [{ confirmedAt: 'asc' }, { createdAt: 'asc' }],
 		select: {
@@ -417,16 +417,16 @@ export async function publishTableAssignments(categoryId: number) {
 		}
 	});
 
-	if (records.length === 0) {
+	if (entries.length === 0) {
 		return { assignedCount: 0, notifiedCount: 0 };
 	}
 
 	// Build a map of previous table numbers for change detection
-	const previousTables = new Map(records.map((r) => [r.id, r.tableNumber]));
+	const previousTables = new Map(entries.map((r) => [r.id, r.tableNumber]));
 
 	// Reassign table numbers sequentially (compacting any gaps)
 	await prisma.$transaction(
-		records.map((record, index) =>
+		entries.map((record, index) =>
 			prisma.entry.update({
 				where: { id: record.id },
 				data: { tableNumber: index + 1 }
@@ -434,25 +434,25 @@ export async function publishTableAssignments(categoryId: number) {
 		)
 	);
 
-	const recordsWithTables = records.map((record, index) => ({
+	const entriesWithTables = entries.map((record, index) => ({
 		...record,
 		tableNumber: index + 1
 	}));
 
 	// Only notify users whose table number actually changed
-	const changedRecords = recordsWithTables.filter(
+	const changedEntries = entriesWithTables.filter(
 		(r) => r.tableNumber !== previousTables.get(r.id)
 	);
 
-	if (changedRecords.length > 0) {
-		await notifyTableAssignments(changedRecords, category);
+	if (changedEntries.length > 0) {
+		await notifyTableAssignments(changedEntries, category);
 	}
 
-	return { assignedCount: records.length, notifiedCount: changedRecords.length };
+	return { assignedCount: entries.length, notifiedCount: changedEntries.length };
 }
 
 /**
- * Send payment reminders to all eligible pending-confirmation records in a category.
+ * Send payment reminders to all eligible pending-confirmation entries in a category.
  * Respects a cooldown period to avoid spamming participants.
  */
 export async function remindPendingPayments(

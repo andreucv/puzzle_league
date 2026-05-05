@@ -74,7 +74,7 @@
     "public_profile_visibility": "Visibilitat del perfil",
     "public_profile_visibility_description": "Si està activat, qualsevol usuari (fins i tot visitants no registrats) pot veure el teu perfil públic. Si està desactivat, només els organitzadors i administradors el poden veure.",
     "public_results_visibility": "Visibilitat als resultats",
-    "public_results_visibility_description": "Si està activat, el teu nom i avatar apareixen als resultats de les competicions per a tothom. Si està desactivat, els altres participants et veuen com a 'Puzzler Anònim' — tu sempre pots veure el teu propi nom.",
+    "public_results_visibility_description": "Si està activat, el teu nom i avatar apareixen als resultats de les competicions per a tothom. Si està desactivat, els altres participants et veuen com a 'Participant Anònim' — tu sempre pots veure el teu propi nom.",
     "language": "Idioma",
     "select_language": "Selecciona idioma",
     "save": "Desar"
@@ -558,7 +558,7 @@
     "puzzle": "Puzzle",
     "pieces": "peces",
     "dns": "DNS",
-    "anonymous_puzzler": "Puzzler Anònim",
+    "anonymous_participant": "Participant Anònim",
     "profile_hidden": "Aquest perfil és privat",
     "live_badge": "En Directe",
     "total_participants": "{{n}} inscripcions",

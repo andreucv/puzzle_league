@@ -405,7 +405,7 @@
                                                                     <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
                                                                         <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
                                                                     </div>
-                                                                    <span class="font-medium text-sm text-surface-400 italic">{$t('results.anonymous_puzzler')}</span>
+                                                                    <span class="font-medium text-sm text-surface-400 italic">{$t('results.anonymous_participant')}</span>
                                                                 {/if}
                                                             </div>
                                                         {/each}
@@ -488,7 +488,7 @@
                                                                         <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
                                                                             <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
                                                                         </div>
-                                                                        <span class="font-medium text-sm text-surface-400 italic">{$t('results.anonymous_puzzler')}</span>
+                                                                        <span class="font-medium text-sm text-surface-400 italic">{$t('results.anonymous_participant')}</span>
                                                                     {/if}
                                                                 </div>
                                                             {/each}
@@ -547,7 +547,7 @@
                                                             <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
                                                                 <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
                                                             </div>
-                                                            <span class="text-sm font-medium truncate text-surface-400 italic">{$t('results.anonymous_puzzler')}</span>
+                                                            <span class="text-sm font-medium truncate text-surface-400 italic">{$t('results.anonymous_participant')}</span>
                                                         {/if}
                                                     </div>
                                                 {/each}
@@ -624,7 +624,7 @@
                                                                 <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
                                                                     <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
                                                                 </div>
-                                                                <span class="text-sm font-medium truncate text-surface-400 italic">{$t('results.anonymous_puzzler')}</span>
+                                                                <span class="text-sm font-medium truncate text-surface-400 italic">{$t('results.anonymous_participant')}</span>
                                                             {/if}
                                                         </div>
                                                     {/each}

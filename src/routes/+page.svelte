@@ -20,8 +20,8 @@
 
 <svelte:head>
    <title>{$t('head.title')}</title>
-    <meta name="description" content="Join speed puzzling competitions worldwide. Track your times, compete with other puzzlers, and participate in events. Sign up free today!">
-    <meta name="keywords" content="speed puzzling, puzzle competitions, jigsaw puzzle tournaments, competitive puzzling, puzzle timer, puzzle league, puzzle events, puzzle community, puzzle championships">
+    <meta name="description" content="Join speed puzzling competitions worldwide. Track your times, compete with other participants, and participate in competitions. Sign up free today!">
+    <meta name="keywords" content="speed puzzling, puzzle competitions, jigsaw puzzle competitions, competitive puzzling, puzzle timer, puzzle league, puzzle community, puzzle championships">
 
     <!-- Open Graph -->
     <meta property="og:title" content="PuzzLigas - The Premier Speed Puzzling Platform">

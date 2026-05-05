@@ -20,7 +20,7 @@
     <div class="flex justify-between w-full">
         <div class="flex gap-2">
             <Icon width="1rem" height="1rem" />
-            <span class="text-sm font-semibold" data-testid="record-status-badge">{label}</span>
+            <span class="text-sm font-semibold" data-testid="entry-status-badge">{label}</span>
             <span class="badge {badgeClass} text-xs">{count}</span>
         </div>
         <Collapsible.Trigger class="btn-icon btn-icon-sm hover:preset-tonal rounded-full" data-testid={testId}>

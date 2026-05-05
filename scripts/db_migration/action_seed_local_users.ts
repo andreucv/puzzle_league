@@ -96,7 +96,7 @@ async function main() {
                 phonePromptLastChecked: new Date(),
                 locale: 'en',
                 localePromptLastChecked: new Date(),
-                userIntentsLastChecked: new Date(),
+                externalParticipantsLastChecked: new Date(),
                 emailVerified: true,
                 emailVerificationPromptLastChecked: new Date(),
             },

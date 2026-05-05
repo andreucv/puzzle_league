@@ -9,16 +9,16 @@ export type {
     UserSeedInput,
     CategorySeedInput,
     CompetitionSeedInput,
-    RecordSeedInput,
+    EntrySeedInput,
     SeededUser,
     SeededCompetition,
     SeededCategory,
-    SeededRecord,
+    SeededEntry,
 } from './types';
 
 // Steps
 export {
     upsertUsers,
     createCompetition,
-    createRecords,
+    createEntries,
 } from './steps';

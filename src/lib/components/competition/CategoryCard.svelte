@@ -14,7 +14,7 @@
     import AccountPlusOutlineIcon from '@iconify-svelte/mdi/account-plus-outline';
     import AccountBoxPlusOutlineIcon from '@iconify-svelte/mdi/account-box-plus-outline';
     import FormatListBulletedIcon from '@iconify-svelte/mdi/format-list-bulleted';
-    import { getRegistrationStatusTonalClass, getRegistrationStatusIcon, getRegistrationStatusLabel } from '$lib/utils/registration_utils';
+    import RegistrationStatusBadge from '$lib/components/registration/RegistrationStatusBadge.svelte';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
     type PartyUser = { id: string; name: string; email: string; image: string | null };
@@ -122,7 +122,6 @@
                     {#each normalizedRecords as record, index (record.id ?? `${category.id}-${index}`)}
                         {@const recordUsers = record.users ?? []}
                         {@const entryExternalParticipants = record.externalParticipants ?? []}
-                        {@const StatusIcon = getRegistrationStatusIcon(record.status)}
                         {#if recordUsers.length > 0 || entryExternalParticipants.length > 0}
                             <div class="flex items-center gap-2 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-50/70 dark:bg-surface-800/60 px-2 py-1 overflow-hidden">
                                 <div class="flex items-center gap-2 min-w-0 flex-1">
@@ -143,10 +142,7 @@
                                         {[...recordUsers.map(u => u.name), ...entryExternalParticipants.map(ep => ep.name)].join(', ')}
                                     </span>
                                 </div>
-                                <span class={`badge text-xs flex items-center gap-1 shrink-0 ${getRegistrationStatusTonalClass(record.status)}`} data-testid="category-status-badge">
-                                    <StatusIcon width="0.8rem" height="0.8rem" />
-                                    {getRegistrationStatusLabel(record.status, $t) || 'Open'}
-                                </span>
+                                <RegistrationStatusBadge status={record.status ?? ''} />
                             </div>
                         {/if}
                     {/each}
@@ -172,7 +168,6 @@
                     {#each normalizedRecords as record, index (record.id ?? `${category.id}-${index}`)}
                         {@const recordUsers = record.users ?? []}
                         {@const entryExternalParticipants = record.externalParticipants ?? []}
-                        {@const StatusIcon = getRegistrationStatusIcon(record.status)}
                         {#if recordUsers.length > 0 || entryExternalParticipants.length > 0}
                             <div class="flex items-center gap-2 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-50/70 dark:bg-surface-800/60 px-2 py-1 overflow-hidden">
                                 <div class="flex items-center gap-2 min-w-0 flex-1">
@@ -193,10 +188,7 @@
                                         {[...recordUsers.map(u => u.name), ...entryExternalParticipants.map(ep => ep.name)].join(', ')}
                                     </span>
                                 </div>
-                                <span class={`badge text-xs flex items-center gap-1 shrink-0 ${getRegistrationStatusTonalClass(record.status)}`} data-testid="category-status-badge">
-                                    <StatusIcon width="0.8rem" height="0.8rem" />
-                                    {getRegistrationStatusLabel(record.status, $t) || 'Open'}
-                                </span>
+                                <RegistrationStatusBadge status={record.status ?? ''} />
                             </div>
                         {/if}
                     {/each}

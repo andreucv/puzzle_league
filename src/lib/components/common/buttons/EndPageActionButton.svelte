@@ -1,4 +1,6 @@
 <script lang="ts">
+    import CardButton from "./CardButton.svelte";
+
     let { icon: Icon, href, text, colorClass = 'preset-filled-primary-500', disabled = false, testId = undefined }: {
         icon: any;
         href: string;
@@ -15,8 +17,5 @@
         {text}
     </button>
 {:else}
-    <a {href} class="btn {colorClass}" data-testid={testId}>
-        <Icon width="1.2rem" height="1.2rem" />
-        {text}
-    </a>
+    <CardButton {href} icon={Icon} translationKey={text} colorClass={colorClass} testId={testId} />
 {/if}

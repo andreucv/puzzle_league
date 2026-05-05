@@ -50,7 +50,7 @@ export interface CompetitionSeedInput {
     categories: CategorySeedInput[];
 }
 
-export interface RecordSeedInput {
+export interface EntrySeedInput {
     categoryId: number;
     creatorId: string;
     userIds: string[];
@@ -76,7 +76,7 @@ export interface SeededCategory {
     description: string;
 }
 
-export interface SeededRecord {
+export interface SeededEntry {
     id: string;
     categoryId: number;
     creatorId: string;

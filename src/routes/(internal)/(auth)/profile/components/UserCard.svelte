@@ -3,6 +3,7 @@
     import type { RoleAssignment } from "@prisma/client";
     import { t, locale, locales, setLocale } from '$lib/translations';
     import { enhance } from '$app/forms';
+    import { flushSync } from 'svelte';
     import ThemeLightSwitch from '$lib/components/common/ThemeLightSwitch.svelte';
     import langNames from '$lib/translations/lang.json';
 
@@ -527,15 +528,16 @@
                     return async ({ update }) => {
                         isSavingVisibility = false;
                         await update();
+                        console.log("Profile visibility updated:", profileVisibility);
                     };
                 }}
             >
                 <input type="hidden" name="field" value="publicProfileVisibility" />
-                <input type="hidden" name="value" value={!profileVisibility} />
+                <input type="hidden" name="value" value={profileVisibility} />
                 <Switch
                     checked={profileVisibility}
                     onCheckedChange={(details) => {
-                        profileVisibility = details.checked;
+                        flushSync(() => { profileVisibility = details.checked; });
                         profileVisibilityForm?.requestSubmit();
                     }}
                     disabled={isSavingVisibility}
@@ -568,11 +570,11 @@
                 }}
             >
                 <input type="hidden" name="field" value="publicResultsVisibility" />
-                <input type="hidden" name="value" value={!resultsVisibility} />
+                <input type="hidden" name="value" value={resultsVisibility} />
                 <Switch
                     checked={resultsVisibility}
                     onCheckedChange={(details) => {
-                        resultsVisibility = details.checked;
+                        flushSync(() => { resultsVisibility = details.checked; });
                         resultsVisibilityForm?.requestSubmit();
                     }}
                     disabled={isSavingVisibility}

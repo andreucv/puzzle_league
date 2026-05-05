@@ -36,7 +36,7 @@
     let searchFilter = $state('');
 
     // Loading state for individual actions
-    let processingRecordId: string | null = $state(null);
+    let processingEntryId: string | null = $state(null);
     let publishingCategoryId: number | null = $state(null);
     let confirmingCategoryId: number | null = $state(null);
     let remindingCategoryId: number | null = $state(null);
@@ -54,11 +54,11 @@
         }, 5000);
     }
 
-    async function handleConfirm(recordId: string) {
-        processingRecordId = recordId;
+    async function handleConfirm(entryId: string) {
+        processingEntryId = entryId;
         const minLoadingTime = new Promise(resolve => setTimeout(resolve, 500));
         try {
-            const response = await fetch(`/api/registrations/${recordId}/confirm`, {
+            const response = await fetch(`/api/registrations/${entryId}/confirm`, {
                 method: 'POST'
             });
             const result = await response.json();
@@ -73,16 +73,16 @@
         } catch {
             showResultMessage({ success: false, message: $t('manage_registrations.confirm_error') });
         } finally {
-            processingRecordId = null;
+            processingEntryId = null;
         }
     }
 
-    async function handleRefuse(recordId: string) {
-        processingRecordId = recordId;
+    async function handleRefuse(entryId: string) {
+        processingEntryId = entryId;
         const minLoadingTime = new Promise(resolve => setTimeout(resolve, 500));
 
         try {
-            const response = await fetch(`/api/registrations/${recordId}/refuse`, {
+            const response = await fetch(`/api/registrations/${entryId}/refuse`, {
                 method: 'POST'
             });
             const result = await response.json();
@@ -97,7 +97,7 @@
         } catch {
             showResultMessage({ success: false, message: $t('manage_registrations.refuse_error') });
         } finally {
-            processingRecordId = null;
+            processingEntryId = null;
         }
     }
 
@@ -122,11 +122,11 @@
         }
     }
 
-    async function handleRemind(recordId: string, note?: string) {
-        processingRecordId = recordId;
+    async function handleRemind(entryId: string, note?: string) {
+        processingEntryId = entryId;
         const minLoadingTime = new Promise(resolve => setTimeout(resolve, 500));
         try {
-            const response = await fetch(`/api/registrations/${recordId}/remind`, {
+            const response = await fetch(`/api/registrations/${entryId}/remind`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ note }),
@@ -143,7 +143,7 @@
         } catch {
             showResultMessage({ success: false, message: $t('manage_registrations.remind_error') });
         } finally {
-            processingRecordId = null;
+            processingEntryId = null;
         }
     }
 
@@ -215,7 +215,7 @@
             <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
                 <CategoryCardTitle type={category.type} subname={category.subname ?? ''}/>
                 {#if category.maxParties}
-                    {@const confirmedCount = category.records.filter((r: any) => r.status === 'CONFIRMED').length}
+                    {@const confirmedCount = category.entries.filter((r: any) => r.status === 'CONFIRMED').length}
                     {@const remaining = category.maxParties - confirmedCount}
                     <span class="text-sm {remaining > 0 ? 'text-surface-600 dark:text-surface-400' : 'text-error-600 dark:text-error-400'}">
                         <SeatOutlineIcon width="1rem" height="1rem" class="inline-block align-text-bottom mr-1" />
@@ -225,8 +225,8 @@
             </div>
 
             <RegistrationList
-                records={category.records}
-                {processingRecordId}
+                entries={category.entries}
+                processingEntryId={processingEntryId}
                 {searchFilter}
                 onConfirm={handleConfirm}
                 onRefuse={handleRefuse}
@@ -236,12 +236,12 @@
             <!-- Action buttons only for active (NOT_STARTED) categories -->
             {#if showActions}
             <!-- Bulk remind pending button -->
-            {@const pendingRecords = category.records.filter((r: any) => r.status === 'PENDING_CONFIRMATION')}
-            {@const eligiblePendingCount = pendingRecords.filter((r: any) => {
+            {@const pendingEntries = category.entries.filter((r: any) => r.status === 'PENDING_CONFIRMATION')}
+            {@const eligiblePendingCount = pendingEntries.filter((r: any) => {
                 if (!r.lastRemindedAt) return true;
                 return Date.now() - new Date(r.lastRemindedAt).getTime() >= PAYMENT_REMINDER_COOLDOWN_MS;
             }).length}
-            {#if pendingRecords.length > 0}
+            {#if pendingEntries.length > 0}
                 <div class="border-t border-surface-200 dark:border-surface-700">
                     <div class="relative w-full">
                         <button
@@ -278,7 +278,7 @@
             {/if}
 
             <!-- Assign tables button: placed at the card level for quick 1-click access -->
-            {@const confirmedCount = category.records.filter((r: any) => r.status === 'CONFIRMED').length}
+            {@const confirmedCount = category.entries.filter((r: any) => r.status === 'CONFIRMED').length}
             {#if confirmedCount > 0}
                 <div class="border-t border-surface-200 dark:border-surface-700">
                     <div class="relative w-full">

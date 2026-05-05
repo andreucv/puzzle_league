@@ -4,7 +4,7 @@
  * Composes shared seed steps from seed_utils in order:
  * 1. Upsert 5 dummy participant users
  * 2. Create a competition with one INDIVIDUAL category
- * 3. Create 5 CONFIRMED records (one per dummy user)
+ * 3. Create 5 CONFIRMED entries (one per dummy user)
  * 4. Write test-data.json for the test file to consume
  */
 import "dotenv/config";
@@ -13,7 +13,7 @@ import {
     writeSeedOutput,
     upsertUsers,
     createCompetition,
-    createRecords,
+    createEntries,
 } from '../seed_utils';
 
 const DUMMY_USERS = Array.from({ length: 5 }, (_, i) => ({
@@ -59,8 +59,8 @@ async function main() {
 
     const category = competition.categories[0];
 
-    // 3. Create confirmed records
-    const records = await createRecords(
+    // 3. Create confirmed entries
+    const entries = await createEntries(
         ctx,
         users.map(u => ({
             categoryId: category.id,
@@ -74,7 +74,7 @@ async function main() {
     writeSeedOutput(import.meta.url, {
         competitionId: competition.id,
         categoryId: category.id,
-        recordIds: records.map(r => r.id),
+        entryIds: entries.map(e => e.id),
         userNames: users.map(u => u.name),
     });
 

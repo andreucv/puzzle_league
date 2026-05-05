@@ -27,7 +27,7 @@ model User {
   phonePromptLastChecked              DateTime?
   locale                              String?
   localePromptLastChecked             DateTime?
-  externalParticipantsLastChecked     DateTime?              @map("userIntentsLastChecked")
+  externalParticipantsLastChecked     DateTime?
   emailVerificationPromptLastChecked  DateTime?
   publicProfileVisibility     Boolean          @default(true)
   publicResultsVisibility     Boolean          @default(true)
@@ -255,7 +255,7 @@ model Entry {
   creatorId        String
   creator          User               @relation("EntryCreator", fields: [creatorId], references: [id], onDelete: SetDefault)
 
-  @@map("record")
+  @@map("entry")
 }
 
 model ExternalParticipant {
@@ -268,7 +268,7 @@ model ExternalParticipant {
   claimedBy   User?    @relation("ExternalParticipantClaimer", fields: [claimedById], references: [id], onDelete: SetNull)
   entries     Entry[]  @relation("EntryExternalParticipants")
 
-  @@map("user_intent")
+  @@map("external_participant")
 }
 
 model RoleAssignment {

@@ -11,8 +11,8 @@
     import ConfirmPopover from '$lib/components/common/ConfirmPopover.svelte';
     import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/registration';
 
-    let { record, showConfirm = false, showRefuse = false, showRemind = false, processing = false, selected = false, onConfirm, onRefuse, onRemind, onSelect }: {
-        record: any;
+    let { entry, showConfirm = false, showRefuse = false, showRemind = false, processing = false, selected = false, onConfirm, onRefuse, onRemind, onSelect }: {
+        entry: any;
         showConfirm?: boolean;
         showRefuse?: boolean;
         showRemind?: boolean;
@@ -28,8 +28,8 @@
     let showReminderPopover = $state(false);
 
     let isOnCooldown = $derived(() => {
-        if (!record.lastRemindedAt) return false;
-        return Date.now() - new Date(record.lastRemindedAt).getTime() < PAYMENT_REMINDER_COOLDOWN_MS;
+        if (!entry.lastRemindedAt) return false;
+        return Date.now() - new Date(entry.lastRemindedAt).getTime() < PAYMENT_REMINDER_COOLDOWN_MS;
     });
 
     function formatRelativeTime(date: string | Date): string {
@@ -49,9 +49,9 @@
         };
     }
 
-    // Show confirmedAt for confirmed records, createdAt for pending/waitlisted
+    // Show confirmedAt for confirmed entries, createdAt for pending/waitlisted
     let displayDate = $derived(
-        record.status === 'CONFIRMED' ? record.confirmedAt : record.createdAt
+        entry.status === 'CONFIRMED' ? entry.confirmedAt : entry.createdAt
     );
     let inscriptionDate = $derived(displayDate ? formatDateTime(displayDate) : null);
 </script>
@@ -60,19 +60,19 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
     class="flex items-center gap-2 py-2 px-1 w-full border-b border-surface-200 dark:border-surface-700 last:border-b-0 {processing ? 'opacity-50' : ''} {hasActions ? 'cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 rounded-md transition-colors' : ''}"
-    data-testid="inscription-record-{record.id}"
-    onclick={() => hasActions && onSelect?.(record.id)}
+    data-testid="registration-row-entry-{entry.id}"
+    onclick={() => hasActions && onSelect?.(entry.id)}
 >
     <!-- Stacked avatars -->
     <div class="flex items-center shrink-0">
-        {#each record.users as user, i}
+        {#each entry.users as user, i}
             <Avatar class="w-7 h-7 shrink-0 ring-2 ring-surface-50 dark:ring-surface-800 {i > 0 ? '-ml-4' : ''}">
                 <Avatar.Image src={user.image ?? undefined} alt={user.name ?? 'User'} />
                 <Avatar.Fallback class="text-[0.6rem]">{user.name?.substring(0, 2) || 'U'}</Avatar.Fallback>
             </Avatar>
         {/each}
-        {#each record.externalParticipants || [] as intent, i}
-            <div class="w-7 h-7 shrink-0 ring-2 ring-surface-50 dark:ring-surface-800 rounded-full bg-warning-200 dark:bg-warning-800 flex items-center justify-center {(record.users.length + i) > 0 ? '-ml-4' : ''}">
+        {#each entry.externalParticipants || [] as intent, i}
+            <div class="w-7 h-7 shrink-0 ring-2 ring-surface-50 dark:ring-surface-800 rounded-full bg-warning-200 dark:bg-warning-800 flex items-center justify-center {(entry.users.length + i) > 0 ? '-ml-4' : ''}">
                 <AccountQuestionIcon width="0.9rem" height="0.9rem" class="text-warning-700 dark:text-warning-300" />
             </div>
         {/each}
@@ -81,14 +81,14 @@
     <!-- Names & creator -->
     <div class="min-w-0 flex-1">
         <div class="text-xs font-medium flex flex-wrap gap-x-1">
-            {#each [...record.users.map((u: any) => u.name), ...(record.externalParticipants || []).map((ui: any) => ui.name)] as name, i}
-                <span>{name}{i < record.users.length + (record.externalParticipants?.length ?? 0) - 1 ? ',' : ''}</span>
+            {#each [...entry.users.map((u: any) => u.name), ...(entry.externalParticipants || []).map((ui: any) => ui.name)] as name, i}
+                <span>{name}{i < entry.users.length + (entry.externalParticipants?.length ?? 0) - 1 ? ',' : ''}</span>
             {/each}
         </div>
-        {#if record.creator}
-            <a href="/public_profile/{record.creator.id}" class="inline-flex items-center gap-0.5 text-[0.65rem] text-surface-500 dark:text-surface-400 hover:text-primary-500 hover:underline transition-colors truncate max-w-full">
+        {#if entry.creator}
+            <a href="/public_profile/{entry.creator.id}" class="inline-flex items-center gap-0.5 text-[0.65rem] text-surface-500 dark:text-surface-400 hover:text-primary-500 hover:underline transition-colors truncate max-w-full">
                 <AccountEditOutlineIcon width="0.75rem" height="0.75rem" class="shrink-0" />
-                {record.creator.name ?? record.creator.email}
+                {entry.creator.name ?? entry.creator.email}
             </a>
         {/if}
     </div>
@@ -99,10 +99,10 @@
     <div
         class="relative flex items-center shrink-0 ml-auto"
     >
-        <!-- Table number badge (only for confirmed records with an assigned table) -->
-        {#if record.tableNumber != null}
-            <span class="badge preset-tonal-primary text-xs mr-2" data-testid="table-number-{record.id}">
-                {$t('manage_registrations.table_number', { number: record.tableNumber })}
+        <!-- Table number badge (only for confirmed entries with an assigned table) -->
+        {#if entry.tableNumber != null}
+            <span class="badge preset-tonal-primary text-xs mr-2" data-testid="table-number-{entry.id}">
+                {$t('manage_registrations.table_number', { number: entry.tableNumber })}
             </span>
         {/if}
 
@@ -112,9 +112,9 @@
                 <span class="text-[0.7rem] leading-tight text-surface-400 dark:text-surface-500">
                     {inscriptionDate.date} · {inscriptionDate.time}
                 </span>
-                {#if showRemind && record.lastRemindedAt}
+                {#if showRemind && entry.lastRemindedAt}
                     <div class="text-[0.6rem] leading-tight {isOnCooldown() ? 'text-warning-500' : 'text-surface-400 dark:text-surface-500'}">
-                        {$t('manage_registrations.last_reminded', { time: formatRelativeTime(record.lastRemindedAt) })}
+                        {$t('manage_registrations.last_reminded', { time: formatRelativeTime(entry.lastRemindedAt) })}
                     </div>
                 {/if}
             </div>
@@ -146,8 +146,8 @@
                                 colorClass="preset-filled-warning-500"
                                 onConfirm={(note) => {
                                     showReminderPopover = false;
-                                    onRemind?.(record.id, note);
-                                    onSelect?.(record.id);
+                                    onRemind?.(entry.id, note);
+                                    onSelect?.(entry.id);
                                 }}
                                 onCancel={() => showReminderPopover = false}
                                 isProcessing={processing}
@@ -163,9 +163,9 @@
                         colorClass="preset-filled-success-500"
                         confirmTitle={$t('manage_registrations.confirm_accept_title')}
                         confirmMessage={$t('manage_registrations.confirm_accept_message')}
-                        onConfirm={() => onConfirm?.(record.id)}
+                        onConfirm={() => onConfirm?.(entry.id)}
                         disabled={processing}
-                        testId="confirm-inscription"
+                        testId="confirm-registration"
                     />
                     </div>
                 {/if}
@@ -176,9 +176,9 @@
                         colorClass="preset-filled-error-500"
                         confirmTitle={$t('manage_registrations.confirm_refuse_title')}
                         confirmMessage={$t('manage_registrations.confirm_refuse_message')}
-                        onConfirm={() => onRefuse?.(record.id)}
+                        onConfirm={() => onRefuse?.(entry.id)}
                         disabled={processing}
-                        testId="refuse-inscription"
+                        testId="refuse-registration"
                     />
                     </div>
                 {/if}

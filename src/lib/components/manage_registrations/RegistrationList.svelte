@@ -6,19 +6,19 @@
     import CollapsibleSection from './CollapsibleSection.svelte';
     import RegistrationRow from './RegistrationRow.svelte';
 
-    let { records, processingRecordId = null, searchFilter = '', onConfirm, onRefuse, onRemind }: {
-        records: any[];
-        processingRecordId?: string | null;
+    let { entries, processingEntryId = null, searchFilter = '', onConfirm, onRefuse, onRemind }: {
+        entries: any[];
+        processingEntryId?: string | null;
         searchFilter?: string;
         onConfirm: (id: string) => void;
         onRefuse: (id: string) => void;
         onRemind: (id: string, note?: string) => void;
     } = $props();
 
-    let selectedRecordId: string | null = $state(null);
+    let selectedEntryId: string | null = $state(null);
 
     function toggleSelect(id: string) {
-        selectedRecordId = selectedRecordId === id ? null : id;
+        selectedEntryId = selectedEntryId === id ? null : id;
     }
 
     function filterBySearch(recs: any[]): any[] {
@@ -36,28 +36,28 @@
         return recs.filter((r: any) => r.status === status);
     }
 
-    let filteredRecords = $derived(filterBySearch(records));
-    let pendingRecords = $derived(byStatus(filteredRecords, 'PENDING_CONFIRMATION'));
-    let waitlistedRecords = $derived(byStatus(filteredRecords, 'WAITLISTED'));
-    // Confirmed records sorted by confirmedAt ASC (earliest confirmed first)
-    let confirmedRecords = $derived(
-        byStatus(filteredRecords, 'CONFIRMED')
+    let filteredEntries = $derived(filterBySearch(entries));
+    let pendingEntries = $derived(byStatus(filteredEntries, 'PENDING_CONFIRMATION'));
+    let waitlistedEntries = $derived(byStatus(filteredEntries, 'WAITLISTED'));
+    // Confirmed entries sorted by confirmedAt ASC (earliest confirmed first)
+    let confirmedEntries = $derived(
+        byStatus(filteredEntries, 'CONFIRMED')
             .sort((a: any, b: any) =>
                 new Date(a.confirmedAt).getTime() - new Date(b.confirmedAt).getTime()
             )
     );
 </script>
 
-{#snippet recordList(recs: any[], showConfirm: boolean, showRefuse: boolean, showRemind: boolean)}
+{#snippet entryList(recs: any[], showConfirm: boolean, showRefuse: boolean, showRemind: boolean)}
     <div>
-        {#each recs as record (record.id)}
+        {#each recs as entry (entry.id)}
             <RegistrationRow
-                {record}
+                {entry}
                 {showConfirm}
                 {showRefuse}
                 {showRemind}
-                processing={processingRecordId === record.id}
-                selected={selectedRecordId === record.id}
+                processing={processingEntryId === entry.id}
+                selected={selectedEntryId === entry.id}
                 {onConfirm}
                 {onRefuse}
                 {onRemind}
@@ -67,47 +67,47 @@
     </div>
 {/snippet}
 
-{#if filteredRecords.length === 0}
+{#if filteredEntries.length === 0}
     <p class="text-sm text-surface-500 italic">
         {searchFilter.trim() ? $t('manage_registrations.no_results_for_search') : $t('manage_registrations.no_inscriptions')}
     </p>
 {:else}
     <div class="space-y-3">
         <!-- Pending section (always visible) -->
-        {#if pendingRecords.length > 0}
+        {#if pendingEntries.length > 0}
             <div>
                 <div class="flex items-center gap-2 mb-1">
                     <ClockOutlineIcon width="1rem" height="1rem" />
-                    <span class="text-sm font-semibold" data-testid="record-status-badge">{$t('manage_registrations.pending_confirmation')}</span>
-                    <span class="badge preset-tonal-warning text-xs">{pendingRecords.length}</span>
+                    <span class="text-sm font-semibold" data-testid="entry-status-badge">{$t('manage_registrations.pending_confirmation')}</span>
+                    <span class="badge preset-tonal-warning text-xs">{pendingEntries.length}</span>
                 </div>
-                {@render recordList(pendingRecords, true, true, true)}
+                {@render entryList(pendingEntries, true, true, true)}
             </div>
         {/if}
 
         <!-- Waitlisted section (collapsible) -->
-        {#if waitlistedRecords.length > 0}
+        {#if waitlistedEntries.length > 0}
             <CollapsibleSection
                 icon={ClockAlertOutlineIcon}
                 label={$t('manage_registrations.waitlisted')}
-                count={waitlistedRecords.length}
+                count={waitlistedEntries.length}
                 badgeClass="preset-tonal-secondary"
                 testId="toggle-section-waitlisted"
             >
-                {@render recordList(waitlistedRecords, true, true, false)}
+                {@render entryList(waitlistedEntries, true, true, false)}
             </CollapsibleSection>
         {/if}
 
         <!-- Confirmed section (collapsible) -->
-        {#if confirmedRecords.length > 0}
+        {#if confirmedEntries.length > 0}
             <CollapsibleSection
                 icon={CheckCircleIcon}
                 label={$t('manage_registrations.confirmed')}
-                count={confirmedRecords.length}
+                count={confirmedEntries.length}
                 badgeClass="preset-tonal-success"
                 testId="toggle-section-confirmed"
             >
-                {@render recordList(confirmedRecords, false, true, false)}
+                {@render entryList(confirmedEntries, false, true, false)}
             </CollapsibleSection>
         {/if}
     </div>

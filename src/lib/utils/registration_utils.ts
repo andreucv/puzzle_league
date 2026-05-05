@@ -9,9 +9,9 @@ import HelpCircleIcon from '@iconify-svelte/mdi/help-circle';
  * Use with the `$t()` function to get the translated display name.
  */
 const STATUS_TRANSLATION_KEYS: Record<RegistrationStatus, string> = {
-	[RegistrationStatus.PENDING_CONFIRMATION]: 'inscription.status_pending_confirmation',
-	[RegistrationStatus.CONFIRMED]: 'inscription.status_confirmed',
-	[RegistrationStatus.WAITLISTED]: 'inscription.status_waitlisted',
+	[RegistrationStatus.PENDING_CONFIRMATION]: 'registration.status_pending_confirmation',
+	[RegistrationStatus.CONFIRMED]: 'registration.status_confirmed',
+	[RegistrationStatus.WAITLISTED]: 'registration.status_waitlisted',
 };
 
 export function getRegistrationStatusLabel(status: string | undefined, t: (key: string) => string): string {
@@ -35,15 +35,6 @@ export function getRegistrationStatusIconName(status: string | undefined ): stri
 		case 'PENDING_CONFIRMATION': return 'mdi:clock-outline';
 		case 'WAITLISTED': return 'mdi:clock-alert-outline';
 		default: return 'mdi:help-circle';
-	}
-}
-
-export function getRegistrationStatusBadgeClass(status: string): string {
-	switch (status) {
-		case 'CONFIRMED': return 'preset-filled-success-500';
-		case 'PENDING_CONFIRMATION': return 'preset-filled-warning-500';
-		case 'WAITLISTED': return 'preset-filled-secondary-500';
-		default: return 'preset-tonal';
 	}
 }
 

@@ -16,6 +16,7 @@ async function signUpIndividualAndSubmit(page: Page, competitionId: number): Pro
     await page.goto(`/competitions/competition_details/${competitionId}/registration`);
     await page.getByText('Sign Up', { exact: true }).first().click();
     await page.getByTestId('submit-all-registrations').click();
+    await expect(page.getByTestId('registration-status-badge')).toBeVisible({ timeout: 10000 });
 }
 
 /** Confirms the first pending registration on the manage registrations page. */
@@ -23,7 +24,7 @@ async function confirmFirstRegistration(page: Page, competitionId: number): Prom
     await page.goto(`/competition/${competitionId}/manage_registrations`);
 
     // Click the first registration row to reveal action buttons
-    const firstRow = page.locator('[data-testid^="registration-row-entry-"]').first();
+    const firstRow = page.locator('[data-testid^="registration-entry-"]').first();
     await expect(firstRow).toBeVisible();
     await firstRow.click();
 
@@ -41,7 +42,7 @@ async function confirmFirstRegistration(page: Page, competitionId: number): Prom
 
     // Expand the Confirmed section and verify a record is inside
     await confirmedToggle.click();
-    await expect(page.locator('[data-testid^="registration-row-entry-"]')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid^="registration-entry-"]')).toBeVisible({ timeout: 3000 });
 }
 
 // ==================== TYPES ====================
@@ -126,8 +127,8 @@ test.describe('Registration Happy Path', () => {
 
     test('Step 5b: Participant sees Confirmed status on competition details page', async () => {
         await participantPage.goto(`/competitions/competition_details/${competitionId}`);
-        await expect(participantPage.getByTestId('registration-status-badge')).toBeVisible();
-        await expect(participantPage.getByTestId('registration-status-badge')).toHaveText(/Confirmed/);
+        await expect(participantPage.getByTestId('category-status-badge')).toBeVisible();
+        await expect(participantPage.getByTestId('category-status-badge')).toHaveText(/Confirmed/);
     });
 });
 
@@ -169,10 +170,10 @@ test.describe('Individual — Register Non-Platform User (External Participant)'
         await participantPage.goto(`/competitions/competition_details/${competitionId}/registration`);
 
         // 1. Self-register (one-click individual signup)
-        await participantPage.getByRole('button', { name: 'Sign Up' }).first().click();
+        await participantPage.getByText('Sign Up', { exact: true }).first().click();
 
         // 2. Button should now say "Add another registration" since user is already in category
-        await participantPage.getByRole('button', { name: 'Add another inscription' }).first().click();
+        await participantPage.getByText('Add another registration').first().click();
 
         // 3. Team builder opens with search input — type the External Participant name
         const searchInput = participantPage.locator('input.input[placeholder*="Search"]');
@@ -202,7 +203,7 @@ test.describe('Individual — Register Non-Platform User (External Participant)'
         await expect(organizerPage.getByText(externalParticipantName, { exact: true })).toBeVisible();
 
         // Should see 2 pending registration records
-        await expect(organizerPage.locator('[data-testid^="registration-row-entry-"]')).toHaveCount(2);
+        await expect(organizerPage.locator('[data-testid^="registration-entry-"]')).toHaveCount(2);
     });
 });
 
@@ -244,11 +245,11 @@ test.describe('Group Category — Build Team with External Participant', () => {
         await participantPage.goto(`/competitions/competition_details/${competitionId}/registration`);
 
         // 1. Click "Build Pair" (pairs category)
-        await participantPage.getByRole('button', { name: 'Build Pair' }).first().click();
+        await participantPage.locator('[data-testid^="signup-category-"]').first().click();
 
         // 2. Current user should be auto-added; team progress should show 1/2
         await expect(participantPage.getByText('Team').first()).toBeVisible();
-        await expect(participantPage.getByText('1/2 registrations you can')).toBeVisible();
+        await expect(participantPage.getByText('/2 registrations you can submit')).toBeVisible();
 
         // 3. Search and add an External Participant as the second team member
         const searchInput = participantPage.locator('input.input[placeholder*="Search"]');

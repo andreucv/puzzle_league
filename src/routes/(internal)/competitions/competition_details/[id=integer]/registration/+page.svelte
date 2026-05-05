@@ -6,7 +6,8 @@
     import { invalidateAll } from '$app/navigation';
     import { t } from '$lib/translations';
     import { getCategoryTypeName, getCategoryTypeIcon, getMaxRecordsPerCategory } from '$lib/utils/category_utils';
-    import { getRegistrationStatusBadgeClass as getStatusBadgeClasses, getRegistrationStatusIconName as getStatusIcon, getRegistrationStatusBorderClass as getStatusBorderClass, getRegistrationStatusIconColor } from '$lib/utils/registration_utils';
+    import { getRegistrationStatusBorderClass as getStatusBorderClass } from '$lib/utils/registration_utils';
+    import RegistrationStatusBadge from '$lib/components/registration/RegistrationStatusBadge.svelte';
     import { formatTime } from '$lib/utils/datetime_utils';
     import { slide } from 'svelte/transition';
     import LoadingOverlay from '$lib/components/common/LoadingOverlay.svelte';
@@ -564,12 +565,7 @@
                             <div class="flex items-center justify-between gap-2 p-3 border rounded-lg {getStatusBorderClass(record.status)}" data-testid="registration-entry-{record.id}">
                                 <div class="flex items-center gap-3 flex-wrap min-w-0">
                                     <!-- Status -->
-                                    <div class="flex items-center gap-1.5 shrink-0">
-                                        <Icon icon={getStatusIcon(record.status)} width="1.1rem" height="1.1rem" class={getRegistrationStatusIconColor(record.status)} />
-                                        <span class="badge {getStatusBadgeClasses(record.status)} text-xs" data-testid="registration-status-badge">
-                                            {$t(`inscription.status_${record.status.toLowerCase()}`)}
-                                        </span>
-                                    </div>
+                                    <RegistrationStatusBadge status={record.status} />
                                     <!-- Participants -->
                                     <div class="flex flex-wrap gap-1.5">
                                         {#each record.users as member}
@@ -838,7 +834,6 @@
                                 type="button"
                                 class="btn {hasExisting ? 'preset-tonal-success' : 'preset-filled-success-500'} w-full sm:w-auto"
                                 onclick={() => isUserInCategory(category.id) ? addIndividualSlotForOther(category.id) : addIndividualSignup(category.id)}
-                                data-testid="signup-category-{category.id}"
                             >
                                 <Icon icon="mdi:account-plus" width="1.2rem" height="1.2rem" />
                                 {hasExisting ? $t('registration.add_another') : $t('registration.sign_up')}
@@ -850,7 +845,6 @@
                                 type="button"
                                 class="btn {hasExisting ? 'preset-tonal-success' : 'preset-filled-success-500'} w-full sm:w-auto"
                                 onclick={() => addGroupSlot(category.id)}
-                                data-testid="signup-category-{category.id}"
                             >
                                 <Icon icon={isPairs ? "mdi:account-multiple" : "mdi:account-group"} width="1.2rem" height="1.2rem" />
                                 {hasExisting

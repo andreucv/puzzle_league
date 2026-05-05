@@ -14,7 +14,7 @@
     import AccountPlusOutlineIcon from '@iconify-svelte/mdi/account-plus-outline';
     import AccountBoxPlusOutlineIcon from '@iconify-svelte/mdi/account-box-plus-outline';
     import FormatListBulletedIcon from '@iconify-svelte/mdi/format-list-bulleted';
-    import RegistrationStatusBadge from '$lib/components/registration/RegistrationStatusBadge.svelte';
+    import EntryRegistrationStatusBadge from '$lib/components/registration/EntryRegistrationStatusBadge.svelte';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
     type PartyUser = { id: string; name: string; email: string; image: string | null };
@@ -188,7 +188,7 @@
                                         {[...recordUsers.map(u => u.name), ...entryExternalParticipants.map(ep => ep.name)].join(', ')}
                                     </span>
                                 </div>
-                                <RegistrationStatusBadge status={record.status ?? ''} />
+                                <EntryRegistrationStatusBadge status={record.status ?? ''} />
                             </div>
                         {/if}
                     {/each}

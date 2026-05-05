@@ -2,30 +2,13 @@
     import type { Competition } from "@prisma/client";
     import { CldImage } from 'svelte-cloudinary';
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
-    import { getCategoryTypeName } from "$lib/utils/category_utils";
     import MapMarkerRadiusIcon from '@iconify-svelte/mdi/map-marker-radius';
-    import AccountIcon from '@iconify-svelte/mdi/account';
-    import AccountMultipleIcon from '@iconify-svelte/mdi/account-multiple';
-    import AccountGroupIcon from '@iconify-svelte/mdi/account-group';
-    import AccountChildIcon from '@iconify-svelte/mdi/account-child';
-    import ChessKnightIcon from '@iconify-svelte/mdi/chess-knight';
-    import ShapeIcon from '@iconify-svelte/mdi/shape';
-
-    const categoryTypeIcons: Record<string, typeof ShapeIcon> = {
-        INDIVIDUAL: AccountIcon,
-        PAIRS: AccountMultipleIcon,
-        TEAM: AccountGroupIcon,
-        JUNIOR_INDIVIDUAL: AccountChildIcon,
-        JUNIOR_PAIRS: AccountChildIcon,
-        PUZZLE_CHESS: ChessKnightIcon,
-        OTHER: ShapeIcon,
-    };
     import CalendarClockIcon from '@iconify-svelte/mdi/calendar-clock';
     import PlayCircleIcon from '@iconify-svelte/mdi/play-circle';
     import CheckAllIcon from '@iconify-svelte/mdi/check-all';
     import DoorOpenIcon from '@iconify-svelte/mdi/door-open';
     import DoorClosedLockIcon from '@iconify-svelte/mdi/door-closed-lock';
-    import { getRegistrationStatusChipClass, getRegistrationStatusIcon } from '$lib/utils/registration_utils';
+    import CategoryRegistrationChip from '$lib/components/category/CategoryRegistrationChip.svelte';
 
     interface Props {
         competition: Competition & {
@@ -191,16 +174,7 @@
                         {#each competition.categories as category (category.id)}
                             {@const registered = isUserInCategory(category)}
                             {@const status = getUserRegistrationStatus(category)}
-                            {@const CategoryIcon = categoryTypeIcons[category.type] ?? ShapeIcon}
-                            {@const StatusIcon = registered && status ? getRegistrationStatusIcon(status) : null}
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs
-                                {registered ? getRegistrationStatusChipClass(status) : 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'}">
-                                <CategoryIcon width="0.8rem" height="0.8rem" />
-                                {getCategoryTypeName(category.type as any)}
-                                {#if StatusIcon}
-                                    <StatusIcon width="0.8rem" height="0.8rem" />
-                                {/if}
-                            </span>
+                            <CategoryRegistrationChip categoryType={category.type} registrationStatus={registered ? status : null} />
                         {/each}
                     </div>
                 {/if}

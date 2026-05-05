@@ -565,7 +565,7 @@
                             <div class="flex items-center justify-between gap-2 p-3 border rounded-lg {getStatusBorderClass(record.status)}" data-testid="registration-entry-{record.id}">
                                 <div class="flex items-center gap-3 flex-wrap min-w-0">
                                     <!-- Status -->
-                                    <RegistrationStatusBadge status={record.status} />
+                                    <RegistrationStatusBadge status={record.status} translation={$t} />
                                     <!-- Participants -->
                                     <div class="flex flex-wrap gap-1.5">
                                         {#each record.users as member}

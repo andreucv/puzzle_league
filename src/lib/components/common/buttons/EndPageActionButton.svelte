@@ -17,5 +17,5 @@
         {text}
     </button>
 {:else}
-    <CardButton {href} icon={Icon} translationKey={text} colorClass={colorClass} testId={testId} />
+    <CardButton {href} icon={Icon} text={text} colorClass={colorClass} testId={testId} />
 {/if}

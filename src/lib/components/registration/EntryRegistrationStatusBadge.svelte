@@ -1,13 +1,15 @@
 <script lang="ts">
+    // Can import t store here. Need to use it in script to get the translated label for the status.
     import { t } from '$lib/translations';
     import { getRegistrationStatusIcon, getRegistrationStatusLabel, getRegistrationStatusIconColor, getRegistrationStatusTonalClass } from '$lib/utils/registration_utils';
 
     let { status }: { status: string } = $props();
 
-    let StatusIcon = $derived(getRegistrationStatusIcon(status));
-    let label = $derived(getRegistrationStatusLabel(status, $t));
-    let iconColor = $derived(getRegistrationStatusIconColor(status));
-    let borderClass = $derived(getRegistrationStatusTonalClass(status));
+    const StatusIcon = $derived(getRegistrationStatusIcon(status));
+    const status_key = $derived(getRegistrationStatusLabel(status));
+    const label = $derived($t(status_key));
+    const iconColor = $derived(getRegistrationStatusIconColor(status));
+    const borderClass = $derived(getRegistrationStatusTonalClass(status));
 </script>
 
 <span class="badge flex items-center text-xs gap-1 shrink-0 {borderClass}" data-testid="registration-status-badge">

@@ -1,27 +1,9 @@
 <script lang="ts">
     import { t } from '$lib/translations';
-    import { getCategoryTypeName } from '$lib/utils/category_utils';
-    import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
     import LockOpenIcon from '@iconify-svelte/mdi/lock-open-variant-outline';
     import LockIcon from '@iconify-svelte/mdi/lock-outline';
     import PlayCircleIcon from '@iconify-svelte/mdi/play-circle-outline';
-    import AccountIcon from '@iconify-svelte/mdi/account';
-    import AccountMultipleIcon from '@iconify-svelte/mdi/account-multiple';
-    import AccountGroupIcon from '@iconify-svelte/mdi/account-group';
-    import AccountChildIcon from '@iconify-svelte/mdi/account-child';
-    import ChessKnightIcon from '@iconify-svelte/mdi/chess-knight';
-    import ShapeIcon from '@iconify-svelte/mdi/shape';
-    import { getRegistrationStatusChipClass, getRegistrationStatusIcon } from '$lib/utils/registration_utils';
-
-    const categoryTypeIcons: Record<string, typeof ShapeIcon> = {
-        INDIVIDUAL: AccountIcon,
-        PAIRS: AccountMultipleIcon,
-        TEAM: AccountGroupIcon,
-        JUNIOR_INDIVIDUAL: AccountChildIcon,
-        JUNIOR_PAIRS: AccountChildIcon,
-        PUZZLE_CHESS: ChessKnightIcon,
-        OTHER: ShapeIcon,
-    };
+    import CategoryRegistrationChip from '$lib/components/category/CategoryRegistrationChip.svelte';
 
     interface CategoryEntry {
         type: string;
@@ -72,15 +54,7 @@
                 </div>
                 <div class="flex flex-wrap gap-1 mt-1.5">
                     {#each competition.categories as category}
-                        {@const CategoryIcon = categoryTypeIcons[category.type] ?? ShapeIcon}
-                        {@const StatusIcon = category.entryStatus ? getRegistrationStatusIcon(category.entryStatus) : null}
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs {getRegistrationStatusChipClass(category.entryStatus)}">
-                            <CategoryIcon width="0.8rem" height="0.8rem" />
-                            {getCategoryTypeName(category.type as CategoryType)}
-                            {#if StatusIcon}
-                                <StatusIcon width="0.8rem" height="0.8rem" />
-                            {/if}
-                        </span>
+                        <CategoryRegistrationChip categoryType={category.type} registrationStatus={category.entryStatus} />
                     {/each}
                 </div>
             </div>

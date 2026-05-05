@@ -30,7 +30,7 @@ export const load: LayoutServerLoad = async ({ url, locals, request }) => {
     // Locale priority: DB user preference > cookie > Accept-Language header > default "es"
     const locale = determineLocale(locals, request);
 
-    loadTranslations(locale, pathname);
+    await loadTranslations(locale, pathname);
 
     let layoutData = {
         translations: translations.get(),

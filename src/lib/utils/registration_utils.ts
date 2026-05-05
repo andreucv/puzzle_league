@@ -14,10 +14,9 @@ const STATUS_TRANSLATION_KEYS: Record<RegistrationStatus, string> = {
 	[RegistrationStatus.WAITLISTED]: 'registration.status_waitlisted',
 };
 
-export function getRegistrationStatusLabel(status: string | undefined, t: (key: string) => string): string {
+export function getRegistrationStatusLabel(status: string | undefined): string {
 	const key = STATUS_TRANSLATION_KEYS[status as RegistrationStatus];
-	if (!key) return '';
-	return t(key) ?? status ?? '';
+	return key;
 }
 
 export function getRegistrationStatusIcon(status: string | undefined): typeof CheckCircleIcon {

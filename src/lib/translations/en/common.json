@@ -24,7 +24,7 @@
     "image_alt": "Puzzle image",
     "your_last_results": "Your last results",
     "no_last_results": "No results yet",
-    "my_registrations": "My Inscriptions",
+    "my_registrations": "My Registrations",
     "live_now": "Live Now",
     "no_live_competitions": "No live competitions right now",
     "no_near_competitions": "No upcoming competitions near you",
@@ -33,7 +33,7 @@
       "confirmed": "Confirmed",
       "waitlisted": "Waitlisted",
       "registration_open": "Registration open",
-      "registration_closed": "Inscription closed"
+      "registration_closed": "Registration closed"
     }
   },
   "drawer_menu": {

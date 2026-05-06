@@ -10,7 +10,6 @@ export const load: PageServerLoad = async ({ parent }) => {
 
     try {
         const account = await getUserAccountProvider(user.id);
-        console.log('Loaded account for user:', { user: user, account });
         return { account };
     } catch (err) {
         console.error('Error loading profile:', err);

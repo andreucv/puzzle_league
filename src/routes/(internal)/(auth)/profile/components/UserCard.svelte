@@ -3,8 +3,9 @@
     import type { RoleAssignment } from "@prisma/client";
     import { t, locale, locales, setLocale } from '$lib/translations';
     import { enhance } from '$app/forms';
-    import { flushSync } from 'svelte';
+    import { invalidateAll } from '$app/navigation';
     import ThemeLightSwitch from '$lib/components/common/ThemeLightSwitch.svelte';
+    import { showErrorToast } from '$lib/utils/toast';
     import langNames from '$lib/translations/lang.json';
 
     const langMap: Record<string, string> = langNames;
@@ -12,34 +13,70 @@
 
     let { user, account } = $props();
 
+    // --- Editable state (synced from user prop via $effect below) ---
     let profileVisibility = $state(true);
     let resultsVisibility = $state(true);
+    let countryValue: string[] = $state([]);
+    let countryInputValue = $state('');
+    let postalCodeValue = $state('');
+    let phonePrefixValue: string[] = $state([]);
+    let phonePrefixInputValue = $state('');
+    let phoneNumberValue = $state('');
+    let selectedLocale = $state('');
+
+    // --- UI state ---
     let isSavingVisibility = $state(false);
-    let profileVisibilityForm: HTMLFormElement;
-    let resultsVisibilityForm: HTMLFormElement;
-
-    // Sync visibility state from user prop
-    $effect(() => {
-        profileVisibility = user.publicProfileVisibility ?? true;
-        resultsVisibility = user.publicResultsVisibility ?? true;
-    });
-
-    let displayName = $derived(user.name || "Pending name...");
-    let countryValue = $derived(user.country ? [user.country] : []);
-    let countryInputValue = $derived(user.country ? (countries.find(c => c.code === user.country)?.name || '') : '');
-    let postalCodeValue = $derived(user.postalCode || '');
-    let isEditingLocation = $state(false);
     let isSavingLocation = $state(false);
-    let isEditingPhone = $state(false);
     let isSavingPhone = $state(false);
     let isDeletingPhone = $state(false);
     let isSavingLocale = $state(false);
-    let selectedLocale = $state(user.locale || '');
+    let isEditingLocation = $state(false);
+    let isEditingPhone = $state(false);
+    let profileVisibilityForm: HTMLFormElement;
+    let resultsVisibilityForm: HTMLFormElement;
     let localeForm: HTMLFormElement;
 
-    let phonePrefixValue = $derived(user.phonePrefix ? [user.phonePrefix] : []);
-    let phonePrefixInputValue = $derived(user.phonePrefix || '');
-    let phoneNumberValue = $derived(user.phoneNumber || '');
+    let displayName = $derived(user.name || "Pending name...");
+
+    // Sync all editable state from user prop (fires after form revalidation via invalidateAll)
+    $effect(() => {
+        profileVisibility = user.publicProfileVisibility ?? true;
+        resultsVisibility = user.publicResultsVisibility ?? true;
+        countryValue = user.country ? [user.country] : [];
+        countryInputValue = user.country ? (countries.find(c => c.code === user.country)?.name || '') : '';
+        postalCodeValue = user.postalCode || '';
+        phonePrefixValue = user.phonePrefix ? [user.phonePrefix] : [];
+        phonePrefixInputValue = user.phonePrefix || '';
+        phoneNumberValue = user.phoneNumber || '';
+        selectedLocale = user.locale || '';
+    });
+
+    /**
+     * Standardized use:enhance handler for all profile form actions.
+     * Sets saving flag, calls invalidateAll() on success to refresh layout data,
+     * shows error toast on failure.
+     */
+    function createEnhance(
+        setSaving: (v: boolean) => void,
+        onSuccess?: () => void,
+    ) {
+        return () => {
+            setSaving(true);
+            return async ({ result, update }: { result: any; update: (opts?: any) => Promise<void> }) => {
+                setSaving(false);
+                if (result.type === 'success') {
+                    onSuccess?.();
+                    await invalidateAll();
+                } else if (result.type === 'failure') {
+                    const msg = result.data?.message || result.data?.phoneError || 'Something went wrong';
+                    showErrorToast(msg);
+                    await update({ reset: false });
+                } else {
+                    await update({ reset: false });
+                }
+            };
+        };
+    }
 
     // Prepare phone prefix data from countries (deduplicated, sorted)
     const getPhonePrefixData = () => {
@@ -101,16 +138,6 @@
         itemToString: (item) => item.label,
         itemToValue: (item) => item.value,
     }));
-
-    // Sync local state when user prop changes (after form revalidation)
-    $effect(() => {
-        countryValue = user.country ? [user.country] : [];
-        countryInputValue = user.country ? (countries.find(c => c.code === user.country)?.name || '') : '';
-        postalCodeValue = user.postalCode || '';
-        phonePrefixValue = user.phonePrefix ? [user.phonePrefix] : [];
-        phonePrefixInputValue = user.phonePrefix || '';
-        phoneNumberValue = user.phoneNumber || '';
-    });
 
     // Get country name from code
     const getCountryName = (code: string) => {
@@ -188,14 +215,10 @@
                 <form
                     method="POST"
                     action="?/updateLocation"
-                    use:enhance={() => {
-                        isSavingLocation = true;
-                        return async ({ update }) => {
-                            isSavingLocation = false;
-                            isEditingLocation = false;
-                            await update();
-                        };
-                    }}
+                    use:enhance={createEnhance(
+                        (v) => isSavingLocation = v,
+                        () => { isEditingLocation = false; },
+                    )}
                     class="space-y-2"
                 >
                     <div class="grid grid-cols-2 md:grid-cols-1 gap-2">
@@ -289,14 +312,10 @@
                 <form
                     method="POST"
                     action="?/updatePhone"
-                    use:enhance={() => {
-                        isSavingPhone = true;
-                        return async ({ update }) => {
-                            isSavingPhone = false;
-                            isEditingPhone = false;
-                            await update();
-                        };
-                    }}
+                    use:enhance={createEnhance(
+                        (v) => isSavingPhone = v,
+                        () => { isEditingPhone = false; },
+                    )}
                     class="space-y-2"
                 >
                     <div class="grid grid-cols-[7rem_1fr] gap-2">
@@ -390,13 +409,9 @@
                             <form
                                 method="POST"
                                 action="?/deletePhone"
-                                use:enhance={() => {
-                                    isDeletingPhone = true;
-                                    return async ({ update }) => {
-                                        isDeletingPhone = false;
-                                        await update();
-                                    };
-                                }}
+                                use:enhance={createEnhance(
+                                    (v) => isDeletingPhone = v,
+                                )}
                             >
                                 <button
                                     type="submit"
@@ -479,14 +494,10 @@
                     bind:this={localeForm}
                     method="POST"
                     action="?/updateLocale"
-                    use:enhance={() => {
-                        isSavingLocale = true;
-                        return async ({ update }) => {
-                            isSavingLocale = false;
-                            await setLocale(selectedLocale);
-                            await update({ reset: false });
-                        };
-                    }}
+                    use:enhance={createEnhance(
+                        (v) => isSavingLocale = v,
+                        () => { setLocale(selectedLocale); },
+                    )}
                 >
                     <select
                         name="locale"
@@ -523,21 +534,18 @@
                 bind:this={profileVisibilityForm}
                 method="POST"
                 action="?/updateVisibility"
-                use:enhance={() => {
-                    isSavingVisibility = true;
-                    return async ({ update }) => {
-                        isSavingVisibility = false;
-                        await update();
-                        console.log("Profile visibility updated:", profileVisibility);
-                    };
-                }}
+                use:enhance={createEnhance(
+                    (v) => isSavingVisibility = v,
+                )}
             >
                 <input type="hidden" name="field" value="publicProfileVisibility" />
                 <input type="hidden" name="value" value={profileVisibility} />
                 <Switch
                     checked={profileVisibility}
                     onCheckedChange={(details) => {
-                        flushSync(() => { profileVisibility = details.checked; });
+                        profileVisibility = details.checked;
+                        const input = profileVisibilityForm?.querySelector('input[name="value"]') as HTMLInputElement;
+                        if (input) input.value = String(details.checked);
                         profileVisibilityForm?.requestSubmit();
                     }}
                     disabled={isSavingVisibility}
@@ -561,20 +569,18 @@
                 bind:this={resultsVisibilityForm}
                 method="POST"
                 action="?/updateVisibility"
-                use:enhance={() => {
-                    isSavingVisibility = true;
-                    return async ({ update }) => {
-                        isSavingVisibility = false;
-                        await update();
-                    };
-                }}
+                use:enhance={createEnhance(
+                    (v) => isSavingVisibility = v,
+                )}
             >
                 <input type="hidden" name="field" value="publicResultsVisibility" />
                 <input type="hidden" name="value" value={resultsVisibility} />
                 <Switch
                     checked={resultsVisibility}
                     onCheckedChange={(details) => {
-                        flushSync(() => { resultsVisibility = details.checked; });
+                        resultsVisibility = details.checked;
+                        const input = resultsVisibilityForm?.querySelector('input[name="value"]') as HTMLInputElement;
+                        if (input) input.value = String(details.checked);
                         resultsVisibilityForm?.requestSubmit();
                     }}
                     disabled={isSavingVisibility}

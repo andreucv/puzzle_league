@@ -3,11 +3,11 @@ import { loadTranslations, locales, translations } from "$lib/translations";
 import { getUserWithRoles } from "$lib/database/db_user";
 
 // Locale priority: DB user preference > Accept-Language header > default "es"
-function determineLocale(locals, request) {
+function determineLocale(user, request) {
     let locale = "es"; // default
 
-    if(locals.user?.locale) {
-        locale = locals.user.locale;
+    if(user?.locale) {
+        locale = user.locale;
     }
     else if(request.headers.get('accept-language')) {
         locale = request.headers.get('accept-language').split(',')[0].split('-')[0];
@@ -27,8 +27,8 @@ export const load: LayoutServerLoad = async ({ url, locals, request }) => {
     // Fetch user data early so we can use their stored locale preference
     const user = locals.user ? await getUserWithRoles(locals.user) : null;
 
-    // Locale priority: DB user preference > cookie > Accept-Language header > default "es"
-    const locale = determineLocale(locals, request);
+    // Locale priority: DB user preference > Accept-Language header > default "es"
+    const locale = determineLocale(user, request);
 
     await loadTranslations(locale, pathname);
 

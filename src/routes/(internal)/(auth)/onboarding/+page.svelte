@@ -8,7 +8,6 @@
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import { countries, getCountryFlag } from '$lib/utils/country_utils';
     import Icon from '@iconify/svelte';
-    import { authClient } from '$lib/auth_client';
 
     let { data, form }: { data: PageData; form: any } = $props();
 
@@ -55,6 +54,7 @@
     // --- Verify email step state ---
     let isResendingEmail = $state(false);
     let emailResent = $state(false);
+    let emailResendFailed = $state(false);
 
     const getPhonePrefixData = () => {
         const seen = new Set<string>();
@@ -112,21 +112,20 @@
         };
     }
 
-    async function resendVerificationEmail() {
-        if (isResendingEmail) return;
-        isResendingEmail = true;
-        emailResent = false;
-        try {
-            await authClient.sendVerificationEmail({
-                email: data.userEmail,
-                callbackURL: '/verify-email',
-            });
-            emailResent = true;
-        } catch (err) {
-            console.error('Failed to resend verification email:', err);
-        } finally {
-            isResendingEmail = false;
-        }
+    function createResendEnhanceHandler() {
+        return () => {
+            isResendingEmail = true;
+            emailResent = false;
+            emailResendFailed = false;
+            return async ({ result }: { result: any }) => {
+                isResendingEmail = false;
+                if (result.type === 'success') {
+                    emailResent = true;
+                } else {
+                    emailResendFailed = true;
+                }
+            };
+        };
     }
 </script>
 
@@ -486,16 +485,28 @@
                     </div>
                 {/if}
 
-                <button
-                    type="button"
-                    onclick={resendVerificationEmail}
-                    disabled={isResendingEmail}
-                    class="btn preset-outlined-primary-500 w-full"
-                    data-testid="onboarding-verify-email-resend"
+                {#if emailResendFailed}
+                    <div class="p-3 rounded-lg preset-filled-error-500 text-sm flex items-center justify-center gap-2">
+                        <Icon icon="mdi:alert-circle" width="1.2rem" height="1.2rem" />
+                        <span>{$t('onboarding.verify_email_resend_error')}</span>
+                    </div>
+                {/if}
+
+                <form
+                    method="POST"
+                    action="?/resendVerificationEmail"
+                    use:enhance={createResendEnhanceHandler()}
                 >
-                    <Icon icon="mdi:email-sync-outline" width="1.2rem" height="1.2rem" />
-                    {isResendingEmail ? $t('onboarding.verify_email_resending') : $t('onboarding.verify_email_resend')}
-                </button>
+                    <button
+                        type="submit"
+                        disabled={isResendingEmail}
+                        class="btn preset-outlined-primary-500 w-full"
+                        data-testid="onboarding-verify-email-resend"
+                    >
+                        <Icon icon="mdi:email-sync-outline" width="1.2rem" height="1.2rem" />
+                        {isResendingEmail ? $t('onboarding.verify_email_resending') : $t('onboarding.verify_email_resend')}
+                    </button>
+                </form>
             </div>
         </Card>
 

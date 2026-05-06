@@ -16,10 +16,14 @@ const resend = new Resend(RESEND_API_KEY);
  * Sends a tri-lingual email (ca → es → en) since the user has not chosen
  * a language at this point in the flow.
  */
+export type SendVerificationEmailResult =
+	| { success: true }
+	| { success: false; error: string };
+
 export async function sendVerificationEmail(
 	to: string,
 	verificationUrl: string,
-): Promise<void> {
+): Promise<SendVerificationEmailResult> {
 	try {
 		const translations: EmailTranslation[] = [
 			{
@@ -54,7 +58,10 @@ export async function sendVerificationEmail(
 			subject,
 			html,
 		});
+
+		return { success: true };
 	} catch (err) {
 		console.error('[sendVerificationEmail] Failed to send verification email:', err);
+		return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
 	}
 }

@@ -594,12 +594,13 @@
     "welcome": "¡Bienvenido/a, {{name}}!",
     "welcome_subtitle": "Vamos a configurar tu cuenta con un par de cosas rápidas.",
     "verify_email_title": "Verifica tu correo",
-    "verify_email_sent": "Hemos enviado un correo de verificación a {email}",
+    "verify_email_sent": "Hemos enviado un correo de verificación a {{email}}",
     "verify_email_check": "Revisa tu bandeja de entrada y haz clic en el enlace para verificar tu correo electrónico.",
     "verify_email_resend": "Reenviar correo",
     "verify_email_skip": "Lo haré más tarde",
     "verify_email_resent": "¡Correo enviado!",
-    "verify_email_resending": "Enviando..."
+    "verify_email_resending": "Enviando...",
+    "verify_email_resend_error": "No se pudo enviar el correo de verificación. Inténtalo de nuevo más tarde."
   },
   "add_phone": {
     "title": "Añade tu número de teléfono",

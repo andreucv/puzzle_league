@@ -4,6 +4,7 @@ import { getOnboardingFlags, getUnclaimedExternalParticipantsMatchingName, claim
 import { saveLocaleForUser, skipLocalePrompt, isValidLocale } from '$lib/utils/locale_utils';
 import { validatePhone, savePhoneForUser } from '$lib/utils/phone_utils';
 import { resolveOnboardingSteps } from './services/onboarding-flow';
+import { auth } from '$lib/auth';
 export type { OnboardingStep } from './services/onboarding-flow';
 
 export const load: PageServerLoad = async ({ parent, locals }) => {
@@ -166,5 +167,22 @@ export const actions: Actions = {
 		}
 
 		return { success: true, action: 'skipEmailVerification' };
+	},
+
+	resendVerificationEmail: async ({ request, locals }) => {
+		const user = locals.user;
+		if (!user) return fail(401, { resendError: 'Unauthorized' });
+
+		try {
+			await auth.api.sendVerificationEmail({
+				body: { email: user.email, callbackURL: '/verify-email' },
+				headers: request.headers,
+			});
+		} catch (err) {
+			console.error('Error resending verification email:', err);
+			return fail(500, { resendError: 'Failed to send verification email. Please try again later.' });
+		}
+
+		return { success: true, action: 'resendVerificationEmail' };
 	},
 };

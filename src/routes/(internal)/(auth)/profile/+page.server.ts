@@ -106,17 +106,23 @@ export const actions: Actions = {
         }
 
         const formData = await request.formData();
-        const locale = formData.get('locale')?.toString();
+        const locale = formData.get('locale')?.toString()?.trim() || null;
 
-        const supportedLocales = locales.get().map((l) => l.toLowerCase());
-        if (!locale || !supportedLocales.includes(locale.toLowerCase())) {
-            return fail(400, { message: 'Invalid locale' });
+        if (locale) {
+            const supportedLocales = locales.get().map((l) => l.toLowerCase());
+            if (!supportedLocales.includes(locale.toLowerCase())) {
+                return fail(400, { message: 'Invalid locale' });
+            }
         }
 
         try {
             await updateUserLocale(user.id, locale);
 
-            cookies.set('lang', locale, { path: '/', maxAge: 60 * 60 * 24 * 365 });
+            if (locale) {
+                cookies.set('lang', locale, { path: '/', maxAge: 60 * 60 * 24 * 365 });
+            } else {
+                cookies.delete('lang', { path: '/' });
+            }
 
             return { success: true };
         } catch (err) {

@@ -151,7 +151,7 @@ export async function updateUserVisibility(userId: string, field: 'publicProfile
     });
 }
 
-export async function updateUserLocale(userId: string, locale: string) {
+export async function updateUserLocale(userId: string, locale: string | null) {
     return prisma.user.update({
         where: { id: userId },
         data: { locale, updatedAt: new Date() }

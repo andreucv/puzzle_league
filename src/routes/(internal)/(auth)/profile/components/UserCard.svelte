@@ -506,9 +506,7 @@
                         disabled={isSavingLocale}
                         onchange={() => localeForm?.requestSubmit()}
                     >
-                        {#if !selectedLocale}
-                            <option value="" disabled selected>{$t('profile.select_language')}</option>
-                        {/if}
+                        <option value="">Auto</option>
                         {#each $locales as loc}
                             <option value={loc}>{langMap[loc] || loc}</option>
                         {/each}

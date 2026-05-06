@@ -4,6 +4,7 @@
     import LockIcon from '@iconify-svelte/mdi/lock-outline';
     import PlayCircleIcon from '@iconify-svelte/mdi/play-circle-outline';
     import CategoryRegistrationChip from '$lib/components/category/CategoryRegistrationChip.svelte';
+    import { Slider } from '@skeletonlabs/skeleton-svelte';
 
     interface CategoryEntry {
         type: string;

@@ -589,7 +589,8 @@
     "verify_email_resend": "Reenviar correu",
     "verify_email_skip": "Ho faré més tard",
     "verify_email_resent": "Correu enviat!",
-    "verify_email_resending": "Enviant..."
+    "verify_email_resending": "Enviant...",
+    "verify_email_resend_error": "No s'ha pogut enviar el correu de verificació. Torna-ho a provar més tard."
   },
   "add_phone": {
     "title": "Afegeix el teu número de telèfon",

@@ -157,4 +157,39 @@ test.describe('Onboarding - wizard flow', () => {
         await page.goto('/');
         await expect(page).toHaveURL('/');
     });
+
+    test('GivenVerifyEmailStep_WhenDisplayed_ThenShowsParticipantEmailAddress', async ({ page }) => {
+        const data = await runSeed<OnboardingTestData>(import.meta.url);
+        await page.goto('/onboarding');
+
+        // Skip to verify-email step
+        await expect(page.getByTestId('onboarding-language-skip')).toBeVisible();
+        await page.getByTestId('onboarding-language-skip').click();
+        await expect(page.getByTestId('onboarding-step-phone')).toBeVisible({ timeout: 5000 });
+        await page.getByTestId('onboarding-phone-skip').click();
+
+        // Verify-email step should show the participant's actual email address
+        await expect(page.getByTestId('onboarding-step-verify-email')).toBeVisible({ timeout: 5000 });
+        await expect(page.getByTestId('onboarding-step-verify-email')).toContainText(data.participantEmail);
+    });
+
+    test('GivenVerifyEmailStep_WhenClickingResend_ThenShowsSuccessBanner', async ({ page }) => {
+        await runSeed<OnboardingTestData>(import.meta.url);
+        await page.goto('/onboarding');
+
+        // Skip to verify-email step
+        await expect(page.getByTestId('onboarding-language-skip')).toBeVisible();
+        await page.getByTestId('onboarding-language-skip').click();
+        await expect(page.getByTestId('onboarding-step-phone')).toBeVisible({ timeout: 5000 });
+        await page.getByTestId('onboarding-phone-skip').click();
+
+        // Verify-email step should be visible
+        await expect(page.getByTestId('onboarding-step-verify-email')).toBeVisible({ timeout: 5000 });
+
+        // Click resend
+        await page.getByTestId('onboarding-verify-email-resend').click();
+
+        // Success banner should appear (the resend action fires the email via Better Auth)
+        await expect(page.getByText(/sent|enviat|enviado/i)).toBeVisible({ timeout: 5000 });
+    });
 });

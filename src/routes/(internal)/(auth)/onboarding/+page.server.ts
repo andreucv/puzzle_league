@@ -7,20 +7,24 @@ import { countries } from '$lib/utils/country_utils';
 import { resolveOnboardingSteps } from '$lib/utils/onboarding_utils';
 import { auth } from '$lib/auth';
 
-export const load: PageServerLoad = async ({ parent, locals }) => {
+export const load: PageServerLoad = async ({ parent, locals, cookies }) => {
 	const { user } = await parent();
+
+	// Mark that the user has been presented onboarding so hooks.server.ts
+	// won't block navigation if they choose to leave (all steps are optional).
+	cookies.set('onboarding_presented', 'true', { path: '/', httpOnly: true, sameSite: 'lax' });
 
 	const steps = await resolveOnboardingSteps(user);
 
-	console.log('Resolved onboarding steps for user:', user, steps);
-	// If no onboarding steps needed, redirect to home
+	// If no onboarding steps needed, clear the cookie and redirect to home
 	if (steps.length === 0) {
+		cookies.delete('onboarding_presented', { path: '/' });
 		throw redirect(302, '/');
 	}
 
 	// Load unclaimed external participants matching the user's name for the claim step
 	const unclaimedExternalParticipants = steps.includes('claim')
-		? await getUnclaimedExternalParticipantsMatchingName(dbUser!.name!)
+		? await getUnclaimedExternalParticipantsMatchingName(locals.user!.name!)
 		: [];
 
 	return {

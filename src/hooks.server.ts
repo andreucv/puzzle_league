@@ -25,17 +25,18 @@ export async function handle({ event, resolve }) {
 		event.locals.session = session.session as typeof event.locals.session;
 		event.locals.user = session.user;
 
-		// Onboarding redirect — send users to unified wizard if any step is incomplete
+		// Onboarding redirect — send users to unified wizard if any step is incomplete.
+		// If the user has already been presented onboarding (cookie set) and navigates
+		// away, we let them through — all steps are optional/skippable.
 		const path = event.url.pathname;
 
-		// TODO: To know if we need onboarding or not for each request is too overhead
-		// Solutions we can apply:
-		// 1. Redis caching of onboarding status
-		// 2. Front-end side driven onboarding state (e.g. store in localStorage and only check on page load or when user data changes)
 		if (isPageRequest(path) && path !== '/onboarding' && path !== '/verify-email') {
-			const onboardingSteps = await resolveOnboardingSteps(session.user);
-			if (onboardingSteps.length > 0) {
-				throw redirect(302, '/onboarding');
+			const alreadyPresented = event.cookies.get('onboarding_presented');
+			if (!alreadyPresented) {
+				const onboardingSteps = await resolveOnboardingSteps(session.user);
+				if (onboardingSteps.length > 0) {
+					throw redirect(302, '/onboarding');
+				}
 			}
 		}
 	}

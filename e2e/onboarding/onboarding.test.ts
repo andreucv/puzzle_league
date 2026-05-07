@@ -50,7 +50,7 @@ test.describe('Onboarding - wizard flow', () => {
         await page.waitForURL('/onboarding');
     });
 
-    test('GivenLanguageStep_WhenSelectingLanguageAndSaving_ThenAdvancesToPhoneStep', async ({ page }) => {
+    test('GivenLanguageStep_WhenSelectingLanguageAndSaving_ThenAdvancesToLocationStep', async ({ page }) => {
         await runSeed<OnboardingTestData>(import.meta.url);
         await page.goto('/onboarding');
 
@@ -64,11 +64,11 @@ test.describe('Onboarding - wizard flow', () => {
         // Save
         await page.getByTestId('onboarding-language-save').click();
 
-        // Should advance to the phone step
-        await expect(page.getByTestId('onboarding-step-phone')).toBeVisible({ timeout: 5000 });
+        // Should advance to the location step
+        await expect(page.getByTestId('onboarding-step-location')).toBeVisible({ timeout: 5000 });
     });
 
-    test('GivenLanguageStep_WhenSkipping_ThenAdvancesToPhoneStep', async ({ page }) => {
+    test('GivenLanguageStep_WhenSkipping_ThenAdvancesToLocationStep', async ({ page }) => {
         await runSeed<OnboardingTestData>(import.meta.url);
         await page.goto('/onboarding');
 
@@ -78,7 +78,50 @@ test.describe('Onboarding - wizard flow', () => {
         // Skip
         await page.getByTestId('onboarding-language-skip').click();
 
-        // Should advance to the phone step
+        // Should advance to the location step
+        await expect(page.getByTestId('onboarding-step-location')).toBeVisible({ timeout: 5000 });
+    });
+
+    test('GivenLocationStep_WhenSkipping_ThenAdvancesToPhoneStep', async ({ page }) => {
+        await runSeed<OnboardingTestData>(import.meta.url);
+        await page.goto('/onboarding');
+
+        // Skip language to get to location
+        await expect(page.getByTestId('onboarding-language-skip')).toBeVisible();
+        await page.getByTestId('onboarding-language-skip').click();
+
+        // Location step should be visible
+        await expect(page.getByTestId('onboarding-step-location')).toBeVisible({ timeout: 5000 });
+
+        // Skip location
+        await page.getByTestId('onboarding-location-skip').click();
+
+        // Should advance to phone step
+        await expect(page.getByTestId('onboarding-step-phone')).toBeVisible({ timeout: 5000 });
+    });
+
+    test('GivenLocationStep_WhenSavingCountryAndPostalCode_ThenAdvancesToPhoneStep', async ({ page }) => {
+        await runSeed<OnboardingTestData>(import.meta.url);
+        await page.goto('/onboarding');
+
+        // Skip language to get to location
+        await expect(page.getByTestId('onboarding-language-skip')).toBeVisible();
+        await page.getByTestId('onboarding-language-skip').click();
+
+        // Location step should be visible
+        await expect(page.getByTestId('onboarding-step-location')).toBeVisible({ timeout: 5000 });
+
+        // Select a country
+        await page.getByTestId('onboarding-location-country').fill('Spain');
+        await page.getByRole('option', { name: /Spain/ }).first().click();
+
+        // Enter postal code
+        await page.getByTestId('onboarding-location-postal-code').fill('08001');
+
+        // Save
+        await page.getByTestId('onboarding-location-save').click();
+
+        // Should advance to phone step
         await expect(page.getByTestId('onboarding-step-phone')).toBeVisible({ timeout: 5000 });
     });
 
@@ -86,9 +129,13 @@ test.describe('Onboarding - wizard flow', () => {
         await runSeed<OnboardingTestData>(import.meta.url);
         await page.goto('/onboarding');
 
-        // Skip language to get to phone
+        // Skip language to get to location
         await expect(page.getByTestId('onboarding-language-skip')).toBeVisible();
         await page.getByTestId('onboarding-language-skip').click();
+
+        // Skip location to get to phone
+        await expect(page.getByTestId('onboarding-step-location')).toBeVisible({ timeout: 5000 });
+        await page.getByTestId('onboarding-location-skip').click();
 
         // Phone step should be visible
         await expect(page.getByTestId('onboarding-step-phone')).toBeVisible({ timeout: 5000 });
@@ -107,6 +154,10 @@ test.describe('Onboarding - wizard flow', () => {
         // Skip language
         await expect(page.getByTestId('onboarding-language-skip')).toBeVisible();
         await page.getByTestId('onboarding-language-skip').click();
+
+        // Skip location
+        await expect(page.getByTestId('onboarding-step-location')).toBeVisible({ timeout: 5000 });
+        await page.getByTestId('onboarding-location-skip').click();
 
         // Skip phone
         await expect(page.getByTestId('onboarding-step-phone')).toBeVisible({ timeout: 5000 });
@@ -133,14 +184,18 @@ test.describe('Onboarding - wizard flow', () => {
         await page.getByTestId('select-language-es').click();
         await page.getByTestId('onboarding-language-save').click();
 
-        // Step 2: Phone — fill in prefix and number
+        // Step 2: Location — skip for this flow
+        await expect(page.getByTestId('onboarding-step-location')).toBeVisible({ timeout: 5000 });
+        await page.getByTestId('onboarding-location-skip').click();
+
+        // Step 3: Phone — fill in prefix and number
         await expect(page.getByTestId('onboarding-step-phone')).toBeVisible({ timeout: 5000 });
         await page.getByTestId('onboarding-phone-prefix').fill('+34');
         await page.getByRole('option', { name: /\+34/ }).first().click();
         await page.getByTestId('onboarding-phone-number').fill('612345678');
         await page.getByTestId('onboarding-phone-save').click();
 
-        // Step 3: Verify email step should appear
+        // Step 4: Verify email step should appear
         await expect(page.getByTestId('onboarding-step-verify-email')).toBeVisible({ timeout: 5000 });
 
         // Simulate email verification by updating the database directly
@@ -165,6 +220,8 @@ test.describe('Onboarding - wizard flow', () => {
         // Skip to verify-email step
         await expect(page.getByTestId('onboarding-language-skip')).toBeVisible();
         await page.getByTestId('onboarding-language-skip').click();
+        await expect(page.getByTestId('onboarding-step-location')).toBeVisible({ timeout: 5000 });
+        await page.getByTestId('onboarding-location-skip').click();
         await expect(page.getByTestId('onboarding-step-phone')).toBeVisible({ timeout: 5000 });
         await page.getByTestId('onboarding-phone-skip').click();
 
@@ -180,6 +237,8 @@ test.describe('Onboarding - wizard flow', () => {
         // Skip to verify-email step
         await expect(page.getByTestId('onboarding-language-skip')).toBeVisible();
         await page.getByTestId('onboarding-language-skip').click();
+        await expect(page.getByTestId('onboarding-step-location')).toBeVisible({ timeout: 5000 });
+        await page.getByTestId('onboarding-location-skip').click();
         await expect(page.getByTestId('onboarding-step-phone')).toBeVisible({ timeout: 5000 });
         await page.getByTestId('onboarding-phone-skip').click();
 

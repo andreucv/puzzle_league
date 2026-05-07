@@ -601,6 +601,15 @@
     "verify_email_resending": "Enviant...",
     "verify_email_resend_error": "No s'ha pogut enviar el correu de verificació. Torna-ho a provar més tard."
   },
+  "add_location": {
+    "title": "On et trobes?",
+    "description": "Indica'ns el teu país i codi postal perquè puguem mostrar-te competicions properes i enviar-te notificacions rellevants.",
+    "skip_hint": "Pots saltar aquest pas i actualitzar-lo més tard des del teu perfil.",
+    "save_button": "Desa la ubicació",
+    "skip_button": "Salta per ara",
+    "country_placeholder": "Selecciona el teu país",
+    "postal_code_placeholder": "ex. 08001"
+  },
   "add_phone": {
     "title": "Afegeix el teu número de telèfon",
     "description": "Afegeix el teu número de telèfon perquè els organitzadors puguin contactar-te si hi ha un problema amb la teva inscripció.",

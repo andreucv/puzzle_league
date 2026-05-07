@@ -611,6 +611,15 @@
     "verify_email_resending": "Enviando...",
     "verify_email_resend_error": "No se pudo enviar el correo de verificación. Inténtalo de nuevo más tarde."
   },
+  "add_location": {
+    "title": "¿Dónde te encuentras?",
+    "description": "Indícanos tu país y código postal para mostrarte competiciones cercanas y enviarte notificaciones relevantes.",
+    "skip_hint": "Puedes saltar este paso y actualizarlo más tarde desde tu perfil.",
+    "save_button": "Guardar ubicación",
+    "skip_button": "Saltar por ahora",
+    "country_placeholder": "Selecciona tu país",
+    "postal_code_placeholder": "ej. 08001"
+  },
   "add_phone": {
     "title": "Añade tu número de teléfono",
     "description": "Añade tu número de teléfono para que los organizadores puedan contactarte si hay un problema con tu inscripción.",

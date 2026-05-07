@@ -1,19 +1,18 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { getOnboardingFlags, getUnclaimedExternalParticipantsMatchingName, claimExternalParticipants, markExternalParticipantsChecked, markEmailVerificationSkipped } from '$lib/database/db_user';
+import { getOnboardingFlags, getUnclaimedExternalParticipantsMatchingName, claimExternalParticipants, markExternalParticipantsChecked, markEmailVerificationSkipped, saveLocationForUser, skipLocationPrompt } from '$lib/database/db_user';
 import { saveLocaleForUser, skipLocalePrompt, isValidLocale } from '$lib/utils/locale_utils';
 import { validatePhone, savePhoneForUser } from '$lib/utils/phone_utils';
-import { resolveOnboardingSteps } from './services/onboarding-flow';
+import { countries } from '$lib/utils/country_utils';
+import { resolveOnboardingSteps } from '$lib/utils/onboarding_utils';
 import { auth } from '$lib/auth';
-export type { OnboardingStep } from './services/onboarding-flow';
 
 export const load: PageServerLoad = async ({ parent, locals }) => {
 	const { user } = await parent();
 
-	const dbUser = await getOnboardingFlags(user.id);
+	const steps = await resolveOnboardingSteps(user);
 
-	const steps = await resolveOnboardingSteps(user, dbUser);
-
+	console.log('Resolved onboarding steps for user:', user, steps);
 	// If no onboarding steps needed, redirect to home
 	if (steps.length === 0) {
 		throw redirect(302, '/');
@@ -27,7 +26,7 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 	return {
 		steps,
 		unclaimedExternalParticipants,
-		userName: dbUser?.name ?? '',
+		userName: locals.user!.name,
 		userEmail: locals.user!.email,
 	};
 };
@@ -66,6 +65,42 @@ export const actions: Actions = {
 		}
 
 		return { success: true, action: 'skipLocale' };
+	},
+
+	saveLocation: async ({ request, locals }) => {
+		const user = locals.user;
+		if (!user) return fail(401, { error: 'Unauthorized' });
+
+		const formData = await request.formData();
+		const country = formData.get('country')?.toString().trim() || null;
+		const postalCode = formData.get('postalCode')?.toString().trim() || null;
+
+		if (country && !countries.some(c => c.code === country)) {
+			return fail(400, { locationError: 'Please select a valid country.' });
+		}
+
+		try {
+			await saveLocationForUser(user.id, country, postalCode);
+		} catch (err) {
+			console.error('Error saving location:', err);
+			return fail(500, { error: 'Unable to save your location. Please try again.' });
+		}
+
+		return { success: true, action: 'saveLocation' };
+	},
+
+	skipLocation: async ({ locals }) => {
+		const user = locals.user;
+		if (!user) return fail(401, { error: 'Unauthorized' });
+
+		try {
+			await skipLocationPrompt(user.id);
+		} catch (err) {
+			console.error('Error marking location prompt as seen:', err);
+			return fail(500, { error: 'Something went wrong. Please try again.' });
+		}
+
+		return { success: true, action: 'skipLocation' };
 	},
 
 	claimIntents: async ({ request, locals }) => {

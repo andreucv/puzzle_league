@@ -49,11 +49,11 @@ export function getPartySizeByCategoryType(type: CategoryType) {
 export function getMaxEntriesPerCategory(type: CategoryType): number {
     const maxEntries: Record<CategoryType, number> = {
         INDIVIDUAL: 4,
-        PAIRS: 2,
-        TEAM: 1,
+        PAIRS: 4,
+        TEAM: 2,
         JUNIOR_INDIVIDUAL: 4,
-        JUNIOR_PAIRS: 2,
-        PUZZLE_CHESS: 1,
+        JUNIOR_PAIRS: 4,
+        PUZZLE_CHESS: 2,
         OTHER: 1
     };
     return maxEntries[type] || 1;

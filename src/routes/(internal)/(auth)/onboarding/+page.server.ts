@@ -38,9 +38,9 @@ export const actions: Actions = {
 		if (!user) return fail(401, { error: 'Unauthorized' });
 
 		const formData = await request.formData();
-		const locale = formData.get('locale')?.toString().trim() ?? '';
+		const locale = formData.get('locale')?.toString().trim() || null;
 
-		if (!isValidLocale(locale)) {
+		if (locale && !isValidLocale(locale)) {
 			return fail(400, { localeError: 'Please select a valid language.' });
 		}
 

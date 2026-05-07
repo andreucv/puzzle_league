@@ -1,5 +1,14 @@
 {
   "page": {},
+  "category_names": {
+    "individual": "Individual",
+    "pairs": "Pairs",
+    "team": "Team",
+    "junior_individual": "Individual Juniors",
+    "junior_pairs": "Pairs Juniors",
+    "puzzle_chess": "Puzzle Chess",
+    "other": "Other"
+  },
   "landing_page": {
     "welcome_text": "Your puzzling community",
     "participant_welcome_text": "If you like puzzling and competition, Puzzligas is home. Connect with the community on puzzling competitions. Join us.",

@@ -2,7 +2,7 @@
     import type { PageData } from './$types';
     import { t } from '$lib/translations';
     import { enhance } from '$app/forms';
-    import { goto } from '$app/navigation';
+    import { goto, invalidateAll } from '$app/navigation';
     import { Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
     import Card from '$lib/components/common/card/Card.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
@@ -90,15 +90,27 @@
     }
 
     // --- Shared enhance callback factory ---
-    function createEnhanceHandler(errorSetter: (msg: string | null) => void, errorKey: string) {
+    function createEnhanceHandler(
+        errorSetter: (msg: string | null) => void,
+        errorKey: string,
+        onSuccess: () => void | Promise<void> = advanceOrFinish
+    ) {
         return () => {
             isSubmitting = true;
             errorSetter(null);
             return async ({ result, update }: { result: any; update: () => Promise<void> }) => {
-                isSubmitting = false;
                 if (result.type === 'success') {
-                    advanceOrFinish();
-                } else if (result.type === 'failure') {
+                    try {
+                        await onSuccess();
+                    } finally {
+                        isSubmitting = false;
+                    }
+                    return;
+                }
+
+                isSubmitting = false;
+
+                if (result.type === 'failure') {
                     const errorMsg = result.data?.[errorKey] || result.data?.error;
                     if (errorMsg) {
                         errorSetter(errorMsg as string);
@@ -179,12 +191,33 @@
             <form
                 method="POST"
                 action="?/saveLocale"
-                use:enhance={createEnhanceHandler((msg) => (localeError = msg), 'localeError')}
+                use:enhance={createEnhanceHandler(
+                    (msg) => (localeError = msg),
+                    'localeError',
+                    async () => {
+                        currentStep = 0;
+                        await invalidateAll();
+                    }
+                )}
                 class="space-y-4"
             >
-                <input type="hidden" name="locale" value={selectedLocale} />
+                <input type="hidden" name="locale" value={selectedLocale === 'auto' ? '' : selectedLocale} />
 
                 <div class="space-y-2">
+                    <button
+                        type="button"
+                        onclick={() => (selectedLocale = 'auto')}
+                        class="w-full flex items-center gap-3 p-4 rounded-lg border transition-all
+                            {selectedLocale === 'auto'
+                                ? 'border-primary-500 bg-primary-500/10 ring-2 ring-primary-500'
+                                : 'border-surface-300-700 hover:border-surface-400-600'}"
+                        data-testid="select-language-auto"
+                    >
+                        <span class="text-lg font-medium">Auto</span>
+                        {#if selectedLocale === 'auto'}
+                            <span class="ml-auto text-primary-500">✓</span>
+                        {/if}
+                    </button>
                     {#each [
                         { code: 'ca', name: 'Català' },
                         { code: 'es', name: 'Español' },
@@ -225,7 +258,14 @@
         <form
             method="POST"
             action="?/skipLocale"
-            use:enhance={createEnhanceHandler((msg) => (localeError = msg), 'error')}
+            use:enhance={createEnhanceHandler(
+                (msg) => (localeError = msg),
+                'error',
+                async () => {
+                    currentStep = 0;
+                    await invalidateAll();
+                }
+            )}
         >
             <button
                 type="submit"

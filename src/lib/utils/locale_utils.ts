@@ -7,7 +7,7 @@ export function isValidLocale(locale: string): locale is SupportedLocale {
 	return (SUPPORTED_LOCALES as readonly string[]).includes(locale);
 }
 
-export async function saveLocaleForUser(userId: string, locale: string): Promise<void> {
+export async function saveLocaleForUser(userId: string, locale: string | null): Promise<void> {
 	await prisma.user.update({
 		where: { id: userId },
 		data: {

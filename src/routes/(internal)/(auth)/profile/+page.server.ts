@@ -118,12 +118,6 @@ export const actions: Actions = {
         try {
             await updateUserLocale(user.id, locale);
 
-            if (locale) {
-                cookies.set('lang', locale, { path: '/', maxAge: 60 * 60 * 24 * 365 });
-            } else {
-                cookies.delete('lang', { path: '/' });
-            }
-
             return { success: true };
         } catch (err) {
             console.error('Error updating locale:', err);

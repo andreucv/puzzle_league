@@ -1019,7 +1019,7 @@
                                         <option value="">{$t('competition.create.select_category_type')}</option>
                                         {#each data.props?.categoryTypes ?? [] as categoryType}
                                             <option value={categoryType}>
-                                                {getCategoryTypeName(categoryType as CategoryType)}
+                                                {$t(getCategoryTypeName(categoryType as CategoryType))}
                                             </option>
                                         {/each}
                                     </select>
@@ -1232,7 +1232,7 @@
                                         <option value="">{$t('competition.create.select_category_type')}</option>
                                         {#each data.props?.categoryTypes ?? [] as categoryType}
                                             <option value={categoryType}>
-                                                {getCategoryTypeName(categoryType as CategoryType)}
+                                                {$t(getCategoryTypeName(categoryType as CategoryType))}
                                             </option>
                                         {/each}
                                     </select>

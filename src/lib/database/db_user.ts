@@ -23,6 +23,7 @@ export async function getUserWithRoles(authUser: { id: string }) {
             select: {
                 country: true,
                 postalCode: true,
+                locationPromptLastChecked: true,
                 phonePrefix: true,
                 phoneNumber: true,
                 phonePromptLastChecked: true,
@@ -40,6 +41,7 @@ export async function getUserWithRoles(authUser: { id: string }) {
                 ...authUser,
                 country: user.country,
                 postalCode: user.postalCode,
+                locationPromptLastChecked: user.locationPromptLastChecked,
                 phonePrefix: user.phonePrefix,
                 phoneNumber: user.phoneNumber,
                 phonePromptLastChecked: user.phonePromptLastChecked,
@@ -51,7 +53,7 @@ export async function getUserWithRoles(authUser: { id: string }) {
             };
         }
 
-        return { ...authUser, country: null, postalCode: null, phonePrefix: null, phoneNumber: null, phonePromptLastChecked: null, locale: null, localePromptLastChecked: null, publicProfileVisibility: true, publicResultsVisibility: true, roleAssignments: [] };
+        return { ...authUser, country: null, postalCode: null, locationPromptLastChecked: null, phonePrefix: null, phoneNumber: null, phonePromptLastChecked: null, locale: null, localePromptLastChecked: null, publicProfileVisibility: true, publicResultsVisibility: true, roleAssignments: [] };
     }
     catch (error) {
         console.error('Error getting user with roles:', error);
@@ -165,12 +167,7 @@ export async function updateUserLocale(userId: string, locale: string | null) {
 export async function getOnboardingFlags(userId: string) {
     return prisma.user.findUnique({
         where: { id: userId },
-        select: {
-            externalParticipantsLastChecked: true,
-            name: true,
-            createdAt: true,
-            emailVerified: true,
-            emailVerificationPromptLastChecked: true,
+        include: {
             accounts: {
                 where: { providerId: 'credential' },
                 select: { id: true },
@@ -229,6 +226,25 @@ export async function markEmailVerificationSkipped(userId: string) {
     return prisma.user.update({
         where: { id: userId },
         data: { emailVerificationPromptLastChecked: new Date() },
+    });
+}
+
+export async function saveLocationForUser(userId: string, country: string | null, postalCode: string | null) {
+    return prisma.user.update({
+        where: { id: userId },
+        data: {
+            country: country || null,
+            postalCode: postalCode || null,
+            locationPromptLastChecked: new Date(),
+            updatedAt: new Date(),
+        },
+    });
+}
+
+export async function skipLocationPrompt(userId: string) {
+    return prisma.user.update({
+        where: { id: userId },
+        data: { locationPromptLastChecked: new Date() },
     });
 }
 

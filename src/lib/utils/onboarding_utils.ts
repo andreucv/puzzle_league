@@ -1,43 +1,61 @@
-import { prisma } from '$lib/database/create_prisma_client';
+import {
+	hasMatchingUnclaimedExternalParticipants,
+	markExternalParticipantsChecked,
+	getOnboardingFlags
+} from '$lib/database/db_user';
+
+/** Onboarding steps the wizard can show. Order matters. */
+export type OnboardingStep = 'language' | 'location' | 'claim' | 'phone' | 'verify-email';
 
 /**
- * Checks whether a user has any incomplete onboarding steps.
- *
- * This is the single source of truth for the onboarding redirect guard
- * in hooks.server.ts. The wizard page (onboarding/+page.server.ts) uses
- * the same conditions to determine which steps to show.
- *
- * When adding a new onboarding step, update the query select and add
- * a new condition here — hooks.server.ts needs no changes.
+ * Determines which onboarding steps are needed for a user.
+ * Side-effect: marks intent-checking as done when no match is found
+ * (so hooks don't re-evaluate on every request).
  */
-export async function hasIncompleteOnboarding(userId: string): Promise<boolean> {
-	const user = await prisma.user.findUnique({
-		where: { id: userId },
-		select: {
-			locale: true,
-			localePromptLastChecked: true,
-			phoneNumber: true,
-			phonePromptLastChecked: true,
-			externalParticipantsLastChecked: true,
-			emailVerified: true,
-			emailVerificationPromptLastChecked: true,
-			accounts: {
-				where: { providerId: 'credential' },
-				select: { id: true },
-				take: 1,
-			},
-		},
-	});
+export async function resolveOnboardingSteps(
+	user: { id: string },
+): Promise<OnboardingStep[]> {
+	const dbUser = await getOnboardingFlags(user.id);
 
-	if (!user) return false;
+	const steps: OnboardingStep[] = [];
 
-	const needsLocale = !user.localePromptLastChecked && !user.locale;
-	const needsPhone = !user.phonePromptLastChecked && !user.phoneNumber;
-	const needsExternalParticipantCheck = !user.externalParticipantsLastChecked;
+	// Step 1: Language (if not yet set or prompted)
+	if (dbUser && !dbUser.localePromptLastChecked && !dbUser.locale) {
+		steps.push('language');
+	}
 
-	// Email verification only applies to email/password users (providerId = 'credential')
-	const isEmailPasswordUser = user.accounts.length > 0;
-	const needsEmailVerification = isEmailPasswordUser && !user.emailVerified && !user.emailVerificationPromptLastChecked;
+	// Step 2: Location (if not yet set or prompted)
+	if (dbUser && !dbUser.locationPromptLastChecked && !dbUser.country) {
+		steps.push('location');
+	}
 
-	return needsLocale || needsPhone || needsExternalParticipantCheck || needsEmailVerification;
+	// Step 3: Phone (if not yet set or prompted)
+	if (dbUser && !dbUser.phonePromptLastChecked && !dbUser.phoneNumber) {
+		steps.push('phone');
+	}
+
+	// Step 4: Claim participations (only for new users with matching intents)
+	if (dbUser && !dbUser.externalParticipantsLastChecked) {
+		const userName = dbUser.name;
+		if (userName) {
+			const hasMatch = await hasMatchingUnclaimedExternalParticipants(userName);
+			if (hasMatch) {
+				steps.push('claim');
+			}
+		}
+		await markExternalParticipantsChecked(user.id);
+	}
+
+	// Step 5: Email verification (email/password users only, not yet verified or skipped)
+	const isEmailPasswordUser = dbUser ? dbUser.accounts.length > 0 : false;
+	if (
+		isEmailPasswordUser &&
+		dbUser &&
+		!dbUser.emailVerified &&
+		!dbUser.emailVerificationPromptLastChecked
+	) {
+		steps.push('verify-email');
+	}
+
+	return steps;
 }

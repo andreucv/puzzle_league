@@ -6,7 +6,7 @@ import { isPublicApiRoute } from "$lib/api_utils/api_whitelist";
 import { validateOrigin } from "$lib/api_utils/api_csrf";
 import { apiRateLimiter, searchRateLimiter, isSearchEndpoint } from "$lib/api_utils/rate-limit";
 import { enforceRouteGuard } from "$lib/api_utils/api_route_guards";
-import { hasIncompleteOnboarding } from "$lib/utils/onboarding_utils";
+import { resolveOnboardingSteps } from "$lib/utils/onboarding_utils";
 import type { HandleServerError } from "@sveltejs/kit";
 
 /** Returns true for navigable page requests (not API or auth endpoints). */
@@ -28,8 +28,13 @@ export async function handle({ event, resolve }) {
 		// Onboarding redirect — send users to unified wizard if any step is incomplete
 		const path = event.url.pathname;
 
+		// TODO: To know if we need onboarding or not for each request is too overhead
+		// Solutions we can apply:
+		// 1. Redis caching of onboarding status
+		// 2. Front-end side driven onboarding state (e.g. store in localStorage and only check on page load or when user data changes)
 		if (isPageRequest(path) && path !== '/onboarding' && path !== '/verify-email') {
-			if (await hasIncompleteOnboarding(session.user.id)) {
+			const onboardingSteps = await resolveOnboardingSteps(session.user);
+			if (onboardingSteps.length > 0) {
 				throw redirect(302, '/onboarding');
 			}
 		}

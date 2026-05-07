@@ -1,10 +1,12 @@
 <script lang="ts">
-    import { Avatar, Combobox, Portal, Switch, useListCollection } from "@skeletonlabs/skeleton-svelte";
+    import { Avatar, Switch } from "@skeletonlabs/skeleton-svelte";
     import type { RoleAssignment } from "@prisma/client";
     import { t, locale, locales, setLocale } from '$lib/translations';
     import { enhance } from '$app/forms';
     import { invalidateAll } from '$app/navigation';
     import ThemeLightSwitch from '$lib/components/common/ThemeLightSwitch.svelte';
+    import PhonePrefixCombobox from '$lib/components/common/PhonePrefixCombobox.svelte';
+    import CountryCombobox from '$lib/components/common/CountryCombobox.svelte';
     import { showErrorToast } from '$lib/utils/toast';
     import langNames from '$lib/translations/lang.json';
 
@@ -77,67 +79,6 @@
             };
         };
     }
-
-    // Prepare phone prefix data from countries (deduplicated, sorted)
-    const getPhonePrefixData = () => {
-        const seen = new Set<string>();
-        const prefixes: { label: string; value: string; emoji: string }[] = [];
-        for (const c of countries) {
-            if (c.phonePrefix && !seen.has(c.phonePrefix)) {
-                seen.add(c.phonePrefix);
-                prefixes.push({
-                    label: `${getCountryFlag(c.code)} ${c.phonePrefix}`,
-                    value: c.phonePrefix,
-                    emoji: getCountryFlag(c.code)
-                });
-            }
-        }
-        // Put current user's prefix at the top if it exists
-        if (user.phonePrefix) {
-            const current = prefixes.find(p => p.value === user.phonePrefix);
-            if (current) {
-                const rest = prefixes.filter(p => p.value !== user.phonePrefix);
-                return [current, ...rest];
-            }
-        }
-        return prefixes;
-    };
-
-    const phonePrefixData = getPhonePrefixData();
-    let filteredPrefixes = $state(phonePrefixData);
-
-    const phonePrefixCollection = $derived(useListCollection({
-        items: filteredPrefixes,
-        itemToString: (item) => item.label,
-        itemToValue: (item) => item.value,
-    }));
-
-    // Prepare country data for Combobox with current country at the top
-    const getCountryData = () => {
-        const allCountries = countries.map(c => ({
-            label: c.name,
-            value: c.code,
-            emoji: getCountryFlag(c.code)
-        }));
-
-        // If user has a country, put it at the top
-        if (user.country) {
-            const currentCountry = allCountries.find(c => c.value === user.country);
-            const otherCountries = allCountries.filter(c => c.value !== user.country);
-            return currentCountry ? [currentCountry, ...otherCountries] : allCountries;
-        }
-        return allCountries;
-    };
-
-    const countryData = getCountryData();
-
-    let filteredItems = $state(countryData);
-
-    const collection = $derived(useListCollection({
-        items: filteredItems,
-        itemToString: (item) => item.label,
-        itemToValue: (item) => item.value,
-    }));
 
     // Get country name from code
     const getCountryName = (code: string) => {
@@ -223,44 +164,11 @@
                 >
                     <div class="grid grid-cols-2 md:grid-cols-1 gap-2">
                         <input type="hidden" name="country" value={countryValue[0] || ''} />
-                        <div class="border border-surface-300 bg-white rounded-lg overflow-hidden">
-                            <Combobox
-                                {collection}
-                                value={countryValue}
-                                inputValue={countryInputValue}
-                                onValueChange={(e) => (countryValue = e.value)}
-                                onInputValueChange={(e) => {
-                                    countryInputValue = e.inputValue;
-                                    filteredItems = countryData.filter((item) =>
-                                        item.label.toLowerCase().includes(e.inputValue.toLowerCase())
-                                    );
-                                }}
-                                onOpenChange={() => { filteredItems = countryData; }}
-                                placeholder="Select country..."
-                            >
-                                <Combobox.Control>
-                                    <Combobox.Input class="input text-sm px-3 py-2 bg-transparent border-none w-full" />
-                                    <Combobox.Trigger />
-                                </Combobox.Control>
-                                <Portal>
-                                    <Combobox.Positioner>
-                                        <Combobox.Content class="card bg-surface-50 p-2 shadow-xl max-h-48 overflow-y-auto rounded-lg">
-                                            {#each collection.items as item}
-                                                <Combobox.Item item={item}>
-                                                    <Combobox.ItemText>
-                                                        <div class="flex items-center gap-2 p-1">
-                                                            <span>{item.emoji}</span>
-                                                            <span>{item.label}</span>
-                                                        </div>
-                                                    </Combobox.ItemText>
-                                                    <Combobox.ItemIndicator>✓</Combobox.ItemIndicator>
-                                                </Combobox.Item>
-                                            {/each}
-                                        </Combobox.Content>
-                                    </Combobox.Positioner>
-                                </Portal>
-                            </Combobox>
-                        </div>
+                        <CountryCombobox
+                            bind:value={countryValue}
+                            bind:inputValue={countryInputValue}
+                            placeholder="Select country..."
+                        />
                         <input
                             name="postalCode"
                             type="text"
@@ -320,52 +228,17 @@
                 >
                     <div class="grid grid-cols-[7rem_1fr] gap-2">
                         <input type="hidden" name="phonePrefix" value={phonePrefixValue[0] || ''} />
-                        <div class="border border-surface-300 bg-white rounded-lg overflow-hidden">
-                            <Combobox
-                                collection={phonePrefixCollection}
-                                value={phonePrefixValue}
-                                inputValue={phonePrefixInputValue}
-                                onValueChange={(e) => (phonePrefixValue = e.value)}
-                                onInputValueChange={(e) => {
-                                    phonePrefixInputValue = e.inputValue;
-                                    filteredPrefixes = phonePrefixData.filter((item) =>
-                                        item.label.toLowerCase().includes(e.inputValue.toLowerCase()) ||
-                                        item.value.includes(e.inputValue)
-                                    );
-                                }}
-                                onOpenChange={() => { filteredPrefixes = phonePrefixData; }}
-                                placeholder="{$t('profile.phone_prefix_placeholder')}"
-                            >
-                                <Combobox.Control>
-                                    <Combobox.Input
-                                        class="input text-sm px-3 py-2 bg-transparent border-none w-full"
-                                        data-testid="phone-prefix-input"
-                                    />
-                                    <Combobox.Trigger />
-                                </Combobox.Control>
-                                <Portal>
-                                    <Combobox.Positioner>
-                                        <Combobox.Content class="card bg-surface-50 p-2 shadow-xl max-h-48 overflow-y-auto rounded-lg">
-                                            {#each phonePrefixCollection.items as item}
-                                                <Combobox.Item {item}>
-                                                    <Combobox.ItemText>
-                                                        <div class="flex items-center gap-2 p-1">
-                                                            <span>{item.label}</span>
-                                                        </div>
-                                                    </Combobox.ItemText>
-                                                    <Combobox.ItemIndicator>✓</Combobox.ItemIndicator>
-                                                </Combobox.Item>
-                                            {/each}
-                                        </Combobox.Content>
-                                    </Combobox.Positioner>
-                                </Portal>
-                            </Combobox>
-                        </div>
+                        <PhonePrefixCombobox
+                            bind:value={phonePrefixValue}
+                            bind:inputValue={phonePrefixInputValue}
+                            placeholder={$t('profile.phone_prefix_placeholder')}
+                            testId="phone-prefix-input"
+                        />
                         <input
                             name="phoneNumber"
                             type="text"
                             class="input text-sm px-3 py-2 border rounded-lg border-surface-300 bg-white"
-                            placeholder="{$t('profile.phone_number_placeholder')}"
+                            placeholder={$t('profile.phone_number_placeholder')}
                             bind:value={phoneNumberValue}
                             data-testid="phone-number-input"
                         />

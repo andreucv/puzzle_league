@@ -3,6 +3,7 @@
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
     import { getCategoryTypeName } from "$lib/utils/category_utils";
     import { formatTime } from "$lib/utils/datetime_utils";
+    import { t } from '$lib/translations';
 
     let { category, currentUserId } = $props();
 
@@ -25,6 +26,8 @@
 
     const userTeam = getUserTeam(category);
     const isRegistered = isUserInCategory(category);
+
+    const categoryNameLabel = $derived($t(getCategoryTypeName(category.type)));
 </script>
 
 <div class="group/category relative overflow-hidden rounded-xl border transition-all duration-300
@@ -58,7 +61,7 @@
 
             <div class="space-y-1">
                 <p class="text-sm font-bold text-surface-900 dark:text-surface-50 leading-tight">
-                    {getCategoryTypeName(category.type)}
+                    {categoryNameLabel}
 
                 </p>
                 <p class="text-xs text-surface-700 dark:text-surface-300">

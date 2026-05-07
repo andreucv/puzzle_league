@@ -222,7 +222,7 @@
         <div class="overflow-x-auto -mx-4 px-4 scrollbar-none">
             <nav class="flex gap-1 min-w-max border-b border-surface-300/50 pb-0">
                 {#each sortedCategories as cat (cat.id)}
-                    {@const typeName = getCategoryTypeName(cat.type)}
+                    {@const typeName = $t(getCategoryTypeName(cat.type))}
                     {@const tabLabel = cat.subname && cat.subname.toUpperCase() !== typeName.toUpperCase()
                         ? `${typeName} · ${cat.subname}`
                         : typeName}

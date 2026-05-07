@@ -4,9 +4,8 @@
     import { Carousel } from '@skeletonlabs/skeleton-svelte';
     import { CldImage } from 'svelte-cloudinary';
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
-    import { getCategoryTypeName, getCategoryTypeIcon } from '$lib/utils/category_utils';
+    import { getCategoryTypeIcon } from '$lib/utils/category_utils';
     import CalendarIcon from '@iconify-svelte/mdi/calendar';
-    import MapMarkerIcon from '@iconify-svelte/mdi/map-marker';
     import ChevronLeftIcon from '@iconify-svelte/mdi/chevron-left';
     import ChevronRightIcon from '@iconify-svelte/mdi/chevron-right';
     import { MediaQuery } from 'svelte/reactivity';

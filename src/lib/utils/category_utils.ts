@@ -9,13 +9,13 @@ import ShapeIcon from '@iconify-svelte/mdi/shape';
 
 export function getCategoryTypeName(type: CategoryType) {
     const typeNames: Record<CategoryType, string> = {
-        INDIVIDUAL: 'Individual',
-        PAIRS: 'Pairs',
-        TEAM: 'Team',
-        JUNIOR_INDIVIDUAL: 'Junior Individual',
-        JUNIOR_PAIRS: 'Junior Pairs',
-        PUZZLE_CHESS: 'Puzzle Chess',
-        OTHER: 'Other'
+        INDIVIDUAL: 'category_names.individual',
+        PAIRS: 'category_names.pairs',
+        TEAM: 'category_names.team',
+        JUNIOR_INDIVIDUAL: 'category_names.junior_individual',
+        JUNIOR_PAIRS: 'category_names.junior_pairs',
+        PUZZLE_CHESS: 'category_names.puzzle_chess',
+        OTHER: 'category_names.other'
     };
     return typeNames[type] || type;
 }

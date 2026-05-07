@@ -363,7 +363,7 @@
             if (!category) continue;
             const price = (category as any).price ?? 0;
             if (price > 0) {
-                const typeName = getCategoryTypeName(category.type);
+                const typeName = $t(getCategoryTypeName(category.type));
                 const description = category.description ? `${typeName} (${category.description})` : typeName;
                 items.push({ name: description, count: slots.length, unitPrice: price });
                 total += price * slots.length;
@@ -378,7 +378,7 @@
         for (const [categoryId, slots] of pendingSignups) {
             const category = categories.find((c: Category) => c.id === categoryId);
             if (!category) continue;
-            const typeName = getCategoryTypeName(category.type);
+            const typeName = $t(getCategoryTypeName(category.type));
             const existing = summary.find(s => s.type === typeName);
             if (existing) {
                 existing.count += slots.length;

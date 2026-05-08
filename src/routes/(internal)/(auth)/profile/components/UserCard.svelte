@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Avatar, Switch } from "@skeletonlabs/skeleton-svelte";
+    import { Avatar, Switch, Dialog } from "@skeletonlabs/skeleton-svelte";
     import type { RoleAssignment } from "@prisma/client";
     import { t, locale, locales, setLocale } from '$lib/translations';
     import { enhance } from '$app/forms';
@@ -8,6 +8,9 @@
     import PhonePrefixCombobox from '$lib/components/common/PhonePrefixCombobox.svelte';
     import CountryCombobox from '$lib/components/common/CountryCombobox.svelte';
     import { showErrorToast } from '$lib/utils/toast';
+    import { authClient } from '$lib/auth_client';
+    import PasswordUpdateForm from '$lib/components/common/auth/PasswordUpdateForm.svelte';
+    import type { PasswordUpdatePayload } from '$lib/components/common/auth/PasswordUpdateForm.svelte';
     import langNames from '$lib/translations/lang.json';
 
     const langMap: Record<string, string> = langNames;
@@ -37,6 +40,43 @@
     let profileVisibilityForm: HTMLFormElement;
     let resultsVisibilityForm: HTMLFormElement;
     let localeForm: HTMLFormElement;
+
+    // --- Change Password Dialog state ---
+    let showChangePasswordDialog = $state(false);
+    let isChangingPassword = $state(false);
+    let changePasswordError = $state('');
+    let changePasswordSuccess = $state('');
+    let passwordFormRef: { reset: () => void } | undefined = $state(undefined);
+
+    async function handleChangePassword(payload: PasswordUpdatePayload) {
+        isChangingPassword = true;
+        changePasswordError = '';
+        changePasswordSuccess = '';
+
+        try {
+            const { error } = await authClient.changePassword({
+                newPassword: payload.newPassword,
+                currentPassword: payload.currentPassword!,
+                revokeOtherSessions: payload.revokeOtherSessions ?? false,
+            });
+
+            if (error) {
+                changePasswordError = error.message || 'Something went wrong';
+            } else {
+                changePasswordSuccess = $t('auth.reset_password_success');
+                passwordFormRef?.reset();
+                // Close dialog after a brief delay so user sees the success message
+                setTimeout(() => {
+                    showChangePasswordDialog = false;
+                    changePasswordSuccess = '';
+                }, 2000);
+            }
+        } catch {
+            changePasswordError = 'Something went wrong';
+        } finally {
+            isChangingPassword = false;
+        }
+    }
 
     let displayName = $derived(user.name || "Pending name...");
 
@@ -145,7 +185,17 @@
                 <p class="text-sm">••••••••</p>
             </div>
             <div class="flex justify-end">
-                <button class="btn btn-sm preset-outlined-surface-500" disabled>Change</button>
+                {#if account.provider === "credential"}
+                    <button
+                        class="btn btn-sm preset-outlined-surface-500"
+                        data-testid="change-password-trigger"
+                        onclick={() => showChangePasswordDialog = true}
+                    >
+                        Change
+                    </button>
+                {:else}
+                    <button class="btn btn-sm preset-outlined-surface-500" disabled>Change</button>
+                {/if}
             </div>
         </div>
 
@@ -479,3 +529,27 @@
         </div>
     </div>
 </div>
+
+<!-- Change Password Dialog -->
+<Dialog open={showChangePasswordDialog} onOpenChange={(e) => { showChangePasswordDialog = e.open; if (!e.open) { changePasswordError = ''; changePasswordSuccess = ''; } }}>
+    <Dialog.Backdrop class="fixed inset-0 z-50 bg-black/50" />
+    <Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <Dialog.Content class="card preset-outlined-surface-200-800 p-6 max-w-md w-full space-y-4">
+            <h3 class="text-lg font-semibold" data-testid="change-password-dialog-title">{$t('auth.change_password_title')}</h3>
+            <PasswordUpdateForm
+                bind:this={passwordFormRef}
+                showCurrentPassword={true}
+                showRevokeOtherSessions={true}
+                submitLabel={$t('auth.change_password_button')}
+                loading={isChangingPassword}
+                errorMessage={changePasswordError}
+                successMessage={changePasswordSuccess}
+                testIdPrefix="change-password"
+                onsubmit={handleChangePassword}
+            />
+            <Dialog.CloseTrigger class="btn btn-sm preset-outlined-surface-500 w-full" data-testid="change-password-cancel">
+                Cancel
+            </Dialog.CloseTrigger>
+        </Dialog.Content>
+    </Dialog.Positioner>
+</Dialog>

@@ -37,7 +37,7 @@ function sectionHtml(translation: EmailTranslation, absoluteLink: string): strin
 	return `
     <p style="font-size:12px;color:#9ca3af;margin:0 0 4px 0;">${translation.languageName}</p>
     <h2 style="font-size:20px;font-weight:600;color:#111827;margin:0 0 12px 0;">${escapeHtml(translation.title)}</h2>
-    <p style="font-size:16px;color:#374151;line-height:1.5;margin:0 0 20px 0;">${escapeHtml(translation.message)}</p>
+    <p style="font-size:16px;color:#374151;line-height:1.5;margin:0 0 20px 0;">${escapeHtml(translation.message).replace(/\n/g, '<br>')}</p>
     <a href="${escapeHtml(absoluteLink)}"
        style="display:inline-block;padding:10px 24px;background-color:#6366f1;color:#ffffff;
               text-decoration:none;border-radius:6px;font-size:14px;font-weight:500;">

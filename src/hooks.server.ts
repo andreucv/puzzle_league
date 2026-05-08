@@ -30,7 +30,7 @@ export async function handle({ event, resolve }) {
 		// away, we let them through — all steps are optional/skippable.
 		const path = event.url.pathname;
 
-		if (isPageRequest(path) && path !== '/onboarding' && path !== '/verify-email') {
+		if (isPageRequest(path) && path !== '/onboarding' && path !== '/verify-email' && path !== '/forgot-password' && path !== '/reset-password') {
 			const alreadyPresented = event.cookies.get('onboarding_presented');
 			if (!alreadyPresented) {
 				const onboardingSteps = await resolveOnboardingSteps(session.user);

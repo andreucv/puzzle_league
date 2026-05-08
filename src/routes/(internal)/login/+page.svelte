@@ -182,7 +182,7 @@
                     >
                 </p>
                 <p class="mt-2">
-                    <a href="#top" class="text-primary-500 hover:text-primary-700 font-semibold"
+                    <a href="/forgot-password" data-testid="forgot-password-link" class="text-primary-500 hover:text-primary-700 font-semibold"
                         >{$t('auth.forgot_password')}</a>
                 </p>
             {:else}

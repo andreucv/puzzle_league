@@ -23,6 +23,7 @@
         if (currentStep < totalSteps - 1) {
             currentStep++;
         } else {
+            console.log('Onboarding complete, redirecting to home and invalidating session data');
             goto('/');
         }
     }

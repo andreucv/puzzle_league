@@ -96,7 +96,7 @@
     });
 </script>
 
-<a href="/competitions/competition_details/{competition.id}" class="block group">
+<a href="/competitions/competition_details/{competition.id}" class="block group" data-testid="competition-card-{competition.id}">
     <div class="card card-hover overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300">
         <div class="flex">
             <!-- Competition Image (left) -->

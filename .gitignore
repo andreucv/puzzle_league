@@ -51,11 +51,13 @@ com.chrome.devtools.json
 .agents/
 skills-lock.json
 explanations/plans/
-.work-done
 
-# GSD files
-.planning/
+# GSD files and agents/skills
 .github/gsd*
-.github/agents/gsd*
-.github/get-shit-done
-.github/skills/gsd*
+.github/agents
+.github/skills
+
+# Agents results
+.scratch/
+.work-done
+TODO.md

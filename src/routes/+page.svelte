@@ -191,13 +191,9 @@
                 <div class="p-2 text-center rounded-lg text-white">
                     <p class="h4 font-sans">{$t('landing_page.welcome_text')}</p>
                 </div>
-                <!-- <button class="btn preset-outlined-primary-50-950 text-white border-white">{$t('landing_page.sign_in')}</button> -->
-                <p class="text-white">{$t('landing_page.get_started')}</p>
-                <div class="w-8 h-8">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4Z"/>
-                    </svg>
-                </div>
+                <a href="/login" class="btn preset-filled-primary-500">{$t('landing_page.join_now')}</a>
+                <br />
+                <a href="/competitions/explore_competitions" class="text-white/80 hover:text-white text-sm underline">{$t('landing_page.or_explore')}</a>
             </div>
         </div>
     </div>

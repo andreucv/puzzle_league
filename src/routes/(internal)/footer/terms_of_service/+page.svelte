@@ -1,52 +1,107 @@
 <script>
-    import { t } from '$lib/translations';
+    import { t, locale } from '$lib/translations';
+    import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
+    import Card from '$lib/components/common/card/Card.svelte';
 </script>
 
-<div class="terms-container">
-    <h1>{$t('legal.terms_of_service')}</h1>
-    <p class="mt-2">Last updated: 06/01/2025</p>
+<div class="container mx-auto max-w-3xl space-y-6">
+    <GenericTitle text={$t('legal.terms_of_service')} />
+    <p class="text-sm text-surface-500">{$t('legal.last_updated')}</p>
 
-    <h2>1. Introduction</h2>
-    <p>Welcome to Puzzle League. These Terms of Service govern your use of our website
-        located at puzzleleague.com operated by PuzzleLeague.</p>
+    {#if $locale !== 'es'}
+        <aside class="text-sm italic text-warning-500">
+            {$t('legal.authoritative_language_notice')}
+        </aside>
+    {/if}
 
-    <h2>2. Acceptance of Terms</h2>
-    <p>By accessing or using our website, you agree to be bound by these Terms.
-        If you disagree with any part of the terms, then you may not access the service.</p>
+    <Card>
+        <div class="space-y-6">
+            <p>{$t('legal.tos.intro')}</p>
 
-    <h2>3. Changes to Terms</h2>
-    <p>We reserve the right to modify or replace these Terms at any time.
-        We will provide notice of any changes by posting the new Terms on this page.</p>
+            <section class="space-y-2">
+                <h2 class="h4 font-semibold">1. {$t('legal.tos.acceptance.title')}</h2>
+                <p>{$t('legal.tos.acceptance.description')}</p>
+            </section>
 
-    <h2>4. Use of the Service</h2>
-    <p>You agree to use the Service only for lawful purposes and in a way that does
-        not infringe the rights of, restrict or inhibit anyone else's use and enjoyment
-        of the Service.</p>
+            <section class="space-y-2">
+                <h2 class="h4 font-semibold">2. {$t('legal.tos.eligibility.title')}</h2>
+                <p>{$t('legal.tos.eligibility.description')}</p>
+            </section>
 
-    <h2>5. Termination</h2>
-    <p>We may terminate or suspend access to our Service immediately, without
-        prior notice or liability, for any reason whatsoever, including without limitation
-        if you breach the Terms.</p>
+            <section class="space-y-2">
+                <h2 class="h4 font-semibold">3. {$t('legal.tos.accounts.title')}</h2>
+                <ul class="list-disc pl-6 space-y-1">
+                    <li>{$t('legal.tos.accounts.accuracy')}</li>
+                    <li>{$t('legal.tos.accounts.security')}</li>
+                    <li>{$t('legal.tos.accounts.termination')}</li>
+                </ul>
+            </section>
 
-    <h2>6. Contact Us</h2>
-    <p>If you have any questions about these Terms, please contact us at
-        puzzlesranking@gmail.com.</p>
+            <section class="space-y-2">
+                <h2 class="h4 font-semibold">4. {$t('legal.tos.use_of_service.title')}</h2>
+                <p>{$t('legal.tos.use_of_service.permitted')}</p>
+                <p class="font-medium">{$t('legal.tos.use_of_service.prohibited_title')}</p>
+                <ul class="list-disc pl-6 space-y-1">
+                    <li>{$t('legal.tos.use_of_service.prohibited_1')}</li>
+                    <li>{$t('legal.tos.use_of_service.prohibited_2')}</li>
+                    <li>{$t('legal.tos.use_of_service.prohibited_3')}</li>
+                    <li>{$t('legal.tos.use_of_service.prohibited_4')}</li>
+                    <li>{$t('legal.tos.use_of_service.prohibited_5')}</li>
+                    <li>{$t('legal.tos.use_of_service.prohibited_6')}</li>
+                </ul>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="h4 font-semibold">5. {$t('legal.tos.competitions.title')}</h2>
+                <p>{$t('legal.tos.competitions.fair_play')}</p>
+                <p>{$t('legal.tos.competitions.results')}</p>
+                <p>{$t('legal.tos.competitions.organizer_responsibility')}</p>
+                <p>{$t('legal.tos.competitions.liability')}</p>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="h4 font-semibold">6. {$t('legal.tos.content.title')}</h2>
+                <p>{$t('legal.tos.content.user_content')}</p>
+                <p>{$t('legal.tos.content.moderation')}</p>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="h4 font-semibold">7. {$t('legal.tos.intellectual_property.title')}</h2>
+                <p>{$t('legal.tos.intellectual_property.platform')}</p>
+                <p>{$t('legal.tos.intellectual_property.user_data')}</p>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="h4 font-semibold">8. {$t('legal.tos.liability.title')}</h2>
+                <p>{$t('legal.tos.liability.disclaimer')}</p>
+                <p>{$t('legal.tos.liability.limitation')}</p>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="h4 font-semibold">9. {$t('legal.tos.paid_features.title')}</h2>
+                <p>{$t('legal.tos.paid_features.description')}</p>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="h4 font-semibold">10. {$t('legal.tos.governing_law.title')}</h2>
+                <p>{$t('legal.tos.governing_law.description')}</p>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="h4 font-semibold">11. {$t('legal.tos.changes.title')}</h2>
+                <p>{$t('legal.tos.changes.description')}</p>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="h4 font-semibold">12. {$t('legal.tos.severability.title')}</h2>
+                <p>{$t('legal.tos.severability.description')}</p>
+            </section>
+
+            <section class="space-y-2">
+                <h2 class="h4 font-semibold">13. {$t('legal.tos.contact.title')}</h2>
+                <p>{$t('legal.tos.contact.description')}</p>
+                <p>{$t('legal.tos.contact.email')}</p>
+            </section>
+        </div>
+    </Card>
 </div>
-
-<style>
-    h1, h2 {
-        color: #333;
-    }
-    h1 {
-        font-size: 2em;
-    }
-    h2 {
-        font-size: 1.2em;
-        margin-top: 1.2em;
-    }
-
-    p {
-        line-height: 1.6;
-        color: #555;
-    }
-</style>

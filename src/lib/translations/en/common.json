@@ -421,7 +421,156 @@
   },
   "legal": {
     "privacy_policy": "Privacy Policy",
-    "terms_of_service": "Terms of Service"
+    "terms_of_service": "Terms of Service",
+    "authoritative_language_notice": "This document is a courtesy translation. In case of any discrepancy, the Spanish version shall prevail.",
+    "last_updated": "Last updated: May 9, 2026",
+    "pp": {
+      "intro": "PuzzleLeague (\"we\", \"us\", or \"our\") operates the PuzzleLeague platform (the \"Service\"). This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our Service, in compliance with the General Data Protection Regulation (GDPR) and applicable Spanish data protection legislation.",
+      "data_controller": "The data controller responsible for your personal data is PuzzleLeague, contactable at puzzlesranking@gmail.com.",
+      "data_collected": {
+        "title": "Data We Collect",
+        "intro": "We collect the following categories of personal data:",
+        "personal": "Identity data: your name, email address, and profile image.",
+        "contact": "Contact data: your phone number and phone prefix (optional).",
+        "location": "Location data: your country and postal code (optional).",
+        "account": "Account data: your authentication credentials (password hash or OAuth tokens), email verification status, and language preference.",
+        "session": "Session data: your IP address, user agent (browser and device information), session tokens, and session expiration dates.",
+        "competition": "Competition data: your competition registrations, finish times, table assignments, and results.",
+        "automatic": "Usage data: page views and performance metrics collected automatically through analytics tools."
+      },
+      "how_we_use": {
+        "title": "How We Use Your Data",
+        "intro": "We use your personal data for the following purposes:",
+        "service": "Providing and maintaining the Service, including managing your account, processing competition registrations, and recording results.",
+        "communication": "Communicating with you, including sending verification emails, password reset links, and competition-related notifications.",
+        "security": "Ensuring the security and integrity of the Service, including fraud prevention and detecting unauthorized access.",
+        "analytics": "Analyzing usage patterns to improve the Service performance and user experience.",
+        "legal": "Complying with legal obligations under applicable law."
+      },
+      "legal_basis": {
+        "title": "Legal Basis for Processing",
+        "intro": "Under the GDPR, we process your data based on the following legal grounds:",
+        "contract": "Contract performance: processing necessary to provide you with the Service you signed up for (account management, competition participation, results tracking).",
+        "consent": "Consent: for optional data collection such as phone number, location, and profile visibility settings. You may withdraw your consent at any time.",
+        "legitimate_interest": "Legitimate interest: for platform security, fraud prevention, and service improvement through analytics."
+      },
+      "third_parties": {
+        "title": "Third-Party Service Providers",
+        "intro": "We use third-party service providers to help us operate the Service. These providers may process your data outside the European Economic Area (EEA), and we ensure appropriate safeguards are in place (such as Standard Contractual Clauses) to protect your data.",
+        "categories": "These providers assist us with: authentication and identity verification, email delivery, real-time competition updates, image storage and delivery, hosting and infrastructure, performance monitoring, and scheduled task processing.",
+        "no_selling": "We do not sell your personal data to third parties."
+      },
+      "data_retention": {
+        "title": "Data Retention",
+        "intro": "We retain your personal data for as long as your account is active or as needed to provide you the Service.",
+        "deletion": "When you delete your account, your personal data (name, email, phone, location) will be anonymized. Your competition results and historical records will be preserved in anonymized form for the integrity of competition rankings and statistics.",
+        "sessions": "Session data is automatically deleted when sessions expire."
+      },
+      "your_rights": {
+        "title": "Your Rights",
+        "intro": "Under the GDPR, you have the following rights regarding your personal data:",
+        "access": "Right of access: you can request a copy of the personal data we hold about you.",
+        "rectification": "Right to rectification: you can request correction of inaccurate or incomplete data.",
+        "erasure": "Right to erasure: you can request deletion of your personal data (\"right to be forgotten\").",
+        "restriction": "Right to restriction: you can request that we limit the processing of your data.",
+        "portability": "Right to data portability: you can request your data in a structured, commonly used, and machine-readable format.",
+        "objection": "Right to object: you can object to the processing of your data based on legitimate interests.",
+        "how_to_exercise": "To exercise any of these rights, please contact us at puzzlesranking@gmail.com. We will respond to your request within 30 days.",
+        "complaint": "You also have the right to lodge a complaint with the Spanish Data Protection Agency (Agencia Española de Protección de Datos — AEPD) or your local supervisory authority."
+      },
+      "cookies": {
+        "title": "Cookies",
+        "description": "We use essential cookies required for the functioning of the Service, including authentication session cookies and onboarding state cookies. These cookies are strictly necessary and do not require consent. We may also use analytics tools that collect anonymous usage data."
+      },
+      "children": {
+        "title": "Children's Privacy",
+        "description": "The Service is intended for users aged 18 and over. Minors may participate in competitions only through the External Participant feature, where a registered adult user manages their participation. We do not knowingly collect personal data from children under 18 without the involvement of an adult user."
+      },
+      "security": {
+        "title": "Data Security",
+        "description": "We implement appropriate technical and organizational measures to protect your personal data, including encryption, access controls, and secure authentication protocols. However, no method of transmission over the Internet or electronic storage is 100% secure, and we cannot guarantee absolute security."
+      },
+      "changes": {
+        "title": "Changes to This Policy",
+        "description": "We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated revision date. We encourage you to review this policy periodically."
+      },
+      "contact": {
+        "title": "Contact Us",
+        "description": "If you have any questions about this Privacy Policy or wish to exercise your data protection rights, please contact us at:",
+        "email": "Email: puzzlesranking@gmail.com"
+      }
+    },
+    "tos": {
+      "intro": "Welcome to PuzzleLeague. These Terms of Service (\"Terms\") govern your access to and use of the PuzzleLeague platform (the \"Service\"). By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, you may not use the Service.",
+      "acceptance": {
+        "title": "Acceptance of Terms",
+        "description": "By creating an account or using the Service, you confirm that you have read, understood, and agree to these Terms and our Privacy Policy. Your continued use of the Service constitutes ongoing acceptance of any updates to these Terms."
+      },
+      "eligibility": {
+        "title": "Eligibility",
+        "description": "You must be at least 18 years old to create an account and use the Service. Minors may participate in competitions only through the External Participant feature, where a registered adult user is responsible for managing their participation and data."
+      },
+      "accounts": {
+        "title": "User Accounts",
+        "accuracy": "You agree to provide accurate, current, and complete information when creating your account and to update it as necessary.",
+        "security": "You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You must notify us immediately of any unauthorized use.",
+        "termination": "We reserve the right to suspend or terminate your account at any time if you violate these Terms, engage in fraudulent activity, or for any other reason at our sole discretion."
+      },
+      "use_of_service": {
+        "title": "Use of the Service",
+        "permitted": "You may use the Service to organize, participate in, and manage speed puzzling competitions; track your results and rankings; and interact with the puzzling community.",
+        "prohibited_title": "You agree NOT to:",
+        "prohibited_1": "Use the Service for any unlawful purpose or in violation of any applicable laws.",
+        "prohibited_2": "Harass, threaten, or discriminate against other users.",
+        "prohibited_3": "Submit false, misleading, or fraudulent information.",
+        "prohibited_4": "Attempt to gain unauthorized access to the Service or other users' accounts.",
+        "prohibited_5": "Interfere with or disrupt the Service's functionality or infrastructure.",
+        "prohibited_6": "Use automated tools (bots, scrapers) to access the Service without our written permission."
+      },
+      "competitions": {
+        "title": "Competitions",
+        "fair_play": "Participants are expected to compete fairly and honestly. Cheating, use of unauthorized assistance, or any form of fraudulent behavior may result in disqualification and account suspension.",
+        "results": "Competition results are public by default. You can adjust your profile visibility settings to control the display of your results.",
+        "organizer_responsibility": "Competition organizers are solely responsible for the organization, safety, and conduct of their events. This includes venue safety, compliance with local regulations, and any incidents that occur during competitions.",
+        "liability": "PuzzleLeague provides the platform for organizing and managing competitions but is not responsible for in-person events. We assume no liability for injuries, damages, or losses occurring at competition venues."
+      },
+      "content": {
+        "title": "User Content",
+        "user_content": "You retain ownership of any content you submit to the Service (such as competition images, profile photos, and competition descriptions). By submitting content, you grant us a non-exclusive, worldwide license to display and use it in connection with the Service.",
+        "moderation": "We reserve the right to review and remove any content that we consider inappropriate, offensive, or in violation of these Terms, at our sole discretion and without prior notice."
+      },
+      "intellectual_property": {
+        "title": "Intellectual Property",
+        "platform": "The Service, including its design, code, branding, and all related intellectual property, is owned by PuzzleLeague and protected by applicable intellectual property laws.",
+        "user_data": "You retain ownership of your personal data and competition results. We do not claim ownership of your data."
+      },
+      "liability": {
+        "title": "Limitation of Liability",
+        "disclaimer": "The Service is provided \"AS IS\" and \"AS AVAILABLE\" without warranties of any kind, whether express or implied. We do not warrant that the Service will be uninterrupted, error-free, or secure.",
+        "limitation": "To the maximum extent permitted by law, PuzzleLeague shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Service, including but not limited to loss of data, loss of profits, or interruption of service."
+      },
+      "paid_features": {
+        "title": "Paid Features",
+        "description": "The Service is currently free to use. We may introduce paid features or premium plans in the future. If we do, specific terms for those features (including pricing, billing, and refund policies) will be communicated separately and will require your explicit acceptance."
+      },
+      "governing_law": {
+        "title": "Governing Law",
+        "description": "These Terms are governed by and construed in accordance with the laws of Spain. Any disputes arising from or relating to these Terms shall be subject to the jurisdiction of the Spanish courts. This is without prejudice to any mandatory consumer protection rights you may have under the laws of your country of residence within the European Union."
+      },
+      "changes": {
+        "title": "Changes to These Terms",
+        "description": "We reserve the right to modify these Terms at any time. Material changes will be communicated by posting the updated Terms on this page with a new revision date. Your continued use of the Service after such changes constitutes acceptance of the updated Terms."
+      },
+      "severability": {
+        "title": "Severability",
+        "description": "If any provision of these Terms is found to be invalid or unenforceable, the remaining provisions shall continue in full force and effect."
+      },
+      "contact": {
+        "title": "Contact Us",
+        "description": "If you have any questions about these Terms of Service, please contact us at:",
+        "email": "Email: puzzlesranking@gmail.com"
+      }
+    }
   },
   "explore_competitions": {
     "clear_all_filters": "Clear all filters",

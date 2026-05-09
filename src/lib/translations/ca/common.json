@@ -354,7 +354,156 @@
   },
   "legal": {
     "privacy_policy": "Política de Privacitat",
-    "terms_of_service": "Termes de Servei"
+    "terms_of_service": "Termes de Servei",
+    "authoritative_language_notice": "Aquest document és una traducció de cortesia. En cas de qualsevol discrepància, prevaldrà la versió en castellà.",
+    "last_updated": "Última actualització: 9 de maig de 2026",
+    "pp": {
+      "intro": "PuzzleLeague (\"nosaltres\", \"ens\" o \"nostre\") opera la plataforma PuzzleLeague (el \"Servei\"). Aquesta Política de Privacitat explica com recopilem, utilitzem, emmagatzemem i protegim les vostres dades personals quan utilitzeu el nostre Servei, de conformitat amb el Reglament General de Protecció de Dades (RGPD) i la legislació espanyola aplicable en matèria de protecció de dades.",
+      "data_controller": "El responsable del tractament de les vostres dades personals és PuzzleLeague, amb qui podeu contactar a puzzlesranking@gmail.com.",
+      "data_collected": {
+        "title": "Dades que recopilem",
+        "intro": "Recopilem les següents categories de dades personals:",
+        "personal": "Dades d'identitat: el vostre nom, adreça de correu electrònic i imatge de perfil.",
+        "contact": "Dades de contacte: el vostre número de telèfon i prefix telefònic (opcional).",
+        "location": "Dades d'ubicació: el vostre país i codi postal (opcional).",
+        "account": "Dades de compte: les vostres credencials d'autenticació (hash de contrasenya o tokens OAuth), estat de verificació del correu electrònic i preferència d'idioma.",
+        "session": "Dades de sessió: la vostra adreça IP, agent d'usuari (informació del navegador i dispositiu), tokens de sessió i dates d'expiració de sessió.",
+        "competition": "Dades de competició: les vostres inscripcions a competicions, temps de finalització, assignacions de taula i resultats.",
+        "automatic": "Dades d'ús: visualitzacions de pàgina i mètriques de rendiment recopilades automàticament mitjançant eines d'anàlisi."
+      },
+      "how_we_use": {
+        "title": "Com utilitzem les vostres dades",
+        "intro": "Utilitzem les vostres dades personals per als següents fins:",
+        "service": "Proporcionar i mantenir el Servei, incloent-hi la gestió del vostre compte, el processament d'inscripcions a competicions i el registre de resultats.",
+        "communication": "Comunicar-nos amb vosaltres, incloent-hi l'enviament de correus de verificació, enllaços de restabliment de contrasenya i notificacions relacionades amb competicions.",
+        "security": "Garantir la seguretat i integritat del Servei, incloent-hi la prevenció de frau i la detecció d'accessos no autoritzats.",
+        "analytics": "Analitzar patrons d'ús per millorar el rendiment del Servei i l'experiència de l'usuari.",
+        "legal": "Complir amb les obligacions legals conforme a la legislació aplicable."
+      },
+      "legal_basis": {
+        "title": "Base legal del tractament",
+        "intro": "Conforme al RGPD, tractem les vostres dades en base als següents fonaments legals:",
+        "contract": "Execució de contracte: tractament necessari per prestar-vos el Servei al qual us heu registrat (gestió de compte, participació en competicions, seguiment de resultats).",
+        "consent": "Consentiment: per a la recopilació de dades opcionals com número de telèfon, ubicació i configuració de visibilitat del perfil. Podeu retirar el vostre consentiment en qualsevol moment.",
+        "legitimate_interest": "Interès legítim: per a la seguretat de la plataforma, prevenció de frau i millora del servei mitjançant anàlisi."
+      },
+      "third_parties": {
+        "title": "Proveïdors de serveis externs",
+        "intro": "Utilitzem proveïdors de serveis externs per ajudar-nos a operar el Servei. Aquests proveïdors poden tractar les vostres dades fora de l'Espai Econòmic Europeu (EEE), i ens assegurem que existeixin les salvaguardes adequades (com les Clàusules Contractuals Tipus) per protegir les vostres dades.",
+        "categories": "Aquests proveïdors ens assisteixen en: autenticació i verificació d'identitat, enviament de correu electrònic, actualitzacions de competicions en temps real, emmagatzematge i lliurament d'imatges, allotjament i infraestructura, monitorització del rendiment i processament de tasques programades.",
+        "no_selling": "No venem les vostres dades personals a tercers."
+      },
+      "data_retention": {
+        "title": "Retenció de dades",
+        "intro": "Conservem les vostres dades personals mentre el vostre compte estigui actiu o sigui necessari per prestar-vos el Servei.",
+        "deletion": "Quan elimineu el vostre compte, les vostres dades personals (nom, correu electrònic, telèfon, ubicació) seran anonimitzades. Els vostres resultats de competicions i registres històrics es conservaran de forma anonimitzada per a la integritat de les classificacions i estadístiques de competició.",
+        "sessions": "Les dades de sessió s'eliminen automàticament quan les sessions expiren."
+      },
+      "your_rights": {
+        "title": "Els vostres drets",
+        "intro": "Conforme al RGPD, teniu els següents drets respecte a les vostres dades personals:",
+        "access": "Dret d'accés: podeu sol·licitar una còpia de les dades personals que conservem sobre vosaltres.",
+        "rectification": "Dret de rectificació: podeu sol·licitar la correcció de dades inexactes o incompletes.",
+        "erasure": "Dret de supressió: podeu sol·licitar l'eliminació de les vostres dades personals (\"dret a l'oblit\").",
+        "restriction": "Dret a la limitació del tractament: podeu sol·licitar que limitem el tractament de les vostres dades.",
+        "portability": "Dret a la portabilitat de dades: podeu sol·licitar les vostres dades en un format estructurat, d'ús comú i lectura mecànica.",
+        "objection": "Dret d'oposició: podeu oposar-vos al tractament de les vostres dades basat en interessos legítims.",
+        "how_to_exercise": "Per exercir qualsevol d'aquests drets, poseu-vos en contacte amb nosaltres a puzzlesranking@gmail.com. Respondrem a la vostra sol·licitud en un termini de 30 dies.",
+        "complaint": "També teniu dret a presentar una reclamació davant l'Agència Espanyola de Protecció de Dades (AEPD) o l'autoritat de control de la vostra localitat."
+      },
+      "cookies": {
+        "title": "Galetes",
+        "description": "Utilitzem galetes essencials necessàries per al funcionament del Servei, incloent-hi galetes de sessió d'autenticació i galetes d'estat d'incorporació. Aquestes galetes són estrictament necessàries i no requereixen consentiment. També podem utilitzar eines d'anàlisi que recopilen dades d'ús anònimes."
+      },
+      "children": {
+        "title": "Privacitat dels menors",
+        "description": "El Servei està destinat a usuaris majors de 18 anys. Els menors poden participar en competicions únicament a través de la funció de Participant Extern, on un usuari adult registrat gestiona la seva participació. No recopilem conscientment dades personals de menors de 18 anys sense la intervenció d'un usuari adult."
+      },
+      "security": {
+        "title": "Seguretat de les dades",
+        "description": "Implementem mesures tècniques i organitzatives adequades per protegir les vostres dades personals, incloent-hi xifratge, controls d'accés i protocols d'autenticació segurs. No obstant això, cap mètode de transmissió per Internet o emmagatzematge electrònic és 100% segur, i no podem garantir una seguretat absoluta."
+      },
+      "changes": {
+        "title": "Canvis en aquesta política",
+        "description": "Podem actualitzar aquesta Política de Privacitat periòdicament. Els canvis es publicaran en aquesta pàgina amb una data de revisió actualitzada. Us recomanem revisar aquesta política periòdicament."
+      },
+      "contact": {
+        "title": "Contacte",
+        "description": "Si teniu alguna pregunta sobre aquesta Política de Privacitat o desitgeu exercir els vostres drets de protecció de dades, poseu-vos en contacte amb nosaltres a:",
+        "email": "Correu electrònic: puzzlesranking@gmail.com"
+      }
+    },
+    "tos": {
+      "intro": "Benvingut a PuzzleLeague. Aquests Termes de Servei (\"Termes\") regulen el vostre accés i ús de la plataforma PuzzleLeague (el \"Servei\"). En accedir o utilitzar el Servei, accepteu quedar vinculat per aquests Termes. Si no hi esteu d'acord, no podreu utilitzar el Servei.",
+      "acceptance": {
+        "title": "Acceptació dels Termes",
+        "description": "En crear un compte o utilitzar el Servei, confirmeu que heu llegit, comprès i acceptat aquests Termes i la nostra Política de Privacitat. El vostre ús continuat del Servei constitueix l'acceptació continuada de qualsevol actualització d'aquests Termes."
+      },
+      "eligibility": {
+        "title": "Elegibilitat",
+        "description": "Heu de tenir almenys 18 anys per crear un compte i utilitzar el Servei. Els menors poden participar en competicions únicament a través de la funció de Participant Extern, on un usuari adult registrat és responsable de gestionar la seva participació i dades."
+      },
+      "accounts": {
+        "title": "Comptes d'usuari",
+        "accuracy": "Us comprometeu a proporcionar informació precisa, actual i completa en crear el vostre compte i a actualitzar-la quan sigui necessari.",
+        "security": "Sou responsable de mantenir la confidencialitat de les credencials del vostre compte i de totes les activitats que es realitzin sota el vostre compte. Heu de notificar-nos immediatament qualsevol ús no autoritzat.",
+        "termination": "Ens reservem el dret de suspendre o cancel·lar el vostre compte en qualsevol moment si incompliu aquests Termes, participeu en activitats fraudulentes o per qualsevol altre motiu a la nostra entera discreció."
+      },
+      "use_of_service": {
+        "title": "Ús del Servei",
+        "permitted": "Podeu utilitzar el Servei per organitzar, participar i gestionar competicions de speed puzzling; fer un seguiment dels vostres resultats i classificacions; i interactuar amb la comunitat de puzzling.",
+        "prohibited_title": "Us comprometeu a NO:",
+        "prohibited_1": "Utilitzar el Servei per a qualsevol fi il·legal o en violació de qualsevol llei aplicable.",
+        "prohibited_2": "Assetjar, amenaçar o discriminar altres usuaris.",
+        "prohibited_3": "Enviar informació falsa, enganyosa o fraudulenta.",
+        "prohibited_4": "Intentar obtenir accés no autoritzat al Servei o als comptes d'altres usuaris.",
+        "prohibited_5": "Interferir o interrompre la funcionalitat o infraestructura del Servei.",
+        "prohibited_6": "Utilitzar eines automatitzades (bots, scrapers) per accedir al Servei sense el nostre permís per escrit."
+      },
+      "competitions": {
+        "title": "Competicions",
+        "fair_play": "S'espera que els participants competeeixin de manera justa i honesta. L'ús de trampes, assistència no autoritzada o qualsevol forma de comportament fraudulent pot resultar en desqualificació i suspensió del compte.",
+        "results": "Els resultats de les competicions són públics per defecte. Podeu ajustar la configuració de visibilitat del vostre perfil per controlar la visualització dels vostres resultats.",
+        "organizer_responsibility": "Els organitzadors de competicions són els únics responsables de l'organització, seguretat i desenvolupament dels seus esdeveniments. Això inclou la seguretat del lloc, el compliment de la normativa local i qualsevol incident que passi durant les competicions.",
+        "liability": "PuzzleLeague proporciona la plataforma per organitzar i gestionar competicions, però no és responsable dels esdeveniments presencials. No assumim cap responsabilitat per lesions, danys o pèrdues que tinguin lloc als recintes de competició."
+      },
+      "content": {
+        "title": "Contingut de l'usuari",
+        "user_content": "Conserveu la propietat de qualsevol contingut que envieu al Servei (com imatges de competicions, fotos de perfil i descripcions de competicions). En enviar contingut, ens atorgueu una llicència no exclusiva i mundial per mostrar-lo i utilitzar-lo en relació amb el Servei.",
+        "moderation": "Ens reservem el dret de revisar i eliminar qualsevol contingut que considerem inadequat, ofensiu o que infringeixi aquests Termes, a la nostra entera discreció i sense previ avís."
+      },
+      "intellectual_property": {
+        "title": "Propietat intel·lectual",
+        "platform": "El Servei, incloent-hi el seu disseny, codi, marca i tota la propietat intel·lectual relacionada, és propietat de PuzzleLeague i està protegit per les lleis de propietat intel·lectual aplicables.",
+        "user_data": "Conserveu la propietat de les vostres dades personals i resultats de competicions. No reclamem la propietat de les vostres dades."
+      },
+      "liability": {
+        "title": "Limitació de responsabilitat",
+        "disclaimer": "El Servei es proporciona \"TAL QUAL\" i \"SEGONS DISPONIBILITAT\" sense garanties de cap tipus, ja siguin expresses o implícites. No garantim que el Servei sigui ininterromput, lliure d'errors o segur.",
+        "limitation": "En la màxima mesura permesa per la llei, PuzzleLeague no serà responsable de cap dany indirecte, incidental, especial, conseqüent o punitiu derivat del vostre ús del Servei, incloent-hi, entre altres, la pèrdua de dades, la pèrdua de beneficis o la interrupció del servei."
+      },
+      "paid_features": {
+        "title": "Funcionalitats de pagament",
+        "description": "El Servei és actualment gratuït. Podem introduir funcionalitats de pagament o plans premium en el futur. En aquest cas, els termes específics per a aquestes funcionalitats (incloent-hi preus, facturació i polítiques de reemborsament) es comunicaran per separat i requeriran la vostra acceptació explícita."
+      },
+      "governing_law": {
+        "title": "Legislació aplicable",
+        "description": "Aquests Termes es regeixen i s'interpreten de conformitat amb les lleis d'Espanya. Qualsevol disputa derivada de o relacionada amb aquests Termes estarà subjecta a la jurisdicció dels tribunals espanyols. Això és sense perjudici dels drets obligatoris de protecció al consumidor que pugueu tenir conforme a la legislació del vostre país de residència dins la Unió Europea."
+      },
+      "changes": {
+        "title": "Canvis en aquests Termes",
+        "description": "Ens reservem el dret de modificar aquests Termes en qualsevol moment. Els canvis substancials es comunicaran publicant els Termes actualitzats en aquesta pàgina amb una nova data de revisió. El vostre ús continuat del Servei després d'aquests canvis constitueix l'acceptació dels Termes actualitzats."
+      },
+      "severability": {
+        "title": "Divisibilitat",
+        "description": "Si alguna disposició d'aquests Termes resulta invàlida o inaplicable, les disposicions restants continuaran en ple vigor i efecte."
+      },
+      "contact": {
+        "title": "Contacte",
+        "description": "Si teniu alguna pregunta sobre aquests Termes de Servei, poseu-vos en contacte amb nosaltres a:",
+        "email": "Correu electrònic: puzzlesranking@gmail.com"
+      }
+    }
   },
   "explore_competitions": {
     "clear_all_filters": "Esborra tots els filtres",

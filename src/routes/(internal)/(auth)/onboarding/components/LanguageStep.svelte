@@ -1,9 +1,12 @@
 <script lang="ts">
-    import { t } from '$lib/translations';
+    import { t, setLocale, locales } from '$lib/translations';
     import { enhance } from '$app/forms';
     import Card from '$lib/components/common/card/Card.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import { createEnhanceHandler } from '$lib/utils/form_enhance';
+
+    const defaultLocale = 'es';
+    const supportedLocales = locales.get();
 
     let {
         isSubmitting = $bindable(false),
@@ -15,6 +18,16 @@
 
     let selectedLocale = $state<string>('');
     let localeError = $state<string | null>(null);
+
+    function getBrowserLocale(): string {
+        const browserLang = navigator.language.split('-')[0].toLowerCase();
+        return supportedLocales.includes(browserLang) ? browserLang : defaultLocale;
+    }
+
+    function selectLocale(code: string) {
+        selectedLocale = code;
+        setLocale(code === 'auto' ? getBrowserLocale() : code);
+    }
 </script>
 
 <div data-testid="onboarding-step-language">
@@ -53,7 +66,7 @@
             <div class="space-y-2">
                 <button
                     type="button"
-                    onclick={() => (selectedLocale = 'auto')}
+                    onclick={() => selectLocale('auto')}
                     class="w-full flex items-center gap-3 p-4 rounded-lg border transition-all
                         {selectedLocale === 'auto'
                             ? 'border-primary-500 bg-primary-500/10 ring-2 ring-primary-500'
@@ -72,7 +85,7 @@
                 ] as lang}
                     <button
                         type="button"
-                        onclick={() => (selectedLocale = lang.code)}
+                        onclick={() => selectLocale(lang.code)}
                         class="w-full flex items-center gap-3 p-4 rounded-lg border transition-all
                             {selectedLocale === lang.code
                                 ? 'border-primary-500 bg-primary-500/10 ring-2 ring-primary-500'

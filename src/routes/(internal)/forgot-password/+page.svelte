@@ -29,7 +29,7 @@
 <section class="flex flex-col md:mt-40 h-screen">
     <div class="w-full md:max-w-md lg:max-w-full md:mx-auto md:w-1/2 xl:w-1/3 mt-4 lg:px-16 xl:px-12 flex items-center justify-center">
         <div class="w-full h-100">
-            <h1 data-testid="forgot-password-title" class="text-xl md:text-2xl font-bold leading-tight">
+            <h1 data-testid="forgot-password-title" class="h3">
                 {$t('auth.forgot_password_title')}
             </h1>
 
@@ -38,7 +38,7 @@
                     <p>{$t('auth.forgot_password_success')}</p>
                 </div>
                 <p class="mt-4">
-                    <a href="/login" class="text-primary-500 hover:text-primary-700 font-semibold">
+                    <a href="/login" class="anchor font-semibold">
                         {$t('auth.back_to_login')}
                     </a>
                 </p>
@@ -55,7 +55,7 @@
                             data-testid="forgot-password-email"
                             placeholder={$t('auth.enter_email')}
                             autocomplete="email"
-                            class="w-full px-4 py-3 rounded-lg bg-surface-200 mt-2 border text-surface-900 focus:border-primary-500 focus:bg-surface-50 focus:outline-none"
+                            class="input rounded-lg bg-primary-50-950 mt-2"
                             required
                         />
                     </div>
@@ -64,14 +64,14 @@
                         type="submit"
                         disabled={isLoading}
                         data-testid="forgot-password-submit"
-                        class="w-full block bg-primary-500 hover:bg-primary-400 focus:bg-primary-400 text-white font-semibold rounded-lg px-4 py-3 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                        class="btn preset-filled-primary-500 w-full mt-4"
                     >
                         {#if isLoading}{$t('auth.forgot_password_sending')}{:else}{$t('auth.forgot_password_submit')}{/if}
                     </button>
                 </form>
 
                 <p class="mt-4">
-                    <a href="/login" class="text-primary-500 hover:text-primary-700 font-semibold">
+                    <a href="/login" class="anchor font-semibold">
                         {$t('auth.back_to_login')}
                     </a>
                 </p>

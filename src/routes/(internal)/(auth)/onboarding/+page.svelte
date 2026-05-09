@@ -26,13 +26,6 @@
             goto('/');
         }
     }
-
-    // Language/location steps change server-derived data.steps, so we
-    // invalidate and reset to step 0 instead of locally incrementing.
-    async function invalidateAndRestart() {
-        currentStep = 0;
-        await invalidateAll();
-    }
 </script>
 
 <div class="container mx-auto max-w-lg space-y-6 py-4" data-testid="onboarding-wizard">
@@ -63,7 +56,7 @@
     {/if}
 
     {#if currentStepId === 'language'}
-        <LanguageStep bind:isSubmitting onSuccess={invalidateAndRestart} />
+        <LanguageStep bind:isSubmitting onSuccess={advanceOrFinish} />
     {:else if currentStepId === 'location'}
         <LocationStep bind:isSubmitting onSuccess={advanceOrFinish} />
     {:else if currentStepId === 'claim'}

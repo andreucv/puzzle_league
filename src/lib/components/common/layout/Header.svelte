@@ -6,6 +6,7 @@
     import { page } from '$app/state';
     let user = $derived(page.data.user);
     let currentPath = $derived(page.url.pathname);
+    import { t } from '$lib/translations';
 
     import { drawerState } from '$lib/stores/drawer.svelte';
 
@@ -29,7 +30,7 @@
         <AppBar.Trail>
             {#if user === undefined}
                 <button id="login-button" type="button" class="btn btn-sm preset-filled" style:visibility="{currentPath === '/login' ? 'hidden' : 'visible'}">
-                    <a href="/login">Log in</a>
+                    <a href="/login">{$t('landing_page.join_now')}</a>
                 </button>
             {:else}
                 <div class="flex items-center items-bottom relative gap-3">

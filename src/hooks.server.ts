@@ -32,10 +32,14 @@ export async function handle({ event, resolve }) {
 
 		if (isPageRequest(path) && path !== '/onboarding' && path !== '/verify-email' && path !== '/forgot-password' && path !== '/reset-password') {
 			const alreadyPresented = event.cookies.get('onboarding_presented');
-			if (!alreadyPresented) {
+			const alreadyCompleted = event.cookies.get('onboarding_completed');
+			if (!alreadyPresented || !alreadyCompleted) {
 				const onboardingSteps = await resolveOnboardingSteps(session.user);
 				if (onboardingSteps.length > 0) {
 					throw redirect(302, '/onboarding');
+				} else if (onboardingSteps.length === 0 && !alreadyCompleted) {
+					// Set a cookie to prevent re-checking onboarding steps on every request for users with no steps needed
+					event.cookies.set('onboarding_completed', 'true', { path: '/', httpOnly: true, sameSite: 'lax' });
 				}
 			}
 		}

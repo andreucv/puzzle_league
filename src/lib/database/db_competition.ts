@@ -326,7 +326,7 @@ export async function getNearCompetitions(n_objects: number, country?: string, p
 
     if (country == undefined || postalCode == undefined) {
         // If no location info, return empty list
-        console.warn('No country or postal code provided for getNearCompetitions, returning empty list');
+        // console.warn('No country or postal code provided for getNearCompetitions, returning empty list');
         return [];
     }
 

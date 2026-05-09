@@ -1,8 +1,12 @@
+<script>
+    import { t } from '$lib/translations';
+</script>
+
 <footer class="mt-10">
     <div class="footer-content">
         <div class="footer-section">
-            <a href="/footer/privacy_policy">Privacy Policy</a>
-            <a href="/footer/terms_of_service">Terms of Service</a>
+            <a href="/footer/privacy_policy">{$t('legal.privacy_policy')}</a>
+            <a href="/footer/terms_of_service">{$t('legal.terms_of_service')}</a>
         </div>
         <div class="footer-section">
             <p>© 2025 Puzzligas. All rights reserved.</p>

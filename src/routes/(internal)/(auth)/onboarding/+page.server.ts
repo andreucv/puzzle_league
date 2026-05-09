@@ -15,10 +15,8 @@ export const load: PageServerLoad = async ({ parent, locals, cookies }) => {
 	cookies.set('onboarding_presented', 'true', { path: '/', httpOnly: true, sameSite: 'lax' });
 
 	const steps = await resolveOnboardingSteps(user);
-
 	// If no onboarding steps needed, clear the cookie and redirect to home
 	if (steps.length === 0) {
-		cookies.delete('onboarding_presented', { path: '/' });
 		throw redirect(302, '/');
 	}
 

@@ -127,7 +127,7 @@
 
     <!-- Results count & Create button -->
     <div class="flex items-center justify-between">
-        <span class="text-sm text-surface-600 dark:text-surface-400">
+        <span class="text-sm text-surface-600 dark:text-surface-400" data-testid="results-count">
             {filteredCount} {filteredCount === 1 ? 'competition' : 'competitions'}
             {#if filter || activePresets.length > 0}
                 <span class="text-surface-500"> of {totalCount}</span>
@@ -154,7 +154,7 @@
     {/if}
 
     <!-- Competition cards -->
-    <div class="space-y-2">
+    <div class="space-y-2" data-testid="competition-list">
         {#each filteredCompetitions as competition (competition.id)}
             <CompetitionCard {competition} currentUserId={user?.id} userCountry={user?.country ?? null} userPostalCode={user?.postalCode ?? null} />
         {:else}

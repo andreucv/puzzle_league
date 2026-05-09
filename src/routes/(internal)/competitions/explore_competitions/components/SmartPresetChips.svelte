@@ -31,6 +31,7 @@
     {#each presets as preset}
         <button
             type="button"
+            data-testid="preset-chip-{preset.id}"
             disabled={preset.disabled}
             class="flex items-center gap-1 px-2.5 py-1 text-sm font-medium rounded-full border transition-all duration-200
                 {preset.disabled

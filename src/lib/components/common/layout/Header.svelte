@@ -12,13 +12,18 @@
 
     // TODO: Replace with Ably subscription when notifications channel is implemented
     let hasUnread = $state(false);
+
+    // Disabled until client-side hydration completes so Playwright (and real users)
+    // can't click the button before the onclick handler is attached.
+    let hydrated = $state(false);
+    $effect(() => { hydrated = true; });
 </script>
 
 <header>
     <AppBar class="p-4 pb-2 bg-transparent">
         <AppBar.Toolbar class="grid-cols-[auto_1fr_auto] items-center">
         <AppBar.Lead>
-            <button id="states-button" class="flex items-center" onclick={() => drawerState.open = true} type="button">
+            <button id="states-button" class="flex items-center" onclick={() => drawerState.open = true} type="button" disabled={!hydrated}>
                 <HamburgerIcon width="1.5rem" height="1.5rem" />
             </button>
         </AppBar.Lead>

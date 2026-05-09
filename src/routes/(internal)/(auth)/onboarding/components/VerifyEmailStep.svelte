@@ -102,7 +102,7 @@
             disabled={isSubmitting}
             data-testid="onboarding-verify-email-skip"
         >
-            {$t('onboarding.verify_email_skip')}
+            {$t('onboarding.continue_to_homepage')}
         </button>
     </form>
 </div>

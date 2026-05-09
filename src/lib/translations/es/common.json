@@ -776,10 +776,10 @@
     "verify_email_sent": "Hemos enviado un correo de verificación a {{email}}",
     "verify_email_check": "Revisa tu bandeja de entrada y haz clic en el enlace para verificar tu correo electrónico.",
     "verify_email_resend": "Reenviar correo",
-    "verify_email_skip": "Lo haré más tarde",
     "verify_email_resent": "¡Correo enviado!",
     "verify_email_resending": "Enviando...",
-    "verify_email_resend_error": "No se pudo enviar el correo de verificación. Inténtalo de nuevo más tarde."
+    "verify_email_resend_error": "No se pudo enviar el correo de verificación. Inténtalo de nuevo más tarde.",
+    "continue_to_homepage": "Ir a la página de inicio"
   },
   "add_location": {
     "title": "¿Dónde te encuentras?",

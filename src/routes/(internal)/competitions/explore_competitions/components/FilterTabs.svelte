@@ -23,6 +23,7 @@
         {#each tabs as tab}
             <button
                 type="button"
+                data-testid="filter-tab-{tab.id}"
                 class="px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200
                     {activeTab === tab.id
                         ? 'bg-white dark:bg-surface-700 text-primary-600 dark:text-primary-400 shadow-sm'

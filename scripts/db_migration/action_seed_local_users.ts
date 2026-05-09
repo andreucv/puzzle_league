@@ -99,6 +99,9 @@ async function main() {
                 externalParticipantsLastChecked: new Date(),
                 emailVerified: true,
                 emailVerificationPromptLastChecked: new Date(),
+                country: 'ES',
+                postalCode: '99999',
+                locationPromptLastChecked: new Date(),
             },
         });
         console.log(`   📱 Phone set for ${tu.email}`);

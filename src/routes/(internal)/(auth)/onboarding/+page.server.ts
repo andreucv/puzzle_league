@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ parent, locals, cookies }) => {
 
 	// Mark that the user has been presented onboarding so hooks.server.ts
 	// won't block navigation if they choose to leave (all steps are optional).
-	cookies.set('onboarding_presented', locals.session, { path: '/', httpOnly: true, sameSite: 'lax' });
+	cookies.set('onboarding_presented', locals.session.id, { path: '/', httpOnly: true, sameSite: 'lax' });
 
 	const steps = await resolveOnboardingSteps(user);
 	// If no onboarding steps needed, clear the cookie and redirect to home

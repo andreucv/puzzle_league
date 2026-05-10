@@ -33,7 +33,7 @@ export async function handle({ event, resolve }) {
 		console.log(`Handling request for ${path} (user: ${session.user.email})`);
 
 		if (isPageRequest(path) && path !== '/onboarding' && path !== '/verify-email' && path !== '/forgot-password' && path !== '/reset-password') {
-			const alreadyPresented = event.cookies.get('onboarding_presented');
+			const alreadyPresented = event.cookies.get('onboarding_presented') === event.locals.session;
 			if (!alreadyPresented) {
 				console.log('User has not completed onboarding, redirecting to onboarding page');
 				throw redirect(302, '/onboarding');

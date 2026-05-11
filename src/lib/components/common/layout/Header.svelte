@@ -6,6 +6,7 @@
     import { page } from '$app/state';
     let user = $derived(page.data.user);
     let currentPath = $derived(page.url.pathname);
+    let isPreview: boolean = $derived(page.data.isPreview ?? false);
     let appVersion: string | null = $derived(page.data.appVersion ?? null);
     import { t } from '$lib/translations';
 
@@ -31,8 +32,8 @@
         <AppBar.Headline>
             <div class="flex items-center">
                 <h1 class="h4 font-sans" style="font-weight: 800; font-stretch: 125%;"><a href='/'>PuzzLigas</a></h1>
-                {#if appVersion}
-                    <span class="ml-2 text-xs font-mono bg-warning-500 text-white px-1.5 py-0.5 rounded">v{appVersion}</span>
+                {#if isPreview && appVersion}
+                    <span class="ml-2 text-xs font-mono text-surface-500" title="App version">v{appVersion}</span>
                 {/if}
             </div>
         </AppBar.Headline>

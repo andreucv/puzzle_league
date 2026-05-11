@@ -33,12 +33,16 @@ export const load: LayoutServerLoad = async ({ url, locals, request }) => {
 
     await loadTranslations(locale, pathname);
 
-    const appVersion = env.VERCEL_ENV === 'preview' ? __APP_VERSION__ : null;
+    const appVersion = __APP_VERSION__;
+    const commitSha = env.VERCEL_GIT_COMMIT_SHA?.substring(0, 7) ?? null;
+    const isPreview = env.VERCEL_ENV === 'preview';
 
     let layoutData = {
         translations: translations.get(),
         i18n: { locale, route: pathname },
-        appVersion
+        appVersion,
+        commitSha,
+        isPreview
     };
 
     if (!user) {

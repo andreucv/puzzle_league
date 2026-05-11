@@ -4,6 +4,8 @@
 import type { User, Session } from '@prisma/client';
 import type { CategoryType, CategoryStatus } from '$lib/.prisma/generated/prisma/browser';
 
+declare const __APP_VERSION__: string;
+
 declare global {
     namespace App {
         interface Error {

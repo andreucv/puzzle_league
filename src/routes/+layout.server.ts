@@ -1,6 +1,7 @@
 import type { LayoutServerLoad } from "./$types";
 import { loadTranslations, locales, translations } from "$lib/translations";
 import { getUserWithRoles } from "$lib/database/db_user";
+import { env } from '$env/dynamic/private';
 
 // Locale priority: DB user preference > Accept-Language header > default "es"
 function determineLocale(user, request) {
@@ -32,9 +33,12 @@ export const load: LayoutServerLoad = async ({ url, locals, request }) => {
 
     await loadTranslations(locale, pathname);
 
+    const appVersion = env.VERCEL_ENV === 'preview' ? __APP_VERSION__ : null;
+
     let layoutData = {
         translations: translations.get(),
-        i18n: { locale, route: pathname }
+        i18n: { locale, route: pathname },
+        appVersion
     };
 
     if (!user) {

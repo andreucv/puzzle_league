@@ -2,6 +2,7 @@ import type { PageServerLoad, Actions } from "./$types";
 import { getCompetitionWithCategories, getCompetitionCategories } from "$lib/database/db_competition";
 import { getCategoryEntriesFromCompetition, getRegisteredUserIdsByCategory } from "$lib/database/db_entry";
 import { signUpUsersToCompetition, removeEntryById } from "$lib/database/db_registration";
+import { notifyWaitlistPromotion } from "$lib/notifications/registration_notifications";
 import { redirect } from "@sveltejs/kit";
 import { createNotificationForUsers } from "$lib/notifications/notifications";
 import { NotificationType, RegistrationStatus } from "$lib/.prisma/generated/prisma/enums";
@@ -105,6 +106,10 @@ export const actions: Actions = {
         try {
             const result = await removeEntryById(entryId, user.id);
             if (result) {
+                // If a waitlisted entry was promoted, notify its participants
+                if (result.promotedEntry) {
+                    await notifyWaitlistPromotion(result.promotedEntry);
+                }
                 return { success: true, message: 'Successfully unregistered' };
             }
             return { success: false, message: 'Failed to unregister' };

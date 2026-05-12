@@ -46,6 +46,10 @@ export default defineConfig({
             testMatch: /setup\/auth-participant\.setup\.ts/,
         },
         {
+            name: 'setup_organizer',
+            testMatch: /setup\/auth-organizer\.setup\.ts/,
+        },
+        {
             name: 'anonymous',
             testMatch: /.*\/anonymous\.test\.ts/,
             use: { ...devices['Desktop Chrome'] }
@@ -54,28 +58,34 @@ export default defineConfig({
             name: 'participant',
             testMatch: /.*\/participant\.test\.ts/,
             use: { ...devices['Desktop Chrome'] },
-            dependencies: ['setup_participant'],
+            dependencies: ['setup_participant', 'setup_organizer'],
+        },
+        {
+            name: 'organizer',
+            testMatch: /.*\/organizer\.test\.ts/,
+            use: { ...devices['Desktop Chrome'] },
+            dependencies: ['setup_organizer', 'setup_participant'],
         },
         { name: 'setup', testMatch: /setup\/auth.*\.setup\.ts/ },
         {
             name: 'chromium',
             use: { ...devices['Desktop Chrome'] },
             dependencies: ['setup'],
-            testIgnore: [/responsive\/mobile_navigation\.test\.ts/, /anonymous\.test\.ts/, /participant\.test\.ts/],
+            testIgnore: [/responsive\/mobile_navigation\.test\.ts/, /anonymous\.test\.ts/, /participant\.test\.ts/, /organizer\.test\.ts/],
         },
 
         {
             name: 'firefox',
             use: { ...devices['Desktop Firefox'] },
             dependencies: ['setup'],
-            testIgnore: [/responsive\/mobile_navigation\.test\.ts/, /anonymous\.test\.ts/, /participant\.test\.ts/],
+            testIgnore: [/responsive\/mobile_navigation\.test\.ts/, /anonymous\.test\.ts/, /participant\.test\.ts/, /organizer\.test\.ts/],
         },
 
         {
             name: 'webkit',
             use: { ...devices['Desktop Safari'] },
             dependencies: ['setup'],
-            testIgnore: [/responsive\/mobile_navigation\.test\.ts/, /anonymous\.test\.ts/, /participant\.test\.ts/],
+            testIgnore: [/responsive\/mobile_navigation\.test\.ts/, /anonymous\.test\.ts/, /participant\.test\.ts/, /organizer\.test\.ts/],
         },
 
         /* Test against mobile viewports. */
@@ -83,13 +93,13 @@ export default defineConfig({
             name: 'mobile_chrome',
             use: { ...devices['Pixel 7'] },
             dependencies: ['setup'],
-            testIgnore: [/anonymous\.test\.ts/, /participant\.test\.ts/],
+            testIgnore: [/anonymous\.test\.ts/, /participant\.test\.ts/, /organizer\.test\.ts/],
         },
         {
             name: 'mobile_safari',
             use: { ...devices['iPhone 14'] },
             dependencies: ['setup'],
-            testIgnore: [/anonymous\.test\.ts/, /participant\.test\.ts/],
+            testIgnore: [/anonymous\.test\.ts/, /participant\.test\.ts/, /organizer\.test\.ts/],
         },
 
         /* Test against branded browsers. */

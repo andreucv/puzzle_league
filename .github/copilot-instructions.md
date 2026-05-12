@@ -10,7 +10,6 @@ and tailwindcss for styling.
 - `src` - contains the source code for the app
   - `lib` - contains the libraries used in the app
   - `routes` - contains the routes used in the app
-  - `shareds` - contains the stores used in the app
 - `e2e` - contains the end-to-end tests for the app
 - `prisma` - contains the Prisma schema and migrations
 - `docs` - contains the documentation of the project

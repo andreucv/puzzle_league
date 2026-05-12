@@ -94,6 +94,88 @@ export async function notifyRegistrationConfirmed(
 }
 
 // ---------------------------------------------------------------------------
+// Waitlist promotion notification
+// ---------------------------------------------------------------------------
+
+import type { PromotedEntry } from '$lib/database/db_registration';
+
+/**
+ * Send REGISTRATION_PROMOTED notifications when a waitlisted entry is
+ * promoted to PENDING_CONFIRMATION because a slot opened up.
+ *
+ * Follows the same recipient pattern as notifyRegistrationConfirmed:
+ * 1. Creator IS a participant → one notification to that user.
+ * 2. Creator is NOT a participant:
+ *    2.1 Has real platform users → notify each user + notify creator.
+ *    2.2 Only external participants → notify creator.
+ */
+export async function notifyWaitlistPromotion(
+	entry: PromotedEntry,
+	actorName?: string,
+): Promise<void> {
+	const typeLabel = getCategoryTypeName(entry.category.type as CategoryType);
+	const categoryName = entry.category.subname
+		? `${typeLabel} - ${entry.category.subname}`
+		: typeLabel;
+	const competitionName = entry.category.competition.name;
+	const link = `/competitions/competition_details/${entry.category.competitionId}`;
+
+	const realUserIds = entry.users.map((u) => u.id);
+	const creatorIsParticipant = realUserIds.includes(entry.creatorId);
+
+	const promises: Promise<unknown>[] = [];
+
+	// Notify every real platform user on the entry
+	for (const user of entry.users) {
+		const teammates = [
+			...entry.users.filter((u) => u.id !== user.id).map((u) => u.name),
+			...entry.externalParticipants.map((ui) => ui.name),
+		];
+		const teammateNames = teammates.join(', ');
+		const hasTeammates = teammates.length > 0;
+
+		promises.push(
+			createNotification({
+				userId: user.id,
+				type: NotificationType.REGISTRATION_PROMOTED,
+				title: hasTeammates
+					? 'notifications.titles.registration_promoted_team'
+					: 'notifications.titles.registration_promoted',
+				message: hasTeammates
+					? 'notifications.messages.registration_promoted_team'
+					: 'notifications.messages.registration_promoted',
+				link,
+				data: { categoryName, competitionName, teammateNames },
+				actorName,
+				translationKey: hasTeammates ? 'registration_promoted_team' : undefined,
+			}),
+		);
+	}
+
+	// If the creator is NOT already a participant, they still need a notification
+	if (!creatorIsParticipant) {
+		const allParticipantNames = [
+			...entry.users.map((u) => u.name),
+			...entry.externalParticipants.map((ui) => ui.name),
+		].join(', ');
+		promises.push(
+			createNotification({
+				userId: entry.creatorId,
+				type: NotificationType.REGISTRATION_PROMOTED,
+				title: 'notifications.titles.registration_promoted_nonplatform',
+				message: 'notifications.messages.registration_promoted_nonplatform',
+				link,
+				data: { participantNames: allParticipantNames, categoryName, competitionName },
+				actorName,
+				translationKey: 'registration_promoted_nonplatform',
+			}),
+		);
+	}
+
+	await Promise.all(promises);
+}
+
+// ---------------------------------------------------------------------------
 // Payment reminder notification
 // ---------------------------------------------------------------------------
 

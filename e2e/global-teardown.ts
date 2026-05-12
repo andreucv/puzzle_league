@@ -11,8 +11,9 @@ const STATE_FILE = path.resolve(ROOT, 'playwright/.test-server-state.json');
 const PREVIEW_PORT = 4173;
 
 interface ServerState {
-    serverPid: number;
-    dbUrl: string;
+    serverPid?: number;
+    dbUrl?: string;
+    buildHash?: string;
 }
 
 /** Kill all processes listening on the preview port. */
@@ -41,6 +42,12 @@ export default async function globalTeardown() {
 
     const state: ServerState = JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8'));
 
+    if (!state.serverPid) {
+        console.log('   No server PID in state file — nothing to stop.');
+        killProcessesOnPort(PREVIEW_PORT);
+        return;
+    }
+
     // Stop the preview server via PID
     console.log(`\n🛑 Stopping preview server (PID: ${state.serverPid})...`);
     try {
@@ -57,7 +64,8 @@ export default async function globalTeardown() {
     await new Promise((r) => setTimeout(r, 1000));
     killProcessesOnPort(PREVIEW_PORT);
 
-    // Clean up state file
-    fs.unlinkSync(STATE_FILE);
-    console.log('   ✅ Server stopped.\n');
+    // Preserve build hash for next run, remove server PID
+    const newState: ServerState = { buildHash: state.buildHash };
+    fs.writeFileSync(STATE_FILE, JSON.stringify(newState, null, 2));
+    console.log('   ✅ Server stopped. Build hash preserved.\n');
 }

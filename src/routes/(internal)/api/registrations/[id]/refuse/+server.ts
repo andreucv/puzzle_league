@@ -3,6 +3,7 @@ import { refuseRegistration } from '$lib/database/db_registration';
 import { prisma } from '$lib/database/create_prisma_client';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 import { createNotificationForUsers } from '$lib/notifications/notifications';
+import { notifyWaitlistPromotion } from '$lib/notifications/registration_notifications';
 
 export const POST = async (event: RequestEvent) => {
 	try {
@@ -31,7 +32,7 @@ export const POST = async (event: RequestEvent) => {
 			return json({ error: result.error }, { status: 400 });
 		}
 
-		// Notify all participants on this entry
+		// Notify all participants on this entry about the refusal
 		const userIds = entry.users.map((u) => u.id);
 		await createNotificationForUsers(
 			userIds,
@@ -42,6 +43,11 @@ export const POST = async (event: RequestEvent) => {
 			{ categoryName: entry.category.description },
 			actorName,
 		);
+
+		// If a waitlisted entry was promoted, notify its participants
+		if (result.promotedEntry) {
+			await notifyWaitlistPromotion(result.promotedEntry, actorName);
+		}
 
 		return json({ success: true, data: result.data });
 	} catch (error) {

@@ -75,7 +75,7 @@
     <div class="space-y-3">
         <!-- Pending section (always visible) -->
         {#if pendingEntries.length > 0}
-            <div>
+            <div data-testid="section-pending">
                 <div class="flex items-center gap-2 mb-1">
                     <ClockOutlineIcon width="1rem" height="1rem" />
                     <span class="text-sm font-semibold" data-testid="entry-status-badge">{$t('manage_registrations.pending_confirmation')}</span>
@@ -94,7 +94,9 @@
                 badgeClass="preset-tonal-secondary"
                 testId="toggle-section-waitlisted"
             >
-                {@render entryList(waitlistedEntries, true, true, false)}
+                <div data-testid="section-waitlisted">
+                    {@render entryList(waitlistedEntries, false, true, false)}
+                </div>
             </CollapsibleSection>
         {/if}
 
@@ -107,7 +109,9 @@
                 badgeClass="preset-tonal-success"
                 testId="toggle-section-confirmed"
             >
-                {@render entryList(confirmedEntries, false, true, false)}
+                <div data-testid="section-confirmed">
+                    {@render entryList(confirmedEntries, false, true, false)}
+                </div>
             </CollapsibleSection>
         {/if}
     </div>

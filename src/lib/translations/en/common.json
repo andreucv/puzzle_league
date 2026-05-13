@@ -798,9 +798,12 @@
     "save_button": "Save location",
     "skip_button": "Skip for now",
     "country_placeholder": "Select your country",
-    "postal_code_placeholder": "e.g. 08001"
+    "postal_code_placeholder": "e.g. 08001",
+    "validation_country": "Please select a valid country.",
+    "validation_postal_code_format": "Enter a valid postal code"
   },
   "add_phone": {
+    "title": "Add your phone number",
     "description": "Add your phone number so organizers can contact you if there is a problem with your registration.",
     "skip_hint": "You can skip this step and update it later from your profile.",
     "save_button": "Save phone number",
@@ -811,7 +814,7 @@
     "validation_prefix_required": "Phone prefix is required when number is provided",
     "validation_number_required": "Phone number is required when prefix is provided",
     "validation_prefix_format": "Prefix must start with + followed by 1-4 digits",
-    "validation_number_format": "Enter a valid phone number"
+    "validation_number_format": "Enter a valid phone number with 6 to 12 digits"
   },
   "select_language": {
     "title": "Choose your language",

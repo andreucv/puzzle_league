@@ -58,6 +58,19 @@ test.describe('Onboarding - happy path', () => {
         await expect(page.getByTestId('onboarding-step-location')).toBeVisible({ timeout: 5000 });
     });
 
+    test('GivenLocationStep_WhenPostalCodeIsInvalid_ThenDoesNotAdvanceToPhoneStep', async ({ page }) => {
+        await gotoExplore(page);
+        await expect(page.getByTestId('onboarding-step-location')).toBeVisible({ timeout: 5000 });
+
+        await page.getByTestId('onboarding-location-country').fill('Spain');
+        await page.getByRole('option', { name: /Spain/ }).first().click();
+        await page.getByTestId('onboarding-location-postal-code').fill('@@');
+        await page.getByTestId('onboarding-location-save').click();
+
+        await expect(page.getByTestId('onboarding-step-location')).toBeVisible();
+        await expect(page.getByTestId('onboarding-step-phone')).not.toBeVisible();
+    });
+
     test('GivenLocationStep_WhenFillingCountryAndPostalCode_ThenAdvancesToPhoneStep', async ({ page }) => {
         await gotoExplore(page);
         // Language was saved — wizard should jump straight to location
@@ -69,6 +82,20 @@ test.describe('Onboarding - happy path', () => {
         await page.getByTestId('onboarding-location-save').click();
 
         await expect(page.getByTestId('onboarding-step-phone')).toBeVisible({ timeout: 5000 });
+    });
+
+    test('GivenPhoneStep_WhenPhoneNumberIsInvalid_ThenDoesNotAdvanceToVerifyEmailStep', async ({ page }) => {
+        await gotoExplore(page);
+        // Language + location saved — wizard should jump straight to phone
+        await expect(page.getByTestId('onboarding-step-phone')).toBeVisible({ timeout: 5000 });
+
+        await page.getByTestId('onboarding-phone-prefix').fill('+34');
+        await page.locator('div').filter({ hasText: /^.*\+34$/ }).first().click();
+        await page.getByTestId('onboarding-phone-number').fill('12345');
+        await page.getByTestId('onboarding-phone-save').click();
+
+        await expect(page.getByTestId('onboarding-step-phone')).toBeVisible();
+        await expect(page.getByTestId('onboarding-step-verify-email')).not.toBeVisible();
     });
 
     test('GivenPhoneStep_WhenFillingPrefixAndNumber_ThenAdvancesToVerifyEmailStep', async ({ page }) => {

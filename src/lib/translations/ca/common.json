@@ -784,7 +784,9 @@
     "save_button": "Desa la ubicació",
     "skip_button": "Salta per ara",
     "country_placeholder": "Selecciona el teu país",
-    "postal_code_placeholder": "ex. 08001"
+    "postal_code_placeholder": "ex. 08001",
+    "validation_country": "Selecciona un país vàlid.",
+    "validation_postal_code_format": "Introdueix un codi postal vàlid"
   },
   "add_phone": {
     "title": "Afegeix el teu número de telèfon",
@@ -798,7 +800,7 @@
     "validation_prefix_required": "El prefix és obligatori si es proporciona un número",
     "validation_number_required": "El número és obligatori si es proporciona un prefix",
     "validation_prefix_format": "El prefix ha de començar amb + seguit d'1-4 dígits",
-    "validation_number_format": "Introdueix un número de telèfon vàlid"
+    "validation_number_format": "Introdueix un número de telèfon vàlid de 6 a 12 dígits"
   },
   "select_language": {
     "title": "Tria el teu idioma",

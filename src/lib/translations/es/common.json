@@ -794,7 +794,9 @@
     "save_button": "Guardar ubicación",
     "skip_button": "Saltar por ahora",
     "country_placeholder": "Selecciona tu país",
-    "postal_code_placeholder": "ej. 08001"
+    "postal_code_placeholder": "ej. 08001",
+    "validation_country": "Selecciona un país válido.",
+    "validation_postal_code_format": "Introduce un código postal válido"
   },
   "add_phone": {
     "title": "Añade tu número de teléfono",
@@ -808,7 +810,7 @@
     "validation_prefix_required": "El prefijo es obligatorio si se proporciona un número",
     "validation_number_required": "El número es obligatorio si se proporciona un prefijo",
     "validation_prefix_format": "El prefijo debe empezar con + seguido de 1-4 dígitos",
-    "validation_number_format": "Introduce un número de teléfono válido"
+    "validation_number_format": "Introduce un número de teléfono válido de 6 a 12 dígitos"
   },
   "select_language": {
     "title": "Elige tu idioma",

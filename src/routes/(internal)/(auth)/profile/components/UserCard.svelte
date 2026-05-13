@@ -111,7 +111,7 @@
                     await invalidateAll();
                 } else if (result.type === 'failure') {
                     const msg = result.data?.message || result.data?.phoneError || 'Something went wrong';
-                    showErrorToast(msg);
+                    showErrorToast(msg.includes('.') ? $t(msg) : msg);
                     await update({ reset: false });
                 } else {
                     await update({ reset: false });

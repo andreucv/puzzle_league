@@ -1,7 +1,8 @@
 import type { PageServerLoad, Actions } from './$types';
 import { getUserAccountProvider, updateUserLocation, updateUserVisibility, updateUserLocale } from '$lib/database/db_user';
 import { error, fail } from '@sveltejs/kit';
-import { validatePhone, savePhoneForUser, deletePhoneForUser } from '$lib/utils/phone_utils';
+import { savePhoneForUser, deletePhoneForUser } from '$lib/utils/phone_utils';
+import { validatePhone, validatePostalCode } from '$lib/utils/contact_validation';
 import { locales } from '$lib/translations';
 
 export const load: PageServerLoad = async ({ parent }) => {
@@ -27,9 +28,14 @@ export const actions: Actions = {
         const formData = await request.formData();
         const country = formData.get('country')?.toString().trim() || null;
         const postalCode = formData.get('postalCode')?.toString().trim() || null;
+        const postalCodeResult = validatePostalCode(postalCode);
+
+        if (!postalCodeResult.valid) {
+            return fail(400, { message: postalCodeResult.error });
+        }
 
         try {
-            await updateUserLocation(user.id, country, postalCode);
+            await updateUserLocation(user.id, country, postalCodeResult.postalCode);
 
             return { success: true };
         } catch (err) {

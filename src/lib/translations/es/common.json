@@ -76,6 +76,7 @@
   "profile": {
     "my_profile": "Mi perfil",
     "roles": "Permisos",
+    "request_organizer_role": "Solicitar rol de organizador",
     "preferences": "Preferencias",
     "data": "Datos del perfil",
     "name": "Nombre",

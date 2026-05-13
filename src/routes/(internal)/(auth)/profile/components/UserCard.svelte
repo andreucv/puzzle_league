@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Avatar, Switch } from "@skeletonlabs/skeleton-svelte";
+    import { Avatar, Portal, Switch, Tooltip } from "@skeletonlabs/skeleton-svelte";
     import type { RoleAssignment } from '$lib/.prisma/generated/prisma/browser';
     import { t, locales, setLocale } from '$lib/translations';
     import { enhance } from '$app/forms';
@@ -133,20 +133,31 @@
     <!-- Avatar Section - Centered -->
     <h3 class="text-lg font-semibold text-surface-700-300">{$t('profile.data')}</h3>
     <div class="flex justify-center pb-6">
-        {#if user.image}
-            <Avatar class="w-20 h-20 rounded-full border-2 border-surface-300">
-                <Avatar.Image src={user.image} alt={user.name ?? 'User'} />
-                <Avatar.Fallback>{user.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
-            </Avatar>
-            {#if account.provider === "credential"}
-                <button class="btn btn-sm preset-outlined-surface-500">Change</button>
-            {/if}
-        {:else}
-            <div class="w-20 h-20 rounded-full bg-primary-500 flex items-center justify-center">
-                <span class="text-2xl font-bold text-white">
-                    {user.email.charAt(0).toUpperCase()}
-                </span>
-            </div>
+        <Tooltip positioning={{ placement: 'top' }}>
+            <Tooltip.Trigger>
+                {#if user.image}
+                    <Avatar class="w-20 h-20 rounded-full border-2 border-surface-300">
+                        <Avatar.Image src={user.image} alt={user.name ?? 'User'} />
+                        <Avatar.Fallback>{user.name?.substring(0,2) ?? 'U'}</Avatar.Fallback>
+                    </Avatar>
+                {:else}
+                    <div class="w-20 h-20 rounded-full bg-primary-500 flex items-center justify-center cursor-default">
+                        <span class="text-2xl font-bold text-white">
+                            {user.email.charAt(0).toUpperCase()}
+                        </span>
+                    </div>
+                {/if}
+            </Tooltip.Trigger>
+            <Portal>
+                <Tooltip.Positioner>
+                    <Tooltip.Content class="card px-3 py-1.5 preset-filled-surface-950-50 text-sm">
+                        {$t('profile.my_profile')}
+                    </Tooltip.Content>
+                </Tooltip.Positioner>
+            </Portal>
+        </Tooltip>
+        {#if user.image && account.provider === "credential"}
+            <button class="btn btn-sm preset-outlined-surface-500">Change</button>
         {/if}
     </div>
 
@@ -415,20 +426,32 @@
                 {/if}
             {/snippet}
         </ProfileDataRow>
-    </div>
 
-    <!-- Role Badges - Centered -->
-    <div class="grid grid-cols-2 gap-2 pb-4">
-        <div>{$t('profile.roles')}</div>
-        <div class="flex justify-end gap-2">
-        <span class="badge preset-filled-surface-500" data-testid="profile-participant-role-chip">Participant</span>
-        {#if user.roleAssignments?.some((role: RoleAssignment) => role.role === "ORGANIZER")}
-            <span class="badge preset-filled-primary-500" data-testid="profile-organizer-role-chip">Organizer</span>
-        {/if}
-        {#if user.roleAssignments?.some((role: RoleAssignment) => role.role === "ADMIN")}
-            <span class="badge preset-filled-secondary-500" data-testid="profile-admin-role-chip">Admin</span>
-        {/if}
-        </div>
+        <!-- Role Badges -->
+        <ProfileDataRow label={$t('profile.roles')}>
+            {#snippet content()}
+                <div class="flex flex-wrap gap-2">
+                    <span class="badge preset-filled-surface-500" data-testid="profile-participant-role-chip">Participant</span>
+                    {#if user.roleAssignments?.some((role: RoleAssignment) => role.role === "ORGANIZER")}
+                        <span class="badge preset-filled-primary-500" data-testid="profile-organizer-role-chip">Organizer</span>
+                    {/if}
+                    {#if user.roleAssignments?.some((role: RoleAssignment) => role.role === "ADMIN")}
+                        <span class="badge preset-filled-secondary-500" data-testid="profile-admin-role-chip">Admin</span>
+                    {/if}
+                </div>
+            {/snippet}
+            {#snippet action()}
+                {#if !user.roleAssignments?.some((role: RoleAssignment) => role.role === "ORGANIZER")}
+                    <a
+                        class="btn btn-sm preset-outlined-primary-500"
+                        href="/request_permissions"
+                        data-testid="request-organizer-role-button"
+                    >
+                        {$t('profile.request_organizer_role')}
+                    </a>
+                {/if}
+            {/snippet}
+        </ProfileDataRow>
     </div>
 
     <!-- Member Info Section -->
@@ -506,7 +529,7 @@
                     <Switch.Label>
                         <span class="text-sm font-semibold text-surface-500">{$t('profile.public_profile_visibility')}</span>
                     </Switch.Label>
-                    <Switch.Control>
+                    <Switch.Control class="preset-filled-surface-200-800 data-[state=checked]:preset-filled-primary-950-50">
                         <Switch.Thumb />
                     </Switch.Control>
                     <Switch.HiddenInput />
@@ -541,7 +564,7 @@
                     <Switch.Label>
                         <span class="text-sm font-semibold text-surface-500">{$t('profile.public_results_visibility')}</span>
                     </Switch.Label>
-                    <Switch.Control>
+                    <Switch.Control class="preset-filled-surface-200-800 data-[state=checked]:preset-filled-primary-950-50">
                         <Switch.Thumb />
                     </Switch.Control>
                     <Switch.HiddenInput />

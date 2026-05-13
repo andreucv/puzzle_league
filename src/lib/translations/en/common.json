@@ -76,6 +76,7 @@
   "profile": {
     "my_profile": "My profile",
     "roles": "Roles",
+    "request_organizer_role": "Request organizer role",
     "preferences": "Profile preferences",
     "data": "Profile data",
     "name": "Name",

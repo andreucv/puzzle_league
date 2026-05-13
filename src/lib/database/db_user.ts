@@ -146,6 +146,13 @@ export async function updateUserLocation(userId: string, country: string | null,
     });
 }
 
+export async function updateUserName(userId: string, name: string) {
+    return prisma.user.update({
+        where: { id: userId },
+        data: { name, updatedAt: new Date() }
+    });
+}
+
 export async function updateUserVisibility(userId: string, field: 'publicProfileVisibility' | 'publicResultsVisibility', value: boolean) {
     return prisma.user.update({
         where: { id: userId },

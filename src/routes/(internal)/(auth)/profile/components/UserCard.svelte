@@ -1,17 +1,15 @@
 <script lang="ts">
-    import { Avatar, Switch, Dialog } from "@skeletonlabs/skeleton-svelte";
-    import type { RoleAssignment } from "@prisma/client";
-    import { t, locale, locales, setLocale } from '$lib/translations';
+    import { Avatar, Switch } from "@skeletonlabs/skeleton-svelte";
+    import type { RoleAssignment } from '$lib/.prisma/generated/prisma/browser';
+    import { t, locales, setLocale } from '$lib/translations';
     import { enhance } from '$app/forms';
     import { invalidateAll } from '$app/navigation';
     import ThemeLightSwitch from '$lib/components/common/ThemeLightSwitch.svelte';
     import PhonePrefixCombobox from '$lib/components/common/PhonePrefixCombobox.svelte';
     import CountryCombobox from '$lib/components/common/CountryCombobox.svelte';
-    import { showErrorToast } from '$lib/utils/toast';
-    import { authClient } from '$lib/auth_client';
-    import PasswordUpdateForm from '$lib/components/common/auth/PasswordUpdateForm.svelte';
-    import type { PasswordUpdatePayload } from '$lib/components/common/auth/PasswordUpdateForm.svelte';
+    import { showErrorToast, showSuccessToast } from '$lib/utils/toast';
     import langNames from '$lib/translations/lang.json';
+    import ProfileDataRow from './ProfileDataRow.svelte';
 
     const langMap: Record<string, string> = langNames;
     import { countries, getCountryFlag, getFlagFromPhonePrefix } from '$lib/utils/country_utils';
@@ -21,6 +19,7 @@
     // --- Editable state (synced from user prop via $effect below) ---
     let profileVisibility = $state(true);
     let resultsVisibility = $state(true);
+    let nameValue = $state('');
     let countryValue: string[] = $state([]);
     let countryInputValue = $state('');
     let postalCodeValue = $state('');
@@ -30,60 +29,27 @@
     let selectedLocale = $state('');
 
     // --- UI state ---
+    let isSavingName = $state(false);
     let isSavingVisibility = $state(false);
     let isSavingLocation = $state(false);
     let isSavingPhone = $state(false);
     let isDeletingPhone = $state(false);
     let isSavingLocale = $state(false);
+    let isSendingVerificationEmail = $state(false);
+    let isEditingName = $state(false);
     let isEditingLocation = $state(false);
     let isEditingPhone = $state(false);
     let profileVisibilityForm: HTMLFormElement;
     let resultsVisibilityForm: HTMLFormElement;
     let localeForm: HTMLFormElement;
 
-    // --- Change Password Dialog state ---
-    let showChangePasswordDialog = $state(false);
-    let isChangingPassword = $state(false);
-    let changePasswordError = $state('');
-    let changePasswordSuccess = $state('');
-    let passwordFormRef: { reset: () => void } | undefined = $state(undefined);
-
-    async function handleChangePassword(payload: PasswordUpdatePayload) {
-        isChangingPassword = true;
-        changePasswordError = '';
-        changePasswordSuccess = '';
-
-        try {
-            const { error } = await authClient.changePassword({
-                newPassword: payload.newPassword,
-                currentPassword: payload.currentPassword!,
-                revokeOtherSessions: payload.revokeOtherSessions ?? false,
-            });
-
-            if (error) {
-                changePasswordError = error.message || 'Something went wrong';
-            } else {
-                changePasswordSuccess = $t('auth.reset_password_success');
-                passwordFormRef?.reset();
-                // Close dialog after a brief delay so user sees the success message
-                setTimeout(() => {
-                    showChangePasswordDialog = false;
-                    changePasswordSuccess = '';
-                }, 2000);
-            }
-        } catch {
-            changePasswordError = 'Something went wrong';
-        } finally {
-            isChangingPassword = false;
-        }
-    }
-
-    let displayName = $derived(user.name || "Pending name...");
+    let displayName = $derived(user.name || $t('profile.name_not_set'));
 
     // Sync all editable state from user prop (fires after form revalidation via invalidateAll)
     $effect(() => {
         profileVisibility = user.publicProfileVisibility ?? true;
         resultsVisibility = user.publicResultsVisibility ?? true;
+        nameValue = user.name || '';
         countryValue = user.country ? [user.country] : [];
         countryInputValue = user.country ? (countries.find(c => c.code === user.country)?.name || '') : '';
         postalCodeValue = user.postalCode || '';
@@ -118,6 +84,25 @@
                 }
             };
         };
+    }
+
+    function resetNameEdit() {
+        nameValue = user.name || '';
+        isEditingName = false;
+    }
+
+    function resetLocationEdit() {
+        countryValue = user.country ? [user.country] : [];
+        countryInputValue = user.country ? (countries.find(c => c.code === user.country)?.name || '') : '';
+        postalCodeValue = user.postalCode || '';
+        isEditingLocation = false;
+    }
+
+    function resetPhoneEdit() {
+        phonePrefixValue = user.phonePrefix ? [user.phonePrefix] : [];
+        phonePrefixInputValue = user.phonePrefix || '';
+        phoneNumberValue = user.phoneNumber || '';
+        isEditingPhone = false;
     }
 
     // Get country name from code
@@ -166,153 +151,199 @@
     </div>
 
     <!-- Settings Section -->
-    <div class="space-y-4 pb-6">
-        <!-- Name Setting -->
-        <div class="grid grid-cols-2 md:grid-cols-2 gap-4 items-center">
-            <div>
-                <span class="text-sm font-semibold text-surface-500">Name</span>
-                <p class="text-sm">{displayName}</p>
-            </div>
-            <div class="flex justify-end">
-                <button class="btn btn-sm preset-outlined-surface-500" disabled>Change</button>
-            </div>
-        </div>
-
-        <!-- Password Setting -->
-        <div class="grid grid-cols-2 md:grid-cols-2 gap-4 items-center">
-            <div>
-                <span class="text-sm font-semibold text-surface-500">Password</span>
-                <p class="text-sm">••••••••</p>
-            </div>
-            <div class="flex justify-end">
-                {#if account.provider === "credential"}
-                    <button
-                        class="btn btn-sm preset-outlined-surface-500"
-                        data-testid="change-password-trigger"
-                        onclick={() => showChangePasswordDialog = true}
+    <div class="pb-6">
+        <ProfileDataRow label={$t('profile.name')} testId="profile-name-row">
+            {#snippet content()}
+                {#if isEditingName}
+                    <form
+                        method="POST"
+                        action="?/updateName"
+                        use:enhance={createEnhance(
+                            (v) => isSavingName = v,
+                            () => { isEditingName = false; },
+                        )}
+                        class="space-y-3"
                     >
-                        Change
-                    </button>
-                {:else}
-                    <button class="btn btn-sm preset-outlined-surface-500" disabled>Change</button>
-                {/if}
-            </div>
-        </div>
-
-        <!-- Location Setting (Country + Postal Code) -->
-        <div class="space-y-2">
-            <span class="text-sm font-semibold text-surface-500">Location</span>
-            {#if isEditingLocation}
-                <form
-                    method="POST"
-                    action="?/updateLocation"
-                    use:enhance={createEnhance(
-                        (v) => isSavingLocation = v,
-                        () => { isEditingLocation = false; },
-                    )}
-                    class="space-y-2"
-                >
-                    <div class="grid grid-cols-2 md:grid-cols-1 gap-2">
-                        <input type="hidden" name="country" value={countryValue[0] || ''} />
-                        <CountryCombobox
-                            bind:value={countryValue}
-                            bind:inputValue={countryInputValue}
-                            placeholder="Select country..."
-                        />
                         <input
-                            name="postalCode"
+                            name="name"
                             type="text"
-                            class="input text-sm px-3 py-2 border rounded-lg border-surface-300 bg-white"
-                            placeholder="Postal code"
-                            bind:value={postalCodeValue}
+                            class="input w-full max-w-md text-sm px-3 py-2 border rounded-lg border-surface-300 bg-white"
+                            placeholder={$t('profile.name_placeholder')}
+                            maxlength="80"
+                            bind:value={nameValue}
+                            data-testid="profile-name-input"
+                            required
                         />
-                    </div>
-                    <div class="flex gap-2">
-                        <button
-                            type="submit"
-                            class="btn btn-sm preset-filled-primary-500"
-                            disabled={isSavingLocation}
-                        >
-                            {isSavingLocation ? '...' : 'Save'}
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-sm preset-outlined-surface-500"
-                            onclick={() => { isEditingLocation = false; countryValue = user.country ? [user.country] : []; postalCodeValue = user.postalCode || ''; }}
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            {:else}
-                <div class="flex items-center justify-between">
+                        <div class="flex flex-wrap gap-2">
+                            <button
+                                type="submit"
+                                class="btn btn-sm preset-filled-primary-500"
+                                disabled={isSavingName}
+                                data-testid="profile-name-save-button"
+                            >
+                                {isSavingName ? '...' : $t('profile.save')}
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-sm preset-outlined-surface-500"
+                                onclick={resetNameEdit}
+                            >
+                                {$t('profile.cancel')}
+                            </button>
+                        </div>
+                    </form>
+                {:else}
+                    <p class="text-sm truncate" data-testid="profile-name-value">{displayName}</p>
+                {/if}
+            {/snippet}
+            {#snippet action()}
+                {#if !isEditingName}
+                    <button
+                        type="button"
+                        class="btn btn-sm preset-outlined-surface-500"
+                        onclick={() => isEditingName = true}
+                        data-testid="profile-name-edit-button"
+                    >
+                        {$t('profile.change')}
+                    </button>
+                {/if}
+            {/snippet}
+        </ProfileDataRow>
+
+        <ProfileDataRow label={$t('profile.password')} testId="profile-password-row">
+            {#snippet content()}
+                <p class="text-sm">••••••••</p>
+            {/snippet}
+            {#snippet action()}
+                {#if account.provider === "credential"}
+                    <a
+                        class="btn btn-sm preset-outlined-surface-500"
+                        href="/profile/password"
+                        data-testid="change-password-trigger"
+                    >
+                        {$t('profile.change')}
+                    </a>
+                {:else}
+                    <button class="btn btn-sm preset-outlined-surface-500" disabled>{$t('profile.change')}</button>
+                {/if}
+            {/snippet}
+        </ProfileDataRow>
+
+        <ProfileDataRow label={$t('profile.location')} testId="profile-location-row">
+            {#snippet content()}
+                {#if isEditingLocation}
+                    <form
+                        method="POST"
+                        action="?/updateLocation"
+                        use:enhance={createEnhance(
+                            (v) => isSavingLocation = v,
+                            () => { isEditingLocation = false; },
+                        )}
+                        class="space-y-3"
+                    >
+                        <div class="grid max-w-xl grid-cols-1 gap-2 sm:grid-cols-2">
+                            <input type="hidden" name="country" value={countryValue[0] || ''} />
+                            <CountryCombobox
+                                bind:value={countryValue}
+                                bind:inputValue={countryInputValue}
+                                placeholder="Select country..."
+                            />
+                            <input
+                                name="postalCode"
+                                type="text"
+                                class="input text-sm px-3 py-2 border rounded-lg border-surface-300 bg-white"
+                                placeholder="Postal code"
+                                bind:value={postalCodeValue}
+                            />
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button
+                                type="submit"
+                                class="btn btn-sm preset-filled-primary-500"
+                                disabled={isSavingLocation}
+                            >
+                                {isSavingLocation ? '...' : $t('profile.save')}
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-sm preset-outlined-surface-500"
+                                onclick={resetLocationEdit}
+                            >
+                                {$t('profile.cancel')}
+                            </button>
+                        </div>
+                    </form>
+                {:else}
                     <p class="text-sm">
                         {#if user.country}
                             {getCountryFlag(user.country)} {getCountryName(user.country)}{user.postalCode ? `, ${user.postalCode}` : ''}
                         {:else}
-                            Not set
+                            {$t('profile.not_set')}
                         {/if}
                     </p>
+                {/if}
+            {/snippet}
+            {#snippet action()}
+                {#if !isEditingLocation}
                     <button
+                        type="button"
                         class="btn btn-sm preset-outlined-surface-500"
                         onclick={() => isEditingLocation = true}
                     >
-                        Change
+                        {$t('profile.change')}
                     </button>
-                </div>
-            {/if}
-        </div>
+                {/if}
+            {/snippet}
+        </ProfileDataRow>
 
-        <!-- Phone Setting -->
-        <div class="space-y-2">
-            <span class="text-sm font-semibold text-surface-500">{$t('profile.phone')}</span>
-            {#if isEditingPhone}
-                <form
-                    method="POST"
-                    action="?/updatePhone"
-                    use:enhance={createEnhance(
-                        (v) => isSavingPhone = v,
-                        () => { isEditingPhone = false; },
-                    )}
-                    class="space-y-2"
-                >
-                    <div class="grid grid-cols-[7rem_1fr] gap-2">
-                        <input type="hidden" name="phonePrefix" value={phonePrefixValue[0] || ''} />
-                        <PhonePrefixCombobox
-                            bind:value={phonePrefixValue}
-                            bind:inputValue={phonePrefixInputValue}
-                            placeholder={$t('profile.phone_prefix_placeholder')}
-                            testId="phone-prefix-input"
-                        />
-                        <input
-                            name="phoneNumber"
-                            type="text"
-                            class="input text-sm px-3 py-2 border rounded-lg border-surface-300 bg-white"
-                            placeholder={$t('profile.phone_number_placeholder')}
-                            bind:value={phoneNumberValue}
-                            data-testid="phone-number-input"
-                        />
-                    </div>
-                    <div class="flex gap-2">
-                        <button
-                            type="submit"
-                            class="btn btn-sm preset-filled-primary-500"
-                            disabled={isSavingPhone}
-                            data-testid="phone-save-button"
-                        >
-                            {isSavingPhone ? '...' : 'Save'}
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-sm preset-outlined-surface-500"
-                            onclick={() => { isEditingPhone = false; phonePrefixValue = user.phonePrefix ? [user.phonePrefix] : []; phonePrefixInputValue = user.phonePrefix || ''; phoneNumberValue = user.phoneNumber || ''; }}
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            {:else}
-                <div class="flex items-center justify-between">
+        <ProfileDataRow label={$t('profile.phone')} testId="profile-phone-row">
+            {#snippet content()}
+                {#if isEditingPhone}
+                    <form
+                        method="POST"
+                        action="?/updatePhone"
+                        use:enhance={createEnhance(
+                            (v) => isSavingPhone = v,
+                            () => { isEditingPhone = false; },
+                        )}
+                        class="space-y-3"
+                    >
+                        <div class="grid max-w-md grid-cols-[7rem_1fr] gap-2">
+                            <input type="hidden" name="phonePrefix" value={phonePrefixValue[0] || ''} />
+                            <PhonePrefixCombobox
+                                bind:value={phonePrefixValue}
+                                bind:inputValue={phonePrefixInputValue}
+                                placeholder={$t('profile.phone_prefix_placeholder')}
+                                testId="phone-prefix-input"
+                            />
+                            <input
+                                name="phoneNumber"
+                                type="text"
+                                class="input text-sm px-3 py-2 border rounded-lg border-surface-300 bg-white"
+                                placeholder={$t('profile.phone_number_placeholder')}
+                                bind:value={phoneNumberValue}
+                                data-testid="phone-number-input"
+                            />
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button
+                                type="submit"
+                                class="btn btn-sm preset-filled-primary-500"
+                                disabled={isSavingPhone}
+                                data-testid="phone-save-button"
+                            >
+                                {isSavingPhone ? '...' : $t('profile.save')}
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-sm preset-outlined-surface-500"
+                                onclick={resetPhoneEdit}
+                            >
+                                {$t('profile.cancel')}
+                            </button>
+                        </div>
+                    </form>
+                {:else}
                     <p class="text-sm">
                         {#if user.phonePrefix && user.phoneNumber}
                             {getFlagFromPhonePrefix(user.phonePrefix)} {user.phonePrefix} {user.phoneNumber}
@@ -320,59 +351,70 @@
                             {$t('profile.phone_not_set')}
                         {/if}
                     </p>
-                    <div class="flex gap-2">
-                        <button
-                            class="btn btn-sm preset-outlined-surface-500"
-                            onclick={() => isEditingPhone = true}
-                            data-testid="phone-edit-button"
+                {/if}
+            {/snippet}
+            {#snippet action()}
+                {#if !isEditingPhone}
+                    <button
+                        type="button"
+                        class="btn btn-sm preset-outlined-surface-500"
+                        onclick={() => isEditingPhone = true}
+                        data-testid="phone-edit-button"
+                    >
+                        {$t('profile.change')}
+                    </button>
+                    {#if user.phonePrefix && user.phoneNumber}
+                        <form
+                            method="POST"
+                            action="?/deletePhone"
+                            use:enhance={createEnhance(
+                                (v) => isDeletingPhone = v,
+                            )}
                         >
-                            Change
-                        </button>
-                        {#if user.phonePrefix && user.phoneNumber}
-                            <form
-                                method="POST"
-                                action="?/deletePhone"
-                                use:enhance={createEnhance(
-                                    (v) => isDeletingPhone = v,
-                                )}
+                            <button
+                                type="submit"
+                                class="btn btn-sm preset-outlined-error-500"
+                                disabled={isDeletingPhone}
+                                data-testid="phone-delete-button"
                             >
-                                <button
-                                    type="submit"
-                                    class="btn btn-sm preset-outlined-error-500"
-                                    disabled={isDeletingPhone}
-                                    data-testid="phone-delete-button"
-                                >
-                                    {isDeletingPhone ? '...' : 'Delete'}
-                                </button>
-                            </form>
-                        {/if}
-                    </div>
-                </div>
-            {/if}
-        </div>
+                                {isDeletingPhone ? '...' : $t('profile.delete')}
+                            </button>
+                        </form>
+                    {/if}
+                {/if}
+            {/snippet}
+        </ProfileDataRow>
 
-        <!-- Email/Verification Setting -->
-        <span class="text-sm font-semibold text-surface-500">Email</span>
-        <div class="grid grid-cols-2 md:grid-cols-2 gap-4 items-center">
-            <div>
-            <p class="text-sm">{user.email}</p>
-            {#if user.emailVerified}
-                <span class="text-xs text-success-500">✓ Verified</span>
-            {:else}
-                <a href="/onboarding" class="text-xs text-warning-500 underline hover:text-warning-600 inline-flex items-center gap-1">
-                    <span class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-warning-500"></span>
+        <ProfileDataRow label={$t('profile.email')} testId="profile-email-row">
+            {#snippet content()}
+                <p class="text-sm truncate">{user.email}</p>
+            {/snippet}
+            {#snippet action()}
+                {#if user.emailVerified}
+                    <span class="badge preset-filled-success-500" data-testid="profile-email-verified-badge">
+                        {$t('profile.verified')}
                     </span>
-                    ⚠ Unverified
-                </a>
-            {/if}
-            </div>
-            <div class="flex flex-col items-end gap-1">
-            <span class="badge preset-filled-surface-500">{account.provider}</span>
-            <span class="text-xs text-surface-400">Cannot be changed</span>
-            </div>
-        </div>
+                {:else}
+                    <form
+                        method="POST"
+                        action="?/resendVerificationEmail"
+                        use:enhance={createEnhance(
+                            (v) => isSendingVerificationEmail = v,
+                            () => showSuccessToast($t('profile.email_verification_sent_toast')),
+                        )}
+                    >
+                        <button
+                            type="submit"
+                            class="btn btn-sm preset-outlined-warning-500"
+                            disabled={isSendingVerificationEmail}
+                            data-testid="profile-email-resend-button"
+                        >
+                            {isSendingVerificationEmail ? '...' : $t('profile.send_verification_email')}
+                        </button>
+                    </form>
+                {/if}
+            {/snippet}
+        </ProfileDataRow>
     </div>
 
     <!-- Role Badges - Centered -->
@@ -435,17 +477,6 @@
                         {/each}
                     </select>
                 </form>
-            </div>
-        </div>
-
-        <!-- Theme Setting -->
-        <div class="grid grid-cols-2 gap-4 items-center">
-            <div>
-                <span class="text-sm font-semibold text-surface-500">Theme</span>
-                <p class="text-sm">Light Mode</p>
-            </div>
-            <div class="flex justify-end">
-                <ThemeLightSwitch />
             </div>
         </div>
 
@@ -518,38 +549,5 @@
             </form>
             <p class="text-xs text-surface-400 pl-1">{$t('profile.public_results_visibility_description')}</p>
         </div>
-        <div class="grid grid-cols-2 gap-4 items-center">
-            <div>
-                <span class="text-sm font-semibold text-surface-500">Time format</span>
-                <p class="text-sm">24-hour</p>
-            </div>
-            <div class="flex justify-end">
-                <button class="btn btn-sm preset-outlined-surface-500" disabled>Change</button>
-            </div>
-        </div>
     </div>
 </div>
-
-<!-- Change Password Dialog -->
-<Dialog open={showChangePasswordDialog} onOpenChange={(e) => { showChangePasswordDialog = e.open; if (!e.open) { changePasswordError = ''; changePasswordSuccess = ''; } }}>
-    <Dialog.Backdrop class="fixed inset-0 z-50 bg-black/50" />
-    <Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <Dialog.Content class="card preset-outlined-surface-200-800 p-6 max-w-md w-full space-y-4">
-            <h3 class="text-lg font-semibold" data-testid="change-password-dialog-title">{$t('auth.change_password_title')}</h3>
-            <PasswordUpdateForm
-                bind:this={passwordFormRef}
-                showCurrentPassword={true}
-                showRevokeOtherSessions={true}
-                submitLabel={$t('auth.change_password_button')}
-                loading={isChangingPassword}
-                errorMessage={changePasswordError}
-                successMessage={changePasswordSuccess}
-                testIdPrefix="change-password"
-                onsubmit={handleChangePassword}
-            />
-            <Dialog.CloseTrigger class="btn btn-sm preset-outlined-surface-500 w-full" data-testid="change-password-cancel">
-                Cancel
-            </Dialog.CloseTrigger>
-        </Dialog.Content>
-    </Dialog.Positioner>
-</Dialog>

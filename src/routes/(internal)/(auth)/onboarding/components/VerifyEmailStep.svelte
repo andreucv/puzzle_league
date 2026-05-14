@@ -4,14 +4,17 @@
     import Card from '$lib/components/common/card/Card.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import { createEnhanceHandler } from '$lib/utils/form_enhance';
+    import { showSuccessToast, showErrorToast } from '$lib/utils/toast';
     import Icon from '@iconify/svelte';
 
     let {
         userEmail,
+        isActive,
         isSubmitting = $bindable(false),
         onSuccess,
     }: {
         userEmail: string;
+        isActive: boolean;
         isSubmitting?: boolean;
         onSuccess: () => void | Promise<void>;
     } = $props();
@@ -19,6 +22,19 @@
     let isResendingEmail = $state(false);
     let emailResent = $state(false);
     let emailResendFailed = $state(false);
+    let toastShown = $state(false);
+
+    // Show toast only when this step becomes the active step (not on mount,
+    // because all wizard steps are mounted at once and hidden with CSS).
+    $effect(() => {
+        if (isActive && !toastShown) {
+            toastShown = true;
+            showSuccessToast(
+                $t('onboarding.verify_email_toast_title'),
+                $t('onboarding.verify_email_toast_description', { email: userEmail }),
+            );
+        }
+    });
 
     function createResendEnhanceHandler() {
         return () => {
@@ -29,8 +45,13 @@
                 isResendingEmail = false;
                 if (result.type === 'success') {
                     emailResent = true;
+                    showSuccessToast(
+                        $t('onboarding.verify_email_resent'),
+                        $t('onboarding.verify_email_toast_description', { email: userEmail }),
+                    );
                 } else {
                     emailResendFailed = true;
+                    showErrorToast($t('onboarding.verify_email_resend_error'));
                 }
             };
         };

@@ -810,6 +810,8 @@
     "verify_email_resent": "Email sent!",
     "verify_email_resending": "Sending...",
     "verify_email_resend_error": "Failed to send verification email. Please try again later.",
+    "verify_email_toast_title": "Verification email sent",
+    "verify_email_toast_description": "We sent a verification email to {{email}}. Check your inbox.",
     "continue_to_homepage": "Go to homepage"
   },
   "add_location": {

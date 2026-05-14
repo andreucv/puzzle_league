@@ -111,7 +111,12 @@
 
     {#if steps.includes('verify-email')}
         <div hidden={currentStepId !== 'verify-email'}>
-            <VerifyEmailStep userEmail={data.userEmail} bind:isSubmitting onSuccess={advanceOrFinish} />
+            <VerifyEmailStep
+                userEmail={data.userEmail}
+                isActive={currentStepId === 'verify-email'}
+                bind:isSubmitting
+                onSuccess={advanceOrFinish}
+            />
         </div>
     {/if}
 </div>

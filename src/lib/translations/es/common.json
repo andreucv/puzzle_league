@@ -806,6 +806,8 @@
     "verify_email_resent": "¡Correo enviado!",
     "verify_email_resending": "Enviando...",
     "verify_email_resend_error": "No se pudo enviar el correo de verificación. Inténtalo de nuevo más tarde.",
+    "verify_email_toast_title": "Correo de verificación enviado",
+    "verify_email_toast_description": "Hemos enviado un correo de verificación a {{email}}. Revisa tu bandeja de entrada.",
     "continue_to_homepage": "Ir a la página de inicio"
   },
   "add_location": {

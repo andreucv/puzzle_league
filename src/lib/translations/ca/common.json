@@ -807,7 +807,7 @@
     "save_button": "Desa la ubicació",
     "skip_button": "Salta per ara",
     "country_placeholder": "Selecciona el teu país",
-    "postal_code_placeholder": "ex. 08001",
+    "postal_code_placeholder": "Codi postal ex. 08001",
     "validation_country": "Selecciona un país vàlid.",
     "validation_postal_code_format": "Introdueix un codi postal vàlid"
   },

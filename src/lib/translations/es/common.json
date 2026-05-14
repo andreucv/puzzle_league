@@ -817,7 +817,7 @@
     "save_button": "Guardar ubicación",
     "skip_button": "Saltar por ahora",
     "country_placeholder": "Selecciona tu país",
-    "postal_code_placeholder": "ej. 08001",
+    "postal_code_placeholder": "Código postal ej. 08001",
     "validation_country": "Selecciona un país válido.",
     "validation_postal_code_format": "Introduce un código postal válido"
   },

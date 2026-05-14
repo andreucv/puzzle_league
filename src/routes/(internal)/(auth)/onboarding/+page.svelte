@@ -1,23 +1,32 @@
 <script lang="ts">
     import type { PageData } from './$types';
     import { t } from '$lib/translations';
-    import { goto, invalidateAll } from '$app/navigation';
+    import { goto } from '$app/navigation';
     import LanguageStep from './components/LanguageStep.svelte';
     import LocationStep from './components/LocationStep.svelte';
     import ClaimStep from './components/ClaimStep.svelte';
     import PhoneStep from './components/PhoneStep.svelte';
     import VerifyEmailStep from './components/VerifyEmailStep.svelte';
+    import Icon from '@iconify/svelte';
+
+    type UnclaimedIntent = NonNullable<PageData['unclaimedExternalParticipants']>[number];
 
     let { data }: { data: PageData } = $props();
 
     // --- Wizard state ---
     let currentStep = $state(0);
-    let steps = $derived(data.steps);
+    let steps = $state([...data.steps]);
     let totalSteps = $derived(steps.length);
     let currentStepId = $derived(steps[currentStep]);
     let isSubmitting = $state(false);
 
-    let unclaimedIntents = $derived(data.unclaimedExternalParticipants || []);
+    let unclaimedIntents: UnclaimedIntent[] = $state([...(data.unclaimedExternalParticipants || [])]);
+
+    function goBack() {
+        if (currentStep > 0) {
+            currentStep--;
+        }
+    }
 
     function advanceOrFinish() {
         if (currentStep < totalSteps - 1) {
@@ -26,6 +35,14 @@
             console.log('Onboarding complete, redirecting to home and invalidating session data');
             goto('/');
         }
+    }
+
+    function handleClaimSuccess(claimedIds: string[]) {
+        if (claimedIds.length > 0) {
+            unclaimedIntents = unclaimedIntents.filter((intent) => !claimedIds.includes(intent.id));
+        }
+
+        advanceOrFinish();
     }
 </script>
 
@@ -46,6 +63,18 @@
         <p class="text-sm text-surface-500">
             {$t('onboarding.step_of', { current: currentStep + 1, total: totalSteps })}
         </p>
+        {#if currentStep > 0}
+            <button
+                type="button"
+                class="btn btn-sm preset-tonal"
+                onclick={goBack}
+                disabled={isSubmitting}
+                data-testid="onboarding-previous"
+            >
+                <Icon icon="mdi:arrow-left" width="1.2rem" height="1.2rem" />
+                {$t('onboarding.previous')}
+            </button>
+        {/if}
     </div>
 
     <!-- Welcome header (shown on first step) -->
@@ -56,15 +85,33 @@
         </div>
     {/if}
 
-    {#if currentStepId === 'language'}
-        <LanguageStep bind:isSubmitting onSuccess={advanceOrFinish} />
-    {:else if currentStepId === 'location'}
-        <LocationStep bind:isSubmitting onSuccess={advanceOrFinish} />
-    {:else if currentStepId === 'claim'}
-        <ClaimStep {unclaimedIntents} bind:isSubmitting onSuccess={advanceOrFinish} />
-    {:else if currentStepId === 'phone'}
-        <PhoneStep bind:isSubmitting onSuccess={advanceOrFinish} />
-    {:else if currentStepId === 'verify-email'}
-        <VerifyEmailStep userEmail={data.userEmail} bind:isSubmitting onSuccess={advanceOrFinish} />
+    {#if steps.includes('language')}
+        <div hidden={currentStepId !== 'language'}>
+            <LanguageStep bind:isSubmitting onSuccess={advanceOrFinish} />
+        </div>
+    {/if}
+
+    {#if steps.includes('location')}
+        <div hidden={currentStepId !== 'location'}>
+            <LocationStep bind:isSubmitting onSuccess={advanceOrFinish} />
+        </div>
+    {/if}
+
+    {#if steps.includes('claim')}
+        <div hidden={currentStepId !== 'claim'}>
+            <ClaimStep {unclaimedIntents} bind:isSubmitting onSuccess={handleClaimSuccess} />
+        </div>
+    {/if}
+
+    {#if steps.includes('phone')}
+        <div hidden={currentStepId !== 'phone'}>
+            <PhoneStep bind:isSubmitting onSuccess={advanceOrFinish} />
+        </div>
+    {/if}
+
+    {#if steps.includes('verify-email')}
+        <div hidden={currentStepId !== 'verify-email'}>
+            <VerifyEmailStep userEmail={data.userEmail} bind:isSubmitting onSuccess={advanceOrFinish} />
+        </div>
     {/if}
 </div>

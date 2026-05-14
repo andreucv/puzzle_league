@@ -156,9 +156,6 @@
                 </Tooltip.Positioner>
             </Portal>
         </Tooltip>
-        {#if user.image && account.provider === "credential"}
-            <button class="btn btn-sm preset-outlined-surface-500">Change</button>
-        {/if}
     </div>
 
     <!-- Settings Section -->

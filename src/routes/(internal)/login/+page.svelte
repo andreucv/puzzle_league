@@ -13,10 +13,16 @@
     let errorMessage = $state("");
     let isLoading = $state(false);
 
+    function getInitialAction(): "login" | "register" {
+        return page.url.searchParams.get('action') === 'register' ? 'register' : 'login';
+    }
+
     function getSafeRedirect(): string {
         const redirectTo = page.url.searchParams.get('redirect');
         return redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : '/';
     }
+
+    action = getInitialAction();
 
     async function handleSubmit() {
         if (action === 'register') {

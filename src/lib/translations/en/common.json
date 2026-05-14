@@ -252,7 +252,8 @@
     "select_all": "Select all",
     "deselect_all": "Deselect all",
     "claim_selected": "Claim selected",
-    "skip": "Skip for now"
+    "skip": "Skip for now",
+    "continue": "Continue"
   },
   "registration": {
     "title": "Category Registration",
@@ -799,6 +800,7 @@
   },
   "onboarding": {
     "step_of": "Step {{current}} of {{total}}",
+    "previous": "Previous",
     "welcome": "Welcome, {{name}}!",
     "welcome_subtitle": "Let's get you set up with just a couple of quick things.",
     "verify_email_title": "Verify your email",

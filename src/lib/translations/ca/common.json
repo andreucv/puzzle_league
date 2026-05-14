@@ -149,7 +149,8 @@
     "select_all": "Selecciona tot",
     "deselect_all": "Desselecciona tot",
     "claim_selected": "Reclama seleccionades",
-    "skip": "Omet per ara"
+    "skip": "Omet per ara",
+    "continue": "Continua"
   },
   "registration": {
     "title": "Inscripció a categories",
@@ -785,6 +786,7 @@
   },
   "onboarding": {
     "step_of": "Pas {{current}} de {{total}}",
+    "previous": "Anterior",
     "welcome": "Benvingut/da, {{name}}!",
     "welcome_subtitle": "Configurem el teu compte amb un parell de coses ràpides.",
     "verify_email_title": "Verifica el teu correu",

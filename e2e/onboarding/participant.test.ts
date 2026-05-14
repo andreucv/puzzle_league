@@ -46,15 +46,25 @@ test.describe('Onboarding - happy path', () => {
         await expect(page.getByTestId('select-language-es')).toBeVisible();
         await expect(page.getByTestId('select-language-ca')).toBeVisible();
         await expect(page.getByTestId('select-language-auto')).toBeVisible();
+        await expect(page.getByTestId('onboarding-previous')).toHaveCount(0);
     });
 
-    test('GivenLanguageStep_WhenSelectingLanguageAndSaving_ThenAdvancesToLocationStep', async ({ page }) => {
+    test('GivenLanguageStep_WhenSavingThenGoingBack_ThenReturnsToLanguageWithStatePreserved', async ({ page }) => {
         await gotoExplore(page);
         await expect(page.getByTestId('onboarding-step-language')).toBeVisible();
 
         await page.getByTestId('select-language-en').click();
         await page.getByTestId('onboarding-language-save').click();
 
+        await expect(page.getByTestId('onboarding-step-location')).toBeVisible({ timeout: 5000 });
+        await expect(page.getByTestId('onboarding-previous')).toBeVisible();
+
+        await page.getByTestId('onboarding-previous').click();
+
+        await expect(page.getByTestId('onboarding-step-language')).toBeVisible();
+        await expect(page.getByTestId('select-language-en')).toHaveClass(/border-primary-500/);
+
+        await page.getByTestId('onboarding-language-save').click();
         await expect(page.getByTestId('onboarding-step-location')).toBeVisible({ timeout: 5000 });
     });
 
@@ -81,6 +91,13 @@ test.describe('Onboarding - happy path', () => {
         await page.getByTestId('onboarding-location-postal-code').fill('08001');
         await page.getByTestId('onboarding-location-save').click();
 
+        await expect(page.getByTestId('onboarding-step-phone')).toBeVisible({ timeout: 5000 });
+        await page.getByTestId('onboarding-previous').click();
+
+        await expect(page.getByTestId('onboarding-step-location')).toBeVisible();
+        await expect(page.getByTestId('onboarding-location-postal-code')).toHaveValue('08001');
+
+        await page.getByTestId('onboarding-location-save').click();
         await expect(page.getByTestId('onboarding-step-phone')).toBeVisible({ timeout: 5000 });
     });
 

@@ -252,7 +252,8 @@
     "select_all": "Seleccionar todo",
     "deselect_all": "Deseleccionar todo",
     "claim_selected": "Reclamar seleccionadas",
-    "skip": "Omitir por ahora"
+    "skip": "Omitir por ahora",
+    "continue": "Continuar"
   },
   "registration": {
     "title": "Inscripción a categorías",
@@ -795,6 +796,7 @@
   },
   "onboarding": {
     "step_of": "Paso {{current}} de {{total}}",
+    "previous": "Anterior",
     "welcome": "¡Bienvenido/a, {{name}}!",
     "welcome_subtitle": "Vamos a configurar tu cuenta con un par de cosas rápidas.",
     "verify_email_title": "Verifica tu correo",

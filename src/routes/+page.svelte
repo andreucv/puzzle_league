@@ -46,7 +46,7 @@
             <section>
                 <GenericTitle text={$t('landing_page.my_registrations')} />
                 <div class="space-y-2">
-                    {#each { length: 1 } as _}
+                    {#each { length: 1 } as _, index (index)}
                         <div class="card p-3 placeholder animate-pulse">
                             <div class="h-4 w-3/5 rounded bg-surface-100-700"></div>
                             <div class="mt-2 flex gap-2">
@@ -71,7 +71,7 @@
             <section>
                 <GenericTitle text={$t('landing_page.live_now')} />
                 <div class="space-y-2">
-                    {#each { length: 1 } as _}
+                    {#each { length: 1 } as _, index (index)}
                         <div class="card flex placeholder animate-pulse p-2 gap-3">
                             <div class="w-28 sm:w-36 h-24 rounded-xl bg-surface-100-700 shrink-0"></div>
                             <div class="flex-1 space-y-2 py-1">
@@ -104,7 +104,7 @@
             <section>
                 <GenericTitle text={$t('landing_page.your_upcoming_competitions')} />
                 <div class="space-y-2">
-                    {#each { length: 1 } as _}
+                    {#each { length: 1 } as _, index (index)}
                         <div class="card flex placeholder animate-pulse p-2 gap-3">
                             <div class="w-28 sm:w-36 h-24 rounded-xl bg-surface-100-700 shrink-0"></div>
                             <div class="flex-1 space-y-2 py-1">
@@ -136,7 +136,7 @@
             <section>
                 <GenericTitle text={$t('competitions.other_upcoming_competitions')} />
                 <div class="flex gap-3 overflow-hidden">
-                    {#each { length: 2 } as _}
+                    {#each { length: 2 } as _, index (index)}
                         <div class="h-72 sm:h-80 min-w-[60%] lg:min-w-[32%] rounded-2xl bg-surface-100-700 animate-pulse shrink-0"></div>
                     {/each}
                 </div>
@@ -159,7 +159,7 @@
             <section>
                 <GenericTitle text={$t('landing_page.your_last_results')} />
                 <div class="space-y-3">
-                    {#each { length: 3 } as _}
+                    {#each { length: 3 } as _, index (index)}
                         <div class="card flex animate-pulse p-3 gap-3">
                             <div class="w-12 h-12 rounded-full bg-surface-100-700 shrink-0"></div>
                             <div class="flex-1 space-y-2 py-1">
@@ -191,7 +191,8 @@
                 <div class="p-2 text-center rounded-lg text-white">
                     <p class="h4 font-sans">{$t('landing_page.welcome_text')}</p>
                 </div>
-                <a href="/login" class="btn preset-filled-primary-500">{$t('landing_page.join_now')}</a>
+                <a href="/login" class="btn preset-filled-primary-500 rounded-4xl w-48 justify-center text-center">{$t('landing_page.sign_in')}</a>
+                <a href="/login?action=register" class="btn preset-filled-primary-50-950 rounded-4xl w-48 justify-center text-center">{$t('landing_page.join_now')}</a>
                 <br />
                 <a href="/competitions/explore_competitions" class="text-white/80 hover:text-white text-sm underline">{$t('landing_page.or_explore')}</a>
             </div>

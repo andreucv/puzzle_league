@@ -76,7 +76,7 @@ export const actions: Actions = {
                         }
                     }
                 }
-                return { success: true, message: result.message };
+                return { success: true, summary: result.summary };
             } else {
                 return { success: false, message: result.error };
             }

@@ -16,6 +16,8 @@
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
     import CheckAllIcon from '@iconify-svelte/mdi/check-all';
     import ClipboardCheckOutlineIcon from '@iconify-svelte/mdi/clipboard-check-outline';
+    import { showRichSuccessToast, showErrorToast } from '$lib/utils/toast';
+    import type { RegistrationSummary } from '$lib/utils/toast';
 
     let { data } = $props();
 
@@ -63,22 +65,8 @@
 
     // Submission state
     let isSubmitting = $state(false);
-    let resultMessage = $state<{ success: boolean; message: string } | null>(null);
-    let messageDismissTimer: ReturnType<typeof setTimeout> | null = null;
-    let messageProgressKey = $state(0);
     let showPaymentPopover = $state(false);
     let submitFormEl = $state<HTMLFormElement | null>(null);
-    let showSuccessCard = $state(false);
-
-    function showResultMessage(msg: { success: boolean; message: string }) {
-        if (messageDismissTimer) clearTimeout(messageDismissTimer);
-        resultMessage = msg;
-        messageProgressKey++;
-        messageDismissTimer = setTimeout(() => {
-            resultMessage = null;
-            messageDismissTimer = null;
-        }, 5000);
-    }
 
     // Debounce timers
     let searchTimers: Map<number, ReturnType<typeof setTimeout>> = new Map();
@@ -464,26 +452,6 @@
         {/if}
     </div>
 
-    <!-- Result message -->
-    {#if resultMessage}
-        <div class="mb-4 rounded-lg overflow-hidden {resultMessage.success ? 'preset-filled-success-500' : 'preset-filled-error-500'}">
-            <div class="p-4 flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                    <Icon icon={resultMessage.success ? 'mdi:check-circle' : 'mdi:alert-circle'} width="1.2rem" height="1.2rem" />
-                    <span>{resultMessage.message}</span>
-                </div>
-                <button type="button" class="opacity-70 hover:opacity-100" onclick={() => { resultMessage = null; if (messageDismissTimer) { clearTimeout(messageDismissTimer); messageDismissTimer = null; } }}>
-                    <Icon icon="mdi:close" width="1rem" height="1rem" />
-                </button>
-            </div>
-            {#key messageProgressKey}
-                <div class="h-1 w-full {resultMessage.success ? 'bg-success-900/30' : 'bg-error-900/30'}">
-                    <div class="h-full {resultMessage.success ? 'bg-success-200' : 'bg-error-200'} animate-shrink"></div>
-                </div>
-            {/key}
-        </div>
-    {/if}
-
     <!-- Categories -->
     <div class="space-y-4 pb-20">
         {#each categories as category (category.id)}
@@ -865,63 +833,70 @@
         {/each}
     </div>
 
-    <!-- Success card after registration -->
-    {#if showSuccessCard && !hasNewSignups}
-        <div class="mt-6" transition:slide={{ duration: 200 }}>
-            <Card>
-                <div class="flex flex-col items-center gap-4 py-4 text-center">
-                    <CheckAllIcon width="2.5rem" height="2.5rem" class="text-success-500" />
-                    <div>
-                        <h3 class="h4 font-semibold">{$t('registration.success_title')}</h3>
-                        <p class="text-sm text-surface-500 mt-1">{$t('registration.success_message')}</p>
-                    </div>
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <a href="/competitions/competition_details/{competition?.id}" class="btn preset-filled-primary-500">
-                            {$t('registration.back_to_competition')}
-                        </a>
-                        <a href="/" class="btn preset-tonal">
-                            {$t('registration.go_home')}
-                        </a>
-                    </div>
-                </div>
-            </Card>
-        </div>
-    {/if}
-
     <!-- Submit all signups -->
     {#if hasNewSignups}
         <div class="sticky bottom-4 mt-6 z-30" transition:slide={{ duration: 200 }}>
             <form bind:this={submitFormEl} method="POST" action="?/signup" use:enhance={() => {
                 isSubmitting = true;
-                resultMessage = null;
                 const minLoadingTime = new Promise(resolve => setTimeout(resolve, 2000));
                 return async ({ result, update }) => {
                     await minLoadingTime;
                     isSubmitting = false;
                     if (result.type === 'success' && result.data) {
-                        const data = result.data as { success: boolean; message?: string };
-                        showResultMessage({ success: data.success, message: data.message || '' });
-                        if (result.data.success) {
+                        const data = result.data as { success: boolean; summary?: RegistrationSummary };
+                        if (data.success && data.summary) {
+                            const s = data.summary;
+                            const catHeader = $t('registration.toast_category_header');
+                            const entHeader = $t('registration.toast_entries_header');
+                            const rows = s.perCategory.map(c =>
+                                `<tr><td class="py-0.5">${$t(getCategoryTypeName(c.type))}</td><td class="py-0.5 text-right font-medium">${c.count}</td></tr>`
+                            ).join('');
+                            const totalRow = s.perCategory.length > 1
+                                ? `<tr class="border-t border-surface-300 dark:border-surface-600"><td class="pt-1 font-semibold">Total</td><td class="pt-1 text-right font-semibold">${s.totalEntries}</td></tr>`
+                                : '';
+                            const html = `<table class="w-full text-left"><thead><tr class="border-b border-surface-300 dark:border-surface-600"><th class="pb-1 font-medium">${catHeader}</th><th class="pb-1 font-medium text-right">${entHeader}</th></tr></thead><tbody>${rows}${totalRow}</tbody></table>`;
+                            showRichSuccessToast($t('registration.toast_success_title'), html);
                             clearAllSignupState();
-                            showSuccessCard = true;
                             await invalidateAll();
+                        } else {
+                            showErrorToast($t('registration.toast_error_title'), (result.data as any).message || '');
                         }
                     } else if (result.type === 'failure') {
-                        showResultMessage({ success: false, message: 'An error occurred' });
+                        showErrorToast($t('registration.toast_error_title'), (result.data as any)?.message || '');
                     }
                     await update({ reset: false });
                 };
             }}>
                 <input type="hidden" name="signups" value={JSON.stringify(buildSignupPayload())} />
                 <div class="bg-surface-50 dark:bg-surface-900 rounded-xl shadow-xl border border-surface-200 dark:border-surface-700 p-4 space-y-3 relative">
-                    <!-- Summary -->
-                    <div class="flex flex-wrap items-center gap-2 text-sm">
-                        <ClipboardCheckOutlineIcon width="1.1rem" height="1.1rem" class="text-primary-500" />
-                        <span class="font-medium">{totalNewSignups()} {$t('registration.new_registrations_summary')}</span>
-                        <span class="text-surface-400">—</span>
-                        {#each signupSummary() as item}
-                            <span class="badge preset-tonal-primary text-xs p-1.5">{item.count}× {item.type}</span>
-                        {/each}
+                    <!-- Summary table -->
+                    <div class="text-sm">
+                        <div class="flex items-center gap-2 mb-2">
+                            <ClipboardCheckOutlineIcon width="1.1rem" height="1.1rem" class="text-primary-500" />
+                            <span class="font-medium">{totalNewSignups()} {$t('registration.new_registrations_summary')}</span>
+                        </div>
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="border-b border-surface-300 dark:border-surface-600">
+                                    <th class="pb-1 font-medium">{$t('registration.toast_category_header')}</th>
+                                    <th class="pb-1 font-medium text-right">{$t('registration.toast_entries_header')}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {#each signupSummary() as item}
+                                    <tr>
+                                        <td class="py-0.5">{item.type}</td>
+                                        <td class="py-0.5 text-right font-medium">{item.count}</td>
+                                    </tr>
+                                {/each}
+                                {#if signupSummary().length > 1}
+                                    <tr class="border-t border-surface-300 dark:border-surface-600">
+                                        <td class="pt-1 font-semibold">Total</td>
+                                        <td class="pt-1 text-right font-semibold">{totalNewSignups()}</td>
+                                    </tr>
+                                {/if}
+                            </tbody>
+                        </table>
                     </div>
                     <button
                         type={shouldShowPaymentWarning() ? 'button' : 'submit'}
@@ -1004,12 +979,3 @@
     {/if}
 </div>
 
-<style>
-    @keyframes shrink {
-        from { width: 100%; }
-        to { width: 0%; }
-    }
-    .animate-shrink {
-        animation: shrink 5s linear forwards;
-    }
-</style>

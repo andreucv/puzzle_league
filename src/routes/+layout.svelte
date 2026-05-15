@@ -61,7 +61,11 @@
         <Toast {toast}>
             <Toast.Message>
                 <Toast.Title>{toast.title}</Toast.Title>
-                <Toast.Description>{toast.description}</Toast.Description>
+                {#if toast.meta?.descriptionHtml}
+                    <div class="mt-1 text-xs">{@html toast.meta.descriptionHtml}</div>
+                {:else}
+                    <Toast.Description>{toast.description}</Toast.Description>
+                {/if}
             </Toast.Message>
             <Toast.CloseTrigger />
         </Toast>

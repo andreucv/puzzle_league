@@ -306,10 +306,29 @@ export async function signUpUsersToCompetition(
             );
         }
 
+        // Build per-category summary from created entries
+        const perCategoryMap = new Map<number, { name: string; type: string; count: number }>();
+        for (const record of result) {
+            const catId = record.categoryId;
+            const existing = perCategoryMap.get(catId);
+            if (existing) {
+                existing.count++;
+            } else {
+                perCategoryMap.set(catId, {
+                    name: record.category.description || record.category.type,
+                    type: record.category.type,
+                    count: 1
+                });
+            }
+        }
+
         return {
             success: true,
             data: result,
-            message: `Successfully registered for ${result.length} categories`
+            summary: {
+                totalEntries: result.length,
+                perCategory: Array.from(perCategoryMap.values())
+            }
         };
     } catch (error) {
         console.error('Error signing up users to competition:', error);

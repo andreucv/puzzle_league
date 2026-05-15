@@ -313,10 +313,10 @@
     "payment_warning_confirm": "Entendido, enviar",
     "payment_warning_cancel": "Cancelar",
     "pending_confirmation_not_guaranteed": "Las inscripciones pendientes de confirmación no garantizan la participación en el concurso.",
-    "success_title": "¡Inscripción completada!",
-    "success_message": "Tus inscripciones se han enviado correctamente.",
-    "back_to_competition": "Volver a detalles de la competición",
-    "go_home": "Ir al inicio"
+    "toast_success_title": "¡Inscripción enviada!",
+    "toast_error_title": "Error en la inscripción",
+    "toast_category_header": "Categoría",
+    "toast_entries_header": "Inscripciones"
   },
   "puzzles": {
     "catalog_title": "Catálogo de Puzzles",

@@ -313,10 +313,10 @@
     "payment_warning_confirm": "I understand, submit",
     "payment_warning_cancel": "Cancel",
     "pending_confirmation_not_guaranteed": "The registrations in pending confirmation do not guarantee a participation into the competition.",
-    "success_title": "Registration Complete!",
-    "success_message": "Your registrations have been submitted successfully.",
-    "back_to_competition": "Back to competition details",
-    "go_home": "Go home"
+    "toast_success_title": "Registration submitted!",
+    "toast_error_title": "Registration failed",
+    "toast_category_header": "Category",
+    "toast_entries_header": "Entries"
   },
   "manage_judges": {
     "title": "Manage Judges",

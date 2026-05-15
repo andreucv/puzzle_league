@@ -210,10 +210,10 @@
     "payment_warning_confirm": "Entesos, envia",
     "payment_warning_cancel": "Cancel·la",
     "pending_confirmation_not_guaranteed": "Les inscripcions pendents de confirmació no garanteixen la participació al concurs.",
-    "success_title": "Inscripció completada!",
-    "success_message": "Les teves inscripcions s'han enviat correctament.",
-    "back_to_competition": "Tornar als detalls de la competició",
-    "go_home": "Anar a l'inici"
+    "toast_success_title": "Inscripció enviada!",
+    "toast_error_title": "Error en la inscripció",
+    "toast_category_header": "Categoria",
+    "toast_entries_header": "Inscripcions"
   },
   "puzzles": {
     "catalog_title": "Catàleg de Puzzles",

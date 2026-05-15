@@ -6,7 +6,8 @@
     "tomorrow": "Demà",
     "today": "Avui",
     "registration_open": "Inscripció oberta",
-    "registration_closed": "Inscripció tancada"
+    "registration_closed": "Inscripció tancada",
+    "near_you": "A prop"
   },
   "competition_status": {
     "upcoming": "Propera",

@@ -129,7 +129,7 @@
                     {#if isNearMe}
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 rounded-full text-xs font-medium">
                             <MapMarkerRadiusIcon width="1rem" height="1rem" class="text-success-700 dark:text-success-300" />
-                            Near you
+                            {$t('competition_card.near_you')}
                         </span>
                     {/if}
                     <CompetitionStatusChip competition_status={competition.status} />

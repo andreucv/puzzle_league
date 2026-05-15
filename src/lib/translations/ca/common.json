@@ -194,6 +194,9 @@
     "search_placeholder": "Cerca companys per nom...",
     "submit_all": "Enviar totes les inscripcions",
     "incomplete_parties": "alguns equips estan incomplets",
+    "empty_parties": "alguns equips no tenen membres",
+    "empty_spot": "lloc buit",
+    "empty_spots": "llocs buits",
     "registration_not_available": "Les inscripcions no estan disponibles per aquesta categoria.",
     "status_confirmed": "Confirmat",
     "status_pending_confirmation": "Pendent de confirmació",
@@ -222,7 +225,9 @@
     "toast_success_title": "Inscripció enviada!",
     "toast_error_title": "Error en la inscripció",
     "toast_category_header": "Categoria",
-    "toast_entries_header": "Inscripcions"
+    "toast_entries_header": "Inscripcions",
+    "confirm_unregister_title": "Eliminar inscripció?",
+    "confirm_unregister_message": "Això eliminarà la inscripció. Pots tornar a inscriure't si queden places disponibles."
   },
   "puzzles": {
     "catalog_title": "Catàleg de Puzzles",

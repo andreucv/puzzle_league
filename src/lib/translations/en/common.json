@@ -298,6 +298,9 @@
     "search_placeholder": "Search for teammates by name...",
     "submit_all": "Submit All Registrations",
     "incomplete_parties": "some teams are incomplete",
+    "empty_parties": "some teams have no members",
+    "empty_spot": "empty spot",
+    "empty_spots": "empty spots",
     "registration_not_available": "Registration is not available for this category.",
     "status_pending_confirmation": "Pending Confirmation",
     "status_confirmed": "Confirmed",
@@ -325,7 +328,9 @@
     "toast_success_title": "Registration submitted!",
     "toast_error_title": "Registration failed",
     "toast_category_header": "Category",
-    "toast_entries_header": "Entries"
+    "toast_entries_header": "Entries",
+    "confirm_unregister_title": "Remove registration?",
+    "confirm_unregister_message": "This will remove the registration. You can register again if spots are still available."
   },
   "manage_judges": {
     "title": "Manage Judges",

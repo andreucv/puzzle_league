@@ -297,6 +297,9 @@
     "search_placeholder": "Buscar compañeros por nombre...",
     "submit_all": "Enviar todas las inscripciones",
     "incomplete_parties": "algunos equipos están incompletos",
+    "empty_parties": "algunos equipos no tienen miembros",
+    "empty_spot": "lugar vacío",
+    "empty_spots": "lugares vacíos",
     "registration_not_available": "Las inscripciones no están disponibles para esta categoría.",
     "status_confirmed": "Confirmado",
     "status_pending_confirmation": "Pendiente de confirmación",
@@ -325,7 +328,9 @@
     "toast_success_title": "¡Inscripción enviada!",
     "toast_error_title": "Error en la inscripción",
     "toast_category_header": "Categoría",
-    "toast_entries_header": "Inscripciones"
+    "toast_entries_header": "Inscripciones",
+    "confirm_unregister_title": "¿Eliminar inscripción?",
+    "confirm_unregister_message": "Esto eliminará la inscripción. Puedes volver a inscribirte si quedan plazas disponibles."
   },
   "puzzles": {
     "catalog_title": "Catálogo de Puzzles",

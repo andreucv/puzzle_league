@@ -66,6 +66,33 @@ The `NotificationType` enum lives in the Prisma schema. Current values:
 | `ROLE_REQUEST_REJECTED` | Admin rejects a role request |
 | `GENERAL` | Catch-all for other notifications |
 
+## Translatable data values (`@:` convention)
+
+Some notification data values are themselves **translation keys** (e.g. category type names returned by `getCategoryTypeName()`). These values need to be translated into the user's locale before being interpolated into the notification template.
+
+To mark a data value as translatable, prefix it with `@:`:
+
+```ts
+import { getCategoryTypeName } from '$lib/utils/category_utils';
+
+const typeLabel = getCategoryTypeName(category.type); // returns e.g. 'category_names.individual'
+const categoryName = category.subname
+    ? `@:${typeLabel} - ${category.subname}`   // '@:category_names.individual - Elite Round'
+    : `@:${typeLabel}`;                         // '@:category_names.individual'
+
+await createNotification({
+    // ...
+    data: { categoryName, competitionName },
+});
+```
+
+At render time, both the front-end (`resolveText()` in the notifications page) and the email resolver (`resolveEmailTranslation()`) detect `@:key.path` markers in data values and translate them inline before interpolation. The result above would produce `"Individual - Elite Round"` in English or `"Individual - Ronda Elit"` in Catalan.
+
+**Rules:**
+- Only use `@:` for values that come from utility functions returning translation keys (like `getCategoryTypeName()`).
+- Plain text values (competition names, user names, etc.) must **not** use the `@:` prefix.
+- The `@:` pattern matches dot-separated lowercase keys: `@:some_key.nested_key`.
+
 When adding a **new notification type**:
 1. Add the value to the `NotificationType` enum in `prisma/schema.prisma`.
 2. Run `npx prisma migrate dev --name <descriptive_name>` and `npx prisma generate`.

@@ -571,7 +571,7 @@
                                             </div>
                                         {/each}
                                     </div>
-                                    <div class="text-sm font-medium flex flex-wrap gap-x-1">
+                                    <div class="text-sm flex flex-wrap gap-x-1">
                                         {#each entry.users as member, i}
                                             <span>{member.name}{member.id === currentUser?.id ? ` (${$t('registration.you')})` : ''}{i < entry.users.length + (entry.externalParticipants?.length ?? 0) - 1 ? ',' : ''}</span>
                                         {/each}
@@ -611,7 +611,7 @@
                                         </div>
                                     {/each}
                                 </div>
-                                <div class="text-sm font-medium flex flex-wrap gap-x-1">
+                                <div class="text-sm flex flex-wrap gap-x-1">
                                     {#each allNames as item, i}
                                         {#if item.isUser}
                                             <span>{item.name}{item.id === currentUser?.id ? ` (${$t('registration.you')})` : ''}{i < allNames.length - 1 ? ',' : ''}</span>
@@ -646,7 +646,7 @@
                             <!-- Party progress (hidden for individual categories) -->
                             {#if !individual}
                                 <div class="flex items-center gap-2 mb-3">
-                                    <span class="text-sm font-medium">
+                                    <span class="text-sm">
                                         {$t(getCategoryTypeSingularName(category.type))}: {totalPartySize}/{maxSize}
                                     </span>
                                     {#if totalPartySize === maxSize}

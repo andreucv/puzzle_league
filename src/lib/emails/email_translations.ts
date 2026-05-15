@@ -66,6 +66,29 @@ function interpolate(template: string, data: Record<string, string>): string {
 	return template.replace(/\{\{(\w+)\}\}/g, (_, key) => data[key] ?? '');
 }
 
+/**
+ * Resolve @:translation.key markers inside data values.
+ *
+ * Data values may contain inline `@:some.key` references that must be
+ * translated before they are interpolated into the notification template.
+ * For example `"@:category_names.individual - Elite"` becomes
+ * `"Individual - Elite"` after resolving the `category_names.individual` key.
+ */
+function resolveTranslatableDataValues(
+	data: Record<string, string>,
+	translations: Record<string, unknown>,
+): Record<string, string> {
+	const result = { ...data };
+	for (const [k, v] of Object.entries(result)) {
+		if (v.includes('@:')) {
+			result[k] = v.replace(/@:([a-z_]+(?:\.[a-z_]+)*)/g, (match, tKey) => {
+				return resolveKey(translations, tKey) ?? match;
+			});
+		}
+	}
+	return result;
+}
+
 export interface EmailTranslation {
 	locale: string;
 	languageName: string;
@@ -84,6 +107,10 @@ export async function resolveEmailTranslation(
 	translationKey?: string,
 ): Promise<EmailTranslation> {
 	const translations = await loadTranslationsForLocale(locale);
+
+	// Resolve @: prefixed data values before interpolation
+	const processedData = resolveTranslatableDataValues(data, translations);
+
 	const keySuffix = translationKey ?? NOTIFICATION_TYPE_KEY[type] ?? 'general';
 
 	const titleKey = `notifications.titles.${keySuffix}`;
@@ -95,8 +122,8 @@ export async function resolveEmailTranslation(
 	return {
 		locale,
 		languageName: LANGUAGE_NAMES[locale] ?? locale,
-		title: interpolate(rawTitle, data),
-		message: interpolate(rawMessage, data),
+		title: interpolate(rawTitle, processedData),
+		message: interpolate(rawMessage, processedData),
 	};
 }
 

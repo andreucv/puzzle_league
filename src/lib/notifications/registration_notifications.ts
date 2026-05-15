@@ -31,9 +31,10 @@ export async function notifyRegistrationConfirmed(
 	actorName?: string,
 ): Promise<void> {
 	const typeLabel = getCategoryTypeName(entry.category.type);
+	// @: prefix marks the value as a translation key to be resolved at render time
 	const categoryName = entry.category.subname
-		? `${typeLabel} - ${entry.category.subname}`
-		: typeLabel;
+		? `@:${typeLabel} - ${entry.category.subname}`
+		: `@:${typeLabel}`;
 	const competitionName = entry.category.competition.name;
 	const link = `/competitions/competition_details/${entry.category.competitionId}`;
 	const confirmedBy = actorName || '';
@@ -115,8 +116,8 @@ export async function notifyWaitlistPromotion(
 ): Promise<void> {
 	const typeLabel = getCategoryTypeName(entry.category.type as CategoryType);
 	const categoryName = entry.category.subname
-		? `${typeLabel} - ${entry.category.subname}`
-		: typeLabel;
+		? `@:${typeLabel} - ${entry.category.subname}`
+		: `@:${typeLabel}`;
 	const competitionName = entry.category.competition.name;
 	const link = `/competitions/competition_details/${entry.category.competitionId}`;
 
@@ -209,8 +210,8 @@ export async function notifyPaymentReminder(
 	const firstEntry = entries[0];
 	const typeLabel = getCategoryTypeName(firstEntry.category.type);
 	const categoryName = firstEntry.category.subname
-		? `${typeLabel} - ${firstEntry.category.subname}`
-		: typeLabel;
+		? `@:${typeLabel} - ${firstEntry.category.subname}`
+		: `@:${typeLabel}`;
 	const competitionName = firstEntry.category.competition.name;
 	const link = `/competitions/competition_details/${firstEntry.category.competitionId}`;
 
@@ -330,8 +331,8 @@ export async function notifyTableAssignments(
 ): Promise<void> {
 	const typeLabel = getCategoryTypeName(category.type);
 	const categoryName = category.subname
-		? `${typeLabel} - ${category.subname}`
-		: typeLabel;
+		? `@:${typeLabel} - ${category.subname}`
+		: `@:${typeLabel}`;
 	const competitionName = category.competition.name;
 	const link = `/competitions/competition_details/${category.competitionId}`;
 

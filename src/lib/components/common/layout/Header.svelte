@@ -40,7 +40,7 @@
         <AppBar.Trail>
             {#if user === undefined}
                 <button id="login-button" type="button" class="btn btn-sm preset-filled" style:visibility="{currentPath === '/login' ? 'hidden' : 'visible'}">
-                    <a href="/login">{$t('landing_page.join_now')}</a>
+                    <a href="/login">{$t('landing_page.sign_in')}</a>
                 </button>
             {:else}
                 <div class="flex items-center items-bottom relative gap-3">

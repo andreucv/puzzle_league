@@ -9,6 +9,15 @@
     "puzzle_chess": "Puzzle Chess",
     "other": "Other"
   },
+  "category_names_singular": {
+    "individual": "Individual",
+    "pair": "Pair",
+    "team": "Team",
+    "junior_individual": "Junior Individual",
+    "junior_pair": "Junior Pair",
+    "puzzle_chess": "Puzzle Chess",
+    "other": "Other"
+  },
   "competition_card": {
     "days_ago": "{{count}}d ago",
     "in_until_days": "In {{count}}d",

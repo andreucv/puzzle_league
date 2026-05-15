@@ -5,7 +5,7 @@
     import { enhance } from '$app/forms';
     import { invalidateAll } from '$app/navigation';
     import { t } from '$lib/translations';
-    import { getCategoryTypeName, getCategoryTypeIcon, getMaxEntriesPerCategory } from '$lib/utils/category_utils';
+    import { getCategoryTypeName, getCategoryTypeSingularName, getCategoryTypeIcon, getMaxEntriesPerCategory } from '$lib/utils/category_utils';
     import { getRegistrationStatusBorderClass as getStatusBorderClass } from '$lib/utils/registration_utils';
     import RegistrationStatusBadge from '$lib/components/registration/EntryRegistrationStatusBadge.svelte';
     import { formatTime } from '$lib/utils/datetime_utils';
@@ -530,50 +530,56 @@
                 {#if entries.length > 0}
                     <div class="space-y-2">
                         {#each entries as entry (entry.id)}
-                            <div class="flex items-center justify-between gap-2 p-3 border rounded-lg {getStatusBorderClass(entry.status)}" data-testid="registration-entry-{entry.id}">
-                                <div class="flex items-center gap-3 flex-wrap min-w-0">
-                                    <!-- Status -->
-                                    <RegistrationStatusBadge status={entry.status} translation={$t} />
-                                    <!-- Participants -->
-                                    <div class="flex flex-wrap gap-1.5">
-                                        {#each entry.users as member}
-                                            <div class="flex items-center gap-1 badge preset-tonal-primary p-1.5 pr-2">
-                                                <Avatar class="w-5 h-5">
-                                                    <Avatar.Image src={member.image ?? undefined} alt={member.name ?? 'User'} />
-                                                    <Avatar.Fallback>{member.name?.substring(0, 2) || 'U'}</Avatar.Fallback>
-                                                </Avatar>
-                                                <span class="text-xs">{member.name}{member.id === currentUser?.id ? ` (${$t('registration.you')})` : ''}</span>
-                                            </div>
+                            <div class="p-3 border rounded-lg {getStatusBorderClass(entry.status)}" data-testid="registration-entry-{entry.id}">
+                                <!-- Row 1: Status + created by you + unregister -->
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <RegistrationStatusBadge status={entry.status} translation={$t} />
+                                        {#if entry.creatorId === currentUser?.id && !isUserInEntry(entry)}
+                                            <span class="text-xs text-surface-500 italic">{$t('registration.created_by_you')}</span>
+                                        {/if}
+                                    </div>
+                                    {#if canRegisterForCategory(category)}
+                                        <form method="POST" action="?/unregister" class="shrink-0" use:enhance={() => {
+                                            return async ({ update }) => {
+                                                await update();
+                                                await invalidateAll();
+                                            };
+                                        }}>
+                                            <input type="hidden" name="entry_id" value={entry.id} />
+                                            <button
+                                                type="submit"
+                                                class="btn-icon btn-icon-sm preset-filled-error-500 rounded-full shrink-0"
+                                            >
+                                                <Icon icon="mdi:close" width="0.9rem" height="0.9rem" />
+                                            </button>
+                                        </form>
+                                    {/if}
+                                </div>
+                                <!-- Row 2: Avatar stack + names -->
+                                <div class="flex items-center gap-3 mt-2">
+                                    <div class="flex items-center shrink-0">
+                                        {#each entry.users as member, i}
+                                            <Avatar class="w-7 h-7 shrink-0 ring-2 ring-white dark:ring-surface-800 {i > 0 ? '-ml-3' : ''}">
+                                                <Avatar.Image src={member.image ?? undefined} alt={member.name ?? 'User'} />
+                                                <Avatar.Fallback class="text-[0.6rem]">{member.name?.substring(0, 2) || 'U'}</Avatar.Fallback>
+                                            </Avatar>
                                         {/each}
-                                        {#each entry.externalParticipants || [] as intent}
-                                            <div class="flex items-center gap-1 badge preset-tonal-warning p-1.5 pr-2">
-                                                <Icon icon="mdi:account-question" width="0.9rem" height="0.9rem" />
-                                                <span class="text-xs">{intent.name}</span>
+                                        {#each entry.externalParticipants || [] as intent, i}
+                                            <div class="w-7 h-7 shrink-0 ring-2 ring-white dark:ring-surface-800 rounded-full bg-warning-200 dark:bg-warning-800 flex items-center justify-center {(entry.users.length + i) > 0 ? '-ml-3' : ''}">
+                                                <Icon icon="mdi:account-question" width="0.9rem" height="0.9rem" class="text-warning-700 dark:text-warning-300" />
                                             </div>
                                         {/each}
                                     </div>
-                                    <!-- Created by you indicator -->
-                                    {#if entry.creatorId === currentUser?.id && !isUserInEntry(entry)}
-                                        <span class="text-xs text-surface-500 italic">{$t('registration.created_by_you')}</span>
-                                    {/if}
+                                    <div class="text-sm font-medium flex flex-wrap gap-x-1">
+                                        {#each entry.users as member, i}
+                                            <span>{member.name}{member.id === currentUser?.id ? ` (${$t('registration.you')})` : ''}{i < entry.users.length + (entry.externalParticipants?.length ?? 0) - 1 ? ',' : ''}</span>
+                                        {/each}
+                                        {#each entry.externalParticipants || [] as intent, i}
+                                            <span class="text-warning-600 dark:text-warning-400">{intent.name}{i < (entry.externalParticipants?.length ?? 0) - 1 ? ',' : ''}</span>
+                                        {/each}
+                                    </div>
                                 </div>
-                                <!-- Unregister button -->
-                                {#if canRegisterForCategory(category)}
-                                    <form method="POST" action="?/unregister" class="shrink-0" use:enhance={() => {
-                                        return async ({ update }) => {
-                                            await update();
-                                            await invalidateAll();
-                                        };
-                                    }}>
-                                        <input type="hidden" name="entry_id" value={entry.id} />
-                                        <button
-                                            type="submit"
-                                            class="btn-icon btn-icon-sm preset-filled-error-500 rounded-full shrink-0"
-                                        >
-                                            <Icon icon="mdi:close" width="0.9rem" height="0.9rem" />
-                                        </button>
-                                    </form>
-                                {/if}
                             </div>
                         {/each}
                     </div>
@@ -584,29 +590,34 @@
                     {@const slotComplete = isSlotComplete(slot, category)}
                     {#if slotComplete}
                         <!-- Completed queued slot - dashed border -->
+                        {@const allNames = [...slot.users.map(u => ({ name: u.name, isUser: true, id: u.id })), ...slot.extParticipantNames.map(n => ({ name: n, isUser: false, id: null })), ...slot.existingExternalParticipants.map(e => ({ name: e.name, isUser: false, id: null }))]}
                         <div class="flex items-center justify-between gap-2 p-3 border-2 border-dashed border-primary-400 dark:border-primary-500 rounded-lg bg-primary-50/30 dark:bg-primary-900/10" transition:slide={{ duration: 200 }}>
-                            <div class="flex items-center gap-3 flex-wrap min-w-0">
-                                <div class="flex flex-wrap gap-1.5">
-                                    {#each slot.users as member}
-                                        <div class="flex items-center gap-1 badge preset-tonal-primary p-1.5 pr-2">
-                                            <Avatar class="w-5 h-5">
-                                                <Avatar.Image src={member.image ?? undefined} alt={member.name ?? 'User'} />
-                                                <Avatar.Fallback>{member.name?.substring(0, 2) || 'U'}</Avatar.Fallback>
-                                            </Avatar>
-                                            <span class="text-xs">{member.name}{member.id === currentUser?.id ? ` (${$t('registration.you')})` : ''}</span>
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="flex items-center shrink-0">
+                                    {#each slot.users as member, i}
+                                        <Avatar class="w-7 h-7 shrink-0 ring-2 ring-white dark:ring-surface-800 {i > 0 ? '-ml-3' : ''}">
+                                            <Avatar.Image src={member.image ?? undefined} alt={member.name ?? 'User'} />
+                                            <Avatar.Fallback class="text-[0.6rem]">{member.name?.substring(0, 2) || 'U'}</Avatar.Fallback>
+                                        </Avatar>
+                                    {/each}
+                                    {#each slot.extParticipantNames as _, i}
+                                        <div class="w-7 h-7 shrink-0 ring-2 ring-white dark:ring-surface-800 rounded-full bg-warning-200 dark:bg-warning-800 flex items-center justify-center {(slot.users.length + i) > 0 ? '-ml-3' : ''}">
+                                            <Icon icon="mdi:account-question" width="0.9rem" height="0.9rem" class="text-warning-700 dark:text-warning-300" />
                                         </div>
                                     {/each}
-                                    {#each slot.extParticipantNames as intentName}
-                                        <div class="flex items-center gap-1 badge preset-tonal-warning p-1.5 pr-2">
-                                            <Icon icon="mdi:account-question" width="0.9rem" height="0.9rem" />
-                                            <span class="text-xs">{intentName}</span>
+                                    {#each slot.existingExternalParticipants as _, i}
+                                        <div class="w-7 h-7 shrink-0 ring-2 ring-white dark:ring-surface-800 rounded-full bg-warning-200 dark:bg-warning-800 flex items-center justify-center {(slot.users.length + slot.extParticipantNames.length + i) > 0 ? '-ml-3' : ''}">
+                                            <Icon icon="mdi:account-question" width="0.9rem" height="0.9rem" class="text-warning-700 dark:text-warning-300" />
                                         </div>
                                     {/each}
-                                    {#each slot.existingExternalParticipants as existingIntent}
-                                        <div class="flex items-center gap-1 badge preset-tonal-warning p-1.5 pr-2">
-                                            <Icon icon="mdi:account-question" width="0.9rem" height="0.9rem" />
-                                            <span class="text-xs">{existingIntent.name}</span>
-                                        </div>
+                                </div>
+                                <div class="text-sm font-medium flex flex-wrap gap-x-1">
+                                    {#each allNames as item, i}
+                                        {#if item.isUser}
+                                            <span>{item.name}{item.id === currentUser?.id ? ` (${$t('registration.you')})` : ''}{i < allNames.length - 1 ? ',' : ''}</span>
+                                        {:else}
+                                            <span class="text-warning-600 dark:text-warning-400">{item.name}{i < allNames.length - 1 ? ',' : ''}</span>
+                                        {/if}
                                     {/each}
                                 </div>
                             </div>
@@ -632,15 +643,17 @@
                                 <Icon icon="mdi:close" width="0.85rem" height="0.85rem" />
                             </button>
 
-                            <!-- Party progress -->
-                            <div class="flex items-center gap-2 mb-3">
-                                <span class="text-sm font-medium">
-                                    {$t('registration.team_progress')}: {totalPartySize}/{maxSize}
-                                </span>
-                                {#if totalPartySize === maxSize}
-                                    <Icon icon="mdi:check-circle" width="1rem" height="1rem" class="text-success-500" />
-                                {/if}
-                            </div>
+                            <!-- Party progress (hidden for individual categories) -->
+                            {#if !individual}
+                                <div class="flex items-center gap-2 mb-3">
+                                    <span class="text-sm font-medium">
+                                        {$t(getCategoryTypeSingularName(category.type))}: {totalPartySize}/{maxSize}
+                                    </span>
+                                    {#if totalPartySize === maxSize}
+                                        <Icon icon="mdi:check-circle" width="1rem" height="1rem" class="text-success-500" />
+                                    {/if}
+                                </div>
+                            {/if}
 
                             <!-- Selected participants -->
                             <div class="space-y-2 mb-3">

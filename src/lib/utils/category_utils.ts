@@ -20,6 +20,19 @@ export function getCategoryTypeName(type: CategoryType) {
     return typeNames[type] || type;
 }
 
+export function getCategoryTypeSingularName(type: CategoryType) {
+    const typeNames: Record<CategoryType, string> = {
+        INDIVIDUAL: 'category_names_singular.individual',
+        PAIRS: 'category_names_singular.pair',
+        TEAM: 'category_names_singular.team',
+        JUNIOR_INDIVIDUAL: 'category_names_singular.junior_individual',
+        JUNIOR_PAIRS: 'category_names_singular.junior_pair',
+        PUZZLE_CHESS: 'category_names_singular.puzzle_chess',
+        OTHER: 'category_names_singular.other'
+    };
+    return typeNames[type] || type;
+}
+
 export function getCategoryTypeIcon(type: CategoryType) {
     const typeIcons: Record<CategoryType, typeof AccountIcon> = {
         INDIVIDUAL: AccountIcon,

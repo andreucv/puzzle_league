@@ -24,6 +24,15 @@
     "puzzle_chess": "Puzzle Chess",
     "other": "Altres"
   },
+  "category_names_singular": {
+    "individual": "Individual",
+    "pair": "Parella",
+    "team": "Equip",
+    "junior_individual": "Individual Junior",
+    "junior_pair": "Parella Junior",
+    "puzzle_chess": "Puzzle Chess",
+    "other": "Altre"
+  },
   "landing_page": {
     "welcome_text": "La teva comunitat puzzlera",
     "participant_welcome_text": "Si t'agraden els puzzles i la competició, Puzzligas és casa teva. Connecta amb la comunitat en els concursos de puzzles. Uneix-te.",

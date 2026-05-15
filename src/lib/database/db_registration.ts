@@ -18,6 +18,11 @@ interface CategorySignup {
     registeredBySelf?: boolean; // default true; set false when currentUser is not a party member
 }
 
+export interface SignupOptions {
+    /** When true, skip per-creator entry limits and auto-confirm entries (organizer/admin flow). */
+    isOrganizer?: boolean;
+}
+
 /** Shape returned when a slot-releasing mutation promotes a waitlisted entry. */
 export interface PromotedEntry {
     id: string;
@@ -101,8 +106,10 @@ async function promoteNextWaitlisted(
 
 export async function signUpUsersToCompetition(
     categorySignups: CategorySignup[],
-    currentUserId: string
+    currentUserId: string,
+    options?: SignupOptions
 ) {
+    const isOrganizer = options?.isOrganizer ?? false;
     try {
         if (!categorySignups.length) {
             return { success: false, error: 'No categories selected for signup' };
@@ -137,17 +144,20 @@ export async function signUpUsersToCompetition(
             }
 
             // Check per-category entry limits based on category type
-            for (const [catId, batchCount] of batchCountPerCategory) {
-                const category = categories.find(c => c.id === catId)!;
-                const maxEntries = getMaxEntriesPerCategory(category.type);
-                const existingCount = await tx.entry.count({
-                    where: {
-                        categoryId: catId,
-                        creatorId: currentUserId
+            // Organizers/admins bypass per-creator limits so they can add unlimited entries
+            if (!isOrganizer) {
+                for (const [catId, batchCount] of batchCountPerCategory) {
+                    const category = categories.find(c => c.id === catId)!;
+                    const maxEntries = getMaxEntriesPerCategory(category.type);
+                    const existingCount = await tx.entry.count({
+                        where: {
+                            categoryId: catId,
+                            creatorId: currentUserId
+                        }
+                    });
+                    if (existingCount + batchCount > maxEntries) {
+                        throw new Error(`Maximum registrations reached for category ${category.description || category.type} (${maxEntries})`);
                     }
-                });
-                if (existingCount + batchCount > maxEntries) {
-                    throw new Error(`Maximum registrations reached for category ${category.description || category.type} (${maxEntries})`);
                 }
             }
 
@@ -214,9 +224,15 @@ export async function signUpUsersToCompetition(
                     throw new Error(`Registration closed for category: ${category.description || category.type}`);
                 }
 
-                // Determine initial status: WAITLISTED when category is already full
-                // Full = CONFIRMED + PENDING_CONFIRMATION entries >= maxParties
-                let initialStatus = RegistrationStatus.PENDING_CONFIRMATION as RegistrationStatus;
+                // Determine initial status:
+                // - Organizer entries: CONFIRMED immediately (or WAITLISTED if category full)
+                // - Regular entries: PENDING_CONFIRMATION (or WAITLISTED if category full)
+                let initialStatus: RegistrationStatus;
+                if (isOrganizer) {
+                    initialStatus = RegistrationStatus.CONFIRMED;
+                } else {
+                    initialStatus = RegistrationStatus.PENDING_CONFIRMATION;
+                }
                 if (category.maxParties) {
                     const reservedCount = await countReservedSlots(tx, signup.categoryId);
                     if (reservedCount >= category.maxParties) {
@@ -229,6 +245,7 @@ export async function signUpUsersToCompetition(
                         categoryId: signup.categoryId,
                         creatorId: currentUserId,
                         status: initialStatus,
+                        ...(initialStatus === RegistrationStatus.CONFIRMED ? { confirmedAt: new Date() } : {}),
                         users: {
                             connect: allPartyUserIds.map(id => ({ id }))
                         },
@@ -278,32 +295,57 @@ export async function signUpUsersToCompetition(
             return createdRecords;
         });
 
-        // Notify users (other than the current user) about the registration
+        // Notify platform users (other than the current user) about the registration.
+        // Organizer-created entries are auto-confirmed → use REGISTRATION_CONFIRMED notification.
+        // Regular entries → use REGISTRATION_CREATED notification.
         for (const record of result) {
             const otherUserIds = record.users
                 .map((u) => u.id)
                 .filter((id) => id !== currentUserId);
 
+            if (otherUserIds.length === 0) continue;
+
             const categoryDesc = record.category.description || record.category.type;
             const competitionName = record.category.competition.name;
             const link = `/competitions/competition_details/${record.category.competition.id}`;
 
-            await Promise.all(
-                otherUserIds.map((userId) =>
-                    createNotification({
-                        userId,
-                        type: NotificationType.REGISTRATION_CREATED,
-                        title: 'notifications.titles.registration_created',
-                        message: 'notifications.messages.registration_created',
-                        link,
-                        data: {
-                            categoryName: categoryDesc,
-                            competitionName,
-                            registeredBy: record.users.find(u => u.id === currentUserId)?.name || 'a teammate',
-                        },
-                    })
-                )
-            );
+            if (isOrganizer && record.status === RegistrationStatus.CONFIRMED) {
+                // Organizer auto-confirmed entries: notify as confirmed
+                const organizerName = record.users.find(u => u.id === currentUserId)?.name || 'the organizer';
+                await Promise.all(
+                    otherUserIds.map((userId) =>
+                        createNotification({
+                            userId,
+                            type: NotificationType.REGISTRATION_CONFIRMED,
+                            title: 'notifications.titles.registration_confirmed',
+                            message: 'notifications.messages.registration_confirmed',
+                            link,
+                            data: {
+                                categoryName: categoryDesc,
+                                competitionName,
+                                confirmedBy: organizerName,
+                            },
+                        })
+                    )
+                );
+            } else {
+                await Promise.all(
+                    otherUserIds.map((userId) =>
+                        createNotification({
+                            userId,
+                            type: NotificationType.REGISTRATION_CREATED,
+                            title: 'notifications.titles.registration_created',
+                            message: 'notifications.messages.registration_created',
+                            link,
+                            data: {
+                                categoryName: categoryDesc,
+                                competitionName,
+                                registeredBy: record.users.find(u => u.id === currentUserId)?.name || 'a teammate',
+                            },
+                        })
+                    )
+                );
+            }
         }
 
         // Build per-category summary from created entries

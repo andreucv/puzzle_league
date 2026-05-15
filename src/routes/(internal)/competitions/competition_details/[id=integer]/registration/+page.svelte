@@ -34,6 +34,7 @@
     import InformationOutlineIcon from '@iconify-svelte/mdi/information-outline';
     import AccountGroupIcon from '@iconify-svelte/mdi/account-group';
     import CheckIcon from '@iconify-svelte/mdi/check';
+    import ShieldAccountIcon from '@iconify-svelte/mdi/shield-account';
     import { showRichSuccessToast, showErrorToast } from '$lib/utils/toast';
     import type { RegistrationSummary } from '$lib/utils/toast';
 
@@ -45,6 +46,7 @@
     let existingEntries = $derived(data.existingEntries || []);
     let registeredUserIds = $derived(data.registeredUserIds as Record<number, string[]> || {});
     let categoriesWithCounts = $derived(data.categoriesWithCounts || []);
+    let isOrganizer = $derived(data.isOrganizer || false);
 
     let canRegister = $derived(competition?.registrationOpen);
 
@@ -101,7 +103,9 @@
     }
 
     // Check if user can create more entries for this category (accounts for queued slots)
+    // Organizers/admins bypass per-creator entry limits
     function canCreateMore(category: Category): boolean {
+        if (isOrganizer) return true;
         const entries = getExistingEntries(category.id);
         const createdByUser = entries.filter((r: any) => r.creatorId === currentUser?.id).length;
         const queuedCount = getSlots(category.id).length;
@@ -479,6 +483,13 @@
             {/if}
         </div>
 
+        {#if isOrganizer}
+            <div class="alert preset-tonal-primary p-3 rounded-lg flex items-center gap-2">
+                <ShieldAccountIcon width="1.3rem" height="1.3rem" class="text-primary-500 shrink-0" />
+                <span class="text-sm font-medium">{$t('registration.organizer_mode')}</span>
+            </div>
+        {/if}
+
         {#if !canRegister}
             <div class="alert preset-filled-warning-500 p-4 rounded-lg" data-testid="registration-closed-warning">
                 <AlertIcon width="1.5rem" height="1.5rem" />
@@ -495,7 +506,7 @@
             {@const maxEntries = getMaxEntriesPerCategory(category.type)}
             {@const slots = getSlots(category.id)}
             {@const totalRegistrations = createdByUserCount + slots.length}
-            {@const limitReached = totalRegistrations >= maxEntries}
+            {@const limitReached = !isOrganizer && totalRegistrations >= maxEntries}
             {@const maxSize = category.maxPartySize || 1}
             {@const individual = isIndividual(category)}
             {@const spotsLeft = getSpotsLeft(category)}
@@ -553,10 +564,13 @@
                 <!-- Registration count badge -->
                 {#if entries.length > 0 || slots.length > 0}
                     <div class="flex items-center gap-2">
-                        <!-- TODO: maxEntries is misleading for the user, if there is a category with less available spots than the maxEntries -->
                         <span class="badge {limitReached ? 'preset-filled-surface-200-800' : 'preset-tonal-primary'} text-xs p-2">
                             <ClipboardListIcon width="0.9rem" height="0.9rem" />
-                            {totalRegistrations}/{maxEntries} {$t('registration.your_registrations')}
+                            {#if isOrganizer}
+                                {totalRegistrations} {$t('registration.your_registrations')}
+                            {:else}
+                                {totalRegistrations}/{maxEntries} {$t('registration.your_registrations')}
+                            {/if}
                         </span>
                     </div>
                 {/if}

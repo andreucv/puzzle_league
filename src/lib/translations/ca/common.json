@@ -197,6 +197,7 @@
     "empty_parties": "alguns equips no tenen membres",
     "empty_spot": "lloc buit",
     "empty_spots": "llocs buits",
+    "organizer_mode": "Mode d'organitzador - els organitzadors poden crear inscripcions sense límit i es confirmen automàticament.",
     "registration_not_available": "Les inscripcions no estan disponibles per aquesta categoria.",
     "status_confirmed": "Confirmat",
     "status_pending_confirmation": "Pendent de confirmació",

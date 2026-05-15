@@ -23,9 +23,9 @@
     "in_until_days": "In {{count}}d",
     "tomorrow": "Tomorrow",
     "today": "Today",
-     "registration_open": "Registration Open",
-     "registration_closed": "Registration Closed",
-     "near_you": "Near you"
+    "registration_open": "Registration Open",
+    "registration_closed": "Registration Closed",
+    "near_you": "Near you"
   },
   "competition_status": {
     "upcoming": "Upcoming",
@@ -301,6 +301,7 @@
     "empty_parties": "some teams have no members",
     "empty_spot": "empty spot",
     "empty_spots": "empty spots",
+    "organizer_mode": "Organizer mode — Organizers can create entries without limit and are auto-confirmed.",
     "registration_not_available": "Registration is not available for this category.",
     "status_pending_confirmation": "Pending Confirmation",
     "status_confirmed": "Confirmed",

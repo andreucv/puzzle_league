@@ -300,6 +300,7 @@
     "empty_parties": "algunos equipos no tienen miembros",
     "empty_spot": "lugar vacío",
     "empty_spots": "lugares vacíos",
+    "organizer_mode": "Modo organizador - los organizadores pueden crear inscripciones sin límite y se confirman automáticamente.",
     "registration_not_available": "Las inscripciones no están disponibles para esta categoría.",
     "status_confirmed": "Confirmado",
     "status_pending_confirmation": "Pendiente de confirmación",

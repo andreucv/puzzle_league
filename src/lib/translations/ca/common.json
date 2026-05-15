@@ -1,5 +1,19 @@
 {
   "page": {},
+  "competition_card": {
+    "days_ago": "fa {{count}}d",
+    "in_until_days": "En {{count}}d",
+    "tomorrow": "Demà",
+    "today": "Avui",
+    "registration_open": "Inscripció oberta",
+    "registration_closed": "Inscripció tancada"
+  },
+  "competition_status": {
+    "upcoming": "Propera",
+    "live": "En directe",
+    "finished": "Finalitzada",
+    "cancelled": "Cancel·lada"
+  },
   "category_names": {
     "individual": "Individual",
     "pairs": "Parelles",
@@ -532,7 +546,9 @@
     "near_me_goto_profile_2": "perfil",
     "near_me_goto_profile_3": "per activar el filtratge \"A prop meu\".",
     "no_competitions_found_for_filters": "Proveu d'ajustar la cerca o els filtres per trobar el que busqueu.",
-    "no-competitions-found": "No s'han trobat competicions"
+    "no-competitions-found": "No s'han trobat competicions",
+    "competition_plural": "competicions",
+    "competition_singular": "competició"
   },
   "manage_judges": {
     "title": "Gestionar Jutges",
@@ -599,7 +615,9 @@
     "remind_confirm_title": "Enviar recordatori de pagament",
     "remind_confirm_message": "Això enviarà una notificació i un correu electrònic per recordar als participants sobre el pagament pendent.",
     "remind_bulk_confirm_message": "Això enviarà una notificació i un correu electrònic a tots els participants pendents en aquesta categoria que no hagin estat recordats en les últimes 48 hores.",
-    "last_reminded": "Recordat {{time}}"
+    "last_reminded": "Recordat {{time}}",
+    "status_accepted": "Aceptada",
+    "status_pending": "Pendent"
   },
   "notifications": {
     "title": "Notificacions",

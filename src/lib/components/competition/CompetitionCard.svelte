@@ -3,12 +3,11 @@
     import { CldImage } from 'svelte-cloudinary';
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import MapMarkerRadiusIcon from '@iconify-svelte/mdi/map-marker-radius';
-    import CalendarClockIcon from '@iconify-svelte/mdi/calendar-clock';
-    import PlayCircleIcon from '@iconify-svelte/mdi/play-circle';
-    import CheckAllIcon from '@iconify-svelte/mdi/check-all';
     import DoorOpenIcon from '@iconify-svelte/mdi/door-open';
     import DoorClosedLockIcon from '@iconify-svelte/mdi/door-closed-lock';
     import CategoryRegistrationChip from '$lib/components/category/CategoryRegistrationChip.svelte';
+    import CompetitionStatusChip from '$lib/components/competition/CompetitionStatusChip.svelte';
+    import { t, locale } from '$lib/translations';
 
     interface Props {
         competition: Competition & {
@@ -53,7 +52,7 @@
 
     // Date parts for calendar-style display
     const dayNumber = competitionDate.getDate();
-    const monthAbbr = competitionDate.toLocaleString('default', { month: 'short' });
+    const monthAbbr = competitionDate.toLocaleString(locale.get(), { month: 'short' });
     const year = competitionDate.getFullYear();
 
     // Check if current user is registered in a category
@@ -80,10 +79,10 @@
 
     // Days until text
     const daysUntilText = $derived.by(() => {
-        if (daysUntil < 0) return `${Math.abs(daysUntil)}d ago`;
-        if (daysUntil === 0) return 'Today!';
-        if (daysUntil === 1) return 'Tomorrow';
-        return `In ${daysUntil}d`;
+        if (daysUntil < 0) return $t('competition_card.days_ago', { count: Math.abs(daysUntil) });
+        if (daysUntil === 0) return $t('competition_card.today');
+        if (daysUntil === 1) return $t('competition_card.tomorrow');
+        return $t('competition_card.in_until_days', { count: daysUntil });
     });
 
     // Days until chip style
@@ -133,22 +132,7 @@
                             Near you
                         </span>
                     {/if}
-                    {#if competition.status === 'NOT_STARTED'}
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300 rounded-full text-xs font-medium">
-                            <CalendarClockIcon width="1rem" height="1rem" class="text-primary-700 dark:text-primary-300" />
-                            Upcoming
-                        </span>
-                    {:else if competition.status === 'STARTED'}
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-warning-100 text-warning-700 dark:bg-warning-900/50 dark:text-warning-300 rounded-full text-xs font-medium">
-                            <PlayCircleIcon width="1rem" height="1rem" class="text-warning-700 dark:text-warning-300" />
-                            Live
-                        </span>
-                    {:else if competition.status === 'FINISHED'}
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-200 text-surface-500 dark:bg-surface-700 dark:text-surface-400 rounded-full text-xs font-medium">
-                            <CheckAllIcon width="1rem" height="1rem" class="text-surface-500 dark:text-surface-400" />
-                            Finished
-                        </span>
-                    {/if}
+                    <CompetitionStatusChip competition_status={competition.status} />
                 </div>
 
                 <!-- Registration status (only when user is not registered) -->
@@ -157,12 +141,12 @@
                         {#if competition.registrationOpen}
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 rounded-full text-xs font-semibold animate-pulse">
                                 <DoorOpenIcon width="1rem" height="1rem" class="text-success-700 dark:text-success-300" />
-                                Registration Open
+                                {$t('landing_page.registration_status.registration_open')}
                             </span>
                         {:else}
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-error-100 text-error-700 dark:bg-error-900/50 dark:text-error-300 rounded-full text-xs font-medium">
                                 <DoorClosedLockIcon width="1rem" height="1rem"/>
-                                Registration Closed
+                                {$t('landing_page.registration_status.registration_closed')}
                             </span>
                         {/if}
                     </div>

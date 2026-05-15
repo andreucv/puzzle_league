@@ -9,6 +9,20 @@
     "puzzle_chess": "Puzzle Chess",
     "other": "Other"
   },
+  "competition_card": {
+    "days_ago": "{{count}}d ago",
+    "in_until_days": "In {{count}}d",
+    "tomorrow": "Tomorrow",
+    "today": "Today",
+     "registration_open": "Registration Open",
+     "registration_closed": "Registration Closed"
+  },
+  "competition_status": {
+    "upcoming": "Upcoming",
+    "live": "Live",
+    "finished": "Finished",
+    "cancelled": "Cancelled"
+  },
   "landing_page": {
     "welcome_text": "Your puzzling community",
     "participant_welcome_text": "If you like puzzling and competition, Puzzligas is home. Connect with the community on puzzling competitions. Join us.",
@@ -593,6 +607,8 @@
     }
   },
   "explore_competitions": {
+    "competition_singular": "competition",
+    "competition_plural": "competitions",
     "clear_all_filters": "Clear all filters",
     "no_competitions_found": "No competitions found",
     "near_me_goto_profile_1": "Set your location in your",

@@ -1,5 +1,19 @@
 {
   "page": {},
+  "competition_card": {
+    "days_ago": "hace {{count}}d",
+    "in_until_days": "En {{count}}d",
+    "tomorrow": "Mañana",
+    "today": "Hoy",
+    "registration_open": "Inscripción abierta",
+    "registration_closed": "Inscripción cerrada"
+  },
+  "competition_status": {
+    "upcoming": "Próxima",
+    "live": "En directo",
+    "finished": "Finalizada",
+    "cancelled": "Cancelada"
+  },
   "category_names": {
     "individual": "Individual",
     "pairs": "Parejas",
@@ -532,7 +546,9 @@
     "near_me_goto_profile_2": "perfil",
     "near_me_goto_profile_3": "para habilitar el filtrado \"Cerca de mí\".",
     "no_competitions_found_for_filters": "Intente ajustar su búsqueda o filtros para encontrar lo que está buscando.",
-    "no-competitions-found": "No se han encontrado competiciones"
+    "no-competitions-found": "No se han encontrado competiciones",
+    "competition_plural": "competiciones",
+    "competition_singular": "competición"
   },
   "manage_judges": {
     "title": "Gestionar Jueces",
@@ -599,7 +615,9 @@
     "remind_confirm_title": "Enviar recordatorio de pago",
     "remind_confirm_message": "Esto enviará una notificación y un correo electrónico para recordar a los participantes sobre el pago pendiente.",
     "remind_bulk_confirm_message": "Esto enviará una notificación y un correo electrónico a todos los participantes pendientes en esta categoría que no hayan sido recordados en las últimas 48 horas.",
-    "last_reminded": "Recordado {{time}}"
+    "last_reminded": "Recordado {{time}}",
+    "status_accepted": "Aceptada",
+    "status_pending": "Pendiente"
   },
   "notifications": {
     "title": "Notificaciones",

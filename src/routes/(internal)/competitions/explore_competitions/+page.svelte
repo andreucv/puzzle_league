@@ -128,7 +128,7 @@
     <!-- Results count & Create button -->
     <div class="flex items-center justify-between">
         <span class="text-sm text-surface-600 dark:text-surface-400" data-testid="results-count">
-            {filteredCount} {filteredCount === 1 ? 'competition' : 'competitions'}
+            {filteredCount} {filteredCount === 1 ? $t('explore_competitions.competition_singular') : $t('explore_competitions.competition_plural')}
             {#if filter || activePresets.length > 0}
                 <span class="text-surface-500"> of {totalCount}</span>
             {/if}

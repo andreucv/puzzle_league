@@ -29,6 +29,11 @@
     $effect(() => {
         if (isActive && !toastShown) {
             toastShown = true;
+            // Automatically send the verification email when step becomes active
+            fetch('?/resendVerificationEmail', {
+                method: 'POST',
+                body: new FormData(),
+            });
             showSuccessToast(
                 $t('onboarding.verify_email_toast_title'),
                 $t('onboarding.verify_email_toast_description', { email: userEmail }),

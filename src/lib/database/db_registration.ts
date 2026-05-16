@@ -28,6 +28,7 @@ export interface PromotedEntry {
     id: string;
     categoryId: number;
     creatorId: string;
+    status: RegistrationStatus;
     users: { id: string; name: string; email: string; image: string | null }[];
     externalParticipants: { name: string }[];
     category: {
@@ -45,6 +46,12 @@ export interface PromotedEntry {
 
 const RESERVED_STATUSES = [RegistrationStatus.PENDING_CONFIRMATION, RegistrationStatus.CONFIRMED];
 
+/** A registration is free (no external payment required) when the competition
+ *  has no payment warning enabled AND the category price is zero. */
+function isFreeRegistration(category: { price: number }, competition: { showPaymentWarning: boolean }): boolean {
+    return !competition.showPaymentWarning || category.price === 0;
+}
+
 /** Count entries that hold a reserved slot (PENDING_CONFIRMATION + CONFIRMED). */
 async function countReservedSlots(tx: Tx, categoryId: number): Promise<number> {
     return tx.entry.count({
@@ -53,8 +60,9 @@ async function countReservedSlots(tx: Tx, categoryId: number): Promise<number> {
 }
 
 /**
- * After a reserved slot is released, promote the oldest waitlisted entry
- * to PENDING_CONFIRMATION if the category has capacity.
+ * After a reserved slot is released, promote the oldest waitlisted entry.
+ * Free categories (no payment required) are auto-confirmed; paid categories
+ * are promoted to PENDING_CONFIRMATION.
  * Returns the promoted entry or null.
  */
 async function promoteNextWaitlisted(
@@ -75,9 +83,21 @@ async function promoteNextWaitlisted(
 
     if (!oldest) return null;
 
+    // Determine promoted status: free categories auto-confirm
+    const category = await tx.category.findUniqueOrThrow({
+        where: { id: categoryId },
+        select: { price: true, competition: { select: { showPaymentWarning: true } } }
+    });
+    const promotedStatus = isFreeRegistration(category, category.competition)
+        ? RegistrationStatus.CONFIRMED
+        : RegistrationStatus.PENDING_CONFIRMATION;
+
     return tx.entry.update({
         where: { id: oldest.id },
-        data: { status: RegistrationStatus.PENDING_CONFIRMATION },
+        data: {
+            status: promotedStatus,
+            ...(promotedStatus === RegistrationStatus.CONFIRMED ? { confirmedAt: new Date() } : {}),
+        },
         include: {
             users: { select: { id: true, name: true, email: true, image: true } },
             externalParticipants: { select: { name: true } },
@@ -226,9 +246,10 @@ export async function signUpUsersToCompetition(
 
                 // Determine initial status:
                 // - Organizer entries: CONFIRMED immediately (or WAITLISTED if category full)
-                // - Regular entries: PENDING_CONFIRMATION (or WAITLISTED if category full)
+                // - Free categories (no payment required): CONFIRMED (or WAITLISTED if category full)
+                // - Regular paid entries: PENDING_CONFIRMATION (or WAITLISTED if category full)
                 let initialStatus: RegistrationStatus;
-                if (isOrganizer) {
+                if (isOrganizer || isFreeRegistration(category, category.competition)) {
                     initialStatus = RegistrationStatus.CONFIRMED;
                 } else {
                     initialStatus = RegistrationStatus.PENDING_CONFIRMATION;
@@ -296,8 +317,8 @@ export async function signUpUsersToCompetition(
         });
 
         // Notify platform users (other than the current user) about the registration.
-        // Organizer-created entries are auto-confirmed → use REGISTRATION_CONFIRMED notification.
-        // Regular entries → use REGISTRATION_CREATED notification.
+        // Auto-confirmed entries (organizer or free categories) → use REGISTRATION_CONFIRMED notification.
+        // Regular pending entries → use REGISTRATION_CREATED notification.
         for (const record of result) {
             const otherUserIds = record.users
                 .map((u) => u.id)
@@ -309,8 +330,8 @@ export async function signUpUsersToCompetition(
             const competitionName = record.category.competition.name;
             const link = `/competitions/competition_details/${record.category.competition.id}`;
 
-            if (isOrganizer && record.status === RegistrationStatus.CONFIRMED) {
-                // Organizer auto-confirmed entries: notify as confirmed
+            if (record.status === RegistrationStatus.CONFIRMED) {
+                // Auto-confirmed entries (organizer or free): notify as confirmed
                 const organizerName = record.users.find(u => u.id === currentUserId)?.name || 'the organizer';
                 await Promise.all(
                     otherUserIds.map((userId) =>

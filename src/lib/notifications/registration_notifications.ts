@@ -1,5 +1,5 @@
 import { createNotification, createNotificationForUsers } from './notifications';
-import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { NotificationType, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
 import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
 import { getCategoryTypeName } from '$lib/utils/category_utils';
 
@@ -101,8 +101,9 @@ export async function notifyRegistrationConfirmed(
 import type { PromotedEntry } from '$lib/database/db_registration';
 
 /**
- * Send REGISTRATION_PROMOTED notifications when a waitlisted entry is
- * promoted to PENDING_CONFIRMATION because a slot opened up.
+ * Send notifications when a waitlisted entry is promoted because a slot opened up.
+ * Free categories (auto-confirmed) → REGISTRATION_CONFIRMED notification.
+ * Paid categories (pending confirmation) → REGISTRATION_PROMOTED notification.
  *
  * Follows the same recipient pattern as notifyRegistrationConfirmed:
  * 1. Creator IS a participant → one notification to that user.
@@ -121,6 +122,16 @@ export async function notifyWaitlistPromotion(
 	const competitionName = entry.category.competition.name;
 	const link = `/competitions/competition_details/${entry.category.competitionId}`;
 
+	// Auto-confirmed promotions (free categories) use REGISTRATION_CONFIRMED;
+	// pending promotions use REGISTRATION_PROMOTED.
+	const isAutoConfirmed = entry.status === RegistrationStatus.CONFIRMED;
+	const notificationType = isAutoConfirmed
+		? NotificationType.REGISTRATION_CONFIRMED
+		: NotificationType.REGISTRATION_PROMOTED;
+	const titleKey = isAutoConfirmed ? 'registration_confirmed' : 'registration_promoted';
+	const titleKeyTeam = isAutoConfirmed ? 'registration_confirmed_team' : 'registration_promoted_team';
+	const titleKeyNonplatform = isAutoConfirmed ? 'registration_confirmed_nonplatform' : 'registration_promoted_nonplatform';
+
 	const realUserIds = entry.users.map((u) => u.id);
 	const creatorIsParticipant = realUserIds.includes(entry.creatorId);
 
@@ -135,20 +146,23 @@ export async function notifyWaitlistPromotion(
 		const teammateNames = teammates.join(', ');
 		const hasTeammates = teammates.length > 0;
 
+		const selectedTitleKey = hasTeammates ? titleKeyTeam : titleKey;
+
 		promises.push(
 			createNotification({
 				userId: user.id,
-				type: NotificationType.REGISTRATION_PROMOTED,
-				title: hasTeammates
-					? 'notifications.titles.registration_promoted_team'
-					: 'notifications.titles.registration_promoted',
-				message: hasTeammates
-					? 'notifications.messages.registration_promoted_team'
-					: 'notifications.messages.registration_promoted',
+				type: notificationType,
+				title: `notifications.titles.${selectedTitleKey}`,
+				message: `notifications.messages.${selectedTitleKey}`,
 				link,
-				data: { categoryName, competitionName, teammateNames },
+				data: {
+					categoryName,
+					competitionName,
+					teammateNames,
+					...(isAutoConfirmed ? { confirmedBy: '' } : {}),
+				},
 				actorName,
-				translationKey: hasTeammates ? 'registration_promoted_team' : undefined,
+				translationKey: hasTeammates ? selectedTitleKey : undefined,
 			}),
 		);
 	}
@@ -162,13 +176,18 @@ export async function notifyWaitlistPromotion(
 		promises.push(
 			createNotification({
 				userId: entry.creatorId,
-				type: NotificationType.REGISTRATION_PROMOTED,
-				title: 'notifications.titles.registration_promoted_nonplatform',
-				message: 'notifications.messages.registration_promoted_nonplatform',
+				type: notificationType,
+				title: `notifications.titles.${titleKeyNonplatform}`,
+				message: `notifications.messages.${titleKeyNonplatform}`,
 				link,
-				data: { participantNames: allParticipantNames, categoryName, competitionName },
+				data: {
+					participantNames: allParticipantNames,
+					categoryName,
+					competitionName,
+					...(isAutoConfirmed ? { confirmedBy: '' } : {}),
+				},
 				actorName,
-				translationKey: 'registration_promoted_nonplatform',
+				translationKey: titleKeyNonplatform,
 			}),
 		);
 	}

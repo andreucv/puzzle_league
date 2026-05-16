@@ -3,9 +3,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // ── Hoisted mocks ──
 
 const mockAutoCancelExpiredCompetitions = vi.fn();
+const mockFindFirst = vi.fn();
 
 vi.mock('$lib/services/auto-cancel', () => ({
 	autoCancelExpiredCompetitions: (...args: unknown[]) => mockAutoCancelExpiredCompetitions(...args),
+}));
+
+vi.mock('$lib/database/create_prisma_client', () => ({
+	prisma: {
+		roleAssignment: {
+			findFirst: (...args: unknown[]) => mockFindFirst(...args),
+		},
+	},
 }));
 
 vi.mock('$env/dynamic/private', () => ({
@@ -26,6 +35,7 @@ function makeEvent(options: {
 	authorization?: string;
 	dryRun?: string;
 	competitionId?: string;
+	user?: { id: string } | null;
 } = {}) {
 	const url = new URL('http://localhost/api/cron/auto-cancel');
 	if (options.dryRun != null) url.searchParams.set('dryRun', options.dryRun);
@@ -40,6 +50,9 @@ function makeEvent(options: {
 		request: {
 			url: url.toString(),
 			headers,
+		},
+		locals: {
+			user: options.user ?? null,
 		},
 	} as any;
 }
@@ -61,12 +74,13 @@ function makeSuccessResult(overrides: Record<string, unknown> = {}) {
 describe('GET /api/cron/auto-cancel', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		mockFindFirst.mockResolvedValue(null);
 	});
 
 	// ── Authorization ──
 
 	describe('authorization', () => {
-		it('returns 401 when no Authorization header is present', async () => {
+		it('returns 401 when no Authorization header and no session', async () => {
 			const response = await GET(makeEvent());
 
 			expect(response.status).toBe(401);
@@ -74,7 +88,7 @@ describe('GET /api/cron/auto-cancel', () => {
 			expect(mockAutoCancelExpiredCompetitions).not.toHaveBeenCalled();
 		});
 
-		it('returns 401 when Bearer token is wrong', async () => {
+		it('returns 401 when Bearer token is wrong and no admin session', async () => {
 			const response = await GET(makeEvent({ authorization: 'Bearer wrong-token' }));
 
 			expect(response.status).toBe(401);
@@ -89,6 +103,26 @@ describe('GET /api/cron/auto-cancel', () => {
 
 			expect(response.status).toBe(200);
 			expect(response.body).toEqual(result);
+		});
+
+		it('returns 200 when user has admin role (no CRON_SECRET needed)', async () => {
+			const result = makeSuccessResult();
+			mockAutoCancelExpiredCompetitions.mockResolvedValue(result);
+			mockFindFirst.mockResolvedValue({ id: 'role-1', role: 'ADMIN', userId: 'admin-1' });
+
+			const response = await GET(makeEvent({ user: { id: 'admin-1' } }));
+
+			expect(response.status).toBe(200);
+			expect(response.body).toEqual(result);
+		});
+
+		it('returns 401 when user is logged in but not admin', async () => {
+			mockFindFirst.mockResolvedValue(null);
+
+			const response = await GET(makeEvent({ user: { id: 'user-1' } }));
+
+			expect(response.status).toBe(401);
+			expect(mockAutoCancelExpiredCompetitions).not.toHaveBeenCalled();
 		});
 	});
 

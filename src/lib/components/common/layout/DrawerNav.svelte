@@ -8,6 +8,7 @@
     import ClipboardListOutlineIcon from '@iconify-svelte/mdi/clipboard-list-outline';
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import ShieldCheckOutlineIcon from '@iconify-svelte/mdi/shield-check-outline';
+    import CalendarRemoveOutlineIcon from '@iconify-svelte/mdi/calendar-remove-outline';
 
     import { drawerState } from '$lib/stores/drawer.svelte';
     import { t } from '$lib/translations';
@@ -18,6 +19,27 @@
     let currentPath = $derived(page.url.pathname);
     let appVersion: string | null = $derived(page.data.appVersion ?? null);
     let commitSha: string | null = $derived(page.data.commitSha ?? null);
+
+    let autoCancelRunning = $state(false);
+    let autoCancelResult: string | null = $state(null);
+
+    async function runAutoCancel() {
+        autoCancelRunning = true;
+        autoCancelResult = null;
+        try {
+            const res = await fetch('/api/cron/auto-cancel?dryRun=true');
+            const data = await res.json();
+            if (!res.ok) {
+                autoCancelResult = `Error: ${data.error ?? res.statusText}`;
+            } else {
+                autoCancelResult = `Eligible: ${data.eligible}, Cancelled: ${data.cancelled}, Failed: ${data.failed}`;
+            }
+        } catch (err) {
+            autoCancelResult = `Error: ${err instanceof Error ? err.message : 'Unknown'}`;
+        } finally {
+            autoCancelRunning = false;
+        }
+    }
 
     function navigate() {
         drawerState.open = false;
@@ -104,6 +126,15 @@
             <ShieldCheckOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('landing_page.review_requests')}</span>
         </a>
+    </li>
+    <li>
+        <button onclick={runAutoCancel} disabled={autoCancelRunning} class="nav-item w-full text-left">
+            <CalendarRemoveOutlineIcon width="1.25rem" height="1.25rem" />
+            <span>{autoCancelRunning ? 'Running...' : 'Auto-cancel (dry run)'}</span>
+        </button>
+        {#if autoCancelResult}
+            <p class="px-3 pt-1 text-xs opacity-70">{autoCancelResult}</p>
+        {/if}
     </li>
     {/if}
 </ul>

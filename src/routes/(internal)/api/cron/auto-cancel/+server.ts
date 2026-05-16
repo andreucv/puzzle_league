@@ -1,13 +1,24 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { autoCancelExpiredCompetitions } from '$lib/services/auto-cancel';
+import { prisma } from '$lib/database/create_prisma_client';
+import { Role } from '$lib/.prisma/generated/prisma/enums';
 
 export const GET = async (event: RequestEvent) => {
-	// Verify CRON_SECRET
+	// Accept either CRON_SECRET Bearer token or authenticated admin session
 	const authHeader = event.request.headers.get('authorization');
 	const expectedToken = env.CRON_SECRET;
+	const hasCronSecret = expectedToken && authHeader === `Bearer ${expectedToken}`;
 
-	if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
+	let hasAdminSession = false;
+	if (!hasCronSecret && event.locals.user) {
+		const adminRole = await prisma.roleAssignment.findFirst({
+			where: { userId: event.locals.user.id, role: Role.ADMIN },
+		});
+		hasAdminSession = !!adminRole;
+	}
+
+	if (!hasCronSecret && !hasAdminSession) {
 		return json({ error: 'Unauthorized' }, { status: 401 });
 	}
 

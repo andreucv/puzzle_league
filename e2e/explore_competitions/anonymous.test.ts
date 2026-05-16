@@ -47,7 +47,7 @@ async function gotoExplore(page: import('@playwright/test').Page) {
 test('GivenList_WhenDefaultSoonFilter_OnlyShowFutureCompetitions', async ({ page }) => {
     await gotoExplore(page);
 
-    // "Soon" (NOT_STARTED) tab is active by default
+    // "Upcoming" (NOT_STARTED) tab is active by default
     const soonTab = page.getByTestId('filter-tab-NOT_STARTED');
     await expect(soonTab).toBeVisible();
 

@@ -13,6 +13,7 @@ export interface AutoCancelOptions {
 
 export interface AutoCancelResult {
 	eligible: number;
+	eligibleCompetitionIds: number[];
 	cancelled: number;
 	skipped: number;
 	failed: number;
@@ -56,6 +57,7 @@ export async function autoCancelExpiredCompetitions(
 
 	const result: AutoCancelResult = {
 		eligible: eligibleCompetitions.length,
+		eligibleCompetitionIds: eligibleCompetitions.map((c) => c.id),
 		cancelled: 0,
 		skipped: 0,
 		failed: 0,

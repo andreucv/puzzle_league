@@ -32,7 +32,10 @@
             if (!res.ok) {
                 autoCancelResult = `Error: ${data.error ?? res.statusText}`;
             } else {
-                autoCancelResult = `Eligible: ${data.eligible}, Cancelled: ${data.cancelled}, Failed: ${data.failed}`;
+                const ids = data.eligibleCompetitionIds?.length
+                    ? ` [${data.eligibleCompetitionIds.join(', ')}]`
+                    : '';
+                autoCancelResult = `Eligible: ${data.eligible}${ids}, Cancelled: ${data.cancelled}, Failed: ${data.failed}`;
             }
         } catch (err) {
             autoCancelResult = `Error: ${err instanceof Error ? err.message : 'Unknown'}`;

@@ -180,9 +180,6 @@ test.describe('Organizer Refuses Registration', () => {
 // 13. Organizer confirms the pending registration from the organizer in pending status.
 // 14. Organizer sees the updated status in the UI.
 
-// TODO: Promotion from waitlist to pending triggered by refuseRegistration.
-// TODO: Notifications for promotion from waitlist to pending.
-// TODO: Fix refusal of confirmed registration api endpoint.
 // TODO: Confirmation popover in users competition_details/registration page when user tries to remove their registration.
 test.describe('Waitlisting', () => {
     test.describe.configure({ mode: 'serial' });
@@ -302,6 +299,9 @@ test.describe('Waitlisting', () => {
 
         // After refusal, the first waitlisted entry should be promoted to pending.
         // Expected state: 1 pending, 1 confirmed, 1 waitlisted
+
+        // No error banner should appear — the refusal succeeded
+        await expect(organizerPage.locator('.preset-filled-error-500')).toHaveCount(0);
 
         // Pending section should have 1 entry (promoted from waitlist)
         await expect(organizerPage.locator('[data-testid="section-pending"] [data-testid^="registration-row-entry-"]')).toHaveCount(1, { timeout: 5000 });

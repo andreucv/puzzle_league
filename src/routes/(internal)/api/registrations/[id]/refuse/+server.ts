@@ -1,57 +1,38 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { refuseRegistration } from '$lib/database/db_registration';
-import { prisma } from '$lib/database/create_prisma_client';
-import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
-import { createNotificationForUsers } from '$lib/notifications/notifications';
-import { notifyWaitlistPromotion } from '$lib/notifications/registration_notifications';
+import { notifyRegistrationRefused, notifyWaitlistPromotion } from '$lib/notifications/registration_notifications';
 
 export const POST = async (event: RequestEvent) => {
-	try {
-		const entryId = event.params.id as string;
-		const actorName = event.locals.user?.name || undefined;
+	const entryId = event.params.id as string;
+	const actorName = event.locals.user?.name || undefined;
 
-		if (!entryId) {
-			return json({ error: 'Invalid entry ID' }, { status: 400 });
-		}
-
-		const entry = await prisma.entry.findUnique({
-			where: { id: entryId },
-			include: {
-				category: { select: { competitionId: true, description: true } },
-				users: { select: { id: true } }
-			}
-		});
-
-		if (!entry) {
-			return json({ error: 'Entry not found' }, { status: 404 });
-		}
-
-		const result = await refuseRegistration(entryId);
-
-		if (!result.success) {
-			return json({ error: result.error }, { status: 400 });
-		}
-
-		// Notify all participants on this entry about the refusal
-		const userIds = entry.users.map((u) => u.id);
-		await createNotificationForUsers(
-			userIds,
-			NotificationType.REGISTRATION_REFUSED,
-			'notifications.titles.registration_refused',
-			'notifications.messages.registration_refused',
-			`/competitions/competition_details/${entry.category.competitionId}`,
-			{ categoryName: entry.category.description },
-			actorName,
-		);
-
-		// If a waitlisted entry was promoted, notify its participants
-		if (result.promotedEntry) {
-			await notifyWaitlistPromotion(result.promotedEntry, actorName);
-		}
-
-		return json({ success: true, data: result.data });
-	} catch (error) {
-		console.error('Error refusing registration:', error);
-		return json({ error: 'Failed to refuse registration' }, { status: 500 });
+	if (!entryId) {
+		return json({ error: 'Invalid entry ID' }, { status: 400 });
 	}
+
+	const result = await refuseRegistration(entryId);
+
+	if (!result.success) {
+		// Distinguish "not found" (already removed) from validation errors
+		const status = result.error === 'Entry not found' ? 404 : 400;
+		return json({ error: result.error }, { status });
+	}
+
+	// Mutation succeeded — send notifications best-effort (never convert a
+	// successful delete/promotion into an HTTP error).
+	try {
+		await notifyRegistrationRefused(result.data, actorName);
+	} catch (err) {
+		console.error('[refuse] Failed to send refusal notifications:', err);
+	}
+
+	if (result.promotedEntry) {
+		try {
+			await notifyWaitlistPromotion(result.promotedEntry, actorName);
+		} catch (err) {
+			console.error('[refuse] Failed to send waitlist-promotion notifications:', err);
+		}
+	}
+
+	return json({ success: true, data: result.data });
 };

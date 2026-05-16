@@ -535,11 +535,17 @@ export async function refuseRegistration(entryId: string) {
                     users: {
                         select: { id: true, name: true, email: true, image: true }
                     },
+                    externalParticipants: {
+                        select: { name: true }
+                    },
                     category: {
                         select: {
                             description: true,
                             competitionId: true,
                             maxParties: true,
+                            subname: true,
+                            type: true,
+                            competition: { select: { name: true } },
                         }
                     }
                 }

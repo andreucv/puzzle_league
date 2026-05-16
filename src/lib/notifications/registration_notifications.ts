@@ -95,6 +95,84 @@ export async function notifyRegistrationConfirmed(
 }
 
 // ---------------------------------------------------------------------------
+// Registration refusal notification
+// ---------------------------------------------------------------------------
+
+/**
+ * Send registration-refused notifications following the same recipient pattern
+ * as notifyRegistrationConfirmed:
+ *
+ * 1. Every real platform user on the entry receives a notification.
+ * 2. Creator NOT a participant → creator receives a separate notification.
+ * 3. External-only entries (no platform users) → creator receives the notification.
+ */
+export async function notifyRegistrationRefused(
+	entry: RegistrationEntry,
+	actorName?: string,
+): Promise<void> {
+	const typeLabel = getCategoryTypeName(entry.category.type);
+	const categoryName = entry.category.subname
+		? `@:${typeLabel} - ${entry.category.subname}`
+		: `@:${typeLabel}`;
+	const competitionName = entry.category.competition.name;
+	const link = `/competitions/competition_details/${entry.category.competitionId}`;
+
+	const realUserIds = entry.users.map((u) => u.id);
+	const creatorIsParticipant = realUserIds.includes(entry.creatorId);
+
+	const promises: Promise<unknown>[] = [];
+
+	// Notify every real platform user on the entry
+	for (const user of entry.users) {
+		const teammates = [
+			...entry.users.filter((u) => u.id !== user.id).map((u) => u.name),
+			...entry.externalParticipants.map((ui) => ui.name),
+		];
+		const teammateNames = teammates.join(', ');
+		const hasTeammates = teammates.length > 0;
+
+		promises.push(
+			createNotification({
+				userId: user.id,
+				type: NotificationType.REGISTRATION_REFUSED,
+				title: hasTeammates
+					? 'notifications.titles.registration_refused_team'
+					: 'notifications.titles.registration_refused',
+				message: hasTeammates
+					? 'notifications.messages.registration_refused_team'
+					: 'notifications.messages.registration_refused',
+				link,
+				data: { categoryName, competitionName, teammateNames },
+				actorName,
+				translationKey: hasTeammates ? 'registration_refused_team' : undefined,
+			}),
+		);
+	}
+
+	// If the creator is NOT already a participant, they still need a notification
+	if (!creatorIsParticipant) {
+		const allParticipantNames = [
+			...entry.users.map((u) => u.name),
+			...entry.externalParticipants.map((ui) => ui.name),
+		].join(', ');
+		promises.push(
+			createNotification({
+				userId: entry.creatorId,
+				type: NotificationType.REGISTRATION_REFUSED,
+				title: 'notifications.titles.registration_refused_nonplatform',
+				message: 'notifications.messages.registration_refused_nonplatform',
+				link,
+				data: { participantNames: allParticipantNames, categoryName, competitionName },
+				actorName,
+				translationKey: 'registration_refused_nonplatform',
+			}),
+		);
+	}
+
+	await Promise.all(promises);
+}
+
+// ---------------------------------------------------------------------------
 // Waitlist promotion notification
 // ---------------------------------------------------------------------------
 

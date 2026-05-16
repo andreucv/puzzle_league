@@ -91,6 +91,10 @@
             if (response.ok && result.success) {
                 showResultMessage({ success: true, message: $t('manage_registrations.refused_success') });
                 await invalidateAll();
+            } else if (response.status === 404) {
+                // Entry was already removed (e.g. stale/duplicate refusal)
+                showResultMessage({ success: true, message: $t('manage_registrations.already_removed') });
+                await invalidateAll();
             } else {
                 showResultMessage({ success: false, message: result.error || $t('manage_registrations.refuse_error') });
             }

@@ -1,23 +1,14 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import { getOrganisedCompetitions } from '$lib/database/db_competition';
-import { auth } from '$lib/auth';
-import { fail } from '@sveltejs/kit';
 
-export const load: PageServerLoad = async ({request}) => {
-    let userId = null;
-    try {
-        const session = await auth.api.getSession({
-            headers: request.headers,
-        });
-        userId = session?.user.id;
-    } catch (err) {
-        console.error('Error getting user session:', err);
-        return fail(401, { error_message: "User not authenticated" });
+export const load: PageServerLoad = async ({ locals }) => {
+    if (!locals.user) {
+        throw error(401, { message: 'User not authenticated', code: 'AUTH_REQUIRED' });
     }
 
     try {
-        const organised_competitions = await getOrganisedCompetitions(String(userId));
+        const organised_competitions = await getOrganisedCompetitions(locals.user.id);
         return {
             props: {
                 organised_competitions

@@ -63,6 +63,8 @@
     "live_now": "Live Now",
     "no_live_competitions": "No live competitions right now",
     "no_near_competitions": "No upcoming competitions near you",
+    "no_other_upcoming_competitions": "There are no other upcoming competitions right now",
+    "loading_more_competitions": "Loading more competitions...",
     "registration_status": {
       "pending_confirmation": "Pending Confirmation",
       "confirmed": "Confirmed",

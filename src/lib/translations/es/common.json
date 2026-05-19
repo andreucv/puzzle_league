@@ -63,6 +63,8 @@
     "live_now": "En Directo",
     "no_live_competitions": "No hay competiciones en directo ahora",
     "no_near_competitions": "No hay próximas competiciones cerca de ti",
+    "no_other_upcoming_competitions": "No hay otras competiciones disponibles ahora mismo",
+    "loading_more_competitions": "Cargando más competiciones...",
     "registration_status": {
       "pending_confirmation": "Pendiente de confirmación",
       "confirmed": "Confirmada",

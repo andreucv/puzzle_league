@@ -2,7 +2,7 @@
     import type { User, Category, CategoryType } from '@prisma/client';
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
     import { enhance } from '$app/forms';
-    import { invalidateAll } from '$app/navigation';
+    import { invalidate } from '$app/navigation';
     import { t } from '$lib/translations';
     import { getCategoryTypeName, getCategoryTypeSingularName, getCategoryTypeIcon, getMaxEntriesPerCategory } from '$lib/utils/category_utils';
     import { getRegistrationStatusBorderClass as getStatusBorderClass } from '$lib/utils/registration_utils';
@@ -625,7 +625,7 @@
                                                                 confirmingUnregisterId = null;
                                                                 return async ({ update }) => {
                                                                     await update();
-                                                                    await invalidateAll();
+                                                                    await invalidate('data:registration');
                                                                 };
                                                             }}>
                                                                 <input type="hidden" name="entry_id" value={entry.id} />
@@ -974,7 +974,7 @@
                             const html = `<table class="w-full text-left"><thead><tr class="border-b border-surface-300 dark:border-surface-600"><th class="pb-1 font-medium">${catHeader}</th><th class="pb-1 font-medium text-right">${entHeader}</th></tr></thead><tbody>${rows}${totalRow}</tbody></table>`;
                             showRichSuccessToast($t('registration.toast_success_title'), html);
                             clearAllSignupState();
-                            await invalidateAll();
+                            await invalidate('data:registration');
                         } else {
                             showErrorToast($t('registration.toast_error_title'), (result.data as any).message || '');
                         }

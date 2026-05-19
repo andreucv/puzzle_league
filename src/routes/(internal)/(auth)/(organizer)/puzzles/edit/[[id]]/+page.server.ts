@@ -1,7 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { getPuzzleById, createPuzzle, updatePuzzle, deletePuzzle } from '$lib/database/db_puzzle';
-import { auth } from '$lib/auth';
 import { z } from 'zod';
 import { superValidate, message } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
@@ -29,8 +28,7 @@ const PuzzleEditSchema = z.object({
 type PuzzleEditData = z.infer<typeof PuzzleEditSchema>;
 
 export const load: PageServerLoad = async (event) => {
-    const session = await auth.api.getSession(event.request);
-    if (!session?.user) {
+    if (!event.locals.user) {
         throw error(401, { message: 'You need to be signed in to edit puzzles.', code: 'AUTH_REQUIRED' });
     }
 
@@ -49,9 +47,8 @@ export const load: PageServerLoad = async (event) => {
 };
 
 export const actions: Actions = {
-    save_puzzle: async ({ request, params }) => {
-        const session = await auth.api.getSession({ headers: request.headers });
-        if (!session?.user) {
+    save_puzzle: async ({ locals, request, params }) => {
+        if (!locals.user) {
             return fail(401, { error_message: 'User not authenticated' });
         }
 
@@ -110,9 +107,8 @@ export const actions: Actions = {
         }
     },
 
-    delete_puzzle: async ({ request, params }) => {
-        const session = await auth.api.getSession({ headers: request.headers });
-        if (!session?.user) {
+    delete_puzzle: async ({ locals, request, params }) => {
+        if (!locals.user) {
             return fail(401, { error_message: 'User not authenticated' });
         }
 

@@ -1,27 +1,18 @@
-import { auth } from "$lib/auth";
 import type { PageServerLoad } from "./$types";
 import { createRequest, getRequestsByUserId } from '$lib/database/db_request';
-import { prisma } from '$lib/database/create_prisma_client';
 import { Role } from '$lib/.prisma/generated/prisma/enums';
 import { error, fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
 
-export const load: PageServerLoad = async ({ request }) => {
-    const session = await auth.api.getSession({
-        headers: request.headers,
-    });
-
+export const load: PageServerLoad = async ({ locals }) => {
     const rolesAvailable = Object.values(Role);
     const filteredRoles = rolesAvailable.filter(role => role !== Role.ADMIN && role !== Role.PARTICIPANT);
 
-    if (!session?.user) {
+    if (!locals.user) {
         throw error(401, { message: 'You need to be signed in to request permissions.', code: 'AUTH_REQUIRED' });
     }
 
-    const requests = await getRequestsByUserId(session.user.id);
-
-    console.log('request_permissions/+page.server.ts requests', requests);
-    console.log('request_permissions/+page.server.ts rolesAvailable', filteredRoles);
+    const requests = await getRequestsByUserId(locals.user.id);
 
     return {
         props: {
@@ -32,15 +23,14 @@ export const load: PageServerLoad = async ({ request }) => {
 };
 
 export const actions: Actions = {
-    default: async ({ request }) => {
+    default: async ({ locals, request }) => {
         try {
-            const session = await auth.api.getSession({
-                headers: request.headers,
-            });
+            if (!locals.user) {
+                return fail(401, { error: 'User not authenticated' });
+            }
 
             const formData = await request.formData();
-            console.log('request_permissions/+page.server.ts formData', formData);
-            const userId = session?.user.id;
+            const userId = locals.user.id;
             const role = formData.get('role')?.toString();
             const reason = formData.get('reason')?.toString();
             const additionalInfo = formData.get('additionalInfo')?.toString() || '';

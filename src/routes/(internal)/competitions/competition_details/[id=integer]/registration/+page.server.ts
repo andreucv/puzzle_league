@@ -14,6 +14,9 @@ export const load: PageServerLoad = async (event) => {
         throw redirect(302, '/login?redirect=' + encodeURIComponent(event.url.pathname));
     }
 
+    // Custom dependency for targeted invalidation (avoids re-running root layout)
+    event.depends('data:registration');
+
     const competitionId = parseInt(event.params.id);
     const competition = await getCompetitionWithCategories(competitionId);
 

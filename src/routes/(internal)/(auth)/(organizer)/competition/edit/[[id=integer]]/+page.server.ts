@@ -2,7 +2,6 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import type { Action, Actions, PageServerLoad } from '../$types';
 import { updateCompetition, getCompetitionWithCategories } from '$lib/database/db_competition';
 import { CategoryType, CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
-import { auth } from '$lib/auth';
 
 import { superValidate, message} from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
@@ -28,9 +27,8 @@ export const load: PageServerLoad = async (event) => {
     }
 
     try {
-        // Get the current session
-        const session = await auth.api.getSession(event.request);
-        if (!session?.user) {
+        const user = event.locals.user;
+        if (!user) {
             throw error(401, { message: 'You need to be signed in to edit competitions.', code: 'AUTH_REQUIRED' });
         }
 
@@ -58,8 +56,8 @@ export const load: PageServerLoad = async (event) => {
             }
 
             // Check if the user is the creator of the competition
-            if (competition.creatorId !== session.user.id) {
-                console.error("competition/edit/+page.server.ts creatorId:", competition.creatorId, "!= session.user.id:", session.user.id);
+            if (competition.creatorId !== user.id) {
+                console.error("competition/edit/+page.server.ts creatorId:", competition.creatorId, "!= user.id:", user.id);
                 throw error(403, { message: 'You are not authorized to edit this competition.', code: 'FORBIDDEN' });
             }
 
@@ -94,15 +92,9 @@ export const load: PageServerLoad = async (event) => {
     }
 }
 
-const create_update_competition: Action = async ({ request, params }) => {
-    let user = null;
-    try {
-        const session = await auth.api.getSession({
-            headers: request.headers,
-        });
-        user = session?.user;
-    } catch (error) {
-        console.error('Error getting user session:', error);
+const create_update_competition: Action = async ({ locals, request, params }) => {
+    const user = locals.user;
+    if (!user) {
         return fail(401, { error_message: "User not authenticated" });
     }
 

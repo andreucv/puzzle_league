@@ -65,36 +65,34 @@ export async function requireCompetitionRole(
   const authResult = await requireAuth(event);
   if (!authResult.authorized) return authResult;
 
-  // Admins can do anything
-  const isAdmin = await prisma.roleAssignment.findFirst({
-    where: { userId: authResult.userId, role: Role.ADMIN }
-  });
-  if (isAdmin) return authResult;
+  // Run admin, competition-role, and creator checks in parallel to reduce sequential DB trips
+  const [isAdmin, hasCompetitionRole, isCreator] = await Promise.all([
+    prisma.roleAssignment.findFirst({
+      where: { userId: authResult.userId, role: Role.ADMIN }
+    }),
+    prisma.roleAssignment.findFirst({
+      where: {
+        userId: authResult.userId,
+        competitionId,
+        role: { in: roles }
+      }
+    }),
+    prisma.competition.findFirst({
+      where: { id: competitionId, creatorId: authResult.userId }
+    })
+  ]);
 
-  // Check competition-specific role
-  const hasCompetitionRole = await prisma.roleAssignment.findFirst({
-    where: {
-      userId: authResult.userId,
-      competitionId,
-      role: { in: roles }
-    }
-  });
-
-  // Also check if user is the creator
-  const isCreator = await prisma.competition.findFirst({
-    where: { id: competitionId, creatorId: authResult.userId }
-  });
-
-  if (!hasCompetitionRole && !isCreator) {
-    return {
-      authorized: false,
-      response: new Response(JSON.stringify({ error: 'Forbidden' }), {
-        status: 403,
-        headers: { 'Content-Type': 'application/json' }
-      })
-    };
+  if (isAdmin || hasCompetitionRole || isCreator) {
+    return authResult;
   }
-  return authResult;
+
+  return {
+    authorized: false,
+    response: new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  };
 }
 
 /** Check if user is judge for a category's competition */

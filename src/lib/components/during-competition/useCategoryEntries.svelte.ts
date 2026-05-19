@@ -15,8 +15,11 @@ export function matchesSearch(entry: any, query: string): boolean {
 /**
  * Mode 'split': fetches finished and unfinished separately (for LIVE — pending vs finished).
  * Mode 'unified': fetches all entries once, splits client-side (for STOPPED — unresolved vs resolved).
+ *
+ * If `initialEntries` is provided (from batched competition-level fetch), the initial network
+ * request is skipped and the entries are populated immediately.
  */
-export function useCategoryEntries(getCategoryId: () => number, mode: 'split' | 'unified') {
+export function useCategoryEntries(getCategoryId: () => number, mode: 'split' | 'unified', initialEntries?: any[]) {
     // Capture category ID once to avoid reactive reads inside $effect.
     // getCategoryId() is a closure over a reactive prop; calling it inside
     // an effect would make the effect re-run on every parent re-render.
@@ -25,8 +28,8 @@ export function useCategoryEntries(getCategoryId: () => number, mode: 'split' | 
     let searchQuery = $state('');
 
     // --- Core state: single source of truth ---
-    let allEntries = $state<any[]>([]);
-    let loading = $state(false);
+    let allEntries = $state<any[]>(initialEntries ?? []);
+    let loading = $state(!initialEntries);
 
     // --- Derived splits ---
     // Split mode (LIVE): pending vs finished
@@ -64,7 +67,7 @@ export function useCategoryEntries(getCategoryId: () => number, mode: 'split' | 
     );
 
     // --- Initial load tracking (only show loading spinner on first fetch, not background refreshes) ---
-    let initialLoad = false;
+    let initialLoad = !!initialEntries;
 
     // --- Generation counter: discard stale fetch responses when a newer refresh has started ---
     let fetchGeneration = 0;
@@ -106,9 +109,11 @@ export function useCategoryEntries(getCategoryId: () => number, mode: 'split' | 
         }, 150);
     }
 
-    // Load on init — immediate, no debounce
+    // Load on init — skip if entries were pre-populated via batch
     $effect(() => {
-        doFetch();
+        if (!initialEntries) {
+            doFetch();
+        }
     });
 
     return {

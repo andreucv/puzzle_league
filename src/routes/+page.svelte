@@ -1,21 +1,53 @@
 <script lang="ts">
     import { t } from '$lib/translations';
     import CompetitionList from '$lib/components/competition/CompetitionList.svelte';
+    import CompetitionCard from '$lib/components/competition/CompetitionCard.svelte';
     import ButtonLink from '$lib/components/landing_page/ButtonLink.svelte';
-    import NearCompetitionsCaroussel from '$lib/components/landing_page/NearCompetitionsCaroussel.svelte';
+    import InfiniteScroll from '$lib/components/common/InfiniteScroll.svelte';
     import LastResultsList from '$lib/components/landing_page/LastResultsList.svelte';
     import RegistrationStatusCard from '$lib/components/landing_page/RegistrationStatusCard.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
-    import { afterNavigate, invalidateAll } from '$app/navigation';
+    import { afterNavigate, invalidate } from '$app/navigation';
     import CalendarIcon from '@iconify-svelte/mdi/calendar';
 
     let { data } = $props();
-    // Re-fetch data when navigating back to the home page (e.g. after registration)
+    // Re-fetch dashboard data when navigating back to the home page (e.g. after registration)
     afterNavigate(({ from }) => {
         if (from) {
-            invalidateAll();
+            invalidate('data:home-dashboard');
         }
     });
+
+    // Other upcoming competitions infinite feed state
+    let otherCompetitions = $state<any[]>([]);
+    let otherHasMore = $state(true);
+    let otherInitialized = $state(false);
+    let otherLoading = $state(false);
+
+    // Initialize from server data (already resolved, no longer a promise)
+    $effect(() => {
+        if (!otherInitialized && data.props.otherUpcomingCompetitions) {
+            const competitions = data.props.otherUpcomingCompetitions;
+            otherCompetitions = competitions;
+            otherHasMore = competitions.length >= 10;
+            otherInitialized = true;
+        }
+    });
+
+    async function loadMoreOtherCompetitions() {
+        if (otherLoading || !otherHasMore) return;
+        otherLoading = true;
+        try {
+            const res = await fetch(`/api/competitions/other-upcoming?offset=${otherCompetitions.length}&limit=10`);
+            if (res.ok) {
+                const { competitions, hasMore } = await res.json();
+                otherCompetitions = [...otherCompetitions, ...competitions];
+                otherHasMore = hasMore;
+            }
+        } finally {
+            otherLoading = false;
+        }
+    }
 </script>
 
 <svelte:head>
@@ -131,29 +163,6 @@
             </section>
         {/await}
 
-        <!-- Upcoming competitions carousel -->
-        {#await data.props.nearCompetitions}
-            <section>
-                <GenericTitle text={$t('competitions.other_upcoming_competitions')} />
-                <div class="flex gap-3 overflow-hidden">
-                    {#each { length: 2 } as _, index (index)}
-                        <div class="h-72 sm:h-80 min-w-[60%] lg:min-w-[32%] rounded-2xl bg-surface-100-700 animate-pulse shrink-0"></div>
-                    {/each}
-                </div>
-            </section>
-        {:then nearCompetitions}
-            {#if nearCompetitions}
-                <section>
-                    <GenericTitle text={$t('competitions.other_upcoming_competitions')} />
-                    {#if nearCompetitions.length > 0}
-                        <NearCompetitionsCaroussel competitions={nearCompetitions} />
-                    {:else}
-                        <p class="text-surface-500">{$t('landing_page.no_near_competitions')}</p>
-                    {/if}
-                </section>
-            {/if}
-        {/await}
-
         <!-- Last results -->
         {#await data.props.lastResults}
             <section>
@@ -182,6 +191,37 @@
                 </section>
             {/if}
         {/await}
+
+        <!-- Other upcoming competitions feed -->
+        <section data-testid="other-upcoming-section">
+            <GenericTitle text={$t('competitions.other_upcoming_competitions')} />
+            {#if !otherInitialized}
+                <div class="space-y-2">
+                    {#each { length: 2 } as _, index (index)}
+                        <div class="card flex placeholder animate-pulse p-2 gap-3">
+                            <div class="w-28 sm:w-36 h-24 rounded-xl bg-surface-100-700 shrink-0"></div>
+                            <div class="flex-1 space-y-2 py-1">
+                                <div class="h-4 w-4/5 rounded bg-surface-100-700"></div>
+                                <div class="h-3 w-2/5 rounded bg-surface-100-700"></div>
+                                <div class="flex gap-2 mt-1">
+                                    <div class="h-3 w-14 rounded-full bg-surface-100-700"></div>
+                                    <div class="h-3 w-14 rounded-full bg-surface-100-700"></div>
+                                </div>
+                            </div>
+                        </div>
+                    {/each}
+                </div>
+            {:else if otherCompetitions.length === 0}
+                <p class="text-surface-500" data-testid="other-upcoming-empty">{$t('landing_page.no_other_upcoming_competitions')}</p>
+            {:else}
+                <div class="space-y-2" data-testid="other-upcoming-list">
+                    {#each otherCompetitions as competition (competition.id)}
+                        <CompetitionCard {competition} currentUserId={data.user.id} userCountry={data.user.country} userPostalCode={data.user.postalCode} />
+                    {/each}
+                </div>
+                <InfiniteScroll hasMore={otherHasMore} on:loadMore={loadMoreOtherCompetitions} />
+            {/if}
+        </section>
     </div>
 {:else}
     <div class="landing-page-container">

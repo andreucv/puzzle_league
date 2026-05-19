@@ -2,7 +2,6 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { getPendingRequests, acceptRequest, rejectRequest } from '$lib/database/db_request';
 import { getRoleAssignments } from '$lib/database/db_user';
-import { auth } from '$lib/auth';
 import { createNotification } from '$lib/notifications/notifications';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 
@@ -21,18 +20,13 @@ export const load: PageServerLoad = async ({ request }) => {
 };
 
 export const actions: Actions = {
-    accept: async ({ request }) => {
-        // Get session using better-auth
-        const session = await auth.api.getSession({
-            headers: request.headers,
-        });
-
-        if (!session) {
+    accept: async ({ locals, request }) => {
+        if (!locals.user) {
             return fail(401, { error: 'Unauthorized' });
         }
 
-        // Check admin permissions
-        const userRoles = await getRoleAssignments(session.user.id);
+        // Explicit admin role check for mutation actions
+        const userRoles = await getRoleAssignments(locals.user.id);
         const isAdmin = userRoles?.some(role => role.role === 'ADMIN');
 
         if (!isAdmin) {
@@ -47,7 +41,7 @@ export const actions: Actions = {
         }
 
         try {
-            const result = await acceptRequest(requestId, session.user.id);
+            const result = await acceptRequest(requestId, locals.user.id);
             await createNotification({
                 userId: result.updatedRequest.userId,
                 type: NotificationType.ROLE_REQUEST_APPROVED,
@@ -63,18 +57,13 @@ export const actions: Actions = {
         }
     },
 
-    reject: async ({ request }) => {
-        // Get session using better-auth
-        const session = await auth.api.getSession({
-            headers: request.headers,
-        });
-
-        if (!session) {
+    reject: async ({ locals, request }) => {
+        if (!locals.user) {
             return fail(401, { error: 'Unauthorized' });
         }
 
-        // Check admin permissions
-        const userRoles = await getRoleAssignments(session.user.id);
+        // Explicit admin role check for mutation actions
+        const userRoles = await getRoleAssignments(locals.user.id);
         const isAdmin = userRoles?.some(role => role.role === 'ADMIN');
 
         if (!isAdmin) {
@@ -89,7 +78,7 @@ export const actions: Actions = {
         }
 
         try {
-            const result = await rejectRequest(requestId, session.user.id);
+            const result = await rejectRequest(requestId, locals.user.id);
             await createNotification({
                 userId: result.userId,
                 type: NotificationType.ROLE_REQUEST_REJECTED,

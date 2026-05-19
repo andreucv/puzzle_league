@@ -96,6 +96,28 @@ export async function getUsers() {
 }
 
 // ---------------------------------------------------------------------------
+// User search (DB-backed, bounded)
+// ---------------------------------------------------------------------------
+
+export async function searchUsers(query: string, limit: number = 20) {
+    return prisma.user.findMany({
+        where: {
+            OR: [
+                { name: { contains: query, mode: 'insensitive' } },
+                { email: { contains: query, mode: 'insensitive' } }
+            ]
+        },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true
+        },
+        take: limit
+    });
+}
+
+// ---------------------------------------------------------------------------
 // Public profile
 // ---------------------------------------------------------------------------
 

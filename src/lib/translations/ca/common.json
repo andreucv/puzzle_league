@@ -636,7 +636,15 @@
     "remind_bulk_confirm_message": "Això enviarà una notificació i un correu electrònic a tots els participants pendents en aquesta categoria que no hagin estat recordats en les últimes 48 hores.",
     "last_reminded": "Recordat {{time}}",
     "status_accepted": "Aceptada",
-    "status_pending": "Pendent"
+    "status_pending": "Pendent",
+    "download_pdf": "Descarregar PDF",
+    "pdf_check_in": "Check-in",
+    "pdf_table": "Taula",
+    "pdf_participants": "Participants",
+    "pdf_registration_date": "Data d'inscripció",
+    "pdf_status": "Estat",
+    "pdf_confirmed_date": "Data de confirmació",
+    "pdf_generated_at": "Generat el {{date}}"
   },
   "notifications": {
     "title": "Notificacions",

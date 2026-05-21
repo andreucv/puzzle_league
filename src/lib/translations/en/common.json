@@ -401,7 +401,15 @@
     "remind_confirm_title": "Send payment reminder",
     "remind_confirm_message": "This will send a notification and email to remind participants about pending payment.",
     "remind_bulk_confirm_message": "This will send a notification and email to all pending participants in this category who haven't been reminded in the last 48 hours.",
-    "last_reminded": "Reminded {{time}}"
+    "last_reminded": "Reminded {{time}}",
+    "download_pdf": "Download PDF",
+    "pdf_check_in": "Check-in",
+    "pdf_table": "Table",
+    "pdf_participants": "Participants",
+    "pdf_registration_date": "Registration Date",
+    "pdf_status": "Status",
+    "pdf_confirmed_date": "Confirmed Date",
+    "pdf_generated_at": "Generated on {{date}}"
   },
   "puzzles": {
     "catalog_title": "Puzzle Catalog",

@@ -636,7 +636,15 @@
     "remind_bulk_confirm_message": "Esto enviará una notificación y un correo electrónico a todos los participantes pendientes en esta categoría que no hayan sido recordados en las últimas 48 horas.",
     "last_reminded": "Recordado {{time}}",
     "status_accepted": "Aceptada",
-    "status_pending": "Pendiente"
+    "status_pending": "Pendiente",
+    "download_pdf": "Descargar PDF",
+    "pdf_check_in": "Check-in",
+    "pdf_table": "Mesa",
+    "pdf_participants": "Participantes",
+    "pdf_registration_date": "Fecha de inscripción",
+    "pdf_status": "Estado",
+    "pdf_confirmed_date": "Fecha de confirmación",
+    "pdf_generated_at": "Generado el {{date}}"
   },
   "notifications": {
     "title": "Notificaciones",

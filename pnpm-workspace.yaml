@@ -1,11 +1,5 @@
-packages:
-  # include packages in subfolders (change as required)
-  - 'apps/**'
-  - 'packages/**'
-  # if required, exclude directories
-  - '!**/test/**'
 allowBuilds:
-  '@prisma/engines': true
-  esbuild: true
-  prisma: true
-  sharp: false
+  '@prisma/engines': set this to true or false
+  core-js: true
+  esbuild: set this to true or false
+  prisma: set this to true or false

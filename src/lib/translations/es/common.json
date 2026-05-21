@@ -579,7 +579,15 @@
     "remind_confirm_title": "Enviar recordatorio de pago",
     "remind_confirm_message": "Esto enviará una notificación y un correo electrónico para recordar a los participantes sobre el pago pendiente.",
     "remind_bulk_confirm_message": "Esto enviará una notificación y un correo electrónico a todos los participantes pendientes en esta categoría que no hayan sido recordados en las últimas 48 horas.",
-    "last_reminded": "Recordado {{time}}"
+    "last_reminded": "Recordado {{time}}",
+    "download_pdf": "Descargar PDF",
+    "pdf_check_in": "Check-in",
+    "pdf_table": "Mesa",
+    "pdf_participants": "Participantes",
+    "pdf_registration_date": "Fecha de inscripción",
+    "pdf_status": "Estado",
+    "pdf_confirmed_date": "Fecha de confirmación",
+    "pdf_generated_at": "Generado el {{date}}"
   },
   "notifications": {
     "title": "Notificaciones",

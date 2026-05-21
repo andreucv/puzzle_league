@@ -7,8 +7,9 @@
     import TableFurnitureIcon from '@iconify-svelte/mdi/table-furniture';
     import LoadingIcon from '@iconify-svelte/mdi/loading';
     import HistoryIcon from '@iconify-svelte/mdi/history';
+    import DownloadIcon from '@iconify-svelte/mdi/download';
     import { invalidateAll } from '$app/navigation';
-    import { t } from '$lib/translations';
+    import { t, locale } from '$lib/translations';
     import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
     import Card from '$lib/components/common/card/Card.svelte';
@@ -43,6 +44,22 @@
     let resultMessage = $state<{ success: boolean; message: string } | null>(null);
     let messageDismissTimer: ReturnType<typeof setTimeout> | null = null;
     let messageProgressKey = $state(0);
+    let generatingPdf = $state(false);
+
+    async function handleDownloadPdf() {
+        generatingPdf = true;
+        try {
+            const { downloadRegistrationsPdf } = await import('$lib/utils/pdf_registrations');
+            downloadRegistrationsPdf({
+                competitionName: competition.name,
+                categories: categoriesWithRegistrations,
+                translate: $t,
+                locale: $locale
+            });
+        } finally {
+            generatingPdf = false;
+        }
+    }
 
     function showResultMessage(msg: { success: boolean; message: string }) {
         if (messageDismissTimer) clearTimeout(messageDismissTimer);
@@ -181,6 +198,24 @@
     <div>
         <ManageRegistrationStatus competition_id={competition.id} competition_registration_status={registrationOpen} hasCategories={categoriesWithRegistrations.length > 0} onStatusChange={(status) => registrationOpen = status} />
     </div>
+
+    <!-- Download PDF -->
+    {#if categoriesWithRegistrations.length > 0}
+        <button
+            type="button"
+            class="btn preset-outlined-surface-500 gap-2 w-full"
+            disabled={generatingPdf}
+            onclick={handleDownloadPdf}
+            data-testid="download-pdf"
+        >
+            {#if generatingPdf}
+                <LoadingIcon width="1.1rem" height="1.1rem" class="animate-spin" />
+            {:else}
+                <DownloadIcon width="1.1rem" height="1.1rem" />
+            {/if}
+            {$t('manage_registrations.download_pdf')}
+        </button>
+    {/if}
 
     <!-- User Search -->
     <SearchInput bind:filter={searchFilter} placeholder={$t('manage_registrations.search_placeholder')} />

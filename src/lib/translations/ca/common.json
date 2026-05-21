@@ -579,7 +579,15 @@
     "remind_confirm_title": "Enviar recordatori de pagament",
     "remind_confirm_message": "Això enviarà una notificació i un correu electrònic per recordar als participants sobre el pagament pendent.",
     "remind_bulk_confirm_message": "Això enviarà una notificació i un correu electrònic a tots els participants pendents en aquesta categoria que no hagin estat recordats en les últimes 48 hores.",
-    "last_reminded": "Recordat {{time}}"
+    "last_reminded": "Recordat {{time}}",
+    "download_pdf": "Descarregar PDF",
+    "pdf_check_in": "Check-in",
+    "pdf_table": "Taula",
+    "pdf_participants": "Participants",
+    "pdf_registration_date": "Data d'inscripció",
+    "pdf_status": "Estat",
+    "pdf_confirmed_date": "Data de confirmació",
+    "pdf_generated_at": "Generat el {{date}}"
   },
   "notifications": {
     "title": "Notificacions",

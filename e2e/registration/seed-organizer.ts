@@ -2,15 +2,20 @@
  * Seed for organizer-driven registration tests.
  *
  * Creates competitions needed by organizer.test.ts:
- * - Happy Path: 1 individual category, registration closed
- * - Refuse: 1 individual category, registration open
- * - Waitlist: 1 individual category (maxParties=2), registration open
+ * - Happy Path: paid category, registration closed → tests pending → confirm flow
+ * - Refuse: paid category, registration open → tests organizer refusing
+ * - Waitlist: paid category (maxParties=2), registration open → tests waitlisting + promotion
+ * - Auto-Confirm: free category, registration closed → tests auto-confirm flow
  */
 import "dotenv/config";
 import { writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { createSeedContext, createCompetition } from '../seed_utils';
+import {
+    getTimeSlots, individual, competition,
+    ORGANIZER_COMPETITION_NAMES,
+} from './seed-helpers';
 
 async function main() {
     const databaseUrl = process.env.DATABASE_URL;
@@ -18,54 +23,44 @@ async function main() {
 
     const ctx = await createSeedContext(databaseUrl);
     const { organizer } = ctx.baseUsers;
+    const { morning } = getTimeSlots();
 
-    const now = new Date();
-    const morningStart = new Date(now);
-    morningStart.setHours(10, 0, 0, 0);
-    const morningEnd = new Date(now);
-    morningEnd.setHours(12, 0, 0, 0);
+    const PAID = { showPaymentWarning: true } as const;
 
-    const individualCategory = (description: string, maxParties = 10) => ({
-        description,
-        type: 'INDIVIDUAL' as const,
-        maxPartySize: 1,
-        maxParties,
-        startTime: morningStart,
-        endTime: morningEnd,
-    });
+    const happyPath = await createCompetition(ctx,
+        competition(organizer.id, ORGANIZER_COMPETITION_NAMES[0],
+            'Competition for happy path registration E2E tests',
+            [individual('500 pcs', morning, { price: 500 })],
+            { registrationOpen: false, ...PAID }),
+    );
 
-    const baseCompetition = (name: string, description: string, registrationOpen = true) => ({
-        name,
-        description,
-        location: 'Test Location',
-        country: 'ES',
-        postalCode: '08001',
-        startDate: now,
-        endDate: now,
-        creatorId: organizer.id,
-        registrationOpen,
-    });
+    const refuseRegistration = await createCompetition(ctx,
+        competition(organizer.id, ORGANIZER_COMPETITION_NAMES[1],
+            'Tests organizer refusing a registration',
+            [individual('500 pcs refuse', morning, { price: 500 })],
+            PAID),
+    );
 
-    const happyPath = await createCompetition(ctx, {
-        ...baseCompetition('Happy Path Competition', 'Competition for happy path registration E2E tests', false),
-        categories: [individualCategory('500 pcs')],
-    });
+    const waitlist = await createCompetition(ctx,
+        competition(organizer.id, ORGANIZER_COMPETITION_NAMES[2],
+            'Tests waitlisting when category is full',
+            [individual('500 pcs waitlist', morning, { maxParties: 2, price: 500 })],
+            PAID),
+    );
 
-    const refuseRegistration = await createCompetition(ctx, {
-        ...baseCompetition('Refuse Test Competition', 'Tests organizer refusing a registration'),
-        categories: [individualCategory('500 pcs refuse')],
-    });
-
-    const waitlist = await createCompetition(ctx, {
-        ...baseCompetition('Waitlist Test Competition', 'Tests waitlisting when category is full'),
-        categories: [individualCategory('500 pcs waitlist', 2)],
-    });
+    const autoConfirm = await createCompetition(ctx,
+        competition(organizer.id, ORGANIZER_COMPETITION_NAMES[3],
+            'Tests auto-confirm flow with free category',
+            [individual('500 pcs free', morning)],
+            { registrationOpen: false }),
+    );
 
     const dir = dirname(fileURLToPath(import.meta.url));
     writeFileSync(join(dir, 'test-data-organizer.json'), JSON.stringify({
         happyPath: { competitionId: happyPath.id, name: happyPath.name },
         refuseRegistration: { competitionId: refuseRegistration.id },
         waitlist: { competitionId: waitlist.id },
+        autoConfirm: { competitionId: autoConfirm.id, name: autoConfirm.name },
     }, null, 2), 'utf-8');
 
     console.log('✅ Organizer registration seed complete');

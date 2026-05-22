@@ -21,6 +21,7 @@ export async function createCompetition(
             status: 'NOT_STARTED',
             registrationOpen: input.registrationOpen ?? false,
             creatorId: input.creatorId,
+            showPaymentWarning: input.showPaymentWarning ?? false,
             categories: {
                 create: input.categories.map(cat => ({
                     description: cat.description,
@@ -30,6 +31,7 @@ export async function createCompetition(
                     startTime: cat.startTime,
                     endTime: cat.endTime,
                     status: 'NOT_STARTED',
+                    price: cat.price ?? 0,
                 })),
             },
         },

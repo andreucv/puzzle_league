@@ -5,6 +5,22 @@ async function gotoExplore(page: import('@playwright/test').Page, url: string = 
     await page.goto(url, { waitUntil: 'networkidle' });
 }
 
+/**
+ * Clicks the submit button and confirms the payment warning popover if it appears.
+ * For paid categories (showPaymentWarning=true + price>0), the submit button opens
+ * a popover instead of submitting; clicking confirm in the popover actually submits.
+ * For free categories, the form submits directly.
+ */
+export async function submitAndConfirmPaymentIfNeeded(page: Page): Promise<void> {
+    await page.getByTestId('submit-all-registrations').click();
+    // If payment warning popover appears (paid categories), confirm it
+    try {
+        await page.getByTestId('payment-warning-confirm').click({ timeout: 2000 });
+    } catch {
+        // No payment popover — free category, form was already submitted
+    }
+}
+
 /** Opens registration for a competition from the manage registrations page. */
 export async function openRegistration(page: Page, competitionId: number): Promise<void> {
     await gotoExplore(page, `/competition/${competitionId}/manage_registrations`);
@@ -13,14 +29,14 @@ export async function openRegistration(page: Page, competitionId: number): Promi
     await expect(page.getByTestId('registration-status')).toHaveText('open', { timeout: 10000 });
 }
 
-/** Signs up the current user for the first individual category and submits. */
+/** Signs up the current user for the first individual category and submits (handles payment popover). */
 export async function signUpIndividualAndSubmit(page: Page, competitionId: number): Promise<void> {
     await gotoExplore(page, `/competitions/competition_details/${competitionId}/registration`);
     await page.getByRole('button', { name: 'Sign Up' }).first().click();
-    await page.getByTestId('submit-all-registrations').click();
+    await submitAndConfirmPaymentIfNeeded(page);
 }
 
-/** Signs up the current user AND an external (non-platform) participant for the first individual category and submits both. */
+/** Signs up the current user AND an external (non-platform) participant for the first individual category and submits both (handles payment popover). */
 export async function signUpIndividualWithExternalAndSubmit(page: Page, competitionId: number, externalName: string): Promise<void> {
     await gotoExplore(page, `/competitions/competition_details/${competitionId}/registration`);
 
@@ -39,8 +55,8 @@ export async function signUpIndividualWithExternalAndSubmit(page: Page, competit
 
     await expect(page.getByText(externalName, { exact: true })).toBeVisible();
 
-    // Submit both registrations
-    await page.getByTestId('submit-all-registrations').click();
+    // Submit both registrations (handles payment popover if needed)
+    await submitAndConfirmPaymentIfNeeded(page);
 
     // Wait for both status badges to appear
     await expect(page.getByTestId('registration-status-badge').first()).toBeVisible({ timeout: 10000 });

@@ -48,7 +48,7 @@
     let categoriesWithCounts = $derived(data.categoriesWithCounts || []);
     let isOrganizer = $derived(data.isOrganizer || false);
 
-    let canRegister = $derived(competition?.registrationOpen);
+    let canRegister = $derived(competition?.registrationOpen || isOrganizer);
 
     function canRegisterForCategory(category: Category): boolean {
         return !!canRegister && category.status === 'NOT_STARTED';
@@ -562,17 +562,15 @@
                 </div>
 
                 <!-- Registration count badge -->
-                {#if entries.length > 0 || slots.length > 0}
+                {#if !isOrganizer}
+                    {#if entries.length > 0 || slots.length > 0}
                     <div class="flex items-center gap-2">
                         <span class="badge {limitReached ? 'preset-filled-surface-200-800' : 'preset-tonal-primary'} text-xs p-2">
                             <ClipboardListIcon width="0.9rem" height="0.9rem" />
-                            {#if isOrganizer}
-                                {totalRegistrations} {$t('registration.your_registrations')}
-                            {:else}
-                                {totalRegistrations}/{maxEntries} {$t('registration.your_registrations')}
-                            {/if}
+                            {totalRegistrations}/{maxEntries} {$t('registration.your_registrations')}
                         </span>
                     </div>
+                    {/if}
                 {/if}
 
                 <!-- Existing entries list -->
@@ -596,6 +594,7 @@
                                                 type="button"
                                                 class="btn-icon btn-icon-sm preset-filled-error-500 rounded-full"
                                                 onclick={() => confirmingUnregisterId = confirmingUnregisterId === entry.id ? null : entry.id}
+                                                data-testid="unregister-toggle-{entry.id}"
                                             >
                                                 <CloseIcon width="0.9rem" height="0.9rem" />
                                             </button>
@@ -632,6 +631,7 @@
                                                                 <button
                                                                     type="submit"
                                                                     class="btn btn-sm preset-filled-error-500"
+                                                                    data-testid="confirm-unregister"
                                                                 >
                                                                     {$t('registration.unregister')}
                                                                 </button>

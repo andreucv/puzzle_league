@@ -203,7 +203,7 @@
 
                 <!-- Action Buttons -->
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <EndPageActionButton icon={AccountPlusIcon} href="/competitions/competition_details/{competition?.id}/registration" colorClass="preset-filled-success-500" disabled={!(currentUser && competition?.registrationOpen)} text={$t('competition_details.manage_registration')} testId="signup-button" />
+                    <EndPageActionButton icon={AccountPlusIcon} href="/competitions/competition_details/{competition?.id}/registration" colorClass="preset-filled-success-500" disabled={!(currentUser && (competition?.registrationOpen || isOrganizer))} text={$t('competition_details.manage_registration')} testId="signup-button" />
                     {#if categories.some(c => c.status === 'LIVE' || c.status === 'STOPPED')}
                         <EndPageActionButton icon={FormatListBulletedIcon} href="/competitions/competition_details/{competition?.id}/results" text={$t('competition_details.view_live_results')} />
                     {/if}

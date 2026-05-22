@@ -2,17 +2,22 @@
  * Seed for participant-driven registration tests.
  *
  * Creates competitions needed by participant.test.ts:
- * - External Participant: 1 individual category, registration open
- * - Group Team: 1 pairs category, registration open
- * - Unregister: 1 individual category, registration open
- * - Remove Queued: 1 individual category, registration open
- * - Multi-Category: individual + pairs categories, registration open
+ * - External Participant: paid individual category → tests external participant signup
+ * - Group Team: paid pairs category → tests team building
+ * - Unregister: paid individual category → tests unregistering
+ * - Remove Queued: free individual category → tests removing queued signup (no submission)
+ * - Multi-Category: paid individual + pairs → tests batch registration
+ * - Free With Warning: showPaymentWarning=true but price=0 → tests auto-confirm edge case
  */
 import "dotenv/config";
 import { writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { createSeedContext, createCompetition } from '../seed_utils';
+import {
+    getTimeSlots, individual, pairs, competition,
+    PARTICIPANT_COMPETITION_NAMES,
+} from './seed-helpers';
 
 async function main() {
     const databaseUrl = process.env.DATABASE_URL;
@@ -20,74 +25,53 @@ async function main() {
 
     const ctx = await createSeedContext(databaseUrl);
     const { organizer } = ctx.baseUsers;
+    const { morning, afternoon } = getTimeSlots();
 
-    const now = new Date();
-    const morningStart = new Date(now);
-    morningStart.setHours(10, 0, 0, 0);
-    const morningEnd = new Date(now);
-    morningEnd.setHours(12, 0, 0, 0);
-    const afternoonStart = new Date(now);
-    afternoonStart.setHours(14, 0, 0, 0);
-    const afternoonEnd = new Date(now);
-    afternoonEnd.setHours(16, 0, 0, 0);
+    const PAID = { showPaymentWarning: true } as const;
 
-    const individualCategory = (description: string, maxParties = 10) => ({
-        description,
-        type: 'INDIVIDUAL' as const,
-        maxPartySize: 1,
-        maxParties,
-        startTime: morningStart,
-        endTime: morningEnd,
-    });
+    const externalParticipant = await createCompetition(ctx,
+        competition(organizer.id, PARTICIPANT_COMPETITION_NAMES[0],
+            'Tests registering a non-platform participant',
+            [individual('500 pcs solo', morning, { price: 500 })],
+            PAID),
+    );
 
-    const pairsCategory = (description: string, startTime = morningStart, endTime = morningEnd) => ({
-        description,
-        type: 'PAIRS' as const,
-        maxPartySize: 2,
-        maxParties: 10,
-        startTime,
-        endTime,
-    });
+    const groupTeam = await createCompetition(ctx,
+        competition(organizer.id, PARTICIPANT_COMPETITION_NAMES[1],
+            'Tests building a team for pairs category',
+            [pairs('500 pcs pairs', morning, { price: 500 })],
+            PAID),
+    );
 
-    const baseCompetition = (name: string, description: string) => ({
-        name,
-        description,
-        location: 'Test Location',
-        country: 'ES',
-        postalCode: '08001',
-        startDate: now,
-        endDate: now,
-        creatorId: organizer.id,
-        registrationOpen: true,
-    });
+    const unregister = await createCompetition(ctx,
+        competition(organizer.id, PARTICIPANT_COMPETITION_NAMES[2],
+            'Tests unregistering from a category',
+            [individual('500 pcs unreg', morning, { price: 500 })],
+            PAID),
+    );
 
-    const externalParticipant = await createCompetition(ctx, {
-        ...baseCompetition('External Participant Individual Competition', 'Tests registering a non-platform participant'),
-        categories: [individualCategory('500 pcs solo')],
-    });
+    const removeQueued = await createCompetition(ctx,
+        competition(organizer.id, PARTICIPANT_COMPETITION_NAMES[3],
+            'Tests removing a queued signup',
+            [individual('500 pcs remove', morning)]),
+    );
 
-    const groupTeam = await createCompetition(ctx, {
-        ...baseCompetition('Pairs Team Build Competition', 'Tests building a team for pairs category'),
-        categories: [pairsCategory('500 pcs pairs')],
-    });
+    const multiCategory = await createCompetition(ctx,
+        competition(organizer.id, PARTICIPANT_COMPETITION_NAMES[4],
+            'Tests registering for multiple categories at once',
+            [
+                individual('500 pcs individual', morning, { price: 500 }),
+                pairs('500 pcs pairs', afternoon, { price: 500 }),
+            ],
+            PAID),
+    );
 
-    const unregister = await createCompetition(ctx, {
-        ...baseCompetition('Unregister Test Competition', 'Tests unregistering from a category'),
-        categories: [individualCategory('500 pcs unreg')],
-    });
-
-    const removeQueued = await createCompetition(ctx, {
-        ...baseCompetition('Remove Queued Competition', 'Tests removing a queued signup'),
-        categories: [individualCategory('500 pcs remove')],
-    });
-
-    const multiCategory = await createCompetition(ctx, {
-        ...baseCompetition('Multi-Cat Batch Competition', 'Tests registering for multiple categories at once'),
-        categories: [
-            individualCategory('500 pcs individual'),
-            pairsCategory('500 pcs pairs', afternoonStart, afternoonEnd),
-        ],
-    });
+    const freeWithWarning = await createCompetition(ctx,
+        competition(organizer.id, PARTICIPANT_COMPETITION_NAMES[5],
+            'Tests auto-confirm when showPaymentWarning=true but price=0',
+            [individual('500 pcs free-warning', morning)],
+            { showPaymentWarning: true }),
+    );
 
     const dir = dirname(fileURLToPath(import.meta.url));
     writeFileSync(join(dir, 'test-data-participant.json'), JSON.stringify({
@@ -100,6 +84,7 @@ async function main() {
             individualCategoryId: multiCategory.categories[0].id,
             pairsCategoryId: multiCategory.categories[1].id,
         },
+        freeWithWarning: { competitionId: freeWithWarning.id },
     }, null, 2), 'utf-8');
 
     console.log('✅ Participant registration seed complete');

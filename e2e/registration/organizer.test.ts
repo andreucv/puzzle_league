@@ -11,6 +11,7 @@ interface OrganizerTestData {
     happyPath: { competitionId: number; name: string };
     refuseRegistration: { competitionId: number };
     waitlist: { competitionId: number };
+    autoConfirm: { competitionId: number; name: string };
 }
 
 // ── Seed & restore ──
@@ -76,9 +77,24 @@ test.describe('Registration Happy Path', () => {
         await openRegistration(organizerPage, testData.happyPath.competitionId);
     });
 
-    test('GivenRegistrationOpen_WhenParticipantRegisters_ThenStatusIsPendingConfirmation', async () => {
+    test('GivenRegistrationOpen_WhenParticipantClicksSubmit_ThenPaymentWarningPopoverShown', async () => {
         const { competitionId } = testData.happyPath;
-        await signUpIndividualAndSubmit(participantPage, competitionId);
+        await participantPage.goto(`/competitions/competition_details/${competitionId}/registration`, { waitUntil: 'networkidle' });
+
+        // Queue a signup
+        await participantPage.getByRole('button', { name: 'Sign Up' }).first().click();
+
+        // Click submit — should open payment warning popover (showPaymentWarning=true + price>0)
+        await participantPage.getByTestId('submit-all-registrations').click();
+
+        // Verify the payment warning popover is visible with fee breakdown
+        await expect(participantPage.getByTestId('payment-warning-confirm')).toBeVisible();
+        await expect(participantPage.getByText('500€').first()).toBeVisible();
+
+        // Confirm payment — actually submits the form
+        await participantPage.getByTestId('payment-warning-confirm').click();
+
+        // Verify registration is pending
         await expect(participantPage.getByTestId('registration-status-badge')).toHaveText('Pending Confirmation');
     });
 
@@ -300,8 +316,8 @@ test.describe('Waitlisting', () => {
         // After refusal, the first waitlisted entry should be promoted to pending.
         // Expected state: 1 pending, 1 confirmed, 1 waitlisted
 
-        // No error banner should appear — the refusal succeeded
-        await expect(organizerPage.locator('.preset-filled-error-500')).toHaveCount(0);
+        // Success banner confirms the refusal was applied
+        await expect(organizerPage.locator('.preset-filled-success-500').first()).toBeVisible({ timeout: 5000 });
 
         // Pending section should have 1 entry (promoted from waitlist)
         await expect(organizerPage.locator('[data-testid="section-pending"] [data-testid^="registration-row-entry-"]')).toHaveCount(1, { timeout: 5000 });
@@ -374,5 +390,61 @@ test.describe('Waitlisting', () => {
 
         // No waitlisted section
         await expect(organizerPage.getByTestId('toggle-section-waitlisted')).toHaveCount(0);
+    });
+});
+
+// ==================== Auto-Confirm (Free Category) ====================
+// Verifies that when showPaymentWarning=false (free category), participant
+// signups are auto-confirmed without requiring organizer confirmation.
+
+test.describe('Auto-Confirm Registration (Free Category)', () => {
+    test.describe.configure({ mode: 'serial' });
+
+    let organizerContext: BrowserContext;
+    let participantContext: BrowserContext;
+    let organizerPage: Page;
+    let participantPage: Page;
+
+    test.beforeAll(async ({ browser }) => {
+        organizerContext = await browser.newContext({ storageState: 'playwright/.auth/organizer_user.json' });
+        participantContext = await browser.newContext({ storageState: 'playwright/.auth/participant_user.json' });
+        organizerPage = await organizerContext.newPage();
+        participantPage = await participantContext.newPage();
+    });
+
+    test.afterAll(async () => {
+        await organizerPage.close();
+        await participantPage.close();
+        await organizerContext.close();
+        await participantContext.close();
+    });
+
+    test('GivenFreeCompetition_WhenOrganizerOpensRegistration_ThenStatusChangesToOpen', async () => {
+        await openRegistration(organizerPage, testData.autoConfirm.competitionId);
+    });
+
+    test('GivenFreeCategory_WhenParticipantClicksSubmit_ThenNoPaymentWarningAndAutoConfirmed', async () => {
+        const { competitionId } = testData.autoConfirm;
+        await participantPage.goto(`/competitions/competition_details/${competitionId}/registration`, { waitUntil: 'networkidle' });
+
+        // Queue a signup
+        await participantPage.getByRole('button', { name: 'Sign Up' }).first().click();
+
+        // Click submit — should NOT show payment warning popover (free category)
+        await participantPage.getByTestId('submit-all-registrations').click();
+        await expect(participantPage.getByTestId('payment-warning-confirm')).toHaveCount(0);
+
+        // Status should be auto-confirmed immediately
+        await expect(participantPage.getByTestId('registration-status-badge')).toHaveText('Confirmed');
+    });
+
+    test('GivenAutoConfirmed_WhenOrganizerChecksManagePage_ThenEntryInConfirmedSection', async () => {
+        const { competitionId } = testData.autoConfirm;
+        await gotoExplore(organizerPage, `/competition/${competitionId}/manage_registrations`);
+
+        const confirmedToggle = organizerPage.getByTestId('toggle-section-confirmed');
+        await expect(confirmedToggle).toBeVisible({ timeout: 5000 });
+        await confirmedToggle.click();
+        await expect(organizerPage.locator('[data-testid="section-confirmed"] [data-testid^="registration-row-entry-"]')).toHaveCount(1, { timeout: 5000 });
     });
 });

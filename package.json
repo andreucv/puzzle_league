@@ -19,6 +19,7 @@
 		"postinstall": "svelte-kit sync && prisma generate"
 	},
 	"devDependencies": {
+		"@inquirer/prompts": "^8.4.3",
 		"@internationalized/date": "^3.9.0",
 		"@playwright/test": "^1.45.3",
 		"@skeletonlabs/skeleton": "^4.0.0",

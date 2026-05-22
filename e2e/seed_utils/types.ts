@@ -35,6 +35,7 @@ export interface CategorySeedInput {
     maxParties: number;
     startTime: Date;
     endTime: Date;
+    price?: number;
 }
 
 export interface CompetitionSeedInput {
@@ -48,6 +49,7 @@ export interface CompetitionSeedInput {
     creatorId: string;
     registrationOpen?: boolean;
     categories: CategorySeedInput[];
+    showPaymentWarning?: boolean;
 }
 
 export interface EntrySeedInput {

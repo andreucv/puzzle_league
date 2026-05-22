@@ -42,6 +42,15 @@ async function gotoExplore(page: import('@playwright/test').Page) {
     await page.goto(urlUnderTest, { waitUntil: 'networkidle' });
 }
 
+/** Opens the preset filter panel if it is not already visible. */
+async function openPresets(page: import('@playwright/test').Page) {
+    const firstChip = page.getByTestId('preset-chip-this-week');
+    const isVisible = await firstChip.isVisible();
+    if (!isVisible) {
+        await page.getByTestId('filter-toggle').click();
+    }
+}
+
 // ==================== TESTS ====================
 
 test('GivenList_WhenDefaultSoonFilter_OnlyShowFutureCompetitions', async ({ page }) => {
@@ -94,7 +103,8 @@ test('GivenList_WhenAllFilterAnd7DaysPreset_ShowLessThan7DaysCompetitions', asyn
     // Switch to ALL tab first to avoid tab filter interference
     await page.getByTestId('filter-tab-ALL').click();
 
-    // Activate "7 days" preset
+    // Open presets panel and activate "7 days" preset
+    await openPresets(page);
     await page.getByTestId('preset-chip-this-week').click();
 
     // Only the competition in 2 days should be visible
@@ -110,7 +120,8 @@ test('GivenList_WhenOpenRegistrationPreset_ShowOnlyOpenCompetitions', async ({ p
     await gotoExplore(page);
 
     // Stay on default NOT_STARTED tab
-    // Activate "open registration" preset
+    // Open presets panel and activate "open registration" preset
+    await openPresets(page);
     await page.getByTestId('preset-chip-open-registration').click();
 
     // Competitions with registrationOpen=true and NOT_STARTED should appear

@@ -37,12 +37,19 @@ PENDING_CONFIRMATION + CONFIRMED
 
 `Competition.registrationOpen` controls whether the registration UI lets Participants add and submit signups. Organizers can toggle it from the manage registrations page.
 
-The registration page checks both:
+The competition details page enables the registration button when:
 
-- `competition.registrationOpen`
-- `category.status === NOT_STARTED`
+- the user is logged in **and** `competition.registrationOpen` is true, **or**
+- the user is the Competition creator or an Admin (organizer mode)
 
-The mutation in `signUpUsersToCompetition` enforces `category.status === NOT_STARTED`, but it does not currently re-check `competition.registrationOpen` server-side. The UI is the main `registrationOpen` gate.
+The registration page allows creating entries when:
+
+- `competition.registrationOpen` is true **or** the user is in organizer mode
+- **and** `category.status === NOT_STARTED`
+
+This means the Competition creator can always register entries through the registration page regardless of the `registrationOpen` toggle, as long as the Category has not started.
+
+The mutation in `signUpUsersToCompetition` enforces `category.status === NOT_STARTED`, but it does not currently re-check `competition.registrationOpen` server-side. The UI is the main `registrationOpen` gate for regular Participants.
 
 ### `showPaymentWarning`
 

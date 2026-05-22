@@ -79,7 +79,7 @@
             </p>
 
             {#if emailResent}
-                <div class="p-3 rounded-lg preset-filled-success-500 text-sm flex items-center justify-center gap-2">
+                <div data-testid="onboarding-verify-email-resent-banner" class="p-3 rounded-lg preset-filled-success-500 text-sm flex items-center justify-center gap-2">
                     <Icon icon="mdi:check-circle" width="1.2rem" height="1.2rem" />
                     <span>{$t('onboarding.verify_email_resent')}</span>
                 </div>

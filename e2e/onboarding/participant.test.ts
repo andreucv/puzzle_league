@@ -139,7 +139,7 @@ test.describe('Onboarding - happy path', () => {
         await expect(page.getByTestId('onboarding-step-verify-email')).toBeVisible({ timeout: 5000 });
 
         await page.getByTestId('onboarding-verify-email-resend').click();
-        await expect(page.getByText(/sent|enviat|enviado/i)).toBeVisible({ timeout: 5000 });
+        await expect(page.getByTestId('onboarding-verify-email-resent-banner')).toBeVisible({ timeout: 5000 });
     });
 
     test('GivenOnboardingCompleted_WhenNavigatingToHome_ThenStaysOnHome', async ({ page }) => {

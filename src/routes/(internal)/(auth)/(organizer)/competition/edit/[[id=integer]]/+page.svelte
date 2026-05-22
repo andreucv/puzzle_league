@@ -1,6 +1,6 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
-    import { t } from "$lib/translations";
+    import { t, locale } from "$lib/translations";
     import { goto } from "$app/navigation";
     import { tick } from "svelte";
     import { superForm } from "sveltekit-superforms";
@@ -10,7 +10,7 @@
     import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
     import { FileUpload, Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
     import { CldImage } from 'svelte-cloudinary';
-    import { countries, getCountryFlag } from '$lib/utils/country_utils';
+    import { countries, getCountryFlag, getLocalizedCountryName } from '$lib/utils/country_utils';
 
     // Components
     import CustomDatePicker from "$lib/components/bits_ui/CustomDatePicker.svelte";
@@ -22,16 +22,20 @@
     console.log("competition/edit/+page.svelte: data", data);
 
     // Country combobox data
-    const countryData = countries.map(c => ({
-        label: c.name,
+    const countryData = $derived(countries.map(c => ({
+        label: getLocalizedCountryName(c.code, $locale),
         value: c.code,
         emoji: getCountryFlag(c.code)
-    }));
-    let filteredCountries = $state(countryData);
+    })));
+    let filteredCountries = $state(countries.map(c => ({
+        label: getLocalizedCountryName(c.code, $locale),
+        value: c.code,
+        emoji: getCountryFlag(c.code)
+    })));
     let countryValue = $state<string[]>(data.form?.data?.country ? [data.form.data.country as string] : []);
     let countryInputValue = $state(
         data.form?.data?.country
-            ? (countries.find(c => c.code === data.form.data.country)?.name || '')
+            ? (getLocalizedCountryName(data.form.data.country as string, $locale) || '')
             : ''
     );
 

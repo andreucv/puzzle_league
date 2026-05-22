@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Card from '$lib/components/common/card/Card.svelte';
-	import Icon from '@iconify/svelte';
+	import LockOpenVariantIcon from '@iconify-svelte/mdi/lock-open-variant';
+	import LockIcon from '@iconify-svelte/mdi/lock';
+	import { t } from '$lib/translations';
 
 	let {
 		competition_id,
@@ -37,11 +39,11 @@
 			} else {
 				const errorData = await response.json();
 				feedbackSuccess = false;
-				feedbackMessage = errorData.error || 'Failed to update registration status';
+				feedbackMessage = errorData.error || $t('manage_registrations.toggle_error');
 			}
 		} catch {
 			feedbackSuccess = false;
-			feedbackMessage = 'An unexpected error occurred';
+			feedbackMessage = $t('manage_registrations.unexpected_error');
 		} finally {
 			loading = false;
 		}
@@ -52,11 +54,15 @@
 <Card>
 	<div class="flex items-center justify-between gap-4">
 		<div class="flex items-center gap-3">
-			<Icon icon={competition_registration_status ? 'mdi:lock-open-variant' : 'mdi:lock'} width="1.2rem" height="1.2rem" class={competition_registration_status ? 'text-success-500' : 'text-error-500'} />
+			{#if competition_registration_status}
+				<LockOpenVariantIcon width="1.2rem" height="1.2rem" class="text-success-500" />
+			{:else}
+				<LockIcon width="1.2rem" height="1.2rem" class="text-error-500" />
+			{/if}
 			<p class="text-sm">
-				Registration is
+				{$t('manage_registrations.registration_label')}
 				<span class="font-semibold" class:text-success-500={competition_registration_status} class:text-error-500={!competition_registration_status} data-testid="registration-status">
-					{competition_registration_status ? 'open' : 'closed'}
+					{competition_registration_status ? $t('manage_registrations.status_open') : $t('manage_registrations.status_closed')}
 				</span>
 			</p>
 		</div>
@@ -67,15 +73,15 @@
 			data-testid="toggle-registration"
 		>
 			{#if loading}
-				Updating...
+				{$t('manage_registrations.updating')}
 			{:else}
-				{competition_registration_status ? 'Close' : 'Open'}
+				{competition_registration_status ? $t('manage_registrations.close_registration') : $t('manage_registrations.open_registration')}
 			{/if}
 		</button>
 	</div>
 	{#if !hasCategories}
 		<p class="text-xs text-surface-500 dark:text-surface-400 mt-1">
-			Add categories before opening registration.
+			{$t('manage_registrations.add_categories_first')}
 		</p>
 	{/if}
 	{#if feedbackMessage}

@@ -644,7 +644,16 @@
     "pdf_registration_date": "Data d'inscripció",
     "pdf_status": "Estat",
     "pdf_confirmed_date": "Data de confirmació",
-    "pdf_generated_at": "Generat el {{date}}"
+    "pdf_generated_at": "Generat el {{date}}",
+    "registration_label": "La inscripció està",
+    "status_open": "oberta",
+    "status_closed": "tancada",
+    "updating": "Actualitzant...",
+    "close_registration": "Tancar",
+    "open_registration": "Obrir",
+    "add_categories_first": "Afegeix categories abans d'obrir la inscripció.",
+    "toggle_error": "Error en actualitzar l'estat de la inscripció.",
+    "unexpected_error": "S'ha produït un error inesperat."
   },
   "notifications": {
     "title": "Notificacions",

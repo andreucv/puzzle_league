@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { t } from '$lib/translations';
+    import { t, locale } from '$lib/translations';
     import { enhance } from '$app/forms';
     import Card from '$lib/components/common/card/Card.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
@@ -63,6 +63,7 @@
                     bind:inputValue={countryInputValue}
                     placeholder={$t('add_location.country_placeholder')}
                     testId="onboarding-location-country"
+                    locale={$locale}
                 />
                 <input
                     name="postalCode"

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Avatar, Portal, Switch, Tooltip } from "@skeletonlabs/skeleton-svelte";
     import type { RoleAssignment } from '$lib/.prisma/generated/prisma/browser';
-    import { t, locales, setLocale } from '$lib/translations';
+    import { t, locale, locales, setLocale } from '$lib/translations';
     import { enhance } from '$app/forms';
     import { invalidateAll } from '$app/navigation';
     import ThemeLightSwitch from '$lib/components/common/ThemeLightSwitch.svelte';
@@ -12,7 +12,7 @@
     import ProfileDataRow from './ProfileDataRow.svelte';
 
     const langMap: Record<string, string> = langNames;
-    import { countries, getCountryFlag, getFlagFromPhonePrefix } from '$lib/utils/country_utils';
+    import { countries, getCountryFlag, getFlagFromPhonePrefix, getLocalizedCountryName } from '$lib/utils/country_utils';
 
     let { user, account } = $props();
 
@@ -51,7 +51,7 @@
         resultsVisibility = user.publicResultsVisibility ?? true;
         nameValue = user.name || '';
         countryValue = user.country ? [user.country] : [];
-        countryInputValue = user.country ? (countries.find(c => c.code === user.country)?.name || '') : '';
+        countryInputValue = user.country ? (getLocalizedCountryName(user.country, $locale) || '') : '';
         postalCodeValue = user.postalCode || '';
         phonePrefixValue = user.phonePrefix ? [user.phonePrefix] : [];
         phonePrefixInputValue = user.phonePrefix || '';
@@ -93,7 +93,7 @@
 
     function resetLocationEdit() {
         countryValue = user.country ? [user.country] : [];
-        countryInputValue = user.country ? (countries.find(c => c.code === user.country)?.name || '') : '';
+        countryInputValue = user.country ? (getLocalizedCountryName(user.country, $locale) || '') : '';
         postalCodeValue = user.postalCode || '';
         isEditingLocation = false;
     }
@@ -107,7 +107,7 @@
 
     // Get country name from code
     const getCountryName = (code: string) => {
-        return countries.find(c => c.code === code)?.name || code;
+        return getLocalizedCountryName(code, $locale);
     };
 
     // Format date for display
@@ -255,6 +255,7 @@
                                 bind:value={countryValue}
                                 bind:inputValue={countryInputValue}
                                 placeholder="Select country..."
+                                locale={$locale}
                             />
                             <input
                                 name="postalCode"

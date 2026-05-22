@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
-    import { t } from '$lib/translations';
+    import { t, locale } from '$lib/translations';
     import AccountQuestionIcon from '@iconify-svelte/mdi/account-question';
     import AccountEditOutlineIcon from '@iconify-svelte/mdi/account-edit-outline';
     import CheckIcon from '@iconify-svelte/mdi/check';
@@ -43,9 +43,10 @@
 
     function formatDateTime(date: string | Date): { time: string; date: string } {
         const d = new Date(date);
+        const loc = $locale ?? undefined;
         return {
-            time: d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
-            date: d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
+            time: d.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' }),
+            date: d.toLocaleDateString(loc, { day: 'numeric', month: 'short' })
         };
     }
 

@@ -409,7 +409,16 @@
     "pdf_registration_date": "Registration Date",
     "pdf_status": "Status",
     "pdf_confirmed_date": "Confirmed Date",
-    "pdf_generated_at": "Generated on {{date}}"
+    "pdf_generated_at": "Generated on {{date}}",
+    "registration_label": "Registration is",
+    "status_open": "open",
+    "status_closed": "closed",
+    "updating": "Updating...",
+    "close_registration": "Close",
+    "open_registration": "Open",
+    "add_categories_first": "Add categories before opening registration.",
+    "toggle_error": "Failed to update registration status.",
+    "unexpected_error": "An unexpected error occurred."
   },
   "puzzles": {
     "catalog_title": "Puzzle Catalog",

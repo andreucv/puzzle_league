@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
-    import { t } from '$lib/translations';
+    import { t, locale } from '$lib/translations';
     import Card from '$lib/components/common/card/Card.svelte';
     import ArrowLeftIcon from '@iconify-svelte/mdi/arrow-left';
     import AccountIcon from '@iconify-svelte/mdi/account';
@@ -69,7 +69,7 @@
             {#if profile.country}
                 <div class="flex items-center gap-3 text-surface-700 dark:text-surface-300">
                     <MapMarkerOutlineIcon width="1.1rem" height="1.1rem" class="shrink-0 text-surface-500" />
-                    <span>{getCountryFlag(profile.country)} {getCountryNameFromCode(profile.country)}</span>
+                    <span>{getCountryFlag(profile.country)} {getCountryNameFromCode(profile.country, $locale)}</span>
                 </div>
             {/if}
 

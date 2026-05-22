@@ -27,7 +27,22 @@ export function formatCountryName(name: string): string {
   return name;
 }
 
-export function getCountryNameFromCode(code: string): string {
+/**
+ * Get a localized country name for an ISO 3166-1 alpha-2 code using Intl.DisplayNames.
+ * Falls back to the hardcoded English name (or the code itself) if the locale/API is unavailable.
+ */
+export function getLocalizedCountryName(code: string, locale?: string): string {
+  if (!code) return '';
+  try {
+    const displayNames = new Intl.DisplayNames([locale ?? 'en'], { type: 'region' });
+    return displayNames.of(code) ?? getCountryNameFromCode(code);
+  } catch {
+    return getCountryNameFromCode(code);
+  }
+}
+
+export function getCountryNameFromCode(code: string, locale?: string): string {
+  if (locale) return getLocalizedCountryName(code, locale);
   const country = countries.find(c => c.code === code);
   return country ? country.name : code;
 }

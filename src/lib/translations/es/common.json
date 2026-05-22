@@ -644,7 +644,16 @@
     "pdf_registration_date": "Fecha de inscripción",
     "pdf_status": "Estado",
     "pdf_confirmed_date": "Fecha de confirmación",
-    "pdf_generated_at": "Generado el {{date}}"
+    "pdf_generated_at": "Generado el {{date}}",
+    "registration_label": "La inscripción está",
+    "status_open": "abierta",
+    "status_closed": "cerrada",
+    "updating": "Actualizando...",
+    "close_registration": "Cerrar",
+    "open_registration": "Abrir",
+    "add_categories_first": "Añade categorías antes de abrir la inscripción.",
+    "toggle_error": "Error al actualizar el estado de la inscripción.",
+    "unexpected_error": "Ha ocurrido un error inesperado."
   },
   "notifications": {
     "title": "Notificaciones",

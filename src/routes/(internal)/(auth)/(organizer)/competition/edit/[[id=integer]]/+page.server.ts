@@ -2,6 +2,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import type { Action, Actions, PageServerLoad } from '../$types';
 import { updateCompetition, getCompetitionWithCategories } from '$lib/database/db_competition';
 import { CategoryType, CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
+import { getPostHogClient } from '$lib/server/posthog';
 
 import { superValidate, message} from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
@@ -129,6 +130,15 @@ const create_update_competition: Action = async ({ locals, request, params }) =>
     if (!result.success) {
         return message(form, {success: false, message: "Something went wrong"});
     }
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+        distinctId: user.id,
+        event: 'competition_updated',
+        properties: {
+            competition_id: result.data?.competition.id
+        }
+    });
 
     return message(form, {success: result.success, message: "Competition updated successfully", id: result.data?.competition.id});
 }

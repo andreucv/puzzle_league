@@ -8,6 +8,12 @@ import { apiRateLimiter, searchRateLimiter, isSearchEndpoint } from "$lib/api_ut
 import { enforceRouteGuard } from "$lib/api_utils/api_route_guards";
 import { resolveOnboardingSteps } from "$lib/utils/onboarding_utils";
 import type { HandleServerError } from "@sveltejs/kit";
+import { getPostHogClient } from "$lib/server/posthog";
+import { PUBLIC_POSTHOG_HOST } from "$env/static/public";
+
+// Derive proxy hostnames from PUBLIC_POSTHOG_HOST (e.g. "https://us.i.posthog.com")
+const posthogHost = new URL(PUBLIC_POSTHOG_HOST).hostname;                      // "us.i.posthog.com"
+const posthogAssetHost = posthogHost.replace(/^(\w+)\.i\./, '$1-assets.i.');    // "us-assets.i.posthog.com"
 
 /** Returns true for navigable page requests (not API or auth endpoints). */
 function isPageRequest(path: string): boolean {
@@ -16,6 +22,41 @@ function isPageRequest(path: string): boolean {
 
 // Auth handler
 export async function handle({ event, resolve }) {
+	// PostHog reverse proxy — route /ingest/* to PostHog servers
+	const { pathname } = event.url;
+	if (pathname.startsWith('/ingest')) {
+		const useAssetHost = pathname.startsWith('/ingest/static/') || pathname.startsWith('/ingest/array/');
+		const hostname = useAssetHost ? posthogAssetHost : posthogHost;
+
+		const url = new URL(event.request.url);
+		url.protocol = 'https:';
+		url.hostname = hostname;
+		url.port = '443';
+		url.pathname = pathname.replace(/^\/ingest/, '');
+
+		const headers = new Headers(event.request.headers);
+		headers.set('host', hostname);
+		headers.set('accept-encoding', '');
+
+		const clientIp = event.request.headers.get('x-forwarded-for') || event.getClientAddress();
+		if (clientIp) {
+			headers.set('x-forwarded-for', clientIp);
+		}
+
+		// Read body upfront — forwarding the raw ReadableStream hangs in Vite's dev server
+		const body = event.request.body ? await event.request.arrayBuffer() : null;
+
+		const response = await fetch(url.toString(), {
+			method: event.request.method,
+			headers,
+			body
+		});
+
+		console.log(`Proxied request to PostHog (${response.status}): ${event.request.method} ${pathname}`);
+
+		return response;
+	}
+
 	// Fetch current session from Better Auth
 	const session = await auth.api.getSession({
 		headers: event.request.headers,
@@ -44,7 +85,6 @@ export async function handle({ event, resolve }) {
 	// -----------------------------------------------------------------------
 	// API Security Pipeline — runs for all /api/ routes
 	// -----------------------------------------------------------------------
-	const pathname = event.url.pathname;
 
 	if (pathname.startsWith('/api/') && !isPublicApiRoute(pathname)) {
 		// 1. CSRF: reject cross-origin mutating requests
@@ -75,6 +115,18 @@ export async function handle({ event, resolve }) {
 
 export const handleError: HandleServerError = async ({ error, event, status, message }) => {
 	console.error(`[${event.route.id}] Unhandled error (${status}):`, error);
+
+	const posthog = getPostHogClient();
+	const distinctId = event.locals.user?.id ?? 'server';
+	posthog.capture({
+		distinctId,
+		event: 'server_error',
+		properties: {
+			error: error instanceof Error ? error.message : String(error),
+			status,
+			route: event.route.id
+		}
+	});
 
 	// Map known error types to error codes
 	let code: App.Error['code'] = 'UNKNOWN';

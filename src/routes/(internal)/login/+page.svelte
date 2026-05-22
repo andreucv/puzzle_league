@@ -4,6 +4,7 @@
     import { authClient } from "$lib/auth_client";
     import { t } from '$lib/translations';
     import FormInput from '$lib/components/common/FormInput.svelte';
+    import posthog from 'posthog-js';
 
     let action = $state("login");
     let email = $state("");
@@ -38,6 +39,10 @@
         errorMessage = "";
         try {
             const { data, error } = await authClient.signIn.email({ email, password });
+            if (!error && data?.user) {
+                posthog.identify(data.user.id, { email: data.user.email, name: data.user.name });
+                posthog.capture('user_logged_in', { method: 'email' });
+            }
             await afterLogin(data, error);
         } finally {
             isLoading = false;
@@ -56,6 +61,10 @@
             const { data, error } = await authClient.signUp.email({
                 email, password, name, callbackURL: '/verify-email',
             });
+            if (!error && data?.user) {
+                posthog.identify(data.user.id, { email: data.user.email, name: data.user.name });
+                posthog.capture('user_registered', { method: 'email' });
+            }
             await afterLogin(data, error);
         } finally {
             isLoading = false;
@@ -71,6 +80,10 @@
                 provider: "google",
                 callbackURL: getSafeRedirect(),
             });
+            if (!error && data?.user) {
+                posthog.identify(data.user.id, { email: data.user.email, name: data.user.name });
+                posthog.capture('user_logged_in', { method: 'google' });
+            }
             await afterLogin(data, error);
         } finally {
             isLoading = false;

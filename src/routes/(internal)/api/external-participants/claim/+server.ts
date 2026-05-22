@@ -4,6 +4,7 @@ import { prisma } from '$lib/database/create_prisma_client';
 import { getAuthUserId } from '$lib/api_utils/api_auth';
 import { createNotification } from '$lib/notifications/notifications';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { getPostHogClient } from '$lib/server/posthog';
 
 export const POST: RequestHandler = async (event) => {
     const userId = getAuthUserId(event);
@@ -75,6 +76,15 @@ export const POST: RequestHandler = async (event) => {
                 data: { intentName: ep.name },
             });
         }
+
+        const posthog = getPostHogClient();
+        posthog.capture({
+            distinctId: userId,
+            event: 'external_participant_claimed',
+            properties: {
+                claimed_count: result.length
+            }
+        });
 
         return json({
             success: true,

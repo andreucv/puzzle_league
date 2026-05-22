@@ -3,6 +3,7 @@ import { prisma } from '$lib/database/create_prisma_client';
 import { CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
 import { createNotificationForUsers } from '$lib/notifications/notifications';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { getPostHogClient } from '$lib/server/posthog';
 
 export const POST = async (event: RequestEvent) => {
   try {
@@ -58,6 +59,17 @@ export const POST = async (event: RequestEvent) => {
         { competitionName: competition.name },
       );
     }
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: event.locals.user?.id ?? 'server',
+      event: 'competition_cancelled',
+      properties: {
+        competition_id: competitionId,
+        competition_name: competition.name,
+        notified_participants: uniqueUserIds.length
+      }
+    });
 
     return json({ success: true });
   } catch (error) {

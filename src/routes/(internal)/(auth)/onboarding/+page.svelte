@@ -8,6 +8,7 @@
     import PhoneStep from './components/PhoneStep.svelte';
     import VerifyEmailStep from './components/VerifyEmailStep.svelte';
     import Icon from '@iconify/svelte';
+    import posthog from 'posthog-js';
 
     type UnclaimedIntent = NonNullable<PageData['unclaimedExternalParticipants']>[number];
 
@@ -33,6 +34,7 @@
             currentStep++;
         } else {
             console.log('Onboarding complete, redirecting to home and invalidating session data');
+            posthog.capture('onboarding_completed', { steps_count: totalSteps });
             goto('/');
         }
     }

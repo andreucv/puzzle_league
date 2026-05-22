@@ -3,6 +3,7 @@ import { createRequest, getRequestsByUserId } from '$lib/database/db_request';
 import { Role } from '$lib/.prisma/generated/prisma/enums';
 import { error, fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
+import { getPostHogClient } from '$lib/server/posthog';
 
 export const load: PageServerLoad = async ({ locals }) => {
     const rolesAvailable = Object.values(Role);
@@ -43,6 +44,15 @@ export const actions: Actions = {
             }
 
             const roleRequest = await createRequest(userId, role, reason, additionalInfo);
+
+            const posthog = getPostHogClient();
+            posthog.capture({
+                distinctId: userId,
+                event: 'permission_requested',
+                properties: {
+                    role
+                }
+            });
 
             return {
                 success: true,

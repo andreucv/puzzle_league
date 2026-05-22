@@ -4,6 +4,7 @@ import { createCompetition } from '$lib/database/db_competition';
 import { getAllLeagues } from '$lib/database/db_league';
 import type { Competition, Category, Prisma } from '$lib/.prisma/generated/prisma/client';
 import { CategoryType } from '$lib/.prisma/generated/prisma/enums';
+import { getPostHogClient } from '$lib/server/posthog';
 
 export const load: PageServerLoad = async (event) => {
     // Load all leagues so the user can select which league to create the competition in
@@ -79,6 +80,17 @@ const create_competition: Action = async ({ locals, request, url }) => {
                 message: "An error occurred while creating the competition."
             });
         }
+        const posthog = getPostHogClient();
+        posthog.capture({
+            distinctId: user.id,
+            event: 'competition_created',
+            properties: {
+                competition_id: result.data?.competition.id,
+                competition_name: competition.name,
+                category_count: categories.length
+            }
+        });
+
         // Return success with competition details
         return {
             success: true,

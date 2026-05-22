@@ -61,3 +61,4 @@ explanations/plans/
 .scratch/
 .work-done
 TODO.md
+.env.local

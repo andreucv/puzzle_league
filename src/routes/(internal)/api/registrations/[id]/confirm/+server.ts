@@ -2,6 +2,7 @@ import { json, type RequestEvent } from '@sveltejs/kit';
 import { confirmRegistration } from '$lib/database/db_registration';
 import { prisma } from '$lib/database/create_prisma_client';
 import { notifyRegistrationConfirmed } from '$lib/notifications/registration_notifications';
+import { getPostHogClient } from '$lib/server/posthog';
 
 export const POST = async (event: RequestEvent) => {
 	try {
@@ -40,6 +41,18 @@ export const POST = async (event: RequestEvent) => {
 		}
 
 		await notifyRegistrationConfirmed(entry, actorName);
+
+		const posthog = getPostHogClient();
+		posthog.capture({
+			distinctId: event.locals.user?.id ?? 'server',
+			event: 'registration_confirmed',
+			properties: {
+				entry_id: entryId,
+				competition_id: entry.category.competitionId,
+				competition_name: entry.category.competition.name,
+				category_type: entry.category.type
+			}
+		});
 
 		return json({ success: true, data: result.data });
 	} catch (error) {

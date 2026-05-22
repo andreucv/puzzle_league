@@ -1,6 +1,7 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { refuseRegistration } from '$lib/database/db_registration';
 import { notifyRegistrationRefused, notifyWaitlistPromotion } from '$lib/notifications/registration_notifications';
+import { getPostHogClient } from '$lib/server/posthog';
 
 export const POST = async (event: RequestEvent) => {
 	const entryId = event.params.id as string;
@@ -33,6 +34,16 @@ export const POST = async (event: RequestEvent) => {
 			console.error('[refuse] Failed to send waitlist-promotion notifications:', err);
 		}
 	}
+
+	const posthog = getPostHogClient();
+	posthog.capture({
+		distinctId: event.locals.user?.id ?? 'server',
+		event: 'registration_refused',
+		properties: {
+			entry_id: entryId,
+			waitlist_promoted: !!result.promotedEntry
+		}
+	});
 
 	return json({ success: true, data: result.data });
 };

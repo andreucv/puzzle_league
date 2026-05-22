@@ -52,8 +52,6 @@ export async function handle({ event, resolve }) {
 			body
 		});
 
-		console.log(`Proxied request to PostHog (${response.status}): ${event.request.method} ${pathname}`);
-
 		return response;
 	}
 

@@ -5,8 +5,19 @@
     import Footer from '$lib/components/common/layout/Footer.svelte';
     import CloseIcon from '@iconify-svelte/mdi/close';
     import { toaster } from '$lib/stores/toaster';
+    import posthog from 'posthog-js';
+    import { browser } from '$app/environment';
 
     let {children, data} = $props();
+
+    // Identify returning authenticated users on app load so PostHog links
+    // their anonymous session to the person profile (docs: "call identify
+    // as soon as you're able to — every time your app loads").
+    $effect(() => {
+        if (browser && data.user) {
+            posthog.identify(data.user.id, { email: data.user.email, name: data.user.name });
+        }
+    });
     import { drawerState } from '$lib/stores/drawer.svelte';
 
     // Lazy-load DrawerNav to reduce initial JS bundle — only loaded when drawer is first opened

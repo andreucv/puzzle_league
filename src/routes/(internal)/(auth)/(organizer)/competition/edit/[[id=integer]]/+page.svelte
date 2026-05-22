@@ -868,7 +868,7 @@
                     {#if selected_image_src === undefined}
                         <FileUpload accept="image/*" maxFiles={1} onFileChange={handleImageChange} onFileReject={handleImageReject}>
                             <FileUpload.Dropzone>
-                                <FileUpload.Trigger class="btn preset-tonal">Choose Image</FileUpload.Trigger>
+                                <FileUpload.Trigger class="btn preset-tonal">{$t('competition.create.choose_image')}</FileUpload.Trigger>
                             </FileUpload.Dropzone>
                             <FileUpload.HiddenInput name="competition_image" />
                         </FileUpload>

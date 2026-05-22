@@ -192,6 +192,7 @@
       "category_subname": "Category Subname",
       "category_subname_placeholder": "Enter category subname",
       "remove_image": "Remove Image",
+      "choose_image": "Choose Image",
       "remove_category": "Remove Category",
       "payment_method": "Payment Method",
       "payment_method_placeholder": "Describe how participants should pay (e.g. bank transfer, cash at the door...)",
@@ -423,7 +424,9 @@
   "puzzles": {
     "catalog_title": "Puzzle Catalog",
     "edit_title": "Edit Puzzle",
-    "add_title": "Add New Puzzle"
+    "add_title": "Add New Puzzle",
+    "image": "Image",
+    "choose_image": "Choose Image"
   },
   "head": {
     "title": "PuzzLigas - Speed Puzzling Competitions | Join Global Puzzle Events"

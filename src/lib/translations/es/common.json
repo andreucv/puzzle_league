@@ -185,6 +185,7 @@
       "participants_per_party": "Participantes por participación",
       "remove_category": "Eliminar categoría",
       "remove_image": "Quitar imagen",
+      "choose_image": "Elegir imagen",
       "select_category_type": "Seleccione un tipo de categoría",
       "start_time": "Hora de inicio",
       "payment_method": "Método de pago",
@@ -338,7 +339,9 @@
   "puzzles": {
     "catalog_title": "Catálogo de Puzzles",
     "edit_title": "Editar Puzzle",
-    "add_title": "Añadir Nuevo Puzzle"
+    "add_title": "Añadir Nuevo Puzzle",
+    "image": "Imagen",
+    "choose_image": "Elegir imagen"
   },
   "head": {
     "title": "PuzzLigas - Competiciones de puzzles | \nÚnase a eventos globales de puzzles"

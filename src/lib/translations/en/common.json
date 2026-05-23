@@ -515,7 +515,12 @@
     "password_too_short": "Password must be at least 8 characters",
     "revoke_other_sessions": "Sign out all other devices",
     "submitting": "Submitting...",
-    "back_to_login": "Back to login"
+    "back_to_login": "Back to login",
+    "errors": {
+      "invalid_credentials": "Invalid email or password.",
+      "email_already_exists": "This email address is already registered.",
+      "unexpected": "An unexpected error occurred. Please try again."
+    }
   },
   "legal": {
     "privacy_policy": "Privacy Policy",

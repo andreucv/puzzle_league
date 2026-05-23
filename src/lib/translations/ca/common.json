@@ -430,7 +430,12 @@
     "password_too_short": "La contrasenya ha de tenir almenys 8 caràcters",
     "revoke_other_sessions": "Tancar sessió a tots els altres dispositius",
     "submitting": "Enviant...",
-    "back_to_login": "Tornar a l'inici de sessió"
+    "back_to_login": "Tornar a l'inici de sessió",
+    "errors": {
+      "invalid_credentials": "Correu o contrasenya incorrectes.",
+      "email_already_exists": "Aquesta adreça de correu ja està registrada.",
+      "unexpected": "S'ha produït un error inesperat. Torna-ho a intentar."
+    }
   },
   "legal": {
     "privacy_policy": "Política de Privacitat",

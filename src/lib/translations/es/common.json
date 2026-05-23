@@ -430,7 +430,12 @@
     "password_too_short": "La contraseña debe tener al menos 8 caracteres",
     "revoke_other_sessions": "Cerrar sesión en todos los demás dispositivos",
     "submitting": "Enviando...",
-    "back_to_login": "Volver al inicio de sesión"
+    "back_to_login": "Volver al inicio de sesión",
+    "errors": {
+      "invalid_credentials": "Correo o contraseña incorrectos.",
+      "email_already_exists": "Esta dirección de correo ya está registrada.",
+      "unexpected": "Se ha producido un error inesperado. Inténtalo de nuevo."
+    }
   },
   "legal": {
     "privacy_policy": "Política de Privacidad",

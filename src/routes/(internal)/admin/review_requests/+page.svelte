@@ -1,6 +1,11 @@
 <script lang="ts">
-    import Icon from '@iconify/svelte';
-    import { t } from '$lib/translations';
+    import CheckIcon from '@iconify-svelte/mdi/check';
+    import CloseIcon from '@iconify-svelte/mdi/close';
+    import InboxOutlineIcon from '@iconify-svelte/mdi/inbox-outline';
+    import AccountIcon from '@iconify-svelte/mdi/account';
+    import CalendarIcon from '@iconify-svelte/mdi/calendar';
+    import TrophyIcon from '@iconify-svelte/mdi/trophy';
+    import { t, locale } from '$lib/translations';
     import { enhance } from '$app/forms';
     import SearchInput from '$lib/components/common/SearchInput.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
@@ -20,13 +25,13 @@
 
     const formatDate = (date: Date | string) => {
         const d = typeof date === 'string' ? new Date(date) : date;
-        return d.toLocaleDateString();
+        return d.toLocaleDateString($locale ?? undefined);
     };
     const formatRole = (role: string) => role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
 </script>
 
 <svelte:head>
-    <title>Review Requests - Puzzle League</title>
+    <title>{$t('admin.review_requests.title')} - Puzzle League</title>
 </svelte:head>
 
 <GenericTitle text={$t('admin.review_requests.title')} />
@@ -37,23 +42,23 @@
     </div>
 
     <div class="mb-4 flex items-center justify-between">
-        <h2 class="text-xl font-semibold">Pending Requests</h2>
+        <h2 class="text-xl font-semibold">{$t('admin.review_requests.pending_requests')}</h2>
         {#if filter !== ''}
-            <span class="text-sm text-surface-500">{filteredCount} / {totalCount} requests</span>
+            <span class="text-sm text-surface-500">{$t('admin.review_requests.requests_filtered_count', { filtered: filteredCount, total: totalCount })}</span>
         {:else}
-            <span class="text-sm text-surface-500">{totalCount} requests</span>
+            <span class="text-sm text-surface-500">{$t('admin.review_requests.requests_count', { count: totalCount })}</span>
         {/if}
     </div>
 
     {#if filteredRequests.length === 0}
         <div class="card p-8 text-center">
-            <Icon icon="mdi:inbox-outline" class="text-6xl text-surface-400 mx-auto mb-4" />
-            <h3 class="text-xl font-semibold mb-2">No Requests Found</h3>
+            <InboxOutlineIcon class="text-6xl text-surface-400 mx-auto mb-4" />
+            <h3 class="text-xl font-semibold mb-2">{$t('admin.review_requests.no_requests_title')}</h3>
             <p class="text-surface-500">
                 {#if filter !== ''}
-                    No requests match your search criteria.
+                    {$t('admin.review_requests.no_requests_search')}
                 {:else}
-                    There are no pending permission requests at this time.
+                    {$t('admin.review_requests.no_requests_empty')}
                 {/if}
             </p>
         </div>
@@ -71,7 +76,7 @@
                                 />
                             {:else}
                                 <div class="w-12 h-12 rounded-full bg-surface-300 flex items-center justify-center">
-                                    <Icon icon="mdi:account" class="text-xl text-surface-600" />
+                                    <AccountIcon class="text-xl text-surface-600" />
                                 </div>
                             {/if}
                             <div>
@@ -86,21 +91,21 @@
 
                     <div class="mb-4 space-y-2">
                         <div class="flex items-center gap-2 text-sm text-surface-600">
-                            <Icon icon="mdi:calendar" />
-                            <span>Requested on {formatDate(request.createdAt)}</span>
+                            <CalendarIcon width="1rem" height="1rem" />
+                            <span>{$t('admin.review_requests.requested_on', { date: formatDate(request.createdAt) })}</span>
                         </div>
 
                         {#if request.competition}
                             <div class="flex items-center gap-2 text-sm text-surface-600">
-                                <Icon icon="mdi:trophy" />
-                                <span>Competition: {request.competition.name}</span>
+                                <TrophyIcon width="1rem" height="1rem" />
+                                <span>{$t('admin.review_requests.competition_label', { name: request.competition.name })}</span>
                             </div>
                         {/if}
                     </div>
 
                     {#if request.reason}
                         <div class="mb-4 flex">
-                            <h4 class="text-sm font-semibold text-surface-700 mb-1 pr-2">Reason:</h4>
+                            <h4 class="text-sm font-semibold text-surface-700 mb-1 pr-2">{$t('admin.review_requests.reason_label')}</h4>
                             <p class="text-sm text-surface-600">
                                 {request.reason}
                             </p>
@@ -109,7 +114,7 @@
 
                     {#if request.additionalInfo}
                         <div class="mb-4">
-                            <h4 class="text-sm font-semibold text-surface-700 mb-1">Additional Information:</h4>
+                            <h4 class="text-sm font-semibold text-surface-700 mb-1">{$t('admin.review_requests.additional_info_label')}</h4>
                             <p class="text-sm text-surface-600 bg-surface-100 p-3 rounded">
                                 {request.additionalInfo}
                             </p>
@@ -123,8 +128,8 @@
                                 type="submit"
                                 class="btn preset-filled-success-500 flex items-center gap-2"
                             >
-                                <Icon icon="mdi:check" />
-                                Accept
+                                <CheckIcon width="1rem" height="1rem" />
+                                {$t('admin.review_requests.accept')}
                             </button>
                         </form>
 
@@ -134,8 +139,8 @@
                                 type="submit"
                                 class="btn preset-filled-error-500 flex items-center gap-2"
                             >
-                                <Icon icon="mdi:close" />
-                                Reject
+                                <CloseIcon width="1rem" height="1rem" />
+                                {$t('admin.review_requests.reject')}
                             </button>
                         </form>
                     </div>

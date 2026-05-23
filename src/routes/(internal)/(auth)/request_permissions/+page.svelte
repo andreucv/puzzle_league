@@ -22,7 +22,7 @@
 
 	{#if form?.success}
 		<div class="alert preset-filled-success-500 mt-4">
-			<p>Your request has been submitted successfully! You will be notified once it's reviewed.</p>
+			<p>{$t('request_permissions.success_message')}</p>
 		</div>
 	{/if}
 
@@ -53,14 +53,14 @@
 	>
         <!-- Permission Type Select -->
         <label class="block">
-            <span class="font-semibold">Role Access Request</span>
+            <span class="font-semibold">{$t('request_permissions.role_access_request')}</span>
             <select
                 class="select"
                 name="role"
                 bind:value={permissionType}
                 required
             >
-                <option value="" disabled>Select a role</option>
+                <option value="" disabled>{$t('request_permissions.select_role')}</option>
                 {#each optionsAvailable as role}
                     <option value={role}>{role}</option>
                 {/each}
@@ -69,12 +69,12 @@
 
         <!-- Reason Textarea -->
         <label class="block">
-            <span class="font-semibold">Reason for Request</span>
+            <span class="font-semibold">{$t('request_permissions.reason_label')}</span>
             <textarea
                 class="textarea p-2"
                 name="reason"
                 rows="4"
-                placeholder="Include here which competitions you are planning to organize..."
+                placeholder={$t('request_permissions.reason_placeholder')}
                 bind:value={reason}
                 required
             ></textarea>
@@ -82,13 +82,13 @@
 
         <!-- Additional Information -->
         <label class="block">
-            <span class="font-semibold">Additional Information</span>
-            <span class="text-sm opacity-75">(Optional)</span>
+            <span class="font-semibold">{$t('request_permissions.additional_info_label')}</span>
+            <span class="text-sm opacity-75">{$t('request_permissions.additional_info_optional')}</span>
             <textarea
                 class="textarea p-2"
                 name="additionalInfo"
                 rows="3"
-                placeholder="Any additional details that might help with your request..."
+                placeholder={$t('request_permissions.additional_info_placeholder')}
                 bind:value={additionalInfo}
             ></textarea>
         </label>
@@ -99,18 +99,18 @@
         <!-- Terms Checkbox -->
         <label class="flex items-center space-x-2">
             <input class="checkbox" type="checkbox" required />
-            <span>I understand that my request will be reviewed and I will be notified of the decision</span>
+            <span>{$t('request_permissions.terms_checkbox')}</span>
         </label>
 
         <!-- Submit Button -->
         <div class="flex justify-end gap-4">
-            <a href="/" class="btn preset-tonal border border-surface-500">Cancel</a>
+            <a href="/" class="btn preset-tonal border border-surface-500">{$t('request_permissions.cancel')}</a>
             <button
                 type="submit"
                 class="btn preset-filled-primary-500"
                 disabled={isSubmitting || formDisabled}
             >
-                {isSubmitting ? 'Submitting...' : 'Submit Request'}
+                {isSubmitting ? $t('request_permissions.submitting') : $t('request_permissions.submit')}
             </button>
         </div>
     </form>

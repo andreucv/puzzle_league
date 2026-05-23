@@ -139,7 +139,19 @@
   "admin": {
     "review_requests": {
       "search_placeholder": "Search requests",
-      "title": "Review Permission Requests"
+      "title": "Review Permission Requests",
+      "pending_requests": "Pending Requests",
+      "requests_count": "{{count}} requests",
+      "requests_filtered_count": "{{filtered}} / {{total}} requests",
+      "no_requests_title": "No Requests Found",
+      "no_requests_search": "No requests match your search criteria.",
+      "no_requests_empty": "There are no pending permission requests at this time.",
+      "requested_on": "Requested on {{date}}",
+      "competition_label": "Competition: {{name}}",
+      "reason_label": "Reason:",
+      "additional_info_label": "Additional Information:",
+      "accept": "Accept",
+      "reject": "Reject"
     }
   },
   "competition": {
@@ -433,7 +445,19 @@
     "title": "PuzzLigas - Speed Puzzling Competitions | Join Global Puzzle Events"
   },
   "request_permissions": {
-    "title": "Request Permissions"
+    "title": "Request Permissions",
+    "success_message": "Your request has been submitted successfully! You will be notified once it's reviewed.",
+    "role_access_request": "Role Access Request",
+    "select_role": "Select a role",
+    "reason_label": "Reason for Request",
+    "reason_placeholder": "Include here which competitions you are planning to organize...",
+    "additional_info_label": "Additional Information",
+    "additional_info_optional": "(Optional)",
+    "additional_info_placeholder": "Any additional details that might help with your request...",
+    "terms_checkbox": "I understand that my request will be reviewed and I will be notified of the decision",
+    "cancel": "Cancel",
+    "submit": "Submit Request",
+    "submitting": "Submitting..."
   },
   "error_pages": {
     "access_denied": "Access Denied",

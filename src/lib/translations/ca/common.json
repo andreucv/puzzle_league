@@ -139,7 +139,19 @@
   "admin": {
     "review_requests": {
       "search_placeholder": "Cerca peticions",
-      "title": "Revisa Peticions de Permisos"
+      "title": "Revisa Peticions de Permisos",
+      "pending_requests": "Peticions Pendents",
+      "requests_count": "{{count}} peticions",
+      "requests_filtered_count": "{{filtered}} / {{total}} peticions",
+      "no_requests_title": "No s'han trobat peticions",
+      "no_requests_search": "Cap petició coincideix amb els criteris de cerca.",
+      "no_requests_empty": "No hi ha peticions de permisos pendents en aquest moment.",
+      "requested_on": "Sol·licitat el {{date}}",
+      "competition_label": "Competició: {{name}}",
+      "reason_label": "Motiu:",
+      "additional_info_label": "Informació addicional:",
+      "accept": "Acceptar",
+      "reject": "Rebutjar"
     }
   },
   "edit_competition": {
@@ -348,7 +360,19 @@
     "title": "PuzzLigas - Competicions de Puzzles | Events de Puzzles"
   },
   "request_permissions": {
-    "title": "Sol·licita Permisos"
+    "title": "Sol·licita Permisos",
+    "success_message": "La teva sol·licitud s'ha enviat correctament! Se't notificarà un cop revisada.",
+    "role_access_request": "Sol·licitud d'accés a rol",
+    "select_role": "Selecciona un rol",
+    "reason_label": "Motiu de la sol·licitud",
+    "reason_placeholder": "Inclou aquí quines competicions planifiques organitzar...",
+    "additional_info_label": "Informació addicional",
+    "additional_info_optional": "(Opcional)",
+    "additional_info_placeholder": "Qualsevol detall addicional que pugui ajudar amb la teva sol·licitud...",
+    "terms_checkbox": "Entenc que la meva sol·licitud serà revisada i se'm notificarà la decisió",
+    "cancel": "Cancel·lar",
+    "submit": "Enviar sol·licitud",
+    "submitting": "Enviant..."
   },
   "error_pages": {
     "access_denied": "Accés Denegat",

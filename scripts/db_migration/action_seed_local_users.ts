@@ -35,19 +35,19 @@ const testUsers: TestUser[] = [
     {
         email: process.env.TEST_PARTICIPANT_USER_EMAIL!,
         password: process.env.TEST_PARTICIPANT_USER_PASSWORD!,
-        name: 'Test Participant',
+        name: 'Participant',
         role: 'PARTICIPANT' as Role
     },
     {
         email: process.env.TEST_ORGANIZER_USER_EMAIL!,
         password: process.env.TEST_ORGANIZER_USER_PASSWORD!,
-        name: 'Test Organizer',
+        name: 'Organizer',
         role: 'ORGANIZER' as Role,
     },
     {
         email: process.env.TEST_ADMIN_USER_EMAIL!,
         password: process.env.TEST_ADMIN_USER_PASSWORD!,
-        name: 'Test Admin',
+        name: 'Admin',
         role: 'ADMIN' as Role
     },
 ];

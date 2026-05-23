@@ -94,7 +94,8 @@
     "create_competition": "Crear Competición",
     "explore_competitions": "Competiciones",
     "home": "Inicio",
-    "puzzles": "Puzzles"
+    "puzzles": "Puzzles",
+    "organizer": "Organizador"
   },
   "list_competitions": {
     "look_for_competition": "Busca una competición"

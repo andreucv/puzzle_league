@@ -1,8 +1,13 @@
 import type { PageServerLoad } from './$types';
 import { getPublicProfile, isPrivilegedViewer } from '$lib/database/db_user';
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
+    // GDPR: anonymous users must not access public profiles
+    if (!locals.user) {
+        throw redirect(302, '/login');
+    }
+
     const { userId } = params;
 
     const profile = await getPublicProfile(userId);

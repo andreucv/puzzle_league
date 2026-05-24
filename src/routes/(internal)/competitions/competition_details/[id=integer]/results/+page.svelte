@@ -28,6 +28,7 @@
     const competition = $derived(data.competition);
     const categories: App.ResultCategory[] = $derived(competition.categories);
     const viewerIsPrivileged = $derived(data.viewerIsPrivileged);
+    const currentUser = $derived(data.user);
 
     // Check if a user's identity should be visible to the current viewer
     function isUserVisible(user: { id: string; publicResultsVisibility?: boolean }) {
@@ -400,7 +401,11 @@
                                                                             <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
                                                                         </div>
                                                                     {/if}
-                                                                    <a href="/public_profile/{user.id}" class="font-medium text-sm hover:text-primary-500 hover:underline transition-colors">{user.name}</a>
+                                                                    {#if currentUser}
+                                                                        <a href="/public_profile/{user.id}" class="font-medium text-sm hover:text-primary-500 hover:underline transition-colors" data-testid="profile-link-{user.id}">{user.name}</a>
+                                                                    {:else}
+                                                                        <span class="font-medium text-sm" data-testid="profile-name-{user.id}">{user.name}</span>
+                                                                    {/if}
                                                                 {:else}
                                                                     <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
                                                                         <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
@@ -483,7 +488,11 @@
                                                                                 <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
                                                                             </div>
                                                                         {/if}
-                                                                        <a href="/public_profile/{user.id}" class="font-medium text-sm hover:text-primary-500 hover:underline transition-colors">{user.name}</a>
+                                                                        {#if currentUser}
+                                                                            <a href="/public_profile/{user.id}" class="font-medium text-sm hover:text-primary-500 hover:underline transition-colors" data-testid="profile-link-{user.id}">{user.name}</a>
+                                                                        {:else}
+                                                                            <span class="font-medium text-sm" data-testid="profile-name-{user.id}">{user.name}</span>
+                                                                        {/if}
                                                                     {:else}
                                                                         <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
                                                                             <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
@@ -542,7 +551,11 @@
                                                                     <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
                                                                 </div>
                                                             {/if}
-                                                            <a href="/public_profile/{user.id}" class="text-sm font-medium truncate hover:text-primary-500 hover:underline transition-colors">{user.name}</a>
+                                                            {#if currentUser}
+                                                                <a href="/public_profile/{user.id}" class="text-sm font-medium truncate hover:text-primary-500 hover:underline transition-colors" data-testid="profile-link-{user.id}">{user.name}</a>
+                                                            {:else}
+                                                                <span class="text-sm font-medium truncate" data-testid="profile-name-{user.id}">{user.name}</span>
+                                                            {/if}
                                                         {:else}
                                                             <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
                                                                 <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
@@ -619,7 +632,11 @@
                                                                         <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
                                                                     </div>
                                                                 {/if}
-                                                                <a href="/public_profile/{user.id}" class="text-sm font-medium truncate hover:text-primary-500 hover:underline transition-colors">{user.name}</a>
+                                                                {#if currentUser}
+                                                                    <a href="/public_profile/{user.id}" class="text-sm font-medium truncate hover:text-primary-500 hover:underline transition-colors" data-testid="profile-link-{user.id}">{user.name}</a>
+                                                                {:else}
+                                                                    <span class="text-sm font-medium truncate" data-testid="profile-name-{user.id}">{user.name}</span>
+                                                                {/if}
                                                             {:else}
                                                                 <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
                                                                     <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />

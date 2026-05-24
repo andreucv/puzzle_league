@@ -28,7 +28,6 @@ usage() {
     echo "  prod  - Apply migrations to PROD_DATABASE_URL"
     echo ""
     echo "Options (executed after migration, in this order):"
-    echo "  --location <loc>     Database location: paris | west-virginia (default: west-virginia)"
     echo "  --generate-seed  (Re)generate seed_data.json using the data generator"
     echo "  --clean          Erase all data from the database"
     echo "  --seed           Insert data from seed_data.json"
@@ -61,18 +60,9 @@ DO_SEED_CUSTOM_USERS=false
 DO_SEED_LOCAL_USERS=false
 ADMIN_EMAIL=""
 ORGANIZER_EMAIL=""
-LOCATION="west-virginia"
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --location)
-            if [ -z "$2" ] || [[ "$2" == --* ]]; then
-                echo "Error: --location requires a value (paris|west-virginia)"
-                usage
-            fi
-            LOCATION="$2"
-            shift 2
-            ;;
         --generate-seed)
             DO_GENERATE_SEED=true
             shift
@@ -116,26 +106,10 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-# ── Resolve location prefix ──────────────────────────────
-case $LOCATION in
-    paris)
-        LOCATION_PREFIX="PARIS_"
-        ;;
-    west-virginia)
-        LOCATION_PREFIX=""
-        ;;
-    *)
-        echo "Error: Invalid location '$LOCATION'. Use paris or west-virginia"
-        usage
-        ;;
-esac
-
-echo "🌍 Location: ${LOCATION}"
-
 # ── Set DATABASE_URL based on environment ────────────────
 case $ENV in
     dev)
-        VAR_NAME="${LOCATION_PREFIX}LOCAL_DATABASE_URL"
+        VAR_NAME="LOCAL_DATABASE_URL"
         DB_URL="${!VAR_NAME}"
         if [ -z "$DB_URL" ]; then
             echo "Error: $VAR_NAME is not set"
@@ -145,7 +119,7 @@ case $ENV in
         echo "🔧 Targeting DEV environment..."
         ;;
     test)
-        VAR_NAME="${LOCATION_PREFIX}TEST_DATABASE_URL"
+        VAR_NAME="TEST_DATABASE_URL"
         DB_URL="${!VAR_NAME}"
         if [ -z "$DB_URL" ]; then
             echo "Error: $VAR_NAME is not set"
@@ -155,7 +129,7 @@ case $ENV in
         echo "🧪 Targeting TEST environment..."
         ;;
     prod)
-        VAR_NAME="${LOCATION_PREFIX}PROD_DATABASE_URL"
+        VAR_NAME="PROD_DATABASE_URL"
         DB_URL="${!VAR_NAME}"
         if [ -z "$DB_URL" ]; then
             echo "Error: $VAR_NAME is not set"

@@ -96,7 +96,20 @@ export function downloadRegistrationsPdf({ competitionName, categories, translat
 		doc.text(categoryTitle, 14, startY);
 		startY += 4;
 
-		const rows = category.entries.map((entry) => [
+		const hasTableNumbers = category.entries.some((e) => e.tableNumber != null);
+		const sortedEntries = [...category.entries].sort((a, b) => {
+			if (hasTableNumbers) {
+				// Entries with table numbers first, sorted ascending; entries without go last
+				if (a.tableNumber != null && b.tableNumber != null) return a.tableNumber - b.tableNumber;
+				if (a.tableNumber != null) return -1;
+				if (b.tableNumber != null) return 1;
+				return 0;
+			}
+			// Fallback: sort by registration date ascending
+			return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+		});
+
+		const rows = sortedEntries.map((entry) => [
 			'', // Empty check-in column
 			entry.tableNumber != null ? String(entry.tableNumber) : '',
 			getParticipantNames(entry),

@@ -3,7 +3,7 @@ import "dotenv/config";
 // and standalone tsx scripts (e2e seeds, db_migration) without alias issues.
 import { PrismaClient } from '../.prisma/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-
+import { withAccelerate } from '@prisma/extension-accelerate';
 /**
  * Creates a PrismaClient instance.
  *
@@ -11,9 +11,12 @@ import { PrismaPg } from '@prisma/adapter-pg';
  *                      when omitted (the default for the running SvelteKit app).
  */
 export function createPrismaClient(databaseUrl?: string): PrismaClient {
-    const url = databaseUrl ?? process.env.DATABASE_URL!;
+    const url = databaseUrl ?? process.env.DATABASE_ACCELERATE_URL!;
+    console.log(`Connecting to database with URL: ${url.startsWith('prisma+postgres://') ? 'prisma+postgres://***' : url}`);
     if (url.startsWith('prisma+postgres://')) {
-        return new PrismaClient({ accelerateUrl: url });
+        return new PrismaClient({
+            accelerateUrl: url
+        }).$extends(withAccelerate()) as unknown as PrismaClient;
     }
     const adapter = new PrismaPg({ connectionString: url });
     return new PrismaClient({ adapter });

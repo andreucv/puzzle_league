@@ -4,6 +4,7 @@ allowBuilds:
   esbuild: true
   prisma: true
   protobufjs: true
+  sharp: true
 minimumReleaseAgeExclude:
   - cookie@0.7.0
   - lodash@4.17.23

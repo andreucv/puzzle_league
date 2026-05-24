@@ -58,6 +58,9 @@ _Avoid_: Request, permission request, application
 **Notification**:
 A read-only informational alert delivered to a user's inbox. Covers registration updates, competition lifecycle events, role request outcomes, and more. No user action required.
 
+**Other Upcoming Competitions**:
+The authenticated landing page discovery section for competitions where the current Participant has no Registration. Includes future competitions and live competitions, ordered by soonest start date.
+
 **Finish time**:
 A wall-clock timestamp recorded when a judge or organizer taps a button as a participant completes their puzzle. Immutable once recorded.
 

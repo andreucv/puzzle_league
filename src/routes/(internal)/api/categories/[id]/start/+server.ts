@@ -1,6 +1,7 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { startCategory, CategoryNotFoundError } from '$lib/services/category-lifecycle';
 import { getAutoStopScheduler } from '$lib/services/auto-stop-singleton';
+import { getPostHogClient } from '$lib/server/posthog';
 
 export const POST = async (event: RequestEvent) => {
   console.log('[auto-stop] === START ENDPOINT HIT ===', event.params.id);
@@ -28,6 +29,18 @@ export const POST = async (event: RequestEvent) => {
     }
 
     const category = await startCategory(categoryId, options);
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: event.locals.user?.id ?? 'server',
+      event: 'category_started',
+      properties: {
+        category_id: categoryId,
+        auto_stop: autoStop,
+        deadline: deadline?.toISOString()
+      }
+    });
+
     return json({ category });
   } catch (error) {
     if (error instanceof CategoryNotFoundError) {

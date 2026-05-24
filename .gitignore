@@ -40,7 +40,7 @@ scripts/db_migration/*seed_data.json
 /playwright/.test-server-state.json
 
 # E2E test generated data
-/e2e/*/test-data.json
+/e2e/*/test-data*.json
 
 # Chrome devtools files
 com.chrome.devtools.json
@@ -61,3 +61,4 @@ explanations/plans/
 .scratch/
 .work-done
 TODO.md
+.env.local

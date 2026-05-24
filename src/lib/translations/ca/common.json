@@ -1,5 +1,20 @@
 {
   "page": {},
+  "competition_card": {
+    "days_ago": "fa {{count}}d",
+    "in_until_days": "En {{count}}d",
+    "tomorrow": "Demà",
+    "today": "Avui",
+    "registration_open": "Inscripció oberta",
+    "registration_closed": "Inscripció tancada",
+    "near_you": "A prop"
+  },
+  "competition_status": {
+    "upcoming": "Propera",
+    "live": "En directe",
+    "finished": "Finalitzada",
+    "cancelled": "Cancel·lada"
+  },
   "category_names": {
     "individual": "Individual",
     "pairs": "Parelles",
@@ -9,11 +24,20 @@
     "puzzle_chess": "Puzzle Chess",
     "other": "Altres"
   },
+  "category_names_singular": {
+    "individual": "Individual",
+    "pair": "Parella",
+    "team": "Equip",
+    "junior_individual": "Individual Junior",
+    "junior_pair": "Parella Junior",
+    "puzzle_chess": "Puzzle Chess",
+    "other": "Altre"
+  },
   "landing_page": {
     "welcome_text": "La teva comunitat puzzlera",
     "participant_welcome_text": "Si t'agraden els puzzles i la competició, Puzzligas és casa teva. Connecta amb la comunitat en els concursos de puzzles. Uneix-te.",
     "review_requests": "Revisar Peticions de Permisos",
-    "sign_in": "Accedeix",
+    "sign_in": "Entra",
     "who_we_are": "QUI SOM",
     "explore_title": "Explora el calendari",
     "explore_subtitle": "Consulteu els propers concursos a prop vostre",
@@ -39,6 +63,8 @@
     "live_now": "En Directe",
     "no_live_competitions": "No hi ha competicions en directe ara",
     "no_near_competitions": "No hi ha pròximes competicions a prop teu",
+    "no_other_upcoming_competitions": "No hi ha altres competicions disponibles ara mateix",
+    "loading_more_competitions": "Carregant més competicions...",
     "registration_status": {
       "pending_confirmation": "Pendent de confirmació",
       "confirmed": "Confirmada",
@@ -68,7 +94,8 @@
     "create_competition": "Crear Competició",
     "explore_competitions": "Competicions",
     "home": "Inici",
-    "puzzles": "Puzzles"
+    "puzzles": "Puzzles",
+    "organizer": "Organitzador"
   },
   "list_competitions": {
     "look_for_competition": "Busca una competició"
@@ -76,12 +103,31 @@
   "profile": {
     "my_profile": "El meu perfil",
     "roles": "Permisos",
+    "request_organizer_role": "Sol·licitar rol d'organitzador",
     "preferences": "Preferències",
     "data": "Dades del perfil",
+    "name": "Nom",
+    "name_not_set": "No configurat",
+    "name_placeholder": "El teu nom",
+    "name_required": "El nom és obligatori.",
+    "name_too_long": "El nom ha de tenir 80 caràcters o menys.",
+    "password": "Contrasenya",
+    "location": "Ubicació",
+    "email": "Correu",
+    "change": "Canvia",
+    "cancel": "Cancel·la",
+    "delete": "Elimina",
+    "not_set": "No configurat",
     "phone": "Telèfon",
     "phone_prefix_placeholder": "ex. +34",
     "phone_number_placeholder": "ex. 612345678",
     "phone_not_set": "No configurat",
+    "verified": "Verificat",
+    "unverified": "Sense verificar",
+    "send_verification_email": "Envia correu de verificació",
+    "email_verification_sent_toast": "Correu de verificació enviat.",
+    "email_verification_send_error": "No s'ha pogut enviar el correu de verificació. Torna-ho a provar.",
+    "password_not_available": "El canvi de contrasenya només està disponible per a comptes amb correu i contrasenya.",
     "public_profile_visibility": "Visibilitat del perfil",
     "public_profile_visibility_description": "Si està activat, qualsevol usuari (fins i tot visitants no registrats) pot veure el teu perfil públic. Si està desactivat, només els organitzadors i administradors el poden veure.",
     "public_results_visibility": "Visibilitat als resultats",
@@ -93,7 +139,19 @@
   "admin": {
     "review_requests": {
       "search_placeholder": "Cerca peticions",
-      "title": "Revisa Peticions de Permisos"
+      "title": "Revisa Peticions de Permisos",
+      "pending_requests": "Peticions Pendents",
+      "requests_count": "{{count}} peticions",
+      "requests_filtered_count": "{{filtered}} / {{total}} peticions",
+      "no_requests_title": "No s'han trobat peticions",
+      "no_requests_search": "Cap petició coincideix amb els criteris de cerca.",
+      "no_requests_empty": "No hi ha peticions de permisos pendents en aquest moment.",
+      "requested_on": "Sol·licitat el {{date}}",
+      "competition_label": "Competició: {{name}}",
+      "reason_label": "Motiu:",
+      "additional_info_label": "Informació addicional:",
+      "accept": "Acceptar",
+      "reject": "Rebutjar"
     }
   },
   "edit_competition": {
@@ -130,7 +188,8 @@
     "select_all": "Selecciona tot",
     "deselect_all": "Desselecciona tot",
     "claim_selected": "Reclama seleccionades",
-    "skip": "Omet per ara"
+    "skip": "Omet per ara",
+    "continue": "Continua"
   },
   "registration": {
     "title": "Inscripció a categories",
@@ -150,6 +209,10 @@
     "search_placeholder": "Cerca companys per nom...",
     "submit_all": "Enviar totes les inscripcions",
     "incomplete_parties": "alguns equips estan incomplets",
+    "empty_parties": "alguns equips no tenen membres",
+    "empty_spot": "lloc buit",
+    "empty_spots": "llocs buits",
+    "organizer_mode": "Mode d'organitzador - els organitzadors poden crear inscripcions sense límit i es confirmen automàticament.",
     "registration_not_available": "Les inscripcions no estan disponibles per aquesta categoria.",
     "status_confirmed": "Confirmat",
     "status_pending_confirmation": "Pendent de confirmació",
@@ -175,15 +238,19 @@
     "payment_warning_confirm": "Entesos, envia",
     "payment_warning_cancel": "Cancel·la",
     "pending_confirmation_not_guaranteed": "Les inscripcions pendents de confirmació no garanteixen la participació al concurs.",
-    "success_title": "Inscripció completada!",
-    "success_message": "Les teves inscripcions s'han enviat correctament.",
-    "back_to_competition": "Tornar als detalls de la competició",
-    "go_home": "Anar a l'inici"
+    "toast_success_title": "Inscripció enviada!",
+    "toast_error_title": "Error en la inscripció",
+    "toast_category_header": "Categoria",
+    "toast_entries_header": "Inscripcions",
+    "confirm_unregister_title": "Eliminar inscripció?",
+    "confirm_unregister_message": "Això eliminarà la inscripció. Pots tornar a inscriure't si queden places disponibles."
   },
   "puzzles": {
     "catalog_title": "Catàleg de Puzzles",
     "edit_title": "Edita Puzzle",
-    "add_title": "Afegeix Nou Puzzle"
+    "add_title": "Afegeix Nou Puzzle",
+    "image": "Imatge",
+    "choose_image": "Afegeix imatge"
   },
   "competition": {
     "create": {
@@ -229,6 +296,7 @@
       "participants_per_party": "Participants per participació",
       "remove_category": "Elimina la categoria",
       "remove_image": "Elimina la imatge",
+      "choose_image": "Afegeix imatge",
       "select_category_type": "Seleccioneu un tipus de categoria",
       "start_time": "Hora d'inici",
       "payment_method": "Mètode de pagament",
@@ -292,7 +360,19 @@
     "title": "PuzzLigas - Competicions de Puzzles | Events de Puzzles"
   },
   "request_permissions": {
-    "title": "Sol·licita Permisos"
+    "title": "Sol·licita Permisos",
+    "success_message": "La teva sol·licitud s'ha enviat correctament! Se't notificarà un cop revisada.",
+    "role_access_request": "Sol·licitud d'accés a rol",
+    "select_role": "Selecciona un rol",
+    "reason_label": "Motiu de la sol·licitud",
+    "reason_placeholder": "Inclou aquí quines competicions planifiques organitzar...",
+    "additional_info_label": "Informació addicional",
+    "additional_info_optional": "(Opcional)",
+    "additional_info_placeholder": "Qualsevol detall addicional que pugui ajudar amb la teva sol·licitud...",
+    "terms_checkbox": "Entenc que la meva sol·licitud serà revisada i se'm notificarà la decisió",
+    "cancel": "Cancel·lar",
+    "submit": "Enviar sol·licitud",
+    "submitting": "Enviant..."
   },
   "error_pages": {
     "access_denied": "Accés Denegat",
@@ -350,7 +430,12 @@
     "password_too_short": "La contrasenya ha de tenir almenys 8 caràcters",
     "revoke_other_sessions": "Tancar sessió a tots els altres dispositius",
     "submitting": "Enviant...",
-    "back_to_login": "Tornar a l'inici de sessió"
+    "back_to_login": "Tornar a l'inici de sessió",
+    "errors": {
+      "invalid_credentials": "Correu o contrasenya incorrectes.",
+      "email_already_exists": "Aquesta adreça de correu ja està registrada.",
+      "unexpected": "S'ha produït un error inesperat. Torna-ho a intentar."
+    }
   },
   "legal": {
     "privacy_policy": "Política de Privacitat",
@@ -512,7 +597,9 @@
     "near_me_goto_profile_2": "perfil",
     "near_me_goto_profile_3": "per activar el filtratge \"A prop meu\".",
     "no_competitions_found_for_filters": "Proveu d'ajustar la cerca o els filtres per trobar el que busqueu.",
-    "no-competitions-found": "No s'han trobat competicions"
+    "no-competitions-found": "No s'han trobat competicions",
+    "competition_plural": "competicions",
+    "competition_singular": "competició"
   },
   "manage_judges": {
     "title": "Gestionar Jutges",
@@ -556,6 +643,7 @@
     "waitlisted": "En llista d'espera",
     "pending_confirmation": "Pendent de confirmació",
     "refused_success": "Inscripció rebutjada amb èxit.",
+    "already_removed": "Aquesta inscripció ja ha estat gestionada o eliminada.",
     "status_pending_confirmation": "Pendent de confirmació",
     "status_confirmed": "Confirmada",
     "status_waitlisted": "En llista d'espera",
@@ -580,6 +668,8 @@
     "remind_confirm_message": "Això enviarà una notificació i un correu electrònic per recordar als participants sobre el pagament pendent.",
     "remind_bulk_confirm_message": "Això enviarà una notificació i un correu electrònic a tots els participants pendents en aquesta categoria que no hagin estat recordats en les últimes 48 hores.",
     "last_reminded": "Recordat {{time}}",
+    "status_accepted": "Aceptada",
+    "status_pending": "Pendent",
     "download_pdf": "Descarregar PDF",
     "pdf_check_in": "Check-in",
     "pdf_table": "Taula",
@@ -587,7 +677,16 @@
     "pdf_registration_date": "Data d'inscripció",
     "pdf_status": "Estat",
     "pdf_confirmed_date": "Data de confirmació",
-    "pdf_generated_at": "Generat el {{date}}"
+    "pdf_generated_at": "Generat el {{date}}",
+    "registration_label": "La inscripció està",
+    "status_open": "oberta",
+    "status_closed": "tancada",
+    "updating": "Actualitzant...",
+    "close_registration": "Tancar",
+    "open_registration": "Obrir",
+    "add_categories_first": "Afegeix categories abans d'obrir la inscripció.",
+    "toggle_error": "Error en actualitzar l'estat de la inscripció.",
+    "unexpected_error": "S'ha produït un error inesperat."
   },
   "notifications": {
     "title": "Notificacions",
@@ -601,9 +700,15 @@
       "registration_confirmed_team": "Inscripció confirmada",
       "registration_confirmed_nonplatform": "Inscripció confirmada",
       "registration_refused": "Inscripció rebutjada",
+      "registration_refused_team": "Inscripció rebutjada",
+      "registration_refused_nonplatform": "Inscripció rebutjada",
       "registration_waitlisted": "Inscripció en llista d'espera",
+      "registration_promoted": "Plaça disponible",
+      "registration_promoted_team": "Plaça disponible",
+      "registration_promoted_nonplatform": "Plaça disponible",
       "competition_started": "Competició iniciada",
       "competition_cancelled": "Competició cancel·lada",
+      "competition_auto_cancelled": "Competició cancel·lada automàticament",
       "external_participant_claimed": "Participant reclamat",
       "role_request_approved": "Sol·licitud de rol aprovada",
       "role_request_rejected": "Sol·licitud de rol rebutjada",
@@ -621,10 +726,16 @@
       "registration_confirmed": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} ha estat confirmada per {{confirmedBy}}.",
       "registration_confirmed_team": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} ha estat confirmada per {{confirmedBy}}. Els teus companys d'equip: {{teammateNames}}.",
       "registration_confirmed_nonplatform": "La inscripció de {{participantNames}} a la categoria {{categoryName}} de la competició {{competitionName}} ha estat confirmada per {{confirmedBy}}.",
-      "registration_refused": "La teva inscripció per a {{categoryName}} ha estat rebutjada.",
+      "registration_refused": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} ha estat rebutjada.",
+      "registration_refused_team": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} ha estat rebutjada. Els teus companys d'equip: {{teammateNames}}.",
+      "registration_refused_nonplatform": "La inscripció de {{participantNames}} a la categoria {{categoryName}} de la competició {{competitionName}} ha estat rebutjada.",
       "registration_waitlisted": "La teva inscripció per a {{categoryName}} està en llista d'espera. La categoria està plena.",
+      "registration_promoted": "S'ha alliberat una plaça! La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} ha passat de la llista d'espera a pendent de confirmació. Si us plau, completa el pagament per assegurar la teva plaça.",
+      "registration_promoted_team": "S'ha alliberat una plaça! La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} amb {{teammateNames}} ha passat de la llista d'espera a pendent de confirmació. Si us plau, completa el pagament per assegurar la teva plaça.",
+      "registration_promoted_nonplatform": "S'ha alliberat una plaça! La inscripció de {{participantNames}} a la categoria {{categoryName}} de la competició {{competitionName}} ha passat de la llista d'espera a pendent de confirmació.",
       "competition_started": "La competició {{competitionName}} ha començat!",
       "competition_cancelled": "La competició {{competitionName}} ha estat cancel·lada.",
+      "competition_auto_cancelled": "La competició {{competitionName}} ha estat cancel·lada automàticament perquè va finalitzar sense haver-se iniciat.",
       "external_participant_claimed": "{{intentName}} ha estat reclamat per un usuari registrat i ara està vinculat al seu compte.",
       "role_request_approved": "La teva sol·licitud per al rol {{roleName}} ha estat aprovada.",
       "role_request_rejected": "La teva sol·licitud per al rol {{roleName}} ha estat rebutjada.",
@@ -768,6 +879,7 @@
   },
   "onboarding": {
     "step_of": "Pas {{current}} de {{total}}",
+    "previous": "Anterior",
     "welcome": "Benvingut/da, {{name}}!",
     "welcome_subtitle": "Configurem el teu compte amb un parell de coses ràpides.",
     "verify_email_title": "Verifica el teu correu",
@@ -777,6 +889,8 @@
     "verify_email_resent": "Correu enviat!",
     "verify_email_resending": "Enviant...",
     "verify_email_resend_error": "No s'ha pogut enviar el correu de verificació. Torna-ho a provar més tard.",
+    "verify_email_toast_title": "Correu de verificació enviat",
+    "verify_email_toast_description": "Hem enviat un correu de verificació a {{email}}. Comprova la teva safata d'entrada.",
     "continue_to_homepage": "Anar a la pàgina d'inici"
   },
   "add_location": {
@@ -786,7 +900,9 @@
     "save_button": "Desa la ubicació",
     "skip_button": "Salta per ara",
     "country_placeholder": "Selecciona el teu país",
-    "postal_code_placeholder": "ex. 08001"
+    "postal_code_placeholder": "Codi postal ex. 08001",
+    "validation_country": "Selecciona un país vàlid.",
+    "validation_postal_code_format": "Introdueix un codi postal vàlid"
   },
   "add_phone": {
     "title": "Afegeix el teu número de telèfon",
@@ -800,7 +916,7 @@
     "validation_prefix_required": "El prefix és obligatori si es proporciona un número",
     "validation_number_required": "El número és obligatori si es proporciona un prefix",
     "validation_prefix_format": "El prefix ha de començar amb + seguit d'1-4 dígits",
-    "validation_number_format": "Introdueix un número de telèfon vàlid"
+    "validation_number_format": "Introdueix un número de telèfon vàlid de 6 a 12 dígits"
   },
   "select_language": {
     "title": "Tria el teu idioma",

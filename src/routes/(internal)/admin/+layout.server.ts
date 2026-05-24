@@ -1,22 +1,22 @@
 import type { LayoutServerLoad } from "./$types";
 import { redirect } from "@sveltejs/kit";
-import { getRoleAssignments } from "$lib/database/db_user";
 import { Role } from '$lib/.prisma/generated/prisma/enums';
 
 /**
  * Layout server load function
  *
  * This function checks if the user is authenticated and has the admin role.
- * If not, it redirects appropriately.
+ * Uses roleAssignments already fetched by the root layout (via parent()) to avoid
+ * a duplicate DB query.
  */
-export const load: LayoutServerLoad = async ({ locals }) => {
-    const user = locals.user;
+export const load: LayoutServerLoad = async ({ parent }) => {
+    const { user } = await parent();
 
     if (!user) {
         throw redirect(302, "/login");
     }
 
-    const roleAssignments = await getRoleAssignments(user.id);
+    const roleAssignments = user.roleAssignments;
     if (!roleAssignments) {
         throw redirect(302, "/error/no_permission/");
     }

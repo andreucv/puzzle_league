@@ -1,9 +1,9 @@
 <script lang="ts">
     import type { PageData } from "./$types";
-    import type { RoleAssignment } from '$lib/.prisma/generated/prisma/browser';
     import { authClient } from "$lib/auth_client";
     import { goto } from "$app/navigation";
     import UserCard from "./components/UserCard.svelte";
+    import posthog from 'posthog-js';
 
     import {t} from '$lib/translations';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
@@ -18,6 +18,7 @@
         await authClient.signOut({
             fetchOptions: {
                 onSuccess: () => {
+                    posthog.reset();
                     goto("/login");
                 },
             },
@@ -29,16 +30,7 @@
 <div class="container">
     <div class="space-y-6">
         <UserCard {user} {account}/>
-        <div class="flex justify-start gap-4">
-            {#if !user.roleAssignments?.some((role: RoleAssignment) => role.role === "ORGANIZER")}
-                <button
-                    type="button"
-                    class="btn preset-filled-primary-500"
-                    onclick={() => goto("/request_permissions")}
-                >
-                    Request Organizer Role
-                </button>
-            {/if}
+        <div class="flex justify-start">
             <button
                 id="sign-out"
                 type="button"

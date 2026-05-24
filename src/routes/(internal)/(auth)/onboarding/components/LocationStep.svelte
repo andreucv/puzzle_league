@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { t } from '$lib/translations';
+    import { t, locale } from '$lib/translations';
     import { enhance } from '$app/forms';
     import Card from '$lib/components/common/card/Card.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
@@ -18,6 +18,10 @@
     let countryInputValue = $state('');
     let postalCodeValue = $state('');
     let locationError = $state<string | null>(null);
+
+    function getErrorMessage(error: string) {
+        return error.includes('.') ? $t(error) : error;
+    }
 </script>
 
 <div data-testid="onboarding-step-location">
@@ -33,7 +37,7 @@
 
     {#if locationError}
         <div class="p-3 rounded-lg preset-filled-error-500 text-sm">
-            {locationError}
+            {getErrorMessage(locationError)}
         </div>
     {/if}
 
@@ -59,10 +63,16 @@
                     bind:inputValue={countryInputValue}
                     placeholder={$t('add_location.country_placeholder')}
                     testId="onboarding-location-country"
+                    locale={$locale}
                 />
                 <input
                     name="postalCode"
                     type="text"
+                    autocomplete="postal-code"
+                    pattern={'[a-zA-Z0-9\\s-]{3,10}'}
+                    minlength="3"
+                    maxlength="10"
+                    title={$t('add_location.validation_postal_code_format')}
                     class="input text-sm px-3 py-2 border rounded-lg border-surface-300 bg-white"
                     placeholder={$t('add_location.postal_code_placeholder')}
                     bind:value={postalCodeValue}

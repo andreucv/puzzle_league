@@ -1,7 +1,15 @@
 import { expect, test, type Page, type Locator } from '@playwright/test';
+import { runSeed } from '../fixtures';
 import type { CompetitionData, CategoryData, MultiDayCategoryData } from '../types';
 
-test.use({ storageState: "playwright/.auth/organizer_user.json" });
+// ── Config: sequential execution ──
+test.describe.configure({ mode: 'serial' });
+test.use({ storageState: 'playwright/.auth/organizer_user.json' });
+
+// ── Restore all organizer competitions after the entire file ──
+test.afterAll(async () => {
+    await runSeed(import.meta.url, { seedFile: 'restore.ts' });
+});
 
 // ==================== TEST DATA ====================
 
@@ -163,11 +171,7 @@ async function selectTodaysDate(page: Page) {
 async function selectDateOnPicker(picker: Locator, date: Date) {
     await picker.locator('button').first().click();
     const label = formatDateToCalendarLabel(date);
-    // Scope within the picker to avoid strict mode violations when multiple
-    // calendars on the page show the same date (e.g. category start + end pickers).
     await picker.getByLabel(label).click();
-    // Press Escape to ensure the calendar popup closes on all browsers
-    // (Firefox/WebKit may keep it open when clicking an already-selected date).
     await picker.page().keyboard.press('Escape');
 }
 
@@ -204,9 +208,7 @@ async function addMultiDayCategory(page: Page, index: number, category: MultiDay
     await page.locator(`#category-type-create-${index}`).selectOption(category.type);
     await page.getByTestId(`description-create-${index}`).fill(category.description);
 
-    // Select start date for this category
     await selectDateOnPicker(page.getByTestId(`category-start-date-create-${index}`), category.start_date);
-    // Only select end date if different from start; auto-sync already fills it when they match
     if (category.start_date.toDateString() !== category.end_date.toDateString()) {
         await selectDateOnPicker(page.getByTestId(`category-end-date-create-${index}`), category.end_date);
     }
@@ -245,73 +247,69 @@ async function assertCompetitionCreated(page: Page, competition: CompetitionData
     }
 
     for (const cat of categories) {
-        // CategoryCard renders: "{type}" as h3 heading, "{description}" as paragraph, and "{startTime} – {endTime}" in a time block
         await expect(page.getByRole('heading', { name: cat.type, level: 3 }).first()).toBeVisible();
-        // Verify price is displayed
         if (cat.price) {
             await expect(page.getByText(`${cat.price} €`).first()).toBeVisible();
         }
     }
 }
 
-// ==================== HAPPY PATH TESTS ====================
+// ==================== SINGLE-DAY COMPETITION TESTS ====================
 
-test('GivenCreateCompetitionPage_WhenOrganizerCreatesCompetition_ThenOrganizerIsAbleToCheckCompetition', async ({ page }) => {
-    await navigateToCreateForm(page);
-    await fillCompetitionDetails(page, competition_data.competition);
-    await selectTodaysDate(page);
+test.describe('Single-day competition', () => {
+    test.describe.configure({ mode: 'serial' });
 
-    for (let i = 0; i < competition_data.categories.length; i++) {
-        await addCategory(page, i, competition_data.categories[i]);
-    }
+    test('GivenCreateCompetitionPage_WhenOrganizerCreatesCompetition_ThenCompetitionIsCreated', async ({ page }) => {
+        await navigateToCreateForm(page);
+        await fillCompetitionDetails(page, competition_data.competition);
+        await selectTodaysDate(page);
 
-    await submitCompetition(page);
-    await assertCompetitionCreated(page, competition_data.competition, competition_data.categories);
+        for (let i = 0; i < competition_data.categories.length; i++) {
+            await addCategory(page, i, competition_data.categories[i]);
+        }
+
+        await submitCompetition(page);
+        await assertCompetitionCreated(page, competition_data.competition, competition_data.categories);
+    });
+
+    test('GivenCreatedCompetition_WhenOrganizerUpdatesCompetition_ThenUpdatedDetailsAreShown', async ({ page }) => {
+        await navigateToCreateForm(page);
+        await fillCompetitionDetails(page, competition_data.competition);
+        await selectTodaysDate(page);
+
+        for (let i = 0; i < competition_data.categories.length; i++) {
+            await addCategory(page, i, competition_data.categories[i]);
+        }
+
+        await submitCompetition(page);
+        await assertCompetitionCreated(page, competition_data.competition, competition_data.categories);
+
+        // Navigate to edit and update the competition
+        await page.getByRole('link', { name: 'Edit Competition' }).click();
+        await expect(page.getByRole('heading', { name: 'Edit competition' }).first()).toBeVisible();
+
+        // Update details and submit again
+        await fillCompetitionDetails(page, updated_competition_data.competition);
+        await submitCompetition(page);
+
+        // Assert the updated details are shown
+        await assertCompetitionCreated(page, updated_competition_data.competition, updated_competition_data.categories);
+    });
 });
-
-test('GivenCreateCompetitionPage_WhenOrganizerCreatesAndUpdatesCompetition_ThenOrganizerIsAbleToCheckCompetition', async ({ page }) => {
-    await navigateToCreateForm(page);
-    await fillCompetitionDetails(page, competition_data.competition);
-    await selectTodaysDate(page);
-
-    for (let i = 0; i < competition_data.categories.length; i++) {
-        await addCategory(page, i, competition_data.categories[i]);
-    }
-
-    await submitCompetition(page);
-    await assertCompetitionCreated(page, competition_data.competition, competition_data.categories);
-
-    // Navigate to edit and update the competition
-    await page.getByRole('link', { name: 'Edit Competition' }).click();
-    await expect(page.getByRole('heading', { name: 'Edit competition' }).first()).toBeVisible();
-
-    // Update details and submit again
-    await fillCompetitionDetails(page, updated_competition_data.competition);
-    await submitCompetition(page);
-
-    // Assert the updated details are shown
-    await assertCompetitionCreated(page, updated_competition_data.competition, updated_competition_data.categories);
-});
-
-// ==================== VALIDATION ERROR TESTS ====================
-// Client-side validation tests have been migrated to unit tests:
-// src/lib/utils/competition_form_validation.test.ts
 
 // ==================== MULTI-DAY COMPETITION TESTS ====================
 
-test.describe('Multi-day Competition', () => {
+test.describe('Multi-day competition', () => {
+    test.describe.configure({ mode: 'serial' });
 
     test('GivenCreateCompetitionPage_WhenOrganizerCreatesMultiDayCompetition_ThenCompetitionIsCreated', async ({ page }) => {
         await navigateToCreateForm(page);
         await fillCompetitionDetails(page, multiday_competition_data.competition);
 
-        // Enable multi-day mode
         await enableMultiDay(page);
 
-        // Verify auto-computed dates info is shown instead of date pickers
         await expect(page.getByText('Dates auto-computed from categories')).toBeVisible();
 
-        // Add categories with per-category dates
         for (let i = 0; i < multiday_competition_data.categories.length; i++) {
             await addMultiDayCategory(page, i, multiday_competition_data.categories[i]);
         }
@@ -325,7 +323,7 @@ test.describe('Multi-day Competition', () => {
 
         const toggle = page.getByRole('switch', { name: 'Multi-day competition' });
 
-        // Initially single-day mode: date picker visible, toggle off, no auto-computed text
+        // Initially single-day mode
         await expect(page.getByTestId('date-picker')).toBeVisible();
         await expect(toggle).toHaveAttribute('aria-checked', 'false');
         await expect(page.getByText('Dates auto-computed from categories')).not.toBeVisible();
@@ -333,7 +331,6 @@ test.describe('Multi-day Competition', () => {
         // Enable multi-day
         await toggle.click();
 
-        // Multi-day mode: toggle on, auto-computed text visible, single date picker hidden
         await expect(toggle).toHaveAttribute('aria-checked', 'true');
         await expect(page.getByTestId('date-picker')).not.toBeVisible();
         await expect(page.getByText('Dates auto-computed from categories')).toBeVisible();
@@ -341,7 +338,6 @@ test.describe('Multi-day Competition', () => {
         // Toggle back to single-day
         await toggle.click();
 
-        // Back to single-day mode
         await expect(toggle).toHaveAttribute('aria-checked', 'false');
         await expect(page.getByTestId('date-picker')).toBeVisible();
         await expect(page.getByText('Dates auto-computed from categories')).not.toBeVisible();
@@ -351,11 +347,9 @@ test.describe('Multi-day Competition', () => {
         await navigateToCreateForm(page);
         await enableMultiDay(page);
 
-        // Add a category
         await page.getByRole('button', { name: 'Add Category' }).first().click();
         await page.locator('#category-type-create-0').selectOption('Individual');
 
-        // Category start and end date pickers should be visible
         await expect(page.getByTestId('category-start-date-create-0')).toBeVisible();
         await expect(page.getByTestId('category-end-date-create-0')).toBeVisible();
     });
@@ -365,7 +359,6 @@ test.describe('Multi-day Competition', () => {
         await page.locator('input[name="competition_name"]').fill('Multi-day Validation Test');
         await enableMultiDay(page);
 
-        // Add a category with times but no dates
         await addCategoryWithType(page, 0, 'Individual');
         await page.getByTestId('description-create-0').fill('Valid Category');
         await page.getByTestId('start-time-create-0').fill('10:00');
@@ -374,7 +367,6 @@ test.describe('Multi-day Competition', () => {
 
         await submitCompetition(page);
 
-        // Should show category date required error
         await expect(page.getByText('Please select a start date for this category')).toBeVisible();
     });
 
@@ -384,13 +376,11 @@ test.describe('Multi-day Competition', () => {
 
         const { day1 } = getMultiDayDates();
 
-        // Add a category and set only the start date
         await page.getByRole('button', { name: 'Add Category' }).first().click();
         await page.locator('#category-type-create-0').selectOption('Individual');
         await selectDateOnPicker(page.getByTestId('category-start-date-create-0'), day1);
 
-        // End date should be auto-synced to the same date as start date
-        // Verify the end date picker segments are filled (not showing placeholders)
+        // End date should be auto-synced — segments should not show placeholders
         const endDatePicker = page.getByTestId('category-end-date-create-0');
         const monthSegment = endDatePicker.getByRole('spinbutton', { name: /month/i });
         const daySegment = endDatePicker.getByRole('spinbutton', { name: /day/i });
@@ -405,12 +395,10 @@ test.describe('Multi-day Competition', () => {
         await fillCompetitionDetails(page, multiday_competition_data.competition);
         await enableMultiDay(page);
 
-        // Add categories spanning day1 to day2
         for (let i = 0; i < multiday_competition_data.categories.length; i++) {
             await addMultiDayCategory(page, i, multiday_competition_data.categories[i]);
         }
 
-        // Auto-computed dates info should be visible
         await expect(page.getByText('Dates auto-computed from categories')).toBeVisible();
     });
 
@@ -430,10 +418,9 @@ test.describe('Multi-day Competition', () => {
         await page.getByRole('link', { name: 'Edit Competition' }).click();
         await expect(page.getByRole('heading', { name: 'Edit competition' }).first()).toBeVisible();
 
-        // Multi-day mode should be auto-detected: toggle on, auto-computed text visible, no single date picker
+        // Multi-day mode should be auto-detected
         await expect(page.getByRole('switch', { name: 'Multi-day competition' })).toHaveAttribute('aria-checked', 'true');
         await expect(page.getByText('Dates auto-computed from categories')).toBeVisible();
         await expect(page.getByTestId('date-picker')).not.toBeVisible();
     });
-
 });

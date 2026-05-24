@@ -7,10 +7,9 @@
     import TableFurnitureIcon from '@iconify-svelte/mdi/table-furniture';
     import LoadingIcon from '@iconify-svelte/mdi/loading';
     import HistoryIcon from '@iconify-svelte/mdi/history';
-    import DownloadIcon from '@iconify-svelte/mdi/download';
-    import { invalidateAll } from '$app/navigation';
+    import { invalidate } from '$app/navigation';
     import { t, locale } from '$lib/translations';
-    import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
+    import DownloadIcon from '@iconify-svelte/mdi/download';
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
     import Card from '$lib/components/common/card/Card.svelte';
     import ManageRegistrationStatus from './components/ManageRegistrationStatus.svelte';
@@ -83,7 +82,7 @@
 
             if (response.ok && result.success) {
                 showResultMessage({ success: true, message: $t('manage_registrations.confirmed_success') });
-                await invalidateAll();
+                await invalidate('data:manage-registrations');
             } else {
                 showResultMessage({ success: false, message: result.error || $t('manage_registrations.confirm_error') });
             }
@@ -107,7 +106,11 @@
 
             if (response.ok && result.success) {
                 showResultMessage({ success: true, message: $t('manage_registrations.refused_success') });
-                await invalidateAll();
+                await invalidate('data:manage-registrations');
+            } else if (response.status === 404) {
+                // Entry was already removed (e.g. stale/duplicate refusal)
+                showResultMessage({ success: true, message: $t('manage_registrations.already_removed') });
+                await invalidate('data:manage-registrations');
             } else {
                 showResultMessage({ success: false, message: result.error || $t('manage_registrations.refuse_error') });
             }
@@ -128,7 +131,7 @@
 
             if (response.ok && result.success) {
                 showResultMessage({ success: true, message: $t('manage_registrations.publish_tables_success', { count: result.assignedCount }) });
-                await invalidateAll();
+                await invalidate('data:manage-registrations');
             } else {
                 showResultMessage({ success: false, message: result.error || $t('manage_registrations.publish_tables_error') });
             }
@@ -153,7 +156,7 @@
 
             if (response.ok && result.success) {
                 showResultMessage({ success: true, message: $t('manage_registrations.remind_success', { count: result.remindedCount }) });
-                await invalidateAll();
+                await invalidate('data:manage-registrations');
             } else {
                 showResultMessage({ success: false, message: result.error || $t('manage_registrations.remind_error') });
             }
@@ -176,7 +179,7 @@
 
             if (response.ok && result.success) {
                 showResultMessage({ success: true, message: $t('manage_registrations.remind_bulk_success', { reminded: result.remindedCount, skipped: result.skippedCount }) });
-                await invalidateAll();
+                await invalidate('data:manage-registrations');
             } else {
                 showResultMessage({ success: false, message: result.error || $t('manage_registrations.remind_error') });
             }

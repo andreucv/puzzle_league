@@ -1,6 +1,7 @@
 <script lang="ts">
     import { getCompetitionStatusLabel } from '$lib/utils/competition_utils';
     import { getCountryFlag, getCountryNameFromCode } from '$lib/utils/country_utils';
+    import { locale } from '$lib/translations';
     import CategoriesOverview from '$lib/components/competition/CategoriesOverview.svelte';
     import { Avatar, Dialog, Portal } from '@skeletonlabs/skeleton-svelte';
 
@@ -113,7 +114,7 @@
                     {#if competition.country}
                         <div class="flex items-center gap-2">
                             <EarthIcon width="1.2rem" height="1.2rem" class="text-primary-500" />
-                            <span>{getCountryNameFromCode(competition.country)} {getCountryFlag(competition.country)} {competition.postalCode ? ` - ${competition.postalCode}` : ''}</span>
+                            <span>{getCountryNameFromCode(competition.country, $locale)} {getCountryFlag(competition.country)} {competition.postalCode ? ` - ${competition.postalCode}` : ''}</span>
                         </div>
                     {/if}
                     <div class="flex items-center justify-between gap-2">
@@ -203,7 +204,7 @@
 
                 <!-- Action Buttons -->
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <EndPageActionButton icon={AccountPlusIcon} href="/competitions/competition_details/{competition?.id}/registration" colorClass="preset-filled-success-500" disabled={!(currentUser && competition?.registrationOpen)} text={$t('competition_details.manage_registration')} testId="signup-button" />
+                    <EndPageActionButton icon={AccountPlusIcon} href="/competitions/competition_details/{competition?.id}/registration" colorClass="preset-filled-success-500" disabled={!(currentUser && (competition?.registrationOpen || isOrganizer))} text={$t('competition_details.manage_registration')} testId="signup-button" />
                     {#if categories.some(c => c.status === 'LIVE' || c.status === 'STOPPED')}
                         <EndPageActionButton icon={FormatListBulletedIcon} href="/competitions/competition_details/{competition?.id}/results" text={$t('competition_details.view_live_results')} />
                     {/if}

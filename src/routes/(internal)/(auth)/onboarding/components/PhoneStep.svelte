@@ -18,6 +18,10 @@
     let phonePrefixInputValue = $state('');
     let phoneNumberValue = $state('');
     let phoneError = $state<string | null>(null);
+
+    function getErrorMessage(error: string) {
+        return error.includes('.') ? $t(error) : error;
+    }
 </script>
 
 <div data-testid="onboarding-step-phone">
@@ -33,7 +37,7 @@
 
     {#if phoneError}
         <div class="p-3 rounded-lg preset-filled-error-500 text-sm">
-            {$t(phoneError)}
+            {getErrorMessage(phoneError)}
         </div>
     {/if}
 
@@ -62,6 +66,12 @@
                 <input
                     name="phoneNumber"
                     type="text"
+                    inputmode="numeric"
+                    autocomplete="tel-national"
+                    pattern={'\\d{6,12}'}
+                    minlength="6"
+                    maxlength="12"
+                    title={$t('add_phone.validation_number_format')}
                     class="input text-sm px-3 py-2 border rounded-lg border-surface-300 bg-white"
                     placeholder={$t('add_phone.number_placeholder')}
                     bind:value={phoneNumberValue}

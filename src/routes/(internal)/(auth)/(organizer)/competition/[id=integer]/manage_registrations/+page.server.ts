@@ -8,6 +8,9 @@ import { Role } from "$lib/.prisma/generated/prisma/enums";
 export const load: PageServerLoad = async (event) => {
     const competitionId = parseInt(event.params.id);
 
+    // Custom dependency for targeted invalidation (avoids re-running root layout)
+    event.depends('data:manage-registrations');
+
     if (isNaN(competitionId)) {
         throw redirect(302, '/competitions/explore_competitions');
     }

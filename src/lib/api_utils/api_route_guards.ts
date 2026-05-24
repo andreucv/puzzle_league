@@ -61,6 +61,7 @@ const ROUTE_GUARDS: [RegExp, RouteGuard][] = [
   [/^\/api\/competitions\/[^/]+\/copy-judges$/, { guard: 'competitionOrganizer' }],
 
   // ---- Competition-scoped: JUDGE or ORGANIZER ----
+  [/^\/api\/competitions\/[^/]+\/entries$/, { guard: 'competitionJudgeOrOrganizer' }],
   [/^\/api\/events\/competition\/[^/]+$/, { guard: 'competitionJudgeOrOrganizer' }],
 
   // ---- Registration endpoints (entryId → competition → ORGANIZER) ----

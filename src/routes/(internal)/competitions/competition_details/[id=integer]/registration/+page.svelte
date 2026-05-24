@@ -1,11 +1,10 @@
 <script lang="ts">
     import type { User, Category, CategoryType } from '@prisma/client';
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
-    import Icon from '@iconify/svelte';
     import { enhance } from '$app/forms';
-    import { invalidateAll } from '$app/navigation';
+    import { invalidate } from '$app/navigation';
     import { t } from '$lib/translations';
-    import { getCategoryTypeName, getCategoryTypeIcon, getMaxEntriesPerCategory } from '$lib/utils/category_utils';
+    import { getCategoryTypeName, getCategoryTypeSingularName, getCategoryTypeIcon, getMaxEntriesPerCategory } from '$lib/utils/category_utils';
     import { getRegistrationStatusBorderClass as getStatusBorderClass } from '$lib/utils/registration_utils';
     import RegistrationStatusBadge from '$lib/components/registration/EntryRegistrationStatusBadge.svelte';
     import { formatTime } from '$lib/utils/datetime_utils';
@@ -16,6 +15,28 @@
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
     import CheckAllIcon from '@iconify-svelte/mdi/check-all';
     import ClipboardCheckOutlineIcon from '@iconify-svelte/mdi/clipboard-check-outline';
+    import CalendarClockIcon from '@iconify-svelte/mdi/calendar-clock';
+    import MapMarkerIcon from '@iconify-svelte/mdi/map-marker';
+    import AlertIcon from '@iconify-svelte/mdi/alert';
+    import AccountMultipleIcon from '@iconify-svelte/mdi/account-multiple';
+    import AccountOffIcon from '@iconify-svelte/mdi/account-off';
+    import AccountPlusOutlineIcon from '@iconify-svelte/mdi/account-plus-outline';
+    import ClockStartIcon from '@iconify-svelte/mdi/clock-start';
+    import ClockEndIcon from '@iconify-svelte/mdi/clock-end';
+    import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
+    import ClipboardListIcon from '@iconify-svelte/mdi/clipboard-list';
+    import CloseIcon from '@iconify-svelte/mdi/close';
+    import AlertCircleIcon from '@iconify-svelte/mdi/alert-circle';
+    import AccountQuestionIcon from '@iconify-svelte/mdi/account-question';
+    import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
+    import AccountCheckIcon from '@iconify-svelte/mdi/account-check';
+    import AccountPlusIcon from '@iconify-svelte/mdi/account-plus';
+    import InformationOutlineIcon from '@iconify-svelte/mdi/information-outline';
+    import AccountGroupIcon from '@iconify-svelte/mdi/account-group';
+    import CheckIcon from '@iconify-svelte/mdi/check';
+    import ShieldAccountIcon from '@iconify-svelte/mdi/shield-account';
+    import { showRichSuccessToast, showErrorToast } from '$lib/utils/toast';
+    import type { RegistrationSummary } from '$lib/utils/toast';
 
     let { data } = $props();
 
@@ -25,8 +46,9 @@
     let existingEntries = $derived(data.existingEntries || []);
     let registeredUserIds = $derived(data.registeredUserIds as Record<number, string[]> || {});
     let categoriesWithCounts = $derived(data.categoriesWithCounts || []);
+    let isOrganizer = $derived(data.isOrganizer || false);
 
-    let canRegister = $derived(competition?.registrationOpen);
+    let canRegister = $derived(competition?.registrationOpen || isOrganizer);
 
     function canRegisterForCategory(category: Category): boolean {
         return !!canRegister && category.status === 'NOT_STARTED';
@@ -63,22 +85,11 @@
 
     // Submission state
     let isSubmitting = $state(false);
-    let resultMessage = $state<{ success: boolean; message: string } | null>(null);
-    let messageDismissTimer: ReturnType<typeof setTimeout> | null = null;
-    let messageProgressKey = $state(0);
     let showPaymentPopover = $state(false);
     let submitFormEl = $state<HTMLFormElement | null>(null);
-    let showSuccessCard = $state(false);
 
-    function showResultMessage(msg: { success: boolean; message: string }) {
-        if (messageDismissTimer) clearTimeout(messageDismissTimer);
-        resultMessage = msg;
-        messageProgressKey++;
-        messageDismissTimer = setTimeout(() => {
-            resultMessage = null;
-            messageDismissTimer = null;
-        }, 5000);
-    }
+    // Unregister confirmation state — tracks entry id of the popover being shown
+    let confirmingUnregisterId = $state<string | null>(null);
 
     // Debounce timers
     let searchTimers: Map<number, ReturnType<typeof setTimeout>> = new Map();
@@ -92,7 +103,9 @@
     }
 
     // Check if user can create more entries for this category (accounts for queued slots)
+    // Organizers/admins bypass per-creator entry limits
     function canCreateMore(category: Category): boolean {
+        if (isOrganizer) return true;
         const entries = getExistingEntries(category.id);
         const createdByUser = entries.filter((r: any) => r.creatorId === currentUser?.id).length;
         const queuedCount = getSlots(category.id).length;
@@ -115,6 +128,11 @@
     function isSlotComplete(slot: PendingSignup, category: Category): boolean {
         const maxSize = category.maxPartySize || 1;
         return slot.users.length + slot.extParticipantNames.length + slot.existingExternalParticipants.length === maxSize;
+    }
+
+    // A slot is submittable if it has at least 1 member (user, external name, or existing external)
+    function isSlotSubmittable(slot: PendingSignup): boolean {
+        return slot.users.length + slot.extParticipantNames.length + slot.existingExternalParticipants.length >= 1;
     }
 
     function getSlotPartySize(slot: PendingSignup): number {
@@ -280,7 +298,6 @@
                 const slot = getSlots(categoryId).find(s => s.slotId === slotId);
                 const currentTeam = slot?.users || [];
                 const filtered = result.users?.filter((user: User) =>
-                    user.id !== currentUser?.id &&
                     !currentTeam.find(t => t.id === user.id)
                 ).slice(0, 5) || [];
                 const nextResults = new Map(searchResults);
@@ -342,7 +359,17 @@
         return true;
     });
 
-    let canSubmit = $derived(hasNewSignups && allPartiesComplete());
+    // Every slot must have at least 1 member to be submittable
+    let allPartiesSubmittable = $derived(() => {
+        for (const [, slots] of pendingSignups) {
+            for (const slot of slots) {
+                if (!isSlotSubmittable(slot)) return false;
+            }
+        }
+        return true;
+    });
+
+    let canSubmit = $derived(hasNewSignups && allPartiesSubmittable());
 
     // Payment warning: compute whether to show and the itemized fee breakdown
     let shouldShowPaymentWarning = $derived(() => {
@@ -444,45 +471,32 @@
         <div class="flex flex-wrap items-center gap-3 text-sm text-surface-500">
             {#if competition.startDate}
                 <span class="flex items-center gap-1">
-                    <Icon icon="mdi:calendar-clock" width="1rem" height="1rem" class="text-primary-500" />
+                    <CalendarClockIcon width="1rem" height="1rem" class="text-primary-500" />
                     {new Date(competition.startDate).toLocaleDateString('default', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
             {/if}
             {#if competition.location}
                 <span class="flex items-center gap-1">
-                    <Icon icon="mdi:map-marker" width="1rem" height="1rem" class="text-primary-500" />
+                    <MapMarkerIcon width="1rem" height="1rem" class="text-primary-500" />
                     {competition.location}
                 </span>
             {/if}
         </div>
 
+        {#if isOrganizer}
+            <div class="alert preset-tonal-primary p-3 rounded-lg flex items-center gap-2">
+                <ShieldAccountIcon width="1.3rem" height="1.3rem" class="text-primary-500 shrink-0" />
+                <span class="text-sm font-medium">{$t('registration.organizer_mode')}</span>
+            </div>
+        {/if}
+
         {#if !canRegister}
             <div class="alert preset-filled-warning-500 p-4 rounded-lg" data-testid="registration-closed-warning">
-                <Icon icon="mdi:alert" width="1.5rem" height="1.5rem" />
+                <AlertIcon width="1.5rem" height="1.5rem" />
                 <span>{$t('registration.registration_closed')}</span>
             </div>
         {/if}
     </div>
-
-    <!-- Result message -->
-    {#if resultMessage}
-        <div class="mb-4 rounded-lg overflow-hidden {resultMessage.success ? 'preset-filled-success-500' : 'preset-filled-error-500'}">
-            <div class="p-4 flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                    <Icon icon={resultMessage.success ? 'mdi:check-circle' : 'mdi:alert-circle'} width="1.2rem" height="1.2rem" />
-                    <span>{resultMessage.message}</span>
-                </div>
-                <button type="button" class="opacity-70 hover:opacity-100" onclick={() => { resultMessage = null; if (messageDismissTimer) { clearTimeout(messageDismissTimer); messageDismissTimer = null; } }}>
-                    <Icon icon="mdi:close" width="1rem" height="1rem" />
-                </button>
-            </div>
-            {#key messageProgressKey}
-                <div class="h-1 w-full {resultMessage.success ? 'bg-success-900/30' : 'bg-error-900/30'}">
-                    <div class="h-full {resultMessage.success ? 'bg-success-200' : 'bg-error-200'} animate-shrink"></div>
-                </div>
-            {/key}
-        </div>
-    {/if}
 
     <!-- Categories -->
     <div class="space-y-4 pb-20">
@@ -492,7 +506,7 @@
             {@const maxEntries = getMaxEntriesPerCategory(category.type)}
             {@const slots = getSlots(category.id)}
             {@const totalRegistrations = createdByUserCount + slots.length}
-            {@const limitReached = totalRegistrations >= maxEntries}
+            {@const limitReached = !isOrganizer && totalRegistrations >= maxEntries}
             {@const maxSize = category.maxPartySize || 1}
             {@const individual = isIndividual(category)}
             {@const spotsLeft = getSpotsLeft(category)}
@@ -503,23 +517,23 @@
                     <CategoryCardTitle type={category.type} subname={category.description} />
                     <div class="flex items-center gap-2 flex-wrap justify-end">
                         <span class="badge preset-tonal text-xs flex items-center gap-1 p-2">
-                            <Icon icon="mdi:account-multiple" width="1rem" height="1rem" />
+                            <AccountMultipleIcon width="1rem" height="1rem" />
                             {maxSize} {maxSize === 1 ? $t('registration.participant') : $t('registration.participants')}
                         </span>
                         {#if spotsLeft !== undefined}
                             {#if spotsLeft <= 0}
                                 <span class="badge preset-tonal-error text-xs flex items-center gap-1 p-2">
-                                    <Icon icon="mdi:account-off" width="1rem" height="1rem" />
+                                    <AccountOffIcon width="1rem" height="1rem" />
                                     {$t('competition_details.full')}
                                 </span>
                             {:else if spotsLeft <= 3}
                                 <span class="badge preset-tonal-warning text-xs flex items-center gap-1 p-2">
-                                    <Icon icon="mdi:account-plus-outline" width="1rem" height="1rem" />
+                                    <AccountPlusOutlineIcon width="1rem" height="1rem" />
                                     {spotsLeft} {$t('competition_details.spots_left')}
                                 </span>
                             {:else}
                                 <span class="badge preset-tonal-success text-xs flex items-center gap-1 p-2">
-                                    <Icon icon="mdi:account-plus-outline" width="1rem" height="1rem" />
+                                    <AccountPlusOutlineIcon width="1rem" height="1rem" />
                                     {spotsLeft} {$t('competition_details.spots_left')}
                                 </span>
                             {/if}
@@ -530,17 +544,17 @@
                 <!-- Time & puzzles info -->
                 <div class="flex flex-wrap items-center gap-4 text-sm text-surface-600 dark:text-surface-400">
                     <div class="flex items-center gap-1">
-                        <Icon icon="mdi:clock-start" width="1rem" height="1rem" />
+                        <ClockStartIcon width="1rem" height="1rem" />
                         <span>{formatTime(new Date(category.startTime))}</span>
                     </div>
                     <div class="flex items-center gap-1">
-                        <Icon icon="mdi:clock-end" width="1rem" height="1rem" />
+                        <ClockEndIcon width="1rem" height="1rem" />
                         <span>{formatTime(new Date(category.endTime))}</span>
                     </div>
                     {#if category.puzzles && category.puzzles.length > 0}
                         {#each category.puzzles as puzzle}
                             <span class="badge preset-tonal-primary text-xs flex items-center gap-1 p-2">
-                                <Icon icon="mdi:puzzle-outline" width="0.8rem" height="0.8rem" />
+                                <PuzzleOutlineIcon width="0.8rem" height="0.8rem" />
                                 {puzzle.pieces} pcs - {puzzle.brand}
                             </span>
                         {/each}
@@ -548,64 +562,121 @@
                 </div>
 
                 <!-- Registration count badge -->
-                {#if entries.length > 0 || slots.length > 0}
+                {#if !isOrganizer}
+                    {#if entries.length > 0 || slots.length > 0}
                     <div class="flex items-center gap-2">
-                        <!-- TODO: maxEntries is misleading for the user, if there is a category with less available spots than the maxEntries -->
                         <span class="badge {limitReached ? 'preset-filled-surface-200-800' : 'preset-tonal-primary'} text-xs p-2">
-                            <Icon icon="mdi:clipboard-list" width="0.9rem" height="0.9rem" />
+                            <ClipboardListIcon width="0.9rem" height="0.9rem" />
                             {totalRegistrations}/{maxEntries} {$t('registration.your_registrations')}
                         </span>
                     </div>
+                    {/if}
                 {/if}
 
                 <!-- Existing entries list -->
                 {#if entries.length > 0}
                     <div class="space-y-2">
                         {#each entries as entry (entry.id)}
-                            <div class="flex items-center justify-between gap-2 p-3 border rounded-lg {getStatusBorderClass(entry.status)}" data-testid="registration-entry-{entry.id}">
-                                <div class="flex items-center gap-3 flex-wrap min-w-0">
-                                    <!-- Status -->
-                                    <RegistrationStatusBadge status={entry.status} translation={$t} />
-                                    <!-- Participants -->
-                                    <div class="flex flex-wrap gap-1.5">
-                                        {#each entry.users as member}
-                                            <div class="flex items-center gap-1 badge preset-tonal-primary p-1.5 pr-2">
-                                                <Avatar class="w-5 h-5">
-                                                    <Avatar.Image src={member.image ?? undefined} alt={member.name ?? 'User'} />
-                                                    <Avatar.Fallback>{member.name?.substring(0, 2) || 'U'}</Avatar.Fallback>
-                                                </Avatar>
-                                                <span class="text-xs">{member.name}{member.id === currentUser?.id ? ` (${$t('registration.you')})` : ''}</span>
+                            {@const filledCount = entry.users.length + (entry.externalParticipants?.length ?? 0)}
+                            {@const emptySpots = maxSize > 1 ? maxSize - filledCount : 0}
+                            <div class="p-3 border rounded-lg {getStatusBorderClass(entry.status)}" data-testid="registration-entry-{entry.id}">
+                                <!-- Row 1: Status + created by you + unregister -->
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <RegistrationStatusBadge status={entry.status} translation={$t} />
+                                        {#if entry.creatorId === currentUser?.id && !isUserInEntry(entry)}
+                                            <span class="text-xs text-surface-500 italic">{$t('registration.created_by_you')}</span>
+                                        {/if}
+                                    </div>
+                                    {#if canRegisterForCategory(category)}
+                                        <div class="relative shrink-0">
+                                            <button
+                                                type="button"
+                                                class="btn-icon btn-icon-sm preset-filled-error-500 rounded-full"
+                                                onclick={() => confirmingUnregisterId = confirmingUnregisterId === entry.id ? null : entry.id}
+                                                data-testid="unregister-toggle-{entry.id}"
+                                            >
+                                                <CloseIcon width="0.9rem" height="0.9rem" />
+                                            </button>
+                                            {#if confirmingUnregisterId === entry.id}
+                                                <div
+                                                    role="dialog"
+                                                    aria-modal="true"
+                                                    class="absolute right-0 top-full mt-2 z-50 w-64 bg-surface-50 dark:bg-surface-900 border border-surface-300 dark:border-surface-700 rounded-lg shadow-xl overflow-hidden"
+                                                    transition:slide={{ duration: 150 }}
+                                                >
+                                                    <div class="h-1 w-full preset-filled-error-500"></div>
+                                                    <div class="p-3 space-y-3">
+                                                        <div class="flex items-center gap-2">
+                                                            <AlertCircleIcon width="1.2rem" height="1.2rem" class="text-error-500 shrink-0" />
+                                                            <p class="text-sm font-semibold">{$t('registration.confirm_unregister_title')}</p>
+                                                        </div>
+                                                        <p class="text-xs text-surface-600 dark:text-surface-400">{$t('registration.confirm_unregister_message')}</p>
+                                                        <div class="flex justify-end gap-2">
+                                                            <button
+                                                                type="button"
+                                                                class="btn btn-sm preset-tonal"
+                                                                onclick={() => confirmingUnregisterId = null}
+                                                            >
+                                                                {$t('registration.cancel')}
+                                                            </button>
+                                                            <form method="POST" action="?/unregister" use:enhance={() => {
+                                                                confirmingUnregisterId = null;
+                                                                return async ({ update }) => {
+                                                                    await update();
+                                                                    await invalidate('data:registration');
+                                                                };
+                                                            }}>
+                                                                <input type="hidden" name="entry_id" value={entry.id} />
+                                                                <button
+                                                                    type="submit"
+                                                                    class="btn btn-sm preset-filled-error-500"
+                                                                    data-testid="confirm-unregister"
+                                                                >
+                                                                    {$t('registration.unregister')}
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {/if}
+                                        </div>
+                                    {/if}
+                                </div>
+                                <!-- Row 2: Avatar stack + names -->
+                                <div class="flex items-center gap-3 mt-2">
+                                    <div class="flex items-center shrink-0">
+                                        {#each entry.users as member, i}
+                                            <Avatar class="w-7 h-7 shrink-0 ring-2 ring-white dark:ring-surface-800 {i > 0 ? '-ml-3' : ''}">
+                                                <Avatar.Image src={member.image ?? undefined} alt={member.name ?? 'User'} />
+                                                <Avatar.Fallback class="text-[0.6rem]">{member.name?.substring(0, 2) || 'U'}</Avatar.Fallback>
+                                            </Avatar>
+                                        {/each}
+                                        {#each entry.externalParticipants || [] as intent, i}
+                                            <div class="w-7 h-7 shrink-0 ring-2 ring-white dark:ring-surface-800 rounded-full bg-warning-200 dark:bg-warning-800 flex items-center justify-center {(entry.users.length + i) > 0 ? '-ml-3' : ''}">
+                                                <AccountQuestionIcon width="0.9rem" height="0.9rem" class="text-warning-700 dark:text-warning-300" />
                                             </div>
                                         {/each}
-                                        {#each entry.externalParticipants || [] as intent}
-                                            <div class="flex items-center gap-1 badge preset-tonal-warning p-1.5 pr-2">
-                                                <Icon icon="mdi:account-question" width="0.9rem" height="0.9rem" />
-                                                <span class="text-xs">{intent.name}</span>
+                                        {#each { length: emptySpots } as _, i}
+                                            <div class="w-7 h-7 shrink-0 ring-2 ring-white dark:ring-surface-800 rounded-full border-2 border-dashed border-surface-300 dark:border-surface-600 flex items-center justify-center -ml-3">
+                                                <AccountOffIcon width="0.9rem" height="0.9rem" class="text-surface-400 dark:text-surface-500" />
                                             </div>
                                         {/each}
                                     </div>
-                                    <!-- Created by you indicator -->
-                                    {#if entry.creatorId === currentUser?.id && !isUserInEntry(entry)}
-                                        <span class="text-xs text-surface-500 italic">{$t('registration.created_by_you')}</span>
-                                    {/if}
+                                    <div class="text-sm flex flex-wrap gap-x-1">
+                                        {#each entry.users as member, i}
+                                            <span>{member.name}{member.id === currentUser?.id ? ` (${$t('registration.you')})` : ''}{i < filledCount - 1 ? ',' : ''}</span>
+                                        {/each}
+                                        {#each entry.externalParticipants || [] as intent, i}
+                                            <span class="text-warning-600 dark:text-warning-400">{intent.name}{(entry.users.length + i) < filledCount - 1 ? ',' : ''}</span>
+                                        {/each}
+                                        {#if emptySpots > 0}
+                                            <span class="text-surface-400 dark:text-surface-500 italic">
+                                                {emptySpots === 1 ? `+ 1 ${$t('registration.empty_spot')}` : `+ ${emptySpots} ${$t('registration.empty_spots')}`}
+                                            </span>
+                                        {/if}
+                                    </div>
                                 </div>
-                                <!-- Unregister button -->
-                                {#if canRegisterForCategory(category)}
-                                    <form method="POST" action="?/unregister" class="shrink-0" use:enhance={() => {
-                                        return async ({ update }) => {
-                                            await update();
-                                            await invalidateAll();
-                                        };
-                                    }}>
-                                        <input type="hidden" name="entry_id" value={entry.id} />
-                                        <button
-                                            type="submit"
-                                            class="btn-icon btn-icon-sm preset-filled-error-500 rounded-full shrink-0"
-                                        >
-                                            <Icon icon="mdi:close" width="0.9rem" height="0.9rem" />
-                                        </button>
-                                    </form>
-                                {/if}
                             </div>
                         {/each}
                     </div>
@@ -616,29 +687,34 @@
                     {@const slotComplete = isSlotComplete(slot, category)}
                     {#if slotComplete}
                         <!-- Completed queued slot - dashed border -->
+                        {@const allNames = [...slot.users.map(u => ({ name: u.name, isUser: true, id: u.id })), ...slot.extParticipantNames.map(n => ({ name: n, isUser: false, id: null })), ...slot.existingExternalParticipants.map(e => ({ name: e.name, isUser: false, id: null }))]}
                         <div class="flex items-center justify-between gap-2 p-3 border-2 border-dashed border-primary-400 dark:border-primary-500 rounded-lg bg-primary-50/30 dark:bg-primary-900/10" transition:slide={{ duration: 200 }}>
-                            <div class="flex items-center gap-3 flex-wrap min-w-0">
-                                <div class="flex flex-wrap gap-1.5">
-                                    {#each slot.users as member}
-                                        <div class="flex items-center gap-1 badge preset-tonal-primary p-1.5 pr-2">
-                                            <Avatar class="w-5 h-5">
-                                                <Avatar.Image src={member.image ?? undefined} alt={member.name ?? 'User'} />
-                                                <Avatar.Fallback>{member.name?.substring(0, 2) || 'U'}</Avatar.Fallback>
-                                            </Avatar>
-                                            <span class="text-xs">{member.name}{member.id === currentUser?.id ? ` (${$t('registration.you')})` : ''}</span>
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="flex items-center shrink-0">
+                                    {#each slot.users as member, i}
+                                        <Avatar class="w-7 h-7 shrink-0 ring-2 ring-white dark:ring-surface-800 {i > 0 ? '-ml-3' : ''}">
+                                            <Avatar.Image src={member.image ?? undefined} alt={member.name ?? 'User'} />
+                                            <Avatar.Fallback class="text-[0.6rem]">{member.name?.substring(0, 2) || 'U'}</Avatar.Fallback>
+                                        </Avatar>
+                                    {/each}
+                                    {#each slot.extParticipantNames as _, i}
+                                        <div class="w-7 h-7 shrink-0 ring-2 ring-white dark:ring-surface-800 rounded-full bg-warning-200 dark:bg-warning-800 flex items-center justify-center {(slot.users.length + i) > 0 ? '-ml-3' : ''}">
+                                            <AccountQuestionIcon width="0.9rem" height="0.9rem" class="text-warning-700 dark:text-warning-300" />
                                         </div>
                                     {/each}
-                                    {#each slot.extParticipantNames as intentName}
-                                        <div class="flex items-center gap-1 badge preset-tonal-warning p-1.5 pr-2">
-                                            <Icon icon="mdi:account-question" width="0.9rem" height="0.9rem" />
-                                            <span class="text-xs">{intentName}</span>
+                                    {#each slot.existingExternalParticipants as _, i}
+                                        <div class="w-7 h-7 shrink-0 ring-2 ring-white dark:ring-surface-800 rounded-full bg-warning-200 dark:bg-warning-800 flex items-center justify-center {(slot.users.length + slot.extParticipantNames.length + i) > 0 ? '-ml-3' : ''}">
+                                            <AccountQuestionIcon width="0.9rem" height="0.9rem" class="text-warning-700 dark:text-warning-300" />
                                         </div>
                                     {/each}
-                                    {#each slot.existingExternalParticipants as existingIntent}
-                                        <div class="flex items-center gap-1 badge preset-tonal-warning p-1.5 pr-2">
-                                            <Icon icon="mdi:account-question" width="0.9rem" height="0.9rem" />
-                                            <span class="text-xs">{existingIntent.name}</span>
-                                        </div>
+                                </div>
+                                <div class="text-sm flex flex-wrap gap-x-1">
+                                    {#each allNames as item, i}
+                                        {#if item.isUser}
+                                            <span>{item.name}{item.id === currentUser?.id ? ` (${$t('registration.you')})` : ''}{i < allNames.length - 1 ? ',' : ''}</span>
+                                        {:else}
+                                            <span class="text-warning-600 dark:text-warning-400">{item.name}{i < allNames.length - 1 ? ',' : ''}</span>
+                                        {/if}
                                     {/each}
                                 </div>
                             </div>
@@ -647,7 +723,7 @@
                                 class="btn-icon btn-icon-sm preset-filled-error-500 rounded-full shrink-0"
                                 onclick={() => removeSlot(category.id, slot.slotId)}
                             >
-                                <Icon icon="mdi:close" width="1.2rem" height="1.2rem" />
+                                <CloseIcon width="1.2rem" height="1.2rem" />
                             </button>
                         </div>
                     {:else}
@@ -661,18 +737,20 @@
                                 onclick={() => removeSlot(category.id, slot.slotId)}
                                 aria-label={$t('registration.cancel')}
                             >
-                                <Icon icon="mdi:close" width="0.85rem" height="0.85rem" />
+                                <CloseIcon width="0.85rem" height="0.85rem" />
                             </button>
 
-                            <!-- Party progress -->
-                            <div class="flex items-center gap-2 mb-3">
-                                <span class="text-sm font-medium">
-                                    {$t('registration.team_progress')}: {totalPartySize}/{maxSize}
-                                </span>
-                                {#if totalPartySize === maxSize}
-                                    <Icon icon="mdi:check-circle" width="1rem" height="1rem" class="text-success-500" />
-                                {/if}
-                            </div>
+                            <!-- Party progress (hidden for individual categories) -->
+                            {#if !individual}
+                                <div class="flex items-center gap-2 mb-3">
+                                    <span class="text-sm">
+                                        {$t(getCategoryTypeSingularName(category.type))}: {totalPartySize}/{maxSize}
+                                    </span>
+                                    {#if totalPartySize === maxSize}
+                                        <CheckCircleIcon width="1rem" height="1rem" class="text-success-500" />
+                                    {/if}
+                                </div>
+                            {/if}
 
                             <!-- Selected participants -->
                             <div class="space-y-2 mb-3">
@@ -690,22 +768,20 @@
                                                 {/if}
                                             </span>
                                         </div>
-                                        {#if participant.id !== currentUser?.id}
-                                            <button
-                                                type="button"
-                                                class="btn btn-sm preset-filled-error-500"
-                                                onclick={() => removeTeammate(category.id, slot.slotId, participant.id)}
-                                            >
-                                                <Icon icon="mdi:close" width="0.8rem" height="0.8rem" />
-                                            </button>
-                                        {/if}
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm preset-filled-error-500"
+                                            onclick={() => removeTeammate(category.id, slot.slotId, participant.id)}
+                                        >
+                                            <CloseIcon width="0.8rem" height="0.8rem" />
+                                        </button>
                                     </div>
                                 {/each}
                                 {#each slot.extParticipantNames as intentName, intentIndex}
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-2">
                                             <div class="w-8 h-8 rounded-full bg-warning-200 dark:bg-warning-800 flex items-center justify-center">
-                                                <Icon icon="mdi:account-question" width="1rem" height="1rem" class="text-warning-700 dark:text-warning-300" />
+                                                <AccountQuestionIcon width="1rem" height="1rem" class="text-warning-700 dark:text-warning-300" />
                                             </div>
                                             <span class="text-sm">{intentName}</span>
                                         </div>
@@ -714,7 +790,7 @@
                                             class="btn btn-sm preset-filled-error-500"
                                             onclick={() => removeExternalParticipant(category.id, slot.slotId, intentIndex)}
                                         >
-                                            <Icon icon="mdi:close" width="0.8rem" height="0.8rem" />
+                                            <CloseIcon width="0.8rem" height="0.8rem" />
                                         </button>
                                     </div>
                                 {/each}
@@ -722,7 +798,7 @@
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-2">
                                             <div class="w-8 h-8 rounded-full bg-warning-200 dark:bg-warning-800 flex items-center justify-center">
-                                                <Icon icon="mdi:account-question" width="1rem" height="1rem" class="text-warning-700 dark:text-warning-300" />
+                                                <AccountQuestionIcon width="1rem" height="1rem" class="text-warning-700 dark:text-warning-300" />
                                             </div>
                                             <span class="text-sm">{existingIntent.name}</span>
                                         </div>
@@ -731,8 +807,17 @@
                                             class="btn btn-sm preset-filled-error-500"
                                             onclick={() => removeExistingIntent(category.id, slot.slotId, existingIntent.id)}
                                         >
-                                            <Icon icon="mdi:close" width="0.8rem" height="0.8rem" />
+                                            <CloseIcon width="0.8rem" height="0.8rem" />
                                         </button>
+                                    </div>
+                                {/each}
+                                <!-- Empty spot placeholders -->
+                                {#each { length: maxSize - totalPartySize } as _}
+                                    <div class="flex items-center gap-2 opacity-50">
+                                        <div class="w-8 h-8 rounded-full border-2 border-dashed border-surface-300 dark:border-surface-600 flex items-center justify-center">
+                                            <AccountOffIcon width="1rem" height="1rem" class="text-surface-400 dark:text-surface-500" />
+                                        </div>
+                                        <span class="text-sm italic text-surface-400 dark:text-surface-500">{$t('registration.empty_spot')}</span>
                                     </div>
                                 {/each}
                             </div>
@@ -767,7 +852,7 @@
                                                             <div class="font-medium">{user.name}</div>
                                                             <div class="text-xs text-surface-500 italic">{$t('registration.already_registered')}</div>
                                                         </div>
-                                                        <Icon icon="mdi:account-check" width="1rem" height="1rem" class="text-surface-400" />
+                                                        <AccountCheckIcon width="1rem" height="1rem" class="text-surface-400" />
                                                     </div>
                                                 {:else}
                                                     <button
@@ -796,7 +881,7 @@
                                                         class="w-full p-2 text-left hover:bg-warning-50 dark:hover:bg-warning-900/30 flex items-center gap-2 border-b border-surface-200 dark:border-surface-700"
                                                     >
                                                         <div class="w-6 h-6 rounded-full bg-warning-200 dark:bg-warning-800 flex items-center justify-center shrink-0">
-                                                            <Icon icon="mdi:account-question" width="0.9rem" height="0.9rem" class="text-warning-700 dark:text-warning-300" />
+                                                            <AccountQuestionIcon width="0.9rem" height="0.9rem" class="text-warning-700 dark:text-warning-300" />
                                                         </div>
                                                         <div class="text-sm font-medium">{intent.name}</div>
                                                     </button>
@@ -809,7 +894,7 @@
                                                     class="w-full p-2 text-left hover:bg-warning-50 dark:hover:bg-warning-900/30 flex items-center gap-2 border-t border-surface-300 dark:border-surface-600"
                                                 >
                                                     <div class="w-6 h-6 rounded-full bg-warning-200 dark:bg-warning-800 flex items-center justify-center shrink-0">
-                                                        <Icon icon="mdi:account-plus-outline" width="0.9rem" height="0.9rem" class="text-warning-700 dark:text-warning-300" />
+                                                        <AccountPlusOutlineIcon width="0.9rem" height="0.9rem" class="text-warning-700 dark:text-warning-300" />
                                                     </div>
                                                     <div class="text-sm">
                                                         <span class="font-medium">{$t('registration.add_non_registered')}</span>
@@ -835,7 +920,7 @@
                                 class="btn {hasExisting ? 'preset-tonal-success' : 'preset-filled-success-500'} w-full sm:w-auto"
                                 onclick={() => isUserInCategory(category.id) ? addIndividualSlotForOther(category.id) : addIndividualSignup(category.id)}
                             >
-                                <Icon icon="mdi:account-plus" width="1.2rem" height="1.2rem" />
+                                <AccountPlusIcon width="1.2rem" height="1.2rem" />
                                 {hasExisting ? $t('registration.add_another') : $t('registration.sign_up')}
                             </button>
                         {:else}
@@ -846,7 +931,7 @@
                                 class="btn {hasExisting ? 'preset-tonal-success' : 'preset-filled-success-500'} w-full sm:w-auto"
                                 onclick={() => addGroupSlot(category.id)}
                             >
-                                <Icon icon={isPairs ? "mdi:account-multiple" : "mdi:account-group"} width="1.2rem" height="1.2rem" />
+                                {#if isPairs}<AccountMultipleIcon width="1.2rem" height="1.2rem" />{:else}<AccountGroupIcon width="1.2rem" height="1.2rem" />{/if}
                                 {hasExisting
                                     ? (isPairs ? $t('registration.build_another_pair') : $t('registration.build_another_team'))
                                     : (isPairs ? $t('registration.build_pair') : $t('registration.build_team'))}
@@ -854,7 +939,7 @@
                         {/if}
                     {:else}
                         <p class="text-sm text-surface-500 italic flex items-center gap-1">
-                            <Icon icon="mdi:information-outline" width="1rem" height="1rem" />
+                            <InformationOutlineIcon width="1rem" height="1rem" />
                             {$t('registration.limit_reached')}
                         </p>
                     {/if}
@@ -865,63 +950,70 @@
         {/each}
     </div>
 
-    <!-- Success card after registration -->
-    {#if showSuccessCard && !hasNewSignups}
-        <div class="mt-6" transition:slide={{ duration: 200 }}>
-            <Card>
-                <div class="flex flex-col items-center gap-4 py-4 text-center">
-                    <CheckAllIcon width="2.5rem" height="2.5rem" class="text-success-500" />
-                    <div>
-                        <h3 class="h4 font-semibold">{$t('registration.success_title')}</h3>
-                        <p class="text-sm text-surface-500 mt-1">{$t('registration.success_message')}</p>
-                    </div>
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <a href="/competitions/competition_details/{competition?.id}" class="btn preset-filled-primary-500">
-                            {$t('registration.back_to_competition')}
-                        </a>
-                        <a href="/" class="btn preset-tonal">
-                            {$t('registration.go_home')}
-                        </a>
-                    </div>
-                </div>
-            </Card>
-        </div>
-    {/if}
-
     <!-- Submit all signups -->
     {#if hasNewSignups}
         <div class="sticky bottom-4 mt-6 z-30" transition:slide={{ duration: 200 }}>
             <form bind:this={submitFormEl} method="POST" action="?/signup" use:enhance={() => {
                 isSubmitting = true;
-                resultMessage = null;
                 const minLoadingTime = new Promise(resolve => setTimeout(resolve, 2000));
                 return async ({ result, update }) => {
                     await minLoadingTime;
                     isSubmitting = false;
                     if (result.type === 'success' && result.data) {
-                        const data = result.data as { success: boolean; message?: string };
-                        showResultMessage({ success: data.success, message: data.message || '' });
-                        if (result.data.success) {
+                        const data = result.data as { success: boolean; summary?: RegistrationSummary };
+                        if (data.success && data.summary) {
+                            const s = data.summary;
+                            const catHeader = $t('registration.toast_category_header');
+                            const entHeader = $t('registration.toast_entries_header');
+                            const rows = s.perCategory.map(c =>
+                                `<tr><td class="py-0.5">${$t(getCategoryTypeName(c.type))}</td><td class="py-0.5 text-right font-medium">${c.count}</td></tr>`
+                            ).join('');
+                            const totalRow = s.perCategory.length > 1
+                                ? `<tr class="border-t border-surface-300 dark:border-surface-600"><td class="pt-1 font-semibold">Total</td><td class="pt-1 text-right font-semibold">${s.totalEntries}</td></tr>`
+                                : '';
+                            const html = `<table class="w-full text-left"><thead><tr class="border-b border-surface-300 dark:border-surface-600"><th class="pb-1 font-medium">${catHeader}</th><th class="pb-1 font-medium text-right">${entHeader}</th></tr></thead><tbody>${rows}${totalRow}</tbody></table>`;
+                            showRichSuccessToast($t('registration.toast_success_title'), html);
                             clearAllSignupState();
-                            showSuccessCard = true;
-                            await invalidateAll();
+                            await invalidate('data:registration');
+                        } else {
+                            showErrorToast($t('registration.toast_error_title'), (result.data as any).message || '');
                         }
                     } else if (result.type === 'failure') {
-                        showResultMessage({ success: false, message: 'An error occurred' });
+                        showErrorToast($t('registration.toast_error_title'), (result.data as any)?.message || '');
                     }
                     await update({ reset: false });
                 };
             }}>
                 <input type="hidden" name="signups" value={JSON.stringify(buildSignupPayload())} />
                 <div class="bg-surface-50 dark:bg-surface-900 rounded-xl shadow-xl border border-surface-200 dark:border-surface-700 p-4 space-y-3 relative">
-                    <!-- Summary -->
-                    <div class="flex flex-wrap items-center gap-2 text-sm">
-                        <ClipboardCheckOutlineIcon width="1.1rem" height="1.1rem" class="text-primary-500" />
-                        <span class="font-medium">{totalNewSignups()} {$t('registration.new_registrations_summary')}</span>
-                        <span class="text-surface-400">—</span>
-                        {#each signupSummary() as item}
-                            <span class="badge preset-tonal-primary text-xs p-1.5">{item.count}× {item.type}</span>
-                        {/each}
+                    <!-- Summary table -->
+                    <div class="text-sm">
+                        <div class="flex items-center gap-2 mb-2">
+                            <ClipboardCheckOutlineIcon width="1.1rem" height="1.1rem" class="text-primary-500" />
+                            <span class="font-medium">{totalNewSignups()} {$t('registration.new_registrations_summary')}</span>
+                        </div>
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="border-b border-surface-300 dark:border-surface-600">
+                                    <th class="pb-1 font-medium">{$t('registration.toast_category_header')}</th>
+                                    <th class="pb-1 font-medium text-right">{$t('registration.toast_entries_header')}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {#each signupSummary() as item}
+                                    <tr>
+                                        <td class="py-0.5">{item.type}</td>
+                                        <td class="py-0.5 text-right font-medium">{item.count}</td>
+                                    </tr>
+                                {/each}
+                                {#if signupSummary().length > 1}
+                                    <tr class="border-t border-surface-300 dark:border-surface-600">
+                                        <td class="pt-1 font-semibold">Total</td>
+                                        <td class="pt-1 text-right font-semibold">{totalNewSignups()}</td>
+                                    </tr>
+                                {/if}
+                            </tbody>
+                        </table>
                     </div>
                     <button
                         type={shouldShowPaymentWarning() ? 'button' : 'submit'}
@@ -937,7 +1029,9 @@
                     >
                         <CheckAllIcon width="1.2rem" height="1.2rem" />
                         {$t('registration.submit_all')}
-                        {#if !allPartiesComplete()}
+                        {#if !allPartiesSubmittable()}
+                            <span class="text-xs opacity-75">({$t('registration.empty_parties')})</span>
+                        {:else if !allPartiesComplete()}
                             <span class="text-xs opacity-75">({$t('registration.incomplete_parties')})</span>
                         {/if}
                     </button>
@@ -954,7 +1048,7 @@
                             <div class="h-1 w-full preset-filled-warning-500"></div>
                             <div class="p-4 space-y-3">
                                 <div class="flex items-center gap-2">
-                                    <Icon icon="mdi:alert-circle" width="1.3rem" height="1.3rem" class="text-warning-500" />
+                                    <AlertCircleIcon width="1.3rem" height="1.3rem" class="text-warning-500" />
                                     <p class="text-sm font-semibold">{$t('registration.payment_warning_title')}</p>
                                 </div>
                                 <p class="text-xs text-warning-600 dark:text-warning-400">
@@ -982,7 +1076,7 @@
                                         class="btn btn-sm preset-tonal"
                                         onclick={() => { showPaymentPopover = false; }}
                                     >
-                                        <Icon icon="mdi:close" width="1rem" height="1rem" />
+                                        <CloseIcon width="1rem" height="1rem" />
                                         {$t('registration.payment_warning_cancel')}
                                     </button>
                                     <button
@@ -991,7 +1085,7 @@
                                         onclick={() => { showPaymentPopover = false; }}
                                         data-testid="payment-warning-confirm"
                                     >
-                                        <Icon icon="mdi:check" width="1rem" height="1rem" />
+                                        <CheckIcon width="1rem" height="1rem" />
                                         {$t('registration.payment_warning_confirm')}
                                     </button>
                                 </div>
@@ -1004,12 +1098,3 @@
     {/if}
 </div>
 
-<style>
-    @keyframes shrink {
-        from { width: 100%; }
-        to { width: 0%; }
-    }
-    .animate-shrink {
-        animation: shrink 5s linear forwards;
-    }
-</style>

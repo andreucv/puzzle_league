@@ -8,6 +8,7 @@
     import ClipboardListOutlineIcon from '@iconify-svelte/mdi/clipboard-list-outline';
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import ShieldCheckOutlineIcon from '@iconify-svelte/mdi/shield-check-outline';
+    import CalendarRemoveOutlineIcon from '@iconify-svelte/mdi/calendar-remove-outline';
 
     import { drawerState } from '$lib/stores/drawer.svelte';
     import { t } from '$lib/translations';
@@ -16,6 +17,32 @@
     let { user = null }: { user: any } = $props();
 
     let currentPath = $derived(page.url.pathname);
+    let appVersion: string | null = $derived(page.data.appVersion ?? null);
+    let commitSha: string | null = $derived(page.data.commitSha ?? null);
+
+    let autoCancelRunning = $state(false);
+    let autoCancelResult: string | null = $state(null);
+
+    async function runAutoCancel() {
+        autoCancelRunning = true;
+        autoCancelResult = null;
+        try {
+            const res = await fetch('/api/cron/auto-cancel?dryRun=true');
+            const data = await res.json();
+            if (!res.ok) {
+                autoCancelResult = `Error: ${data.error ?? res.statusText}`;
+            } else {
+                const ids = data.eligibleCompetitionIds?.length
+                    ? ` [${data.eligibleCompetitionIds.join(', ')}]`
+                    : '';
+                autoCancelResult = `Eligible: ${data.eligible}${ids}, Cancelled: ${data.cancelled}, Failed: ${data.failed}`;
+            }
+        } catch (err) {
+            autoCancelResult = `Error: ${err instanceof Error ? err.message : 'Unknown'}`;
+        } finally {
+            autoCancelRunning = false;
+        }
+    }
 
     function navigate() {
         drawerState.open = false;
@@ -71,7 +98,7 @@
 
     {#if user?.roleAssignments?.some((role: any) => role.role === "ORGANIZER")}
     <li class="pt-3">
-        <span class="section-label">Organizer</span>
+        <span class="section-label">{$t('drawer_menu.organizer')}</span>
     </li>
     <li>
         <a data-testid="nav-drawer-create-competition" href="/competition/edit/" onclick={navigate} class="nav-item" class:nav-item-active={isActive('/competition/edit')}>
@@ -103,8 +130,24 @@
             <span>{$t('landing_page.review_requests')}</span>
         </a>
     </li>
+    <li>
+        <button onclick={runAutoCancel} disabled={autoCancelRunning} class="nav-item w-full text-left">
+            <CalendarRemoveOutlineIcon width="1.25rem" height="1.25rem" />
+            <span>{autoCancelRunning ? 'Running...' : 'Auto-cancel (dry run)'}</span>
+        </button>
+        {#if autoCancelResult}
+            <p class="px-3 pt-1 text-xs opacity-70">{autoCancelResult}</p>
+        {/if}
+    </li>
     {/if}
 </ul>
+
+<div class="px-5 py-3 mt-auto">
+    <span class="text-xs font-mono opacity-50">
+        {#if appVersion}v{appVersion}{/if}
+        {#if commitSha}<span class="ml-1">({commitSha})</span>{/if}
+    </span>
+</div>
 
 <style>
     .nav-item {

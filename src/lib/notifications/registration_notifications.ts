@@ -1,5 +1,5 @@
 import { createNotification, createNotificationForUsers } from './notifications';
-import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { NotificationType, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
 import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
 import { getCategoryTypeName } from '$lib/utils/category_utils';
 
@@ -31,9 +31,10 @@ export async function notifyRegistrationConfirmed(
 	actorName?: string,
 ): Promise<void> {
 	const typeLabel = getCategoryTypeName(entry.category.type);
+	// @: prefix marks the value as a translation key to be resolved at render time
 	const categoryName = entry.category.subname
-		? `${typeLabel} - ${entry.category.subname}`
-		: typeLabel;
+		? `@:${typeLabel} - ${entry.category.subname}`
+		: `@:${typeLabel}`;
 	const competitionName = entry.category.competition.name;
 	const link = `/competitions/competition_details/${entry.category.competitionId}`;
 	const confirmedBy = actorName || '';
@@ -94,6 +95,185 @@ export async function notifyRegistrationConfirmed(
 }
 
 // ---------------------------------------------------------------------------
+// Registration refusal notification
+// ---------------------------------------------------------------------------
+
+/**
+ * Send registration-refused notifications following the same recipient pattern
+ * as notifyRegistrationConfirmed:
+ *
+ * 1. Every real platform user on the entry receives a notification.
+ * 2. Creator NOT a participant → creator receives a separate notification.
+ * 3. External-only entries (no platform users) → creator receives the notification.
+ */
+export async function notifyRegistrationRefused(
+	entry: RegistrationEntry,
+	actorName?: string,
+): Promise<void> {
+	const typeLabel = getCategoryTypeName(entry.category.type);
+	const categoryName = entry.category.subname
+		? `@:${typeLabel} - ${entry.category.subname}`
+		: `@:${typeLabel}`;
+	const competitionName = entry.category.competition.name;
+	const link = `/competitions/competition_details/${entry.category.competitionId}`;
+
+	const realUserIds = entry.users.map((u) => u.id);
+	const creatorIsParticipant = realUserIds.includes(entry.creatorId);
+
+	const promises: Promise<unknown>[] = [];
+
+	// Notify every real platform user on the entry
+	for (const user of entry.users) {
+		const teammates = [
+			...entry.users.filter((u) => u.id !== user.id).map((u) => u.name),
+			...entry.externalParticipants.map((ui) => ui.name),
+		];
+		const teammateNames = teammates.join(', ');
+		const hasTeammates = teammates.length > 0;
+
+		promises.push(
+			createNotification({
+				userId: user.id,
+				type: NotificationType.REGISTRATION_REFUSED,
+				title: hasTeammates
+					? 'notifications.titles.registration_refused_team'
+					: 'notifications.titles.registration_refused',
+				message: hasTeammates
+					? 'notifications.messages.registration_refused_team'
+					: 'notifications.messages.registration_refused',
+				link,
+				data: { categoryName, competitionName, teammateNames },
+				actorName,
+				translationKey: hasTeammates ? 'registration_refused_team' : undefined,
+			}),
+		);
+	}
+
+	// If the creator is NOT already a participant, they still need a notification
+	if (!creatorIsParticipant) {
+		const allParticipantNames = [
+			...entry.users.map((u) => u.name),
+			...entry.externalParticipants.map((ui) => ui.name),
+		].join(', ');
+		promises.push(
+			createNotification({
+				userId: entry.creatorId,
+				type: NotificationType.REGISTRATION_REFUSED,
+				title: 'notifications.titles.registration_refused_nonplatform',
+				message: 'notifications.messages.registration_refused_nonplatform',
+				link,
+				data: { participantNames: allParticipantNames, categoryName, competitionName },
+				actorName,
+				translationKey: 'registration_refused_nonplatform',
+			}),
+		);
+	}
+
+	await Promise.all(promises);
+}
+
+// ---------------------------------------------------------------------------
+// Waitlist promotion notification
+// ---------------------------------------------------------------------------
+
+import type { PromotedEntry } from '$lib/database/db_registration';
+
+/**
+ * Send notifications when a waitlisted entry is promoted because a slot opened up.
+ * Free categories (auto-confirmed) → REGISTRATION_CONFIRMED notification.
+ * Paid categories (pending confirmation) → REGISTRATION_PROMOTED notification.
+ *
+ * Follows the same recipient pattern as notifyRegistrationConfirmed:
+ * 1. Creator IS a participant → one notification to that user.
+ * 2. Creator is NOT a participant:
+ *    2.1 Has real platform users → notify each user + notify creator.
+ *    2.2 Only external participants → notify creator.
+ */
+export async function notifyWaitlistPromotion(
+	entry: PromotedEntry,
+	actorName?: string,
+): Promise<void> {
+	const typeLabel = getCategoryTypeName(entry.category.type as CategoryType);
+	const categoryName = entry.category.subname
+		? `@:${typeLabel} - ${entry.category.subname}`
+		: `@:${typeLabel}`;
+	const competitionName = entry.category.competition.name;
+	const link = `/competitions/competition_details/${entry.category.competitionId}`;
+
+	// Auto-confirmed promotions (free categories) use REGISTRATION_CONFIRMED;
+	// pending promotions use REGISTRATION_PROMOTED.
+	const isAutoConfirmed = entry.status === RegistrationStatus.CONFIRMED;
+	const notificationType = isAutoConfirmed
+		? NotificationType.REGISTRATION_CONFIRMED
+		: NotificationType.REGISTRATION_PROMOTED;
+	const titleKey = isAutoConfirmed ? 'registration_confirmed' : 'registration_promoted';
+	const titleKeyTeam = isAutoConfirmed ? 'registration_confirmed_team' : 'registration_promoted_team';
+	const titleKeyNonplatform = isAutoConfirmed ? 'registration_confirmed_nonplatform' : 'registration_promoted_nonplatform';
+
+	const realUserIds = entry.users.map((u) => u.id);
+	const creatorIsParticipant = realUserIds.includes(entry.creatorId);
+
+	const promises: Promise<unknown>[] = [];
+
+	// Notify every real platform user on the entry
+	for (const user of entry.users) {
+		const teammates = [
+			...entry.users.filter((u) => u.id !== user.id).map((u) => u.name),
+			...entry.externalParticipants.map((ui) => ui.name),
+		];
+		const teammateNames = teammates.join(', ');
+		const hasTeammates = teammates.length > 0;
+
+		const selectedTitleKey = hasTeammates ? titleKeyTeam : titleKey;
+
+		promises.push(
+			createNotification({
+				userId: user.id,
+				type: notificationType,
+				title: `notifications.titles.${selectedTitleKey}`,
+				message: `notifications.messages.${selectedTitleKey}`,
+				link,
+				data: {
+					categoryName,
+					competitionName,
+					teammateNames,
+					...(isAutoConfirmed ? { confirmedBy: '' } : {}),
+				},
+				actorName,
+				translationKey: hasTeammates ? selectedTitleKey : undefined,
+			}),
+		);
+	}
+
+	// If the creator is NOT already a participant, they still need a notification
+	if (!creatorIsParticipant) {
+		const allParticipantNames = [
+			...entry.users.map((u) => u.name),
+			...entry.externalParticipants.map((ui) => ui.name),
+		].join(', ');
+		promises.push(
+			createNotification({
+				userId: entry.creatorId,
+				type: notificationType,
+				title: `notifications.titles.${titleKeyNonplatform}`,
+				message: `notifications.messages.${titleKeyNonplatform}`,
+				link,
+				data: {
+					participantNames: allParticipantNames,
+					categoryName,
+					competitionName,
+					...(isAutoConfirmed ? { confirmedBy: '' } : {}),
+				},
+				actorName,
+				translationKey: titleKeyNonplatform,
+			}),
+		);
+	}
+
+	await Promise.all(promises);
+}
+
+// ---------------------------------------------------------------------------
 // Payment reminder notification
 // ---------------------------------------------------------------------------
 
@@ -127,8 +307,8 @@ export async function notifyPaymentReminder(
 	const firstEntry = entries[0];
 	const typeLabel = getCategoryTypeName(firstEntry.category.type);
 	const categoryName = firstEntry.category.subname
-		? `${typeLabel} - ${firstEntry.category.subname}`
-		: typeLabel;
+		? `@:${typeLabel} - ${firstEntry.category.subname}`
+		: `@:${typeLabel}`;
 	const competitionName = firstEntry.category.competition.name;
 	const link = `/competitions/competition_details/${firstEntry.category.competitionId}`;
 
@@ -248,8 +428,8 @@ export async function notifyTableAssignments(
 ): Promise<void> {
 	const typeLabel = getCategoryTypeName(category.type);
 	const categoryName = category.subname
-		? `${typeLabel} - ${category.subname}`
-		: typeLabel;
+		? `@:${typeLabel} - ${category.subname}`
+		: `@:${typeLabel}`;
 	const competitionName = category.competition.name;
 	const link = `/competitions/competition_details/${category.competitionId}`;
 

@@ -13,6 +13,50 @@ interface CategoryEntriesFilter {
 }
 
 /**
+ * Fetch confirmed entries for multiple categories in a single DB query.
+ * Returns a map of categoryId → entries array.
+ */
+export async function getBatchedCategoryEntries(categoryIds: number[]) {
+	if (categoryIds.length === 0) return new Map<number, any[]>();
+
+	const entries = await prisma.entry.findMany({
+		where: {
+			categoryId: { in: categoryIds },
+			status: RegistrationStatus.CONFIRMED
+		},
+		include: {
+			users: {
+				select: {
+					id: true,
+					name: true,
+					email: true,
+					image: true
+				}
+			},
+			externalParticipants: {
+				select: {
+					id: true,
+					name: true
+				}
+			}
+		},
+		orderBy: [{ finishTime: 'asc' }, { tableNumber: 'asc' }]
+	});
+
+	const result = new Map<number, any[]>();
+	for (const id of categoryIds) {
+		result.set(id, []);
+	}
+	for (const entry of entries) {
+		result.get(entry.categoryId)!.push({
+			...entry,
+			nPiecesCompleted: entry.nPiecesCompleted
+		});
+	}
+	return result;
+}
+
+/**
  * Fetch confirmed entries for a category with optional search and finished filtering.
  * Search matches participant name, external-participant name, table number, or entry ID.
  */

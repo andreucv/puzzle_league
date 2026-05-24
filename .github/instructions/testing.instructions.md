@@ -11,7 +11,7 @@ General guidelines and patterns for writing tests in this codebase, including un
 **E2E tests:** Use Playwright's `test` function to define test cases. Leverage `test.use()` to set up authenticated contexts. Use Playwright's powerful selectors and assertions to interact with the application and verify expected outcomes. Consider waiting for specific elements to appear after actions that trigger data reloads to ensure tests are reliable and not flaky.
 
 ## Test Best Practices
-- Always mock external dependencies and SvelteKit modules to isolate the unit under test.
+- Mock **external** dependencies (network, database, third-party services) and SvelteKit framework modules to isolate the unit under test. Do **not** mock internal collaborators — test through public interfaces.
 - Use Gherkin-style test names for E2E tests to clearly describe the user scenario being tested (e.g. "Given ... When ... Then ...").
 - Always use data-testid attributes for selecting elements in tests to avoid brittle selectors based on text content or structure.
 - For E2E tests, prefer waiting for specific elements that indicate the expected state of the application after an action, rather than relying on success messages or timing-based waits. This leads to more reliable tests that are less prone to flakiness.

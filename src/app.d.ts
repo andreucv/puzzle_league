@@ -4,7 +4,10 @@
 import type { User, Session } from '@prisma/client';
 import type { CategoryType, CategoryStatus } from '$lib/.prisma/generated/prisma/browser';
 
+
 declare global {
+    const __APP_VERSION__: string;
+
     namespace App {
         interface Error {
             message: string;

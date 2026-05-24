@@ -1,7 +1,8 @@
 import type { PageServerLoad, Actions } from "./$types";
-import { getCompetitionWithCategories, getCompetitionCategories } from "$lib/database/db_competition";
+import { getCompetitionWithCategories, getCompetitionCategories, getDuringCompetitionAccess } from "$lib/database/db_competition";
 import { getCategoryEntriesFromCompetition, getRegisteredUserIdsByCategory } from "$lib/database/db_entry";
 import { signUpUsersToCompetition, removeEntryById } from "$lib/database/db_registration";
+import { notifyWaitlistPromotion } from "$lib/notifications/registration_notifications";
 import { redirect } from "@sveltejs/kit";
 import { createNotificationForUsers } from "$lib/notifications/notifications";
 import { NotificationType, RegistrationStatus } from "$lib/.prisma/generated/prisma/enums";
@@ -13,6 +14,9 @@ export const load: PageServerLoad = async (event) => {
         throw redirect(302, '/login?redirect=' + encodeURIComponent(event.url.pathname));
     }
 
+    // Custom dependency for targeted invalidation (avoids re-running root layout)
+    event.depends('data:registration');
+
     const competitionId = parseInt(event.params.id);
     const competition = await getCompetitionWithCategories(competitionId);
 
@@ -20,10 +24,11 @@ export const load: PageServerLoad = async (event) => {
         throw redirect(302, '/competitions/explore_competitions');
     }
 
-    const [existingEntries, registeredUserIds, categoriesWithCounts] = await Promise.all([
+    const [existingEntries, registeredUserIds, categoriesWithCounts, competitionAccess] = await Promise.all([
         getCategoryEntriesFromCompetition(competitionId, user.id),
         getRegisteredUserIdsByCategory(competitionId),
-        getCompetitionCategories(competitionId)
+        getCompetitionCategories(competitionId),
+        getDuringCompetitionAccess(competitionId, user.id)
     ]);
 
     return {
@@ -31,11 +36,12 @@ export const load: PageServerLoad = async (event) => {
         existingEntries: existingEntries || [],
         registeredUserIds,
         categoriesWithCounts,
+        isOrganizer: competitionAccess.isOrganizer,
     };
 };
 
 export const actions: Actions = {
-    signup: async ({ request, locals }) => {
+    signup: async ({ request, locals, params }) => {
         const user = locals.user;
 
         if (!user) {
@@ -56,7 +62,11 @@ export const actions: Actions = {
                 return { success: false, message: 'No categories selected for signup' };
             }
 
-            const result = await signUpUsersToCompetition(signups, user.id);
+            // Verify organizer status server-side (never trust the client)
+            const competitionId = parseInt(params.id);
+            const { isOrganizer } = await getDuringCompetitionAccess(competitionId, user.id);
+
+            const result = await signUpUsersToCompetition(signups, user.id, { isOrganizer });
 
             if (result.success) {
                 // Notify users on waitlisted registrations
@@ -75,7 +85,7 @@ export const actions: Actions = {
                         }
                     }
                 }
-                return { success: true, message: result.message };
+                return { success: true, summary: result.summary };
             } else {
                 return { success: false, message: result.error };
             }
@@ -105,6 +115,10 @@ export const actions: Actions = {
         try {
             const result = await removeEntryById(entryId, user.id);
             if (result) {
+                // If a waitlisted entry was promoted, notify its participants
+                if (result.promotedEntry) {
+                    await notifyWaitlistPromotion(result.promotedEntry);
+                }
                 return { success: true, message: 'Successfully unregistered' };
             }
             return { success: false, message: 'Failed to unregister' };

@@ -16,11 +16,32 @@
      */
     function resolveText(key: string, data?: Record<string, unknown>): string {
         if (key.startsWith('notifications.')) {
-            const resolved = $t(key, data ?? {});
+            const processedData = data ? resolveTranslatableValues(data) : data;
+            const resolved = $t(key, processedData ?? {});
             // sveltekit-i18n returns the key itself if not found
             return resolved !== key ? resolved : key;
         }
         return key;
+    }
+
+    /**
+     * Resolve @:translation.key markers inside data values.
+     *
+     * Data values may contain `@:some.key` references that need translation
+     * before being interpolated into the notification template.
+     * e.g. "@:category_names.individual - Elite" → "Individual - Elite"
+     */
+    function resolveTranslatableValues(data: Record<string, unknown>): Record<string, unknown> {
+        const result = { ...data };
+        for (const [k, v] of Object.entries(result)) {
+            if (typeof v === 'string' && v.includes('@:')) {
+                result[k] = v.replace(/@:([a-z_]+(?:\.[a-z_]+)*)/g, (match, tKey) => {
+                    const translated = $t(tKey);
+                    return translated !== tKey ? translated : match;
+                });
+            }
+        }
+        return result;
     }
 
     const typeIcons: Record<string, string> = {
@@ -28,6 +49,7 @@
         REGISTRATION_CONFIRMED: 'mdi:check-circle-outline',
         REGISTRATION_REFUSED: 'mdi:close-circle-outline',
         REGISTRATION_WAITLISTED: 'mdi:clock-alert-outline',
+        REGISTRATION_PROMOTED: 'mdi:arrow-up-circle-outline',
         COMPETITION_STARTED: 'mdi:play-circle-outline',
         COMPETITION_CANCELLED: 'mdi:cancel',
         ROLE_REQUEST_APPROVED: 'mdi:shield-check-outline',
@@ -43,6 +65,7 @@
         REGISTRATION_CONFIRMED: 'text-success-500',
         REGISTRATION_REFUSED: 'text-error-500',
         REGISTRATION_WAITLISTED: 'text-secondary-500',
+        REGISTRATION_PROMOTED: 'text-success-500',
         COMPETITION_STARTED: 'text-primary-500',
         COMPETITION_CANCELLED: 'text-warning-500',
         ROLE_REQUEST_APPROVED: 'text-success-500',

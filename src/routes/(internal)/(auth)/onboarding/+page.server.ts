@@ -2,7 +2,8 @@ import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { getOnboardingFlags, getUnclaimedExternalParticipantsMatchingName, claimExternalParticipants, markExternalParticipantsChecked, markEmailVerificationSkipped, saveLocationForUser, skipLocationPrompt } from '$lib/database/db_user';
 import { saveLocaleForUser, skipLocalePrompt, isValidLocale } from '$lib/utils/locale_utils';
-import { validatePhone, savePhoneForUser } from '$lib/utils/phone_utils';
+import { savePhoneForUser } from '$lib/utils/phone_utils';
+import { validatePhone, validatePostalCode } from '$lib/utils/contact_validation';
 import { countries } from '$lib/utils/country_utils';
 import { resolveOnboardingSteps } from '$lib/utils/onboarding_utils';
 import { auth } from '$lib/auth';
@@ -78,11 +79,16 @@ export const actions: Actions = {
 		const postalCode = formData.get('postalCode')?.toString().trim() || null;
 
 		if (country && !countries.some(c => c.code === country)) {
-			return fail(400, { locationError: 'Please select a valid country.' });
+			return fail(400, { locationError: 'add_location.validation_country' });
+		}
+
+		const postalCodeResult = validatePostalCode(postalCode);
+		if (!postalCodeResult.valid) {
+			return fail(400, { locationError: postalCodeResult.error });
 		}
 
 		try {
-			await saveLocationForUser(user.id, country, postalCode);
+			await saveLocationForUser(user.id, country, postalCodeResult.postalCode);
 		} catch (err) {
 			console.error('Error saving location:', err);
 			return fail(500, { error: 'Unable to save your location. Please try again.' });

@@ -6,6 +6,8 @@
     import { page } from '$app/state';
     let user = $derived(page.data.user);
     let currentPath = $derived(page.url.pathname);
+    let isPreview: boolean = $derived(page.data.isPreview ?? false);
+    let appVersion: string | null = $derived(page.data.appVersion ?? null);
     import { t } from '$lib/translations';
 
     import { drawerState } from '$lib/stores/drawer.svelte';
@@ -30,12 +32,15 @@
         <AppBar.Headline>
             <div class="flex items-center">
                 <h1 class="h4 font-sans" style="font-weight: 800; font-stretch: 125%;"><a href='/'>PuzzLigas</a></h1>
+                {#if isPreview && appVersion}
+                    <span class="ml-2 text-xs font-mono text-surface-500" title="App version">v{appVersion}</span>
+                {/if}
             </div>
         </AppBar.Headline>
         <AppBar.Trail>
             {#if user === undefined}
                 <button id="login-button" type="button" class="btn btn-sm preset-filled" style:visibility="{currentPath === '/login' ? 'hidden' : 'visible'}">
-                    <a href="/login">{$t('landing_page.join_now')}</a>
+                    <a href="/login">{$t('landing_page.sign_in')}</a>
                 </button>
             {:else}
                 <div class="flex items-center items-bottom relative gap-3">

@@ -1,5 +1,6 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
+    import FilterToggleIcon from '@iconify-svelte/mdi/filter-variant';
     import PlusIcon from '@iconify-svelte/mdi/plus';
     import { t } from '$lib/translations';
     import SearchInput from "$lib/components/common/SearchInput.svelte";
@@ -28,13 +29,16 @@
 
     // Smart preset filters
     let activePresets = $state<string[]>([]);
+    let showPresets = $state(false);
+    const activePresetCount = $derived(activePresets.length);
 
-    // Tab definitions with counts
+    // Tab definitions with counts — labels match CompetitionStatusChip
     const tabs = $derived([
         { id: 'ALL', label: $t('manage_registrations.all'), count: competitions.length },
-        { id: 'NOT_STARTED', label: $t('manage_registrations.soon'), count: competitions.filter(c => c.status === 'NOT_STARTED').length },
-        { id: 'STARTED', label: $t('manage_registrations.live'), count: competitions.filter(c => c.status === 'STARTED').length },
-        { id: 'FINISHED', label: $t('manage_registrations.past'), count: competitions.filter(c => c.status === 'FINISHED' || c.status === 'CANCELLED').length },
+        { id: 'NOT_STARTED', label: $t('competition_status.upcoming'), count: competitions.filter(c => c.status === 'NOT_STARTED').length },
+        { id: 'STARTED', label: $t('competition_status.live'), count: competitions.filter(c => c.status === 'STARTED').length },
+        { id: 'FINISHED', label: $t('competition_status.finished'), count: competitions.filter(c => c.status === 'FINISHED').length },
+        { id: 'CANCELLED', label: $t('competition_status.cancelled'), count: competitions.filter(c => c.status === 'CANCELLED').length },
     ]);
 
     // Smart preset definitions
@@ -52,11 +56,7 @@
 
         // Tab filter (status)
         if (activeTab !== 'ALL') {
-            if (activeTab === 'FINISHED') {
-                result = result.filter(c => c.status === 'FINISHED' || c.status === 'CANCELLED');
-            } else {
-                result = result.filter(c => c.status === activeTab);
-            }
+            result = result.filter(c => c.status === activeTab);
         }
 
         // Search filter
@@ -116,19 +116,41 @@
 <GenericTitle text={$t('competitions.explore_competitions')} />
 
 <div class="space-y-4">
-    <!-- Search -->
-    <SearchInput placeholder={$t('list_competitions.look_for_competition')} bind:filter />
+    <!-- Search + filter toggle -->
+    <div class="flex items-stretch gap-2">
+        <div class="flex-1">
+            <SearchInput placeholder={$t('list_competitions.look_for_competition')} bind:filter />
+        </div>
+        <button
+            type="button"
+            data-testid="filter-toggle"
+            class="relative shrink-0 px-3 rounded-lg transition-all duration-200 flex items-center
+                {showPresets || activePresetCount > 0
+                    ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400'
+                    : 'preset-filled-surface-200-800 text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100'}"
+            onclick={() => showPresets = !showPresets}
+        >
+            <FilterToggleIcon width="1.25rem" height="1.25rem" />
+            {#if activePresetCount > 0}
+                <span class="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center text-[10px] font-bold rounded-full bg-primary-500 text-white">
+                    {activePresetCount}
+                </span>
+            {/if}
+        </button>
+    </div>
 
-    <!-- Status tabs -->
+    <!-- Status tabs (single scrollable row) -->
     <FilterTabs {tabs} bind:activeTab />
 
-    <!-- Smart preset chips -->
-    <SmartPresetChips {presets} bind:activePresets />
+    <!-- Smart preset chips (collapsible) -->
+    {#if showPresets}
+        <SmartPresetChips {presets} bind:activePresets />
+    {/if}
 
     <!-- Results count & Create button -->
     <div class="flex items-center justify-between">
         <span class="text-sm text-surface-600 dark:text-surface-400" data-testid="results-count">
-            {filteredCount} {filteredCount === 1 ? 'competition' : 'competitions'}
+            {filteredCount} {filteredCount === 1 ? $t('explore_competitions.competition_singular') : $t('explore_competitions.competition_plural')}
             {#if filter || activePresets.length > 0}
                 <span class="text-surface-500"> of {totalCount}</span>
             {/if}

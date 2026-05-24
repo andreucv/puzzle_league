@@ -4,7 +4,7 @@ import { createCompetition } from '$lib/database/db_competition';
 import { getAllLeagues } from '$lib/database/db_league';
 import type { Competition, Category, Prisma } from '$lib/.prisma/generated/prisma/client';
 import { CategoryType } from '$lib/.prisma/generated/prisma/enums';
-import { auth } from '$lib/auth';
+import { getPostHogClient } from '$lib/server/posthog';
 
 export const load: PageServerLoad = async (event) => {
     // Load all leagues so the user can select which league to create the competition in
@@ -29,14 +29,8 @@ export const load: PageServerLoad = async (event) => {
 }
 
 const create_competition: Action = async ({ locals, request, url }) => {
-    let user = null;
-    try {
-        const session = await auth.api.getSession({
-            headers: request.headers,
-        });
-        user = session?.user;
-    } catch (error) {
-        console.error('Error getting user session:', error);
+    const user = locals.user;
+    if (!user) {
         return fail(401, { error_message: "User not authenticated" });
     }
 
@@ -86,6 +80,17 @@ const create_competition: Action = async ({ locals, request, url }) => {
                 message: "An error occurred while creating the competition."
             });
         }
+        const posthog = getPostHogClient();
+        posthog.capture({
+            distinctId: user.id,
+            event: 'competition_created',
+            properties: {
+                competition_id: result.data?.competition.id,
+                competition_name: competition.name,
+                category_count: categories.length
+            }
+        });
+
         // Return success with competition details
         return {
             success: true,

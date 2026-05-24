@@ -378,6 +378,42 @@ export async function getNearCompetitions(n_objects: number, country?: string, p
     });
 }
 
+/**
+ * Returns a page of live or future competitions where the given Participant
+ * has no Entry in any Category (regardless of registration status).
+ * Used by the authenticated landing page "Other Upcoming Competitions" feed.
+ */
+export async function getOtherUpcomingCompetitions(userId: string, limit: number, offset: number) {
+    return prisma.competition.findMany({
+        take: limit,
+        skip: offset,
+        where: {
+            status: {
+                in: [CompetitionStatus.NOT_STARTED, CompetitionStatus.STARTED]
+            },
+            // Exclude competitions where the user appears on any Entry
+            NOT: {
+                categories: {
+                    some: {
+                        entries: {
+                            some: {
+                                users: { some: { id: userId } }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        include: {
+            categories: true
+        },
+        orderBy: [
+            { startDate: 'asc' },
+            { id: 'asc' }  // deterministic tie-breaker for stable pagination
+        ],
+    });
+}
+
 // ---------------------------------------------------------------------------
 // User-scoped competition queries
 // ---------------------------------------------------------------------------
@@ -467,6 +503,44 @@ export async function getParticipatedCompetitions(userId: string) {
         console.error('Error getting participated competitions:', error);
         throw error;
     }
+}
+
+/**
+ * Fetches all home dashboard data for an authenticated user in fewer DB trips.
+ * Combines the three getUserRegisteredCompetitions calls (NOT_STARTED, STARTED, FINISHED)
+ * into a single query and splits by status, then runs the remaining queries in parallel.
+ */
+export async function getHomeDashboardData(userId: string) {
+    // Single query for all user-registered competitions (instead of 3 separate status queries)
+    const allRegisteredPromise = getUserRegisteredCompetitions(userId);
+
+    // Run remaining independent queries in parallel alongside the combined one
+    const [allRegistered, otherUpcoming, lastResults, registrationStatuses] = await Promise.all([
+        allRegisteredPromise,
+        getOtherUpcomingCompetitions(userId, 10, 0),
+        getLastUserResults(userId, 5),
+        getUserRegistrationStatuses(userId)
+    ]);
+
+    // Split by status client-side
+    const upcomingRegisteredCompetitions = allRegistered.filter(
+        c => c.status === CompetitionStatus.NOT_STARTED
+    );
+    const startedCompetitions = allRegistered.filter(
+        c => c.status === CompetitionStatus.STARTED
+    );
+    const participatedCompetitions = allRegistered.filter(
+        c => c.status === CompetitionStatus.FINISHED
+    );
+
+    return {
+        upcomingRegisteredCompetitions,
+        participatedCompetitions,
+        otherUpcomingCompetitions: otherUpcoming,
+        lastResults,
+        startedCompetitions,
+        registrationStatuses,
+    };
 }
 
 export async function getUserRegistrationStatuses(userId: string) {

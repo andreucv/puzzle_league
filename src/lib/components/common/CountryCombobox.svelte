@@ -1,29 +1,31 @@
 <script lang="ts">
     import { Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
-    import { countries, getCountryFlag } from '$lib/utils/country_utils';
+    import { countries, getCountryFlag, getLocalizedCountryName } from '$lib/utils/country_utils';
 
     let {
         value = $bindable<string[]>([]),
         inputValue = $bindable(''),
         placeholder = 'Select country...',
         testId = '',
+        locale = '',
     }: {
         value?: string[];
         inputValue?: string;
         placeholder?: string;
         testId?: string;
+        locale?: string;
     } = $props();
 
     const getCountryData = () => {
         return countries.map(c => ({
-            label: c.name,
+            label: getLocalizedCountryName(c.code, locale || 'en'),
             value: c.code,
             emoji: getCountryFlag(c.code),
         }));
     };
 
-    const countryData = getCountryData();
-    let filteredItems = $state(countryData);
+    const countryData = $derived(getCountryData());
+    let filteredItems = $state(getCountryData());
 
     const collection = $derived(useListCollection({
         items: filteredItems,

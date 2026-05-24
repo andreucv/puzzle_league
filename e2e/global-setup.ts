@@ -16,8 +16,9 @@ const STATE_FILE = path.resolve(ROOT, 'playwright/.test-server-state.json');
 const PREVIEW_PORT = 4173;
 
 interface ServerState {
-    serverPid: number;
-    dbUrl: string;
+    serverPid?: number;
+    dbUrl?: string;
+    buildHash?: string;
 }
 
 /** Waits for a TCP port to accept connections. */
@@ -62,13 +63,35 @@ function killLeftoverServer() {
     if (fs.existsSync(STATE_FILE)) {
         try {
             const state: ServerState = JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8'));
-            try { process.kill(-state.serverPid, 'SIGTERM'); } catch { /* already dead */ }
-            try { process.kill(state.serverPid, 'SIGTERM'); } catch { /* already dead */ }
+            if (state.serverPid) {
+                try { process.kill(-state.serverPid, 'SIGTERM'); } catch { /* already dead */ }
+                try { process.kill(state.serverPid, 'SIGTERM'); } catch { /* already dead */ }
+            }
         } catch { /* best effort */ }
-        fs.unlinkSync(STATE_FILE);
     }
     // Always kill anything on the preview port regardless of state file
     killProcessesOnPort(PREVIEW_PORT);
+}
+
+/** Computes a hash of src/ + config files using git to detect source changes. */
+function computeBuildHash(): string {
+    const cmd = `git ls-files -s src/ svelte.config.js vite.config.ts package.json tsconfig.json | git hash-object --stdin`;
+    return execSync(cmd, { cwd: ROOT, encoding: 'utf-8' }).trim();
+}
+
+/** Checks if a TCP port is currently accepting connections. */
+function isPortOpen(port: number): Promise<boolean> {
+    return new Promise((resolve) => {
+        const socket = net.createConnection({ port }, () => {
+            socket.destroy();
+            resolve(true);
+        });
+        socket.on('error', () => resolve(false));
+        socket.setTimeout(1000, () => {
+            socket.destroy();
+            resolve(false);
+        });
+    });
 }
 
 /** Runs a shell command, printing stdout/stderr and re-throwing with output on failure. */
@@ -97,10 +120,31 @@ export default async function globalSetup() {
         throw new Error(`LOCAL_DATABASE_TEST_DATABASE_URL does not point to localhost: ${testDbUrl}`);
     }
 
-    // Kill any leftover server from a crashed previous run
-    killLeftoverServer();
+    // Read previous state and compute build hash to decide if build is needed
+    let previousState: ServerState | null = null;
+    if (fs.existsSync(STATE_FILE)) {
+        try {
+            previousState = JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8'));
+        } catch { /* corrupted state file */ }
+    }
 
-    console.log(`\n🧪 E2E test database: ${testDbUrl}`);
+    const currentHash = computeBuildHash();
+    const needsBuild = !previousState?.buildHash || previousState.buildHash !== currentHash;
+    const serverIsUp = await isPortOpen(PREVIEW_PORT);
+
+    console.log(`🔍 Build hash: ${currentHash}`);
+
+    if (needsBuild) {
+        console.log(`🔄 Source changed (hash: ${currentHash.slice(0, 8)}…) — rebuild required.`);
+        killLeftoverServer();
+    } else if (serverIsUp) {
+        console.log(`⚡ Build cache hit + server running — reusing (hash: ${currentHash.slice(0, 8)}…).`);
+    } else {
+        console.log(`⚡ Build cache hit — skipping build (hash: ${currentHash.slice(0, 8)}…). Server needs restart.`);
+        killProcessesOnPort(PREVIEW_PORT); // safety: kill orphan processes
+    }
+
+    console.log(`🧪 E2E test database: ${testDbUrl}`);
 
     // 1. Connect to database
     console.log('   🔌 Connecting to database...');
@@ -142,46 +186,54 @@ export default async function globalSetup() {
         env: { ...process.env, DATABASE_URL: testDbUrl },
     });
 
-    // 5. Build the app
-    console.log('   🏗️  Building app...');
-    runCommand('npm run build', {
-        cwd: ROOT,
-        env: {
-            ...process.env,
-            DATABASE_URL: testDbUrl,
-            BETTER_AUTH_URL: `http://localhost:${PREVIEW_PORT}`,
-        },
-    });
-
-    // 6. Start preview server
-    console.log('   🚀 Starting preview server...');
-    const server = spawn('npm', ['run', 'preview', '--', '--host'], {
-        cwd: ROOT,
-        stdio: 'pipe',
-        detached: true,
-        env: {
-            ...process.env,
-            DATABASE_URL: testDbUrl,
-            BETTER_AUTH_URL: `http://localhost:${PREVIEW_PORT}`,
-        },
-    });
-
-    server.unref();
-
-    if (!server.pid) {
-        throw new Error('Failed to start preview server: no PID');
+    // 5. Build the app (skip if source hasn't changed)
+    if (needsBuild) {
+        console.log('   🏗️  Building app...');
+        runCommand('npm run build', {
+            cwd: ROOT,
+            env: {
+                ...process.env,
+                DATABASE_URL: testDbUrl,
+                BETTER_AUTH_URL: `http://localhost:${PREVIEW_PORT}`,
+            },
+        });
     }
 
-    server.stdout?.on('data', (d: Buffer) => process.stdout.write(`[preview] ${d}`));
-    server.stderr?.on('data', (d: Buffer) => process.stderr.write(`[preview] ${d}`));
+    // 6. Start preview server (skip if already running with same build)
+    let serverPid: number;
+    if (!needsBuild && serverIsUp && previousState?.serverPid) {
+        serverPid = previousState.serverPid;
+        console.log(`   ✅ Reusing preview server (PID: ${serverPid})\n`);
+    } else {
+        console.log('   🚀 Starting preview server...');
+        const server = spawn('npm', ['run', 'preview', '--', '--host'], {
+            cwd: ROOT,
+            stdio: 'pipe',
+            detached: true,
+            env: {
+                ...process.env,
+                DATABASE_URL: testDbUrl,
+                BETTER_AUTH_URL: `http://localhost:${PREVIEW_PORT}`,
+            },
+        });
 
-    // Wait for the server to be ready
-    console.log(`   ⏳ Waiting for port ${PREVIEW_PORT}...`);
-    await waitForPort(PREVIEW_PORT);
-    console.log(`   ✅ Preview server ready (PID: ${server.pid})\n`);
+        server.unref();
+
+        if (!server.pid) {
+            throw new Error('Failed to start preview server: no PID');
+        }
+
+        server.stdout?.on('data', (d: Buffer) => process.stdout.write(`[preview] ${d}`));
+        server.stderr?.on('data', (d: Buffer) => process.stderr.write(`[preview] ${d}`));
+
+        console.log(`   ⏳ Waiting for port ${PREVIEW_PORT}...`);
+        await waitForPort(PREVIEW_PORT);
+        console.log(`   ✅ Preview server ready (PID: ${server.pid})\n`);
+        serverPid = server.pid;
+    }
 
     // 7. Write state file for teardown
-    const state: ServerState = { serverPid: server.pid, dbUrl: testDbUrl };
+    const state: ServerState = { serverPid, dbUrl: testDbUrl, buildHash: currentHash };
     fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
     fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
 

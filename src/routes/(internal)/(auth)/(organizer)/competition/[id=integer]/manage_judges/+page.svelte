@@ -1,6 +1,6 @@
 <script lang="ts">
     import Icon from '@iconify/svelte';
-    import { invalidateAll } from '$app/navigation';
+    import { invalidate } from '$app/navigation';
     import { t } from '$lib/translations';
     import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
@@ -87,7 +87,7 @@
                 searchQueries[categoryId] = '';
                 searchResults[categoryId] = [];
                 showResultMessage({ success: true, message: $t('manage_judges.judge_added') });
-                await invalidateAll();
+                await invalidate('data:manage-judges');
             } else {
                 const err = await response.json();
                 showResultMessage({ success: false, message: err.error || $t('manage_judges.error') });
@@ -105,7 +105,7 @@
 
             if (response.ok) {
                 showResultMessage({ success: true, message: $t('manage_judges.judge_removed') });
-                await invalidateAll();
+                await invalidate('data:manage-judges');
             } else {
                 const err = await response.json();
                 showResultMessage({ success: false, message: err.error || $t('manage_judges.error') });
@@ -125,7 +125,7 @@
 
             if (response.ok) {
                 showResultMessage({ success: true, message: $t('manage_judges.judges_copied') });
-                await invalidateAll();
+                await invalidate('data:manage-judges');
             } else {
                 const err = await response.json();
                 showResultMessage({ success: false, message: err.error || $t('manage_judges.error') });

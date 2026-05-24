@@ -2,8 +2,12 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { enhancedImages } from '@sveltejs/enhanced-img';
 import { defineConfig } from 'vitest/config';
 import tailwindcss from "@tailwindcss/vite";
+import pkg from './package.json' with { type: 'json' };
 
 export default defineConfig({
+	define: {
+		__APP_VERSION__: JSON.stringify(pkg.version)
+	},
 	plugins: [
 		enhancedImages(),
 		tailwindcss(),

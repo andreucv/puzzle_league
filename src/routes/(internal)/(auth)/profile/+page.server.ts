@@ -1,8 +1,26 @@
 import type { PageServerLoad, Actions } from './$types';
-import { getUserAccountProvider, updateUserLocation, updateUserVisibility, updateUserLocale } from '$lib/database/db_user';
+import { getUserAccountProvider, updateUserLocation, updateUserName, updateUserVisibility, updateUserLocale } from '$lib/database/db_user';
 import { error, fail } from '@sveltejs/kit';
-import { validatePhone, savePhoneForUser, deletePhoneForUser } from '$lib/utils/phone_utils';
+import { savePhoneForUser, deletePhoneForUser } from '$lib/utils/phone_utils';
+import { validatePhone, validatePostalCode } from '$lib/utils/contact_validation';
 import { locales } from '$lib/translations';
+import { auth } from '$lib/auth';
+
+const MAX_PROFILE_NAME_LENGTH = 80;
+
+function validateProfileName(formData: FormData) {
+    const name = formData.get('name')?.toString().trim() || '';
+
+    if (!name) {
+        return { error: 'profile.name_required' };
+    }
+
+    if (name.length > MAX_PROFILE_NAME_LENGTH) {
+        return { error: 'profile.name_too_long' };
+    }
+
+    return { name };
+}
 
 export const load: PageServerLoad = async ({ parent }) => {
 
@@ -18,6 +36,29 @@ export const load: PageServerLoad = async ({ parent }) => {
 };
 
 export const actions: Actions = {
+    updateName: async ({ request, locals }) => {
+        const user = locals.user;
+        if (!user) {
+            return fail(401, { message: 'Unauthorized' });
+        }
+
+        const formData = await request.formData();
+        const result = validateProfileName(formData);
+
+        if ('error' in result) {
+            return fail(400, { message: result.error });
+        }
+
+        try {
+            await updateUserName(user.id, result.name);
+
+            return { success: true };
+        } catch (err) {
+            console.error('Error updating name:', err);
+            return fail(500, { message: 'Unable to save your name. Please try again.' });
+        }
+    },
+
     updateLocation: async ({ request, locals }) => {
         const user = locals.user;
         if (!user) {
@@ -27,9 +68,14 @@ export const actions: Actions = {
         const formData = await request.formData();
         const country = formData.get('country')?.toString().trim() || null;
         const postalCode = formData.get('postalCode')?.toString().trim() || null;
+        const postalCodeResult = validatePostalCode(postalCode);
+
+        if (!postalCodeResult.valid) {
+            return fail(400, { message: postalCodeResult.error });
+        }
 
         try {
-            await updateUserLocation(user.id, country, postalCode);
+            await updateUserLocation(user.id, country, postalCodeResult.postalCode);
 
             return { success: true };
         } catch (err) {
@@ -99,7 +145,7 @@ export const actions: Actions = {
         }
     },
 
-    updateLocale: async ({ request, locals, cookies }) => {
+    updateLocale: async ({ request, locals }) => {
         const user = locals.user;
         if (!user) {
             return fail(401, { message: 'Unauthorized' });
@@ -122,6 +168,29 @@ export const actions: Actions = {
         } catch (err) {
             console.error('Error updating locale:', err);
             return fail(500, { message: 'Unable to update language. Please try again.' });
+        }
+    },
+
+    resendVerificationEmail: async ({ request, locals }) => {
+        const user = locals.user;
+        if (!user) {
+            return fail(401, { message: 'Unauthorized' });
+        }
+
+        if (user.emailVerified) {
+            return { success: true };
+        }
+
+        try {
+            await auth.api.sendVerificationEmail({
+                body: { email: user.email, callbackURL: '/verify-email' },
+                headers: request.headers,
+            });
+
+            return { success: true };
+        } catch (err) {
+            console.error('Error resending verification email:', err);
+            return fail(500, { message: 'profile.email_verification_send_error' });
         }
     }
 };

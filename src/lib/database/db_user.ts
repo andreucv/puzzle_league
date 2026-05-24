@@ -96,6 +96,28 @@ export async function getUsers() {
 }
 
 // ---------------------------------------------------------------------------
+// User search (DB-backed, bounded)
+// ---------------------------------------------------------------------------
+
+export async function searchUsers(query: string, limit: number = 20) {
+    return prisma.user.findMany({
+        where: {
+            OR: [
+                { name: { contains: query, mode: 'insensitive' } },
+                { email: { contains: query, mode: 'insensitive' } }
+            ]
+        },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true
+        },
+        take: limit
+    });
+}
+
+// ---------------------------------------------------------------------------
 // Public profile
 // ---------------------------------------------------------------------------
 
@@ -143,6 +165,13 @@ export async function updateUserLocation(userId: string, country: string | null,
     return prisma.user.update({
         where: { id: userId },
         data: { country, postalCode, updatedAt: new Date() }
+    });
+}
+
+export async function updateUserName(userId: string, name: string) {
+    return prisma.user.update({
+        where: { id: userId },
+        data: { name, updatedAt: new Date() }
     });
 }
 

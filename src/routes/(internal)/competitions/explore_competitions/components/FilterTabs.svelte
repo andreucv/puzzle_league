@@ -19,12 +19,12 @@
     }
 </script>
 
-<div class="flex flex-wrap gap-1 p-1 bg-surface-200/50 dark:bg-surface-800/50 rounded-lg">
+<div class="flex gap-1 p-1 overflow-x-auto bg-surface-200/50 dark:bg-surface-800/50 rounded-lg scrollbar-none">
         {#each tabs as tab}
             <button
                 type="button"
                 data-testid="filter-tab-{tab.id}"
-                class="px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200
+                class="shrink-0 px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200
                     {activeTab === tab.id
                         ? 'bg-white dark:bg-surface-700 text-primary-600 dark:text-primary-400 shadow-sm'
                         : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-100/50 dark:hover:bg-surface-700/50'}"
@@ -42,3 +42,13 @@
             </button>
         {/each}
     </div>
+
+<style>
+    .scrollbar-none {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .scrollbar-none::-webkit-scrollbar {
+        display: none;
+    }
+</style>

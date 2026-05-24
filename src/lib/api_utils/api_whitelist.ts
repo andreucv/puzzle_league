@@ -6,6 +6,7 @@ const PUBLIC_API_PREFIXES = [
   '/api/auth/',                    // Better Auth's own endpoints
   '/api/competitions/bymonth/',    // Public competition calendar
   '/api/webhooks/',                // Webhook endpoints (signature-verified internally)
+  '/api/cron/',                    // Cron endpoints (CRON_SECRET-verified internally)
 ] as const;
 
 /** Returns true if the given pathname is a public API route (no auth required). */

@@ -38,7 +38,7 @@ export const auth = betterAuth({
         resetPasswordTokenExpiresIn: 600, // 10 minutes
     },
     emailVerification: {
-        sendOnSignUp: true,
+        sendOnSignUp: false, // We'll send it manually during onboarding
         autoSignInAfterVerification: true,
         sendVerificationEmail: async ({ user, url }) => {
             // Fire-and-forget to avoid timing attacks

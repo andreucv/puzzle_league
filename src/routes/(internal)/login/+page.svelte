@@ -4,6 +4,7 @@
     import { authClient } from "$lib/auth_client";
     import { t } from '$lib/translations';
     import FormInput from '$lib/components/common/FormInput.svelte';
+    import posthog from 'posthog-js';
 
     let action = $state("login");
     let email = $state("");
@@ -13,10 +14,16 @@
     let errorMessage = $state("");
     let isLoading = $state(false);
 
+    function getInitialAction(): "login" | "register" {
+        return page.url.searchParams.get('action') === 'register' ? 'register' : 'login';
+    }
+
     function getSafeRedirect(): string {
         const redirectTo = page.url.searchParams.get('redirect');
         return redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : '/';
     }
+
+    action = getInitialAction();
 
     async function handleSubmit() {
         if (action === 'register') {
@@ -32,6 +39,10 @@
         errorMessage = "";
         try {
             const { data, error } = await authClient.signIn.email({ email, password });
+            if (!error && data?.user) {
+                posthog.identify(data.user.id, { email: data.user.email, name: data.user.name });
+                posthog.capture('user_logged_in', { method: 'email' });
+            }
             await afterLogin(data, error);
         } finally {
             isLoading = false;
@@ -50,6 +61,10 @@
             const { data, error } = await authClient.signUp.email({
                 email, password, name, callbackURL: '/verify-email',
             });
+            if (!error && data?.user) {
+                posthog.identify(data.user.id, { email: data.user.email, name: data.user.name });
+                posthog.capture('user_registered', { method: 'email' });
+            }
             await afterLogin(data, error);
         } finally {
             isLoading = false;
@@ -65,15 +80,27 @@
                 provider: "google",
                 callbackURL: getSafeRedirect(),
             });
+            if (!error && data?.user) {
+                posthog.identify(data.user.id, { email: data.user.email, name: data.user.name });
+                posthog.capture('user_logged_in', { method: 'google' });
+            }
             await afterLogin(data, error);
         } finally {
             isLoading = false;
         }
     }
 
+    function getAuthErrorKey(error: any): string {
+        switch (error?.code) {
+            case 'INVALID_EMAIL_OR_PASSWORD': return 'auth.errors.invalid_credentials';
+            case 'USER_ALREADY_EXISTS': return 'auth.errors.email_already_exists';
+            default: return 'auth.errors.unexpected';
+        }
+    }
+
     async function afterLogin(data: any, error: any) {
         if (error) {
-            errorMessage = String(error?.message);
+            errorMessage = $t(getAuthErrorKey(error));
             console.error(error);
             return;
         }

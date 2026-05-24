@@ -5,7 +5,7 @@ applyTo: "**/+page.svelte
 This file defines how to work with a front-end page that contains a form.
 
 1. Forms should use Skeleton UI components for consistency and accessibility.
-2. Each form page must start with an `<h4>` element to indicate the title of the page.
+2. Each form page must start with the `TitleBackButton` component from `$lib/components/common/buttons/TitleBackButton.svelte` to provide a consistent title and back-navigation.
 3. If the form creates a new object, make sure you maintain the page in order it can be used to update the object later. We aim for a consistent user experience.
 4. Use appropriate input types for form fields (e.g., `type="email"` for email fields).
 5. Implement client-side validation to provide immediate feedback to users with zod taking into account the model definitions from Prisma.

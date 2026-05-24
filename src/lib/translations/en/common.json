@@ -9,6 +9,30 @@
     "puzzle_chess": "Puzzle Chess",
     "other": "Other"
   },
+  "category_names_singular": {
+    "individual": "Individual",
+    "pair": "Pair",
+    "team": "Team",
+    "junior_individual": "Junior Individual",
+    "junior_pair": "Junior Pair",
+    "puzzle_chess": "Puzzle Chess",
+    "other": "Other"
+  },
+  "competition_card": {
+    "days_ago": "{{count}}d ago",
+    "in_until_days": "In {{count}}d",
+    "tomorrow": "Tomorrow",
+    "today": "Today",
+    "registration_open": "Registration Open",
+    "registration_closed": "Registration Closed",
+    "near_you": "Near you"
+  },
+  "competition_status": {
+    "upcoming": "Upcoming",
+    "live": "Live",
+    "finished": "Finished",
+    "cancelled": "Cancelled"
+  },
   "landing_page": {
     "welcome_text": "Your puzzling community",
     "participant_welcome_text": "If you like puzzling and competition, Puzzligas is home. Connect with the community on puzzling competitions. Join us.",
@@ -39,6 +63,8 @@
     "live_now": "Live Now",
     "no_live_competitions": "No live competitions right now",
     "no_near_competitions": "No upcoming competitions near you",
+    "no_other_upcoming_competitions": "There are no other upcoming competitions right now",
+    "loading_more_competitions": "Loading more competitions...",
     "registration_status": {
       "pending_confirmation": "Pending Confirmation",
       "confirmed": "Confirmed",
@@ -51,7 +77,8 @@
     "explore_competitions": "Competitions",
     "create_competition": "Create Competition",
     "home": "Home",
-    "puzzles": "Puzzles"
+    "puzzles": "Puzzles",
+    "organizer": "Organizer"
   },
   "competitions": {
     "explore_competitions": "Explore Competitions",
@@ -76,12 +103,31 @@
   "profile": {
     "my_profile": "My profile",
     "roles": "Roles",
+    "request_organizer_role": "Request organizer role",
     "preferences": "Profile preferences",
     "data": "Profile data",
+    "name": "Name",
+    "name_not_set": "Not set",
+    "name_placeholder": "Your name",
+    "name_required": "Name is required.",
+    "name_too_long": "Name must be 80 characters or less.",
+    "password": "Password",
+    "location": "Location",
+    "email": "Email",
+    "change": "Change",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "not_set": "Not set",
     "phone": "Phone",
     "phone_prefix_placeholder": "e.g. +34",
     "phone_number_placeholder": "e.g. 612345678",
     "phone_not_set": "Not set",
+    "verified": "Verified",
+    "unverified": "Unverified",
+    "send_verification_email": "Send verification email",
+    "email_verification_sent_toast": "Verification email sent.",
+    "email_verification_send_error": "Unable to send verification email. Please try again.",
+    "password_not_available": "Password changes are only available for email and password accounts.",
     "public_profile_visibility": "Profile visibility",
     "public_profile_visibility_description": "When enabled, any user (including non-registered visitors) can view your public profile. When disabled, only competition organizers and administrators can see it.",
     "public_results_visibility": "Results visibility",
@@ -93,7 +139,19 @@
   "admin": {
     "review_requests": {
       "search_placeholder": "Search requests",
-      "title": "Review Permission Requests"
+      "title": "Review Permission Requests",
+      "pending_requests": "Pending Requests",
+      "requests_count": "{{count}} requests",
+      "requests_filtered_count": "{{filtered}} / {{total}} requests",
+      "no_requests_title": "No Requests Found",
+      "no_requests_search": "No requests match your search criteria.",
+      "no_requests_empty": "There are no pending permission requests at this time.",
+      "requested_on": "Requested on {{date}}",
+      "competition_label": "Competition: {{name}}",
+      "reason_label": "Reason:",
+      "additional_info_label": "Additional Information:",
+      "accept": "Accept",
+      "reject": "Reject"
     }
   },
   "competition": {
@@ -147,6 +205,7 @@
       "category_subname": "Category Subname",
       "category_subname_placeholder": "Enter category subname",
       "remove_image": "Remove Image",
+      "choose_image": "Choose Image",
       "remove_category": "Remove Category",
       "payment_method": "Payment Method",
       "payment_method_placeholder": "Describe how participants should pay (e.g. bank transfer, cash at the door...)",
@@ -233,7 +292,8 @@
     "select_all": "Select all",
     "deselect_all": "Deselect all",
     "claim_selected": "Claim selected",
-    "skip": "Skip for now"
+    "skip": "Skip for now",
+    "continue": "Continue"
   },
   "registration": {
     "title": "Category Registration",
@@ -254,6 +314,10 @@
     "search_placeholder": "Search for teammates by name...",
     "submit_all": "Submit All Registrations",
     "incomplete_parties": "some teams are incomplete",
+    "empty_parties": "some teams have no members",
+    "empty_spot": "empty spot",
+    "empty_spots": "empty spots",
+    "organizer_mode": "Organizer mode — Organizers can create entries without limit and are auto-confirmed.",
     "registration_not_available": "Registration is not available for this category.",
     "status_pending_confirmation": "Pending Confirmation",
     "status_confirmed": "Confirmed",
@@ -278,10 +342,12 @@
     "payment_warning_confirm": "I understand, submit",
     "payment_warning_cancel": "Cancel",
     "pending_confirmation_not_guaranteed": "The registrations in pending confirmation do not guarantee a participation into the competition.",
-    "success_title": "Registration Complete!",
-    "success_message": "Your registrations have been submitted successfully.",
-    "back_to_competition": "Back to competition details",
-    "go_home": "Go home"
+    "toast_success_title": "Registration submitted!",
+    "toast_error_title": "Registration failed",
+    "toast_category_header": "Category",
+    "toast_entries_header": "Entries",
+    "confirm_unregister_title": "Remove registration?",
+    "confirm_unregister_message": "This will remove the registration. You can register again if spots are still available."
   },
   "manage_judges": {
     "title": "Manage Judges",
@@ -312,6 +378,7 @@
     "no_categories": "No categories in this competition.",
     "confirmed_success": "Registration confirmed successfully.",
     "refused_success": "Registration refused successfully.",
+    "already_removed": "This registration has already been handled or removed.",
     "confirm_error": "Failed to confirm registration.",
     "refuse_error": "Failed to refuse registration.",
     "confirm_accept_title": "Accept registration",
@@ -356,18 +423,41 @@
     "pdf_registration_date": "Registration Date",
     "pdf_status": "Status",
     "pdf_confirmed_date": "Confirmed Date",
-    "pdf_generated_at": "Generated on {{date}}"
+    "pdf_generated_at": "Generated on {{date}}",
+    "registration_label": "Registration is",
+    "status_open": "open",
+    "status_closed": "closed",
+    "updating": "Updating...",
+    "close_registration": "Close",
+    "open_registration": "Open",
+    "add_categories_first": "Add categories before opening registration.",
+    "toggle_error": "Failed to update registration status.",
+    "unexpected_error": "An unexpected error occurred."
   },
   "puzzles": {
     "catalog_title": "Puzzle Catalog",
     "edit_title": "Edit Puzzle",
-    "add_title": "Add New Puzzle"
+    "add_title": "Add New Puzzle",
+    "image": "Image",
+    "choose_image": "Choose Image"
   },
   "head": {
     "title": "PuzzLigas - Speed Puzzling Competitions | Join Global Puzzle Events"
   },
   "request_permissions": {
-    "title": "Request Permissions"
+    "title": "Request Permissions",
+    "success_message": "Your request has been submitted successfully! You will be notified once it's reviewed.",
+    "role_access_request": "Role Access Request",
+    "select_role": "Select a role",
+    "reason_label": "Reason for Request",
+    "reason_placeholder": "Include here which competitions you are planning to organize...",
+    "additional_info_label": "Additional Information",
+    "additional_info_optional": "(Optional)",
+    "additional_info_placeholder": "Any additional details that might help with your request...",
+    "terms_checkbox": "I understand that my request will be reviewed and I will be notified of the decision",
+    "cancel": "Cancel",
+    "submit": "Submit Request",
+    "submitting": "Submitting..."
   },
   "error_pages": {
     "access_denied": "Access Denied",
@@ -425,7 +515,12 @@
     "password_too_short": "Password must be at least 8 characters",
     "revoke_other_sessions": "Sign out all other devices",
     "submitting": "Submitting...",
-    "back_to_login": "Back to login"
+    "back_to_login": "Back to login",
+    "errors": {
+      "invalid_credentials": "Invalid email or password.",
+      "email_already_exists": "This email address is already registered.",
+      "unexpected": "An unexpected error occurred. Please try again."
+    }
   },
   "legal": {
     "privacy_policy": "Privacy Policy",
@@ -581,6 +676,8 @@
     }
   },
   "explore_competitions": {
+    "competition_singular": "competition",
+    "competition_plural": "competitions",
     "clear_all_filters": "Clear all filters",
     "no_competitions_found": "No competitions found",
     "near_me_goto_profile_1": "Set your location in your",
@@ -601,9 +698,15 @@
       "registration_confirmed_team": "Registration confirmed",
       "registration_confirmed_nonplatform": "Registration confirmed",
       "registration_refused": "Registration refused",
+      "registration_refused_team": "Registration refused",
+      "registration_refused_nonplatform": "Registration refused",
       "registration_waitlisted": "Registration waitlisted",
+      "registration_promoted": "Spot available",
+      "registration_promoted_team": "Spot available",
+      "registration_promoted_nonplatform": "Spot available",
       "competition_started": "Competition started",
       "competition_cancelled": "Competition cancelled",
+      "competition_auto_cancelled": "Competition auto-cancelled",
       "external_participant_claimed": "Participant claimed",
       "role_request_approved": "Role request approved",
       "role_request_rejected": "Role request rejected",
@@ -623,10 +726,16 @@
       "registration_confirmed": "Your registration for the {{categoryName}} category in the {{competitionName}} competition has been confirmed by {{confirmedBy}}.",
       "registration_confirmed_team": "Your registration for the {{categoryName}} category in the {{competitionName}} competition has been confirmed by {{confirmedBy}}. Your teammates: {{teammateNames}}.",
       "registration_confirmed_nonplatform": "The registration for {{participantNames}} in the {{categoryName}} category of the {{competitionName}} competition has been confirmed by {{confirmedBy}}.",
-      "registration_refused": "Your registration for {{categoryName}} has been refused.",
+      "registration_refused": "Your registration for the {{categoryName}} category in the {{competitionName}} competition has been refused.",
+      "registration_refused_team": "Your registration for the {{categoryName}} category in the {{competitionName}} competition has been refused. Your teammates: {{teammateNames}}.",
+      "registration_refused_nonplatform": "The registration for {{participantNames}} in the {{categoryName}} category of the {{competitionName}} competition has been refused.",
       "registration_waitlisted": "Your registration for {{categoryName}} has been waitlisted. The category is currently full.",
+      "registration_promoted": "A spot has opened up! Your registration for the {{categoryName}} category in the {{competitionName}} competition has been moved from the waitlist to pending confirmation. Please complete the payment to secure your spot.",
+      "registration_promoted_team": "A spot has opened up! Your registration for the {{categoryName}} category in the {{competitionName}} competition with {{teammateNames}} has been moved from the waitlist to pending confirmation. Please complete the payment to secure your spot.",
+      "registration_promoted_nonplatform": "A spot has opened up! The registration for {{participantNames}} in the {{categoryName}} category of the {{competitionName}} competition has been moved from the waitlist to pending confirmation.",
       "competition_started": "The competition {{competitionName}} has started!",
       "competition_cancelled": "The competition {{competitionName}} has been cancelled.",
+      "competition_auto_cancelled": "The competition {{competitionName}} has been automatically cancelled because it ended without starting.",
       "external_participant_claimed": "{{intentName}} has been claimed by a registered user and is now linked to their account.",
       "role_request_approved": "Your request for the {{roleName}} role has been approved.",
       "role_request_rejected": "Your request for the {{roleName}} role has been rejected.",
@@ -782,6 +891,7 @@
   },
   "onboarding": {
     "step_of": "Step {{current}} of {{total}}",
+    "previous": "Previous",
     "welcome": "Welcome, {{name}}!",
     "welcome_subtitle": "Let's get you set up with just a couple of quick things.",
     "verify_email_title": "Verify your email",
@@ -791,6 +901,8 @@
     "verify_email_resent": "Email sent!",
     "verify_email_resending": "Sending...",
     "verify_email_resend_error": "Failed to send verification email. Please try again later.",
+    "verify_email_toast_title": "Verification email sent",
+    "verify_email_toast_description": "We sent a verification email to {{email}}. Check your inbox.",
     "continue_to_homepage": "Go to homepage"
   },
   "add_location": {
@@ -800,7 +912,9 @@
     "save_button": "Save location",
     "skip_button": "Skip for now",
     "country_placeholder": "Select your country",
-    "postal_code_placeholder": "e.g. 08001"
+    "postal_code_placeholder": "Postal code e.g. 08001",
+    "validation_country": "Please select a valid country.",
+    "validation_postal_code_format": "Enter a valid postal code"
   },
   "add_phone": {
     "description": "Add your phone number so organizers can contact you if there is a problem with your registration.",
@@ -813,7 +927,7 @@
     "validation_prefix_required": "Phone prefix is required when number is provided",
     "validation_number_required": "Phone number is required when prefix is provided",
     "validation_prefix_format": "Prefix must start with + followed by 1-4 digits",
-    "validation_number_format": "Enter a valid phone number"
+    "validation_number_format": "Enter a valid phone number with 6 to 12 digits"
   },
   "select_language": {
     "title": "Choose your language",

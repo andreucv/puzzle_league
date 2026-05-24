@@ -1,6 +1,7 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { recordFinishTime, undoFinishTime, EntryNotFoundError, InvalidEntryStateError } from '$lib/database/db_entry';
 import { publishCompetitionEvent } from '$lib/events/server/ably';
+import { getPostHogClient } from '$lib/server/posthog';
 
 export const POST = async (event: RequestEvent) => {
   try {
@@ -18,6 +19,19 @@ export const POST = async (event: RequestEvent) => {
       categoryId: updatedEntry.categoryId,
       competitionId: updatedEntry.category.competitionId,
       finishTime: updatedEntry.finishTime!.toISOString()
+    });
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: event.locals.user?.id ?? 'server',
+      event: 'entry_result_recorded',
+      properties: {
+        entry_id: entryId,
+        category_id: updatedEntry.categoryId,
+        competition_id: updatedEntry.category.competitionId,
+        finish_time: updatedEntry.finishTime?.toISOString(),
+        table_number: tableNumber
+      }
     });
 
     return json({ entry: updatedEntry });

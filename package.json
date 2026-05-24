@@ -16,7 +16,7 @@
 		"test:unit": "vitest run",
 		"test:unit:watch": "vitest",
 		"test": "pnpm test:unit && pnpm test:e2e",
-		"postinstall": "svelte-kit sync && prisma generate --no-engine"
+		"postinstall": "svelte-kit sync && prisma generate"
 	},
 	"devDependencies": {
 		"@inquirer/prompts": "^8.4.3",

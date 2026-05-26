@@ -2,6 +2,11 @@ import { json } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/create_prisma_client';
 import { Role } from '$lib/.prisma/generated/prisma/enums';
+import {
+  getCompetitionAccess,
+  requireCategoryJudge as requireCategoryJudgeAccess,
+  requireEntryJudge as requireEntryJudgeAccess,
+} from '$lib/services/competition-access';
 
 export type AuthResult =
   | { authorized: true; userId: string }
@@ -56,7 +61,7 @@ export async function requireRole(event: RequestEvent, role: Role): Promise<Auth
   return authResult;
 }
 
-/** Check if user is a judge/organizer for a specific competition */
+/** Check if user is an organizer for a specific competition (creator, admin, or scoped organizer) */
 export async function requireCompetitionRole(
   event: RequestEvent,
   competitionId: number,
@@ -65,26 +70,14 @@ export async function requireCompetitionRole(
   const authResult = await requireAuth(event);
   if (!authResult.authorized) return authResult;
 
-  // Run admin, competition-role, and creator checks in parallel to reduce sequential DB trips
-  const [isAdmin, hasCompetitionRole, isCreator] = await Promise.all([
-    prisma.roleAssignment.findFirst({
-      where: { userId: authResult.userId, role: Role.ADMIN }
-    }),
-    prisma.roleAssignment.findFirst({
-      where: {
-        userId: authResult.userId,
-        competitionId,
-        role: { in: roles }
-      }
-    }),
-    prisma.competition.findFirst({
-      where: { id: competitionId, creatorId: authResult.userId }
-    })
-  ]);
+  const access = await getCompetitionAccess(competitionId, authResult.userId);
 
-  if (isAdmin || hasCompetitionRole || isCreator) {
-    return authResult;
-  }
+  // Organizer-level roles: creator, admin, or scoped competition organizer
+  const wantsOrganizer = roles.includes(Role.ORGANIZER);
+  const wantsJudge = roles.includes(Role.JUDGE);
+
+  if (wantsOrganizer && access.isOrganizer) return authResult;
+  if (wantsJudge && (access.isJudge || access.isOrganizer)) return authResult;
 
   return {
     authorized: false,
@@ -103,28 +96,15 @@ export async function requireCategoryJudge(
   const authResult = await requireAuth(event);
   if (!authResult.authorized) return authResult;
 
-  const category = await prisma.category.findUnique({
-    where: { id: categoryId },
-    select: { competitionId: true, judges: { where: { id: authResult.userId }, select: { id: true } } }
-  });
-
-  if (!category) {
-    return {
-      authorized: false,
-      response: new Response(JSON.stringify({ error: 'Category not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      })
-    };
-  }
-
-  // User is directly assigned as judge for this category
-  if (category.judges.length > 0) {
+  try {
+    await requireCategoryJudgeAccess(categoryId, authResult.userId);
     return authResult;
+  } catch (response) {
+    if (response instanceof Response) {
+      return { authorized: false, response };
+    }
+    throw response;
   }
-
-  // Fall back to competition-level role check (organizer, admin, creator)
-  return requireCompetitionRole(event, category.competitionId, [Role.JUDGE, Role.ORGANIZER]);
 }
 
 /** Check if user is judge for an entry's category */
@@ -135,20 +115,13 @@ export async function requireEntryJudge(
   const authResult = await requireAuth(event);
   if (!authResult.authorized) return authResult;
 
-  const entry = await prisma.entry.findUnique({
-    where: { id: entryId },
-    select: { categoryId: true }
-  });
-
-  if (!entry) {
-    return {
-      authorized: false,
-      response: new Response(JSON.stringify({ error: 'Entry not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      })
-    };
+  try {
+    await requireEntryJudgeAccess(entryId, authResult.userId);
+    return authResult;
+  } catch (response) {
+    if (response instanceof Response) {
+      return { authorized: false, response };
+    }
+    throw response;
   }
-
-  return requireCategoryJudge(event, entry.categoryId);
 }

@@ -39,6 +39,7 @@ model User {
   entries                Entry[]                  @relation("EntryParticipants")
   createdEntries         Entry[]                  @relation("EntryCreator")
   roleAssignments        RoleAssignment[]
+  competitionRoleAssignments CompetitionRoleAssignment[]
   requests               Request[]
   leaguePoints           LeaguePoints[]
   competitions           Competition[]
@@ -189,7 +190,7 @@ model Competition {
   leagueId           String?
   league             League?           @relation(fields: [leagueId], references: [id], onDelete: Cascade)
   categories         Category[]
-  roleAssignments    RoleAssignment[]
+  competitionRoleAssignments CompetitionRoleAssignment[]
   requests           Request[]
   paymentMethod      String?
   creatorId          String
@@ -278,13 +279,31 @@ model RoleAssignment {
   role          Role
   userId        String
   user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  competitionId Int?
-  competition   Competition? @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
   @@unique([userId, role])
   @@map("role_assignment")
+}
+
+enum CompetitionRole {
+  ORGANIZER
+
+  @@map("CompetitionRole")
+}
+
+model CompetitionRoleAssignment {
+  id            String          @id @default(cuid())
+  role          CompetitionRole
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  competitionId Int
+  competition   Competition     @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@unique([userId, competitionId, role])
+  @@map("competition_role_assignment")
 }
 
 model Request {

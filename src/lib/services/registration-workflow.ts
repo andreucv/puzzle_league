@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { CategoryStatus, NotificationType, RegistrationStatus, Role } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, NotificationType, RegistrationStatus, Role, CompetitionRole } from '$lib/.prisma/generated/prisma/enums';
 import { getMaxEntriesPerCategory } from '$lib/utils/category_utils';
 import {
 	notifyRegistrationConfirmed,
@@ -199,18 +199,19 @@ async function ensureCanManageCompetition(tx: Tx, competitionId: number, actor: 
 	}
 	if (competition.creatorId === actor.userId) return;
 
-	const assignment = await tx.roleAssignment.findFirst({
-		where: {
-			userId: actor.userId,
-			OR: [
-				{ role: Role.ADMIN },
-				{ role: Role.ORGANIZER, competitionId },
-			],
-		},
-		select: { id: true },
-	});
+	// Check global ADMIN or scoped competition ORGANIZER
+	const [isAdmin, isScopedOrganizer] = await Promise.all([
+		tx.roleAssignment.findFirst({
+			where: { userId: actor.userId, role: Role.ADMIN },
+			select: { id: true },
+		}),
+		tx.competitionRoleAssignment.findFirst({
+			where: { userId: actor.userId, competitionId, role: CompetitionRole.ORGANIZER },
+			select: { id: true },
+		}),
+	]);
 
-	if (!assignment) {
+	if (!isAdmin && !isScopedOrganizer) {
 		throw new RegistrationWorkflowError('NOT_ALLOWED', 'Not authorized to manage this registration');
 	}
 }

@@ -1,4 +1,4 @@
-import { CategoryStatus, CompetitionStatus, RegistrationStatus, Role } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, CompetitionStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
 import type { Prisma } from '$lib/.prisma/generated/prisma/client';
 import type { Competition, Category } from '$lib/.prisma/generated/prisma/browser';
 import { prisma } from '$lib/database/create_prisma_client';
@@ -219,8 +219,7 @@ export async function getAllCompetitions() {
                 league: true,
                 _count: {
                     select: {
-                        categories: true,
-                        roleAssignments: true
+                        categories: true
                     }
                 }
             },
@@ -254,8 +253,7 @@ export async function getMonthCompetitions(month: number, year: number) {
                 },
                 _count: {
                     select: {
-                        categories: true,
-                        roleAssignments: true
+                        categories: true
                     }
                 }
             },
@@ -691,41 +689,6 @@ export async function getLastUserResults(userId: string, limit: number = 5) {
 }
 
 // ---------------------------------------------------------------------------
-// Access control
-// ---------------------------------------------------------------------------
-
-/**
- * Returns whether a user can access the During Competition page for a given competition.
- * Allowed: the competition's creator, admins, and judges assigned to a category in this competition.
- */
-export async function getDuringCompetitionAccess(
-    competitionId: number,
-    userId: string
-): Promise<{ isOrganizer: boolean; isJudge: boolean; judgedCategoryIds: number[] }> {
-    const [isCreator, isAdmin, judgedCategories] = await Promise.all([
-        prisma.competition.findFirst({
-            where: { id: competitionId, creatorId: userId },
-            select: { id: true }
-        }),
-        prisma.roleAssignment.findFirst({
-            where: { userId, role: Role.ADMIN }
-        }),
-        prisma.category.findMany({
-            where: {
-                competitionId,
-                judges: { some: { id: userId } }
-            },
-            select: { id: true }
-        })
-    ]);
-
-    return {
-        isOrganizer: !!(isCreator || isAdmin),
-        isJudge: judgedCategories.length > 0,
-        judgedCategoryIds: judgedCategories.map((c) => c.id)
-    };
-}
-
 // ---------------------------------------------------------------------------
 // Competition mutations
 // ---------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getCompetition, getCompetitionCategories } from '$lib/database/db_competition';
-import { getDuringCompetitionAccess } from '$lib/database/db_competition';
+import { getCompetitionAccess } from '$lib/services/competition-access';
 import { buildEventStateFromCategories } from '$lib/events/channels/competition';
 
 export const load: PageServerLoad = async ({ params, locals, url }) => {
@@ -16,13 +16,13 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
         throw redirect(302, '/login?redirect=' + encodeURIComponent(url.pathname));
     }
 
-    const [{ isOrganizer, isJudge, judgedCategoryIds }, competition, categories] = await Promise.all([
-        getDuringCompetitionAccess(competitionId, user.id),
+    const [access, competition, categories] = await Promise.all([
+        getCompetitionAccess(competitionId, user.id),
         getCompetition(competitionId),
         getCompetitionCategories(competitionId)
     ]);
 
-    if (!isOrganizer && !isJudge) {
+    if (!access.isOrganizer && !access.isJudge) {
         throw error(403, 'You must be an organizer or judge for this competition');
     }
 
@@ -36,8 +36,8 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
         props: {
             competition,
             categories,
-            userRole: isOrganizer ? 'organizer' : 'judge',
-            judgedCategoryIds,
+            userRole: access.isOrganizer ? 'organizer' : 'judge',
+            judgedCategoryIds: access.judgedCategoryIds,
             initialEventState
         }
     };

@@ -18,15 +18,10 @@ export const GET = async (event: RequestEvent) => {
               include: {
                 users: true
               }
+            },
+            judges: {
+              select: { id: true, name: true, email: true, image: true }
             }
-          }
-        },
-        roleAssignments: {
-          where: {
-            role: 'JUDGE'
-          },
-          include: {
-            user: true
           }
         }
       }
@@ -36,9 +31,17 @@ export const GET = async (event: RequestEvent) => {
       return json({ error: 'Competition not found' }, { status: 404 });
     }
 
+    // Collect unique judges across all categories
+    const judgeMap = new Map<string, { id: string; name: string; email: string; image: string | null }>();
+    for (const category of competition.categories) {
+      for (const judge of category.judges) {
+        judgeMap.set(judge.id, judge);
+      }
+    }
+
     return json({
       competition,
-      judges: competition.roleAssignments.map(ra => ra.user)
+      judges: Array.from(judgeMap.values())
     });
   } catch (error) {
     console.error('Error fetching competition data:', error);

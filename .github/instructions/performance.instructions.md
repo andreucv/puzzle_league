@@ -73,7 +73,7 @@ export const load: PageServerLoad = async (event) => {
 ```ts
 // ✅ CORRECT — only needs user.id, no enriched data required
 export const load: PageServerLoad = async (event) => {
-    const { isOrganizer, isJudge } = await getDuringCompetitionAccess(competitionId, event.locals.user.id);
+    const access = await getCompetitionAccess(competitionId, event.locals.user.id);
 };
 ```
 

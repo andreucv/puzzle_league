@@ -1,8 +1,9 @@
 import type { PageServerLoad, Actions } from "./$types";
-import { getCompetitionWithCategories, getCompetitionCategories, getDuringCompetitionAccess } from "$lib/database/db_competition";
+import { getCompetitionWithCategories, getCompetitionCategories } from "$lib/database/db_competition";
 import { getCategoryEntriesFromCompetition, getRegisteredUserIdsByCategory } from "$lib/database/db_entry";
 import { isRegistrationWorkflowError, submitRegistration, unregisterRegistration } from "$lib/services/registration-workflow";
 import { redirect } from "@sveltejs/kit";
+import { getCompetitionAccess } from "$lib/services/competition-access";
 
 export const load: PageServerLoad = async (event) => {
     const user = event.locals.user;
@@ -25,7 +26,7 @@ export const load: PageServerLoad = async (event) => {
         getCategoryEntriesFromCompetition(competitionId, user.id),
         getRegisteredUserIdsByCategory(competitionId),
         getCompetitionCategories(competitionId),
-        getDuringCompetitionAccess(competitionId, user.id)
+        getCompetitionAccess(competitionId, user.id)
     ]);
 
     return {
@@ -57,11 +58,11 @@ export const actions: Actions = {
 
             // Verify organizer status server-side (never trust the client)
             const competitionId = parseInt(params.id);
-            const { isOrganizer } = await getDuringCompetitionAccess(competitionId, user.id);
+            const access = await getCompetitionAccess(competitionId, user.id);
 
             const result = await submitRegistration({
                 competitionId,
-                actor: { userId: user.id, name: user.name ?? undefined, isOrganizer },
+                actor: { userId: user.id, name: user.name ?? undefined, isOrganizer: access.isOrganizer },
                 signups,
             });
 

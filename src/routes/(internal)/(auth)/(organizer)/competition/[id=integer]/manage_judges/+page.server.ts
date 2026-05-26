@@ -1,8 +1,7 @@
 import type { PageServerLoad } from "./$types";
-import { prisma } from "$lib/database/create_prisma_client";
 import { redirect } from "@sveltejs/kit";
-import { Role } from "$lib/.prisma/generated/prisma/enums";
 import { getCompetitionWithJudges } from "$lib/database/db_competition";
+import { getCompetitionAccess } from "$lib/services/competition-access";
 
 export const load: PageServerLoad = async (event) => {
     const competitionId = parseInt(event.params.id);
@@ -25,21 +24,9 @@ export const load: PageServerLoad = async (event) => {
         throw redirect(302, '/login?redirect=' + encodeURIComponent(event.url.pathname));
     }
 
-    const isCreator = result.competition.creatorId === userId;
-    if (!isCreator) {
-        const hasAccess = await prisma.roleAssignment.findFirst({
-            where: {
-                userId,
-                OR: [
-                    { role: Role.ADMIN },
-                    { role: Role.ORGANIZER, competitionId }
-                ]
-            }
-        });
-
-        if (!hasAccess) {
-            throw redirect(302, '/error/no_permission/');
-        }
+    const access = await getCompetitionAccess(competitionId, userId);
+    if (!access.isOrganizer) {
+        throw redirect(302, '/error/no_permission/');
     }
 
     return {

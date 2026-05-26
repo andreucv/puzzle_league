@@ -3,6 +3,7 @@ import type { Action, Actions, PageServerLoad } from '../$types';
 import { updateCompetition, getCompetitionWithCategories } from '$lib/database/db_competition';
 import { CategoryType, CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
 import { getPostHogClient } from '$lib/server/posthog';
+import { getCompetitionAccess } from '$lib/services/competition-access';
 
 import { superValidate, message} from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
@@ -56,8 +57,9 @@ export const load: PageServerLoad = async (event) => {
                 };
             }
 
-            // Check if the user is the creator of the competition
-            if (competition.creatorId !== user.id) {
+            // Check if the user has organizer access (creator, admin, or scoped organizer)
+            const access = await getCompetitionAccess(competitionId, user.id);
+            if (!access.isOrganizer) {
                 console.error("competition/edit/+page.server.ts creatorId:", competition.creatorId, "!= user.id:", user.id);
                 throw error(403, { message: 'You are not authorized to edit this competition.', code: 'FORBIDDEN' });
             }

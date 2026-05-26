@@ -253,11 +253,11 @@
             <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
                 <CategoryCardTitle type={category.type} subname={category.subname ?? ''}/>
                 {#if category.maxParties}
-                    {@const confirmedCount = category.entries.filter((r: any) => r.status === 'CONFIRMED').length}
-                    {@const remaining = category.maxParties - confirmedCount}
+                    {@const reservedCount = category.entries.filter((r: any) => r.status === 'CONFIRMED' || r.status === 'PENDING_CONFIRMATION').length}
+                    {@const remaining = category.maxParties - reservedCount}
                     <span class="text-sm {remaining > 0 ? 'text-surface-600 dark:text-surface-400' : 'text-error-600 dark:text-error-400'}">
                         <SeatOutlineIcon width="1rem" height="1rem" class="inline-block align-text-bottom mr-1" />
-                        {$t('manage_registrations.seats_available', { accepted: confirmedCount, max: category.maxParties })}
+                        {$t('manage_registrations.seats_available', { accepted: reservedCount, max: category.maxParties })}
                     </span>
                 {/if}
             </div>

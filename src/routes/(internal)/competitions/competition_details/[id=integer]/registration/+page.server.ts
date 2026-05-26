@@ -1,11 +1,8 @@
 import type { PageServerLoad, Actions } from "./$types";
 import { getCompetitionWithCategories, getCompetitionCategories, getDuringCompetitionAccess } from "$lib/database/db_competition";
 import { getCategoryEntriesFromCompetition, getRegisteredUserIdsByCategory } from "$lib/database/db_entry";
-import { signUpUsersToCompetition, removeEntryById } from "$lib/database/db_registration";
-import { notifyWaitlistPromotion } from "$lib/notifications/registration_notifications";
+import { isRegistrationWorkflowError, submitRegistration, unregisterRegistration } from "$lib/services/registration-workflow";
 import { redirect } from "@sveltejs/kit";
-import { createNotificationForUsers } from "$lib/notifications/notifications";
-import { NotificationType, RegistrationStatus } from "$lib/.prisma/generated/prisma/enums";
 
 export const load: PageServerLoad = async (event) => {
     const user = event.locals.user;
@@ -58,42 +55,24 @@ export const actions: Actions = {
         try {
             const signups = JSON.parse(signupsJson);
 
-            if (!Array.isArray(signups) || signups.length === 0) {
-                return { success: false, message: 'No categories selected for signup' };
-            }
-
             // Verify organizer status server-side (never trust the client)
             const competitionId = parseInt(params.id);
             const { isOrganizer } = await getDuringCompetitionAccess(competitionId, user.id);
 
-            const result = await signUpUsersToCompetition(signups, user.id, { isOrganizer });
+            const result = await submitRegistration({
+                competitionId,
+                actor: { userId: user.id, name: user.name ?? undefined, isOrganizer },
+                signups,
+            });
 
-            if (result.success) {
-                // Notify users on waitlisted registrations
-                if (result.data) {
-                    for (const entry of result.data) {
-                        if (entry.status === RegistrationStatus.WAITLISTED) {
-                            const userIds = entry.users.map((u: { id: string }) => u.id);
-                            await createNotificationForUsers(
-                                userIds,
-                                NotificationType.REGISTRATION_WAITLISTED,
-                                'notifications.titles.registration_waitlisted',
-                                'notifications.messages.registration_waitlisted',
-                                `/competitions/competition_details/${entry.category.competition.id}`,
-                                { categoryName: entry.category.description ?? entry.category.type },
-                            );
-                        }
-                    }
-                }
-                return { success: true, summary: result.summary };
-            } else {
-                return { success: false, message: result.error };
-            }
+            return { success: true, summary: result.summary };
         } catch (error) {
             console.error('Error in signup action:', error);
             return {
                 success: false,
-                message: error instanceof Error ? error.message : 'An unexpected error occurred'
+                message: isRegistrationWorkflowError(error)
+                    ? error.message
+                    : error instanceof Error ? error.message : 'An unexpected error occurred'
             };
         }
     },
@@ -113,20 +92,18 @@ export const actions: Actions = {
         }
 
         try {
-            const result = await removeEntryById(entryId, user.id);
-            if (result) {
-                // If a waitlisted entry was promoted, notify its participants
-                if (result.promotedEntry) {
-                    await notifyWaitlistPromotion(result.promotedEntry);
-                }
-                return { success: true, message: 'Successfully unregistered' };
-            }
-            return { success: false, message: 'Failed to unregister' };
+            await unregisterRegistration({
+                entryId,
+                actor: { userId: user.id, name: user.name ?? undefined, isOrganizer: false },
+            });
+            return { success: true, message: 'Successfully unregistered' };
         } catch (error) {
             console.error('Error in unregister action:', error);
             return {
                 success: false,
-                message: error instanceof Error ? error.message : 'An unexpected error occurred'
+                message: isRegistrationWorkflowError(error)
+                    ? error.message
+                    : error instanceof Error ? error.message : 'An unexpected error occurred'
             };
         }
     }

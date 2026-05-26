@@ -64,8 +64,8 @@ export default async function globalTeardown() {
     await new Promise((r) => setTimeout(r, 1000));
     killProcessesOnPort(PREVIEW_PORT);
 
-    // Preserve build hash for next run, remove server PID
-    const newState: ServerState = { buildHash: state.buildHash };
+    // Preserve build hash and dbUrl for next run, remove server PID
+    const newState: ServerState = { buildHash: state.buildHash, dbUrl: state.dbUrl };
     fs.writeFileSync(STATE_FILE, JSON.stringify(newState, null, 2));
     console.log('   ✅ Server stopped. Build hash preserved.\n');
 }

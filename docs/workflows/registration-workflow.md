@@ -1,10 +1,10 @@
 # Registration Workflow
 
-Last updated: 2026-05-21
+Last updated: 2026-05-25
 
 This document describes the current registration workflow for a Competition Category. It is based on the code in:
 
-- `src/lib/database/db_registration.ts`
+- `src/lib/services/registration-workflow.ts`
 - `src/lib/database/db_entry.ts`
 - `src/lib/services/category-lifecycle.ts`
 - `src/routes/(internal)/competitions/competition_details/[id=integer]/registration/`
@@ -31,11 +31,24 @@ PENDING_CONFIRMATION + CONFIRMED
 
 `WAITLISTED` entries do not count against `Category.maxParties`.
 
+## Registration Workflow Module
+
+The Registration workflow Module owns the write-side workflow for Entries:
+
+- `submitRegistration`
+- `unregisterRegistration`
+- `confirmRegistration`
+- `refuseRegistration`
+
+The Module is the server-side seam for registration invariants. Callers pass a `RegistrationActor` and workflow input; the Module validates the actor, route Competition, Category state, capacity, payment behavior, and Entry status transitions. Route actions and API handlers should not perform their own registration state decisions.
+
+Notification side effects are local to workflow outcomes and run after the database transaction. Notification failures are best-effort: they are logged but do not undo a successful Registration mutation.
+
 ## Competition Settings That Affect Registration
 
 ### `registrationOpen`
 
-`Competition.registrationOpen` controls whether the registration UI lets Participants add and submit signups. Organizers can toggle it from the manage registrations page.
+`Competition.registrationOpen` controls whether Participants can submit new registrations. Organizers can toggle it from the manage registrations page.
 
 The competition details page enables the registration button when:
 
@@ -49,7 +62,7 @@ The registration page allows creating entries when:
 
 This means the Competition creator can always register entries through the registration page regardless of the `registrationOpen` toggle, as long as the Category has not started.
 
-The mutation in `signUpUsersToCompetition` enforces `category.status === NOT_STARTED`, but it does not currently re-check `competition.registrationOpen` server-side. The UI is the main `registrationOpen` gate for regular Participants.
+The `submitRegistration` workflow enforces `registrationOpen` server-side. Direct form submission cannot bypass a closed Competition unless the server-created actor is in organizer mode. The workflow still requires each submitted Category to be `NOT_STARTED`.
 
 ### `showPaymentWarning`
 
@@ -82,6 +95,8 @@ Before an Entry is created, the server validates that:
 - reusable External Participants are unclaimed and were created by the current user
 
 Registration-page organizer mode currently means the Competition creator or an Admin, as returned by `getDuringCompetitionAccess`. It is not the same check as the manage registrations page access list.
+
+Organizer confirmation and refusal actions use the manage-registration rule: Competition creator, Admin, or scoped Organizer for that Competition.
 
 Then the initial Entry status is selected.
 
@@ -208,12 +223,13 @@ Organizer notes are stripped of HTML and limited to 200 characters before notifi
 
 ## Display Notes
 
-The public registration page and the manage registrations page display capacity information differently from the status transition rule:
+Capacity displays for registration use reserved slots:
 
-- The transition rule treats `PENDING_CONFIRMATION + CONFIRMED` as reserved capacity.
-- Some UI count displays use confirmed Entries as the accepted count.
+```ts
+PENDING_CONFIRMATION + CONFIRMED
+```
 
-This means a Category can appear to have available accepted seats while new Entries are still waitlisted because pending Entries already reserve those slots.
+`getCompetitionCategories` exposes this as `reservedSlots` while preserving `totalEntries` as confirmed Entries for During Competition views. Public details, public registration, and manage registrations should use reserved slots when showing seats filled or spots left.
 
 ## Notifications
 

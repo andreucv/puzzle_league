@@ -5,7 +5,7 @@
     import type { Category, Puzzle } from '$lib/.prisma/generated/prisma/browser';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
-    type CategoryWithCounts = Category & { totalEntries: number; finishedEntries: number };
+    type CategoryWithCounts = Category & { totalEntries: number; finishedEntries: number; reservedSlots?: number };
     type UserEntry = { categoryId: number; status?: string; users?: { id: string; name: string; email: string; image: string | null }[]; externalParticipants?: { id: string; name: string; claimedById: string | null }[] };
 
     let {
@@ -24,7 +24,8 @@
 
     function getSeatsAvailable(category: CategoryWithPuzzles): number | undefined {
         if (category.maxParties == null) return undefined;
-        const registered = categoriesWithCounts?.find(c => c.id === category.id)?.totalEntries ?? 0;
+        const counts = categoriesWithCounts?.find(c => c.id === category.id);
+        const registered = counts?.reservedSlots ?? counts?.totalEntries ?? 0;
         return category.maxParties - registered;
     }
 

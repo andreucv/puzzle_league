@@ -56,7 +56,8 @@
 
     function getSpotsLeft(category: Category): number | undefined {
         if (category.maxParties == null) return undefined;
-        const registered = categoriesWithCounts.find((c: any) => c.id === category.id)?.totalEntries ?? 0;
+        const counts = categoriesWithCounts.find((c: any) => c.id === category.id);
+        const registered = counts?.reservedSlots ?? counts?.totalEntries ?? 0;
         return category.maxParties - registered;
     }
 
@@ -1097,4 +1098,3 @@
         </div>
     {/if}
 </div>
-

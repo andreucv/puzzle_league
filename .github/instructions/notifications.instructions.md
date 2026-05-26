@@ -35,13 +35,13 @@ await createNotification({
 });
 ```
 
-### Multiple users (e.g. all participants on a record)
+### Multiple users (e.g. all participants on an entry)
 
 ```ts
 import { createNotificationForUsers } from '$lib/notifications/notifications';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 
-const userIds = record.users.map((u) => u.id);
+const userIds = entry.users.map((u) => u.id);
 await createNotificationForUsers(
     userIds,
     NotificationType.COMPETITION_STARTED,

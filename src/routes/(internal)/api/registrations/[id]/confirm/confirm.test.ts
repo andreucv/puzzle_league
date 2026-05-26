@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const mockRefuseRegistration = vi.fn();
+const mockConfirmRegistration = vi.fn();
 const mockCapture = vi.fn();
 
 vi.mock('$lib/services/registration-workflow', () => ({
-	refuseRegistration: (...args: unknown[]) => mockRefuseRegistration(...args),
+	confirmRegistration: (...args: unknown[]) => mockConfirmRegistration(...args),
 	isRegistrationWorkflowError: (error: unknown) => Boolean((error as { code?: string })?.code),
 	registrationWorkflowHttpStatus: (error: { code: string }) => error.code === 'ENTRY_NOT_FOUND' ? 404 : 400,
 }));
@@ -44,64 +44,63 @@ function makeEntryData() {
 	};
 }
 
-describe('POST /api/registrations/[id]/refuse', () => {
+describe('POST /api/registrations/[id]/confirm', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 	});
 
 	it('Given valid entry, when workflow succeeds, then returns success', async () => {
-		const entryData = makeEntryData();
-		mockRefuseRegistration.mockResolvedValue({
-			entry: entryData,
-			promotedEntry: null,
-		});
+		const entry = makeEntryData();
+		mockConfirmRegistration.mockResolvedValue({ entry });
 
 		const response = await POST(makeEvent('entry-1', { id: 'organizer-1', name: 'Organizer' }));
 
 		expect(response.status).toBe(200);
-		expect(response.body).toEqual({ success: true, data: entryData });
-		expect(mockRefuseRegistration).toHaveBeenCalledWith({
+		expect(response.body).toEqual({ success: true, data: entry });
+		expect(mockConfirmRegistration).toHaveBeenCalledWith({
 			entryId: 'entry-1',
 			actor: { userId: 'organizer-1', name: 'Organizer', isOrganizer: false },
 		});
 	});
 
 	it('Given entry not found, when workflow throws, then returns 404', async () => {
-		mockRefuseRegistration.mockRejectedValue({
+		mockConfirmRegistration.mockRejectedValue({
 			code: 'ENTRY_NOT_FOUND',
 			message: 'Entry not found',
 		});
 
-		const response = await POST(makeEvent('nonexistent', { id: 'organizer-1' }));
+		const response = await POST(makeEvent('missing', { id: 'organizer-1' }));
 
 		expect(response.status).toBe(404);
 		expect(response.body).toEqual({ error: 'Entry not found' });
 	});
 
-	it('Given invalid status, when workflow throws validation error, then returns 400', async () => {
-		mockRefuseRegistration.mockRejectedValue({
+	it('Given invalid status, when workflow throws, then returns 400', async () => {
+		mockConfirmRegistration.mockRejectedValue({
 			code: 'INVALID_STATUS',
-			message: 'Only pending, confirmed, or waitlisted registrations can be refused',
+			message: 'Only pending confirmation registrations can be confirmed',
 		});
 
 		const response = await POST(makeEvent('entry-1', { id: 'organizer-1' }));
 
 		expect(response.status).toBe(400);
-		expect(response.body).toEqual({ error: 'Only pending, confirmed, or waitlisted registrations can be refused' });
+		expect(response.body).toEqual({ error: 'Only pending confirmation registrations can be confirmed' });
 	});
 
-	it('Given promoted entry, when workflow succeeds, then capture includes promotion flag', async () => {
-		const entryData = makeEntryData();
-		mockRefuseRegistration.mockResolvedValue({
-			entry: entryData,
-			promotedEntry: { id: 'promoted-1' },
-		});
+	it('Given successful confirmation, when route captures analytics, then uses workflow metadata', async () => {
+		mockConfirmRegistration.mockResolvedValue({ entry: makeEntryData() });
 
 		await POST(makeEvent('entry-1', { id: 'organizer-1' }));
 
 		expect(mockCapture).toHaveBeenCalledWith(expect.objectContaining({
-			event: 'registration_refused',
-			properties: expect.objectContaining({ waitlist_promoted: true }),
+			distinctId: 'organizer-1',
+			event: 'registration_confirmed',
+			properties: expect.objectContaining({
+				entry_id: 'entry-1',
+				competition_id: 42,
+				competition_name: 'Speed Cup',
+				category_type: 'INDIVIDUAL',
+			}),
 		}));
 	});
 
@@ -117,6 +116,6 @@ describe('POST /api/registrations/[id]/refuse', () => {
 
 		expect(response.status).toBe(401);
 		expect(response.body).toEqual({ error: 'You must be logged in' });
-		expect(mockRefuseRegistration).not.toHaveBeenCalled();
+		expect(mockConfirmRegistration).not.toHaveBeenCalled();
 	});
 });

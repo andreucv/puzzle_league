@@ -39,7 +39,7 @@ A platform user who creates and manages their own competitions. Global role, but
 _Avoid_: Host, creator, manager
 
 **Judge**:
-A platform user assigned to specific categories to help record finish times. Assigned per-category, not per-competition.
+A platform user assigned to specific categories to help entry finish times. Assigned per-category, not per-competition.
 _Avoid_: Referee, timer, official
 
 **Admin**:

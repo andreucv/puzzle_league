@@ -383,6 +383,27 @@
         return false;
     });
 
+    // Paid categories from queued signups that will be waitlisted (partially or fully)
+    let waitlistedPaidCategories = $derived(() => {
+        if (!competition?.showPaymentWarning) return [];
+        const result: { name: string; waitlistedCount: number }[] = [];
+        for (const [categoryId, slots] of pendingSignups) {
+            const category = categories.find((c: Category) => c.id === categoryId);
+            if (!category) continue;
+            const price = (category as any).price ?? 0;
+            if (price <= 0) continue;
+            const spotsLeft = getSpotsLeft(category);
+            if (spotsLeft === undefined) continue;
+            const waitlistedCount = Math.max(0, slots.length - Math.max(0, spotsLeft));
+            if (waitlistedCount > 0) {
+                const typeName = $t(getCategoryTypeName(category.type));
+                const name = category.description ? `${typeName} (${category.description})` : typeName;
+                result.push({ name, waitlistedCount });
+            }
+        }
+        return result;
+    });
+
     let paymentFeeBreakdown = $derived(() => {
         const items: { name: string; count: number; unitPrice: number }[] = [];
         let total = 0;
@@ -391,10 +412,17 @@
             if (!category) continue;
             const price = (category as any).price ?? 0;
             if (price > 0) {
+                // Only count entries that will get reserved slots, not waitlisted ones
+                const spotsLeft = getSpotsLeft(category);
+                const payableCount = competition?.showPaymentWarning && spotsLeft !== undefined
+                    ? Math.min(slots.length, Math.max(0, spotsLeft))
+                    : slots.length;
+                if (payableCount <= 0) continue;
+
                 const typeName = $t(getCategoryTypeName(category.type));
                 const description = category.description ? `${typeName} (${category.description})` : typeName;
-                items.push({ name: description, count: slots.length, unitPrice: price });
-                total += price * slots.length;
+                items.push({ name: description, count: payableCount, unitPrice: price });
+                total += price * payableCount;
             }
         }
         return { items, total };
@@ -1040,37 +1068,66 @@
                     <!-- Payment warning popover -->
                     {#if showPaymentPopover}
                         {@const breakdown = paymentFeeBreakdown()}
+                        {@const waitlistedPaid = waitlistedPaidCategories()}
+                        {@const hasPaymentItems = breakdown.items.length > 0}
                         <div
                             role="dialog"
                             aria-modal="true"
-                            class="absolute bottom-full left-0 right-0 mb-2 z-50 card bg-warning-50 dark:bg-warning-950 border-2 border-warning-300 dark:border-warning-700 shadow-xl overflow-hidden"
+                            class="absolute bottom-full left-0 right-0 mb-2 z-50 card {waitlistedPaid.length > 0 ? 'bg-error-50 dark:bg-error-950 border-2 border-error-300 dark:border-error-700' : 'bg-warning-50 dark:bg-warning-950 border-2 border-warning-300 dark:border-warning-700'} shadow-xl overflow-hidden"
                             transition:slide={{ duration: 200 }}
+                            data-testid="registration-warning-popover"
                         >
-                            <div class="h-1 w-full preset-filled-warning-500"></div>
+                            <div class="h-1 w-full {waitlistedPaid.length > 0 ? 'preset-filled-error-500' : 'preset-filled-warning-500'}"></div>
                             <div class="p-4 space-y-3">
-                                <div class="flex items-center gap-2">
-                                    <AlertCircleIcon width="1.3rem" height="1.3rem" class="text-warning-500" />
-                                    <p class="text-sm font-semibold">{$t('registration.payment_warning_title')}</p>
-                                </div>
-                                <p class="text-xs text-warning-600 dark:text-warning-400">
-                                    {$t('registration.pending_confirmation_not_guaranteed')}
-                                </p>
-                                <p class="text-xs text-surface-600 dark:text-surface-400">
-                                    {$t('registration.payment_warning_message')}
-                                </p>
-                                <!-- Itemized fees -->
-                                <div class="space-y-1 text-sm">
-                                    {#each breakdown.items as item}
-                                        <div class="flex justify-between items-center">
-                                            <span>{item.count}× {item.name}</span>
-                                            <span class="font-medium">{item.unitPrice * item.count}€</span>
-                                        </div>
-                                    {/each}
-                                    <div class="flex justify-between items-center border-t border-surface-300 dark:border-surface-600 pt-1 font-semibold">
-                                        <span>{$t('registration.payment_warning_total')}</span>
-                                        <span>{breakdown.total}€</span>
+                                <!-- Waitlist warning section -->
+                                {#if waitlistedPaid.length > 0}
+                                    <div class="flex items-center gap-2">
+                                        <AlertCircleIcon width="1.3rem" height="1.3rem" class="text-error-500" />
+                                        <p class="text-sm font-semibold">{$t('registration.waitlist_warning_title')}</p>
                                     </div>
-                                </div>
+                                    <p class="text-xs text-error-600 dark:text-error-400">
+                                        {$t('registration.waitlist_warning_message')}
+                                    </p>
+                                    <ul class="list-disc list-inside text-xs text-error-600 dark:text-error-400">
+                                        {#each waitlistedPaid as { name, waitlistedCount }}
+                                            <li>{name} — {$t('registration.waitlist_warning_entry_count', { count: waitlistedCount })}</li>
+                                        {/each}
+                                    </ul>
+                                    <p class="text-xs font-semibold text-error-700 dark:text-error-300">
+                                        {$t('registration.waitlist_warning_do_not_pay')}
+                                    </p>
+                                {/if}
+
+                                <!-- Payment warning section (only for non-full paid categories) -->
+                                {#if hasPaymentItems}
+                                    {#if waitlistedPaid.length > 0}
+                                        <hr class="border-surface-300 dark:border-surface-600" />
+                                    {/if}
+                                    <div class="flex items-center gap-2">
+                                        <AlertCircleIcon width="1.3rem" height="1.3rem" class="text-warning-500" />
+                                        <p class="text-sm font-semibold">{$t('registration.payment_warning_title')}</p>
+                                    </div>
+                                    <p class="text-xs text-warning-600 dark:text-warning-400">
+                                        {$t('registration.pending_confirmation_not_guaranteed')}
+                                    </p>
+                                    <p class="text-xs text-surface-600 dark:text-surface-400">
+                                        {$t('registration.payment_warning_message')}
+                                    </p>
+                                    <!-- Itemized fees -->
+                                    <div class="space-y-1 text-sm">
+                                        {#each breakdown.items as item}
+                                            <div class="flex justify-between items-center">
+                                                <span>{item.count}× {item.name}</span>
+                                                <span class="font-medium">{item.unitPrice * item.count}€</span>
+                                            </div>
+                                        {/each}
+                                        <div class="flex justify-between items-center border-t border-surface-300 dark:border-surface-600 pt-1 font-semibold">
+                                            <span>{$t('registration.payment_warning_total')}</span>
+                                            <span>{breakdown.total}€</span>
+                                        </div>
+                                    </div>
+                                {/if}
+
                                 <div class="flex justify-end gap-2 pt-1">
                                     <button
                                         type="button"
@@ -1082,12 +1139,14 @@
                                     </button>
                                     <button
                                         type="submit"
-                                        class="btn btn-sm preset-filled-warning-500"
+                                        class="btn btn-sm {waitlistedPaid.length > 0 && !hasPaymentItems ? 'preset-filled-error-500' : 'preset-filled-warning-500'}"
                                         onclick={() => { showPaymentPopover = false; }}
                                         data-testid="payment-warning-confirm"
                                     >
                                         <CheckIcon width="1rem" height="1rem" />
-                                        {$t('registration.payment_warning_confirm')}
+                                        {waitlistedPaid.length > 0 && !hasPaymentItems
+                                            ? $t('registration.waitlist_warning_confirm')
+                                            : $t('registration.payment_warning_confirm')}
                                     </button>
                                 </div>
                             </div>

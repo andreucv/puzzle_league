@@ -15,15 +15,16 @@ export const DELETE: RequestHandler = async (event) => {
 			return json({ error: 'Missing userId' }, { status: 400 });
 		}
 
-		const updated = await prisma.category.update({
-			where: { id: categoryId },
-			data: { judges: { disconnect: { id: userId } } },
-			include: {
-				judges: { select: { id: true, name: true, email: true } }
-			}
+		await prisma.categoryJudgeAssignment.delete({
+			where: { userId_categoryId: { userId, categoryId } },
 		});
 
-		return json({ success: true, judges: updated.judges });
+		const judges = await prisma.categoryJudgeAssignment.findMany({
+			where: { categoryId },
+			select: { user: { select: { id: true, name: true, email: true } } },
+		});
+
+		return json({ success: true, judges: judges.map((j) => j.user) });
 	} catch (error) {
 		console.error('Error removing judge from category:', error);
 		return json({ error: 'Failed to remove judge' }, { status: 500 });

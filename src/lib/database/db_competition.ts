@@ -836,8 +836,8 @@ export async function getCompetitionWithJudges(competitionId: number) {
         include: {
             categories: {
                 include: {
-                    judges: {
-                        select: { id: true, name: true, email: true }
+                    judgeAssignments: {
+                        select: { user: { select: { id: true, name: true, email: true } } }
                     }
                 },
                 orderBy: { startTime: 'asc' }
@@ -858,7 +858,7 @@ export async function getCompetitionWithJudges(competitionId: number) {
             description: cat.description,
             subname: cat.subname,
             type: cat.type,
-            judges: cat.judges
+            judges: cat.judgeAssignments.map((a) => a.user)
         }))
     };
 }

@@ -59,7 +59,7 @@ export const load: PageServerLoad = async (event) => {
 
             // Check if the user has organizer access (creator, admin, or scoped organizer)
             const access = await getCompetitionAccess(competitionId, user.id);
-            if (!access.isOrganizer) {
+            if (!access.canManageCompetition) {
                 console.error("competition/edit/+page.server.ts creatorId:", competition.creatorId, "!= user.id:", user.id);
                 throw error(403, { message: 'You are not authorized to edit this competition.', code: 'FORBIDDEN' });
             }

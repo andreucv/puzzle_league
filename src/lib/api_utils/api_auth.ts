@@ -76,8 +76,8 @@ export async function requireCompetitionRole(
   const wantsOrganizer = roles.includes(Role.ORGANIZER);
   const wantsJudge = roles.includes(Role.JUDGE);
 
-  if (wantsOrganizer && access.isOrganizer) return authResult;
-  if (wantsJudge && (access.isJudge || access.isOrganizer)) return authResult;
+  if (wantsOrganizer && access.canManageCompetition) return authResult;
+  if (wantsJudge && (access.isJudge || access.canManageCompetition)) return authResult;
 
   return {
     authorized: false,

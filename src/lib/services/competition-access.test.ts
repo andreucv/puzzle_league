@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Role, CompetitionRole } from '$lib/.prisma/generated/prisma/enums';
+import { Role } from '$lib/.prisma/generated/prisma/enums';
 
 const mockCompetitionFindUnique = vi.fn();
 const mockRoleAssignmentFindFirst = vi.fn();
-const mockCompetitionRoleAssignmentFindFirst = vi.fn();
+const mockCompetitionCoorganizerRoleAssignmentFindFirst = vi.fn();
+const mockCategoryJudgeAssignmentFindMany = vi.fn();
 const mockCategoryFindMany = vi.fn();
 const mockCategoryFindUnique = vi.fn();
 const mockEntryFindUnique = vi.fn();
@@ -12,7 +13,8 @@ vi.mock('$lib/database/create_prisma_client', () => ({
 	prisma: {
 		competition: { findUnique: (...args: unknown[]) => mockCompetitionFindUnique(...args) },
 		roleAssignment: { findFirst: (...args: unknown[]) => mockRoleAssignmentFindFirst(...args) },
-		competitionRoleAssignment: { findFirst: (...args: unknown[]) => mockCompetitionRoleAssignmentFindFirst(...args) },
+		competitionCoorganizerRoleAssignment: { findFirst: (...args: unknown[]) => mockCompetitionCoorganizerRoleAssignmentFindFirst(...args) },
+		categoryJudgeAssignment: { findMany: (...args: unknown[]) => mockCategoryJudgeAssignmentFindMany(...args) },
 		category: {
 			findMany: (...args: unknown[]) => mockCategoryFindMany(...args),
 			findUnique: (...args: unknown[]) => mockCategoryFindUnique(...args),
@@ -33,8 +35,8 @@ beforeEach(() => {
 	// Defaults: no access
 	mockCompetitionFindUnique.mockResolvedValue({ creatorId: 'other-user' });
 	mockRoleAssignmentFindFirst.mockResolvedValue(null);
-	mockCompetitionRoleAssignmentFindFirst.mockResolvedValue(null);
-	mockCategoryFindMany.mockResolvedValue([]);
+	mockCompetitionCoorganizerRoleAssignmentFindFirst.mockResolvedValue(null);
+	mockCategoryJudgeAssignmentFindMany.mockResolvedValue([]);
 });
 
 describe('getCompetitionAccess', () => {
@@ -44,37 +46,38 @@ describe('getCompetitionAccess', () => {
 		const result = await getCompetitionAccess(1, 'user-1');
 
 		expect(result.isCreator).toBe(true);
-		expect(result.isOrganizer).toBe(true);
+		expect(result.canManageCompetition).toBe(true);
 	});
 
-	it('returns isAdmin=true and isOrganizer=true when user is a global ADMIN', async () => {
+	it('returns isAdmin=true and canManageCompetition=true when user is a global ADMIN', async () => {
 		mockRoleAssignmentFindFirst.mockResolvedValue({ id: 'ra-1' });
 
 		const result = await getCompetitionAccess(1, 'admin-user');
 
 		expect(result.isAdmin).toBe(true);
-		expect(result.isOrganizer).toBe(true);
+		expect(result.canManageCompetition).toBe(true);
 		expect(result.isCreator).toBe(false);
 	});
 
-	it('returns isOrganizer=true for scoped competition organizer', async () => {
-		mockCompetitionRoleAssignmentFindFirst.mockResolvedValue({ id: 'cra-1' });
+	it('returns isCoorganizer=true for scoped competition co-organizer', async () => {
+		mockCompetitionCoorganizerRoleAssignmentFindFirst.mockResolvedValue({ id: 'cra-1' });
 
 		const result = await getCompetitionAccess(1, 'scoped-org');
 
-		expect(result.isOrganizer).toBe(true);
+		expect(result.isCoorganizer).toBe(true);
+		expect(result.canManageCompetition).toBe(true);
 		expect(result.isCreator).toBe(false);
 		expect(result.isAdmin).toBe(false);
 	});
 
 	it('returns isJudge=true with judgedCategoryIds when user judges categories', async () => {
-		mockCategoryFindMany.mockResolvedValue([{ id: 10 }, { id: 20 }]);
+		mockCategoryJudgeAssignmentFindMany.mockResolvedValue([{ categoryId: 10 }, { categoryId: 20 }]);
 
 		const result = await getCompetitionAccess(1, 'judge-user');
 
 		expect(result.isJudge).toBe(true);
 		expect(result.judgedCategoryIds).toEqual([10, 20]);
-		expect(result.isOrganizer).toBe(false);
+		expect(result.canManageCompetition).toBe(false);
 	});
 
 	it('returns all false for a user with no access', async () => {
@@ -82,17 +85,17 @@ describe('getCompetitionAccess', () => {
 
 		expect(result.isCreator).toBe(false);
 		expect(result.isAdmin).toBe(false);
-		expect(result.isOrganizer).toBe(false);
+		expect(result.canManageCompetition).toBe(false);
 		expect(result.isJudge).toBe(false);
 		expect(result.judgedCategoryIds).toEqual([]);
 	});
 
-	it('returns isOrganizer=false for a global ORGANIZER who does not own the competition', async () => {
+	it('returns canManageCompetition=false for a global ORGANIZER who does not own the competition', async () => {
 		// Global ORGANIZER role exists but is not sufficient for competition-level access
 		// (global ORGANIZER only means "can create competitions", not "can manage any competition")
 		const result = await getCompetitionAccess(1, 'global-org');
 
-		expect(result.isOrganizer).toBe(false);
+		expect(result.canManageCompetition).toBe(false);
 	});
 });
 
@@ -102,7 +105,7 @@ describe('requireCompetitionOrganizer', () => {
 
 		const access = await requireCompetitionOrganizer(1, 'user-1');
 
-		expect(access.isOrganizer).toBe(true);
+		expect(access.canManageCompetition).toBe(true);
 	});
 
 	it('throws 403 Response when user has no organizer access', async () => {
@@ -120,11 +123,11 @@ describe('requireCategoryJudge', () => {
 	it('grants access when user is directly assigned as category judge', async () => {
 		mockCategoryFindUnique.mockResolvedValue({
 			competitionId: 1,
-			judges: [{ id: 'judge-user' }],
+			judgeAssignments: [{ id: 'ja-1' }],
 		});
 		mockCompetitionFindUnique.mockResolvedValue({ creatorId: 'other' });
 		// getCompetitionAccess also queries judged categories across the competition
-		mockCategoryFindMany.mockResolvedValue([{ id: 10 }]);
+		mockCategoryJudgeAssignmentFindMany.mockResolvedValue([{ categoryId: 10 }]);
 
 		const access = await requireCategoryJudge(10, 'judge-user');
 
@@ -134,13 +137,13 @@ describe('requireCategoryJudge', () => {
 	it('grants access when user is organizer even without judge assignment', async () => {
 		mockCategoryFindUnique.mockResolvedValue({
 			competitionId: 1,
-			judges: [],
+			judgeAssignments: [],
 		});
 		mockCompetitionFindUnique.mockResolvedValue({ creatorId: 'org-user' });
 
 		const access = await requireCategoryJudge(10, 'org-user');
 
-		expect(access.isOrganizer).toBe(true);
+		expect(access.canManageCompetition).toBe(true);
 	});
 
 	it('throws 404 when category does not exist', async () => {
@@ -158,7 +161,7 @@ describe('requireCategoryJudge', () => {
 	it('throws 403 when user is neither judge nor organizer', async () => {
 		mockCategoryFindUnique.mockResolvedValue({
 			competitionId: 1,
-			judges: [],
+			judgeAssignments: [],
 		});
 
 		try {
@@ -176,10 +179,10 @@ describe('requireEntryJudge', () => {
 		mockEntryFindUnique.mockResolvedValue({ categoryId: 10 });
 		mockCategoryFindUnique.mockResolvedValue({
 			competitionId: 1,
-			judges: [{ id: 'judge-user' }],
+			judgeAssignments: [{ id: 'ja-1' }],
 		});
 		mockCompetitionFindUnique.mockResolvedValue({ creatorId: 'other' });
-		mockCategoryFindMany.mockResolvedValue([{ id: 10 }]);
+		mockCategoryJudgeAssignmentFindMany.mockResolvedValue([{ categoryId: 10 }]);
 
 		const access = await requireEntryJudge('entry-1', 'judge-user');
 

@@ -23,7 +23,7 @@ export const GET = async (event: RequestEvent) => {
 
 		const channelName = `competition:${competitionId}`;
 		const capability =
-			access.isOrganizer || access.isJudge
+			access.canManageCompetition || access.isJudge
 				? { [channelName]: ['subscribe', 'publish'] }
 				: { [channelName]: ['subscribe'] };
 

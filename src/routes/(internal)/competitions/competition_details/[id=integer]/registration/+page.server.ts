@@ -34,7 +34,7 @@ export const load: PageServerLoad = async (event) => {
         existingEntries: existingEntries || [],
         registeredUserIds,
         categoriesWithCounts,
-        isOrganizer: competitionAccess.isOrganizer,
+        isOrganizer: competitionAccess.canManageCompetition,
     };
 };
 
@@ -62,7 +62,7 @@ export const actions: Actions = {
 
             const result = await submitRegistration({
                 competitionId,
-                actor: { userId: user.id, name: user.name ?? undefined, isOrganizer: access.isOrganizer },
+                actor: { userId: user.id, name: user.name ?? undefined, isOrganizer: access.canManageCompetition },
                 signups,
             });
 

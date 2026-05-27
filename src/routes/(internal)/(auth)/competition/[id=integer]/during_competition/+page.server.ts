@@ -1,30 +1,19 @@
-import { error, redirect } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getCompetition, getCompetitionCategories } from '$lib/database/db_competition';
-import { getCompetitionAccess } from '$lib/services/competition-access';
 import { buildEventStateFromCategories } from '$lib/events/channels/competition';
 
-export const load: PageServerLoad = async ({ params, locals, url }) => {
-    const competitionId = parseInt(params.id as string);
+export const load: PageServerLoad = async ({ parent }) => {
+    const { competitionId, access } = await parent();
 
-    if (isNaN(competitionId)) {
-        throw error(400, 'Invalid competition ID');
+    if (!access.canManageCompetition && !access.isJudge) {
+        throw error(403, 'You must be an organizer or judge for this competition');
     }
 
-    const user = locals.user;
-    if (!user) {
-        throw redirect(302, '/login?redirect=' + encodeURIComponent(url.pathname));
-    }
-
-    const [access, competition, categories] = await Promise.all([
-        getCompetitionAccess(competitionId, user.id),
+    const [competition, categories] = await Promise.all([
         getCompetition(competitionId),
         getCompetitionCategories(competitionId)
     ]);
-
-    if (!access.isOrganizer && !access.isJudge) {
-        throw error(403, 'You must be an organizer or judge for this competition');
-    }
 
     if (!competition) {
         throw error(404, 'Competition not found');
@@ -36,7 +25,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
         props: {
             competition,
             categories,
-            userRole: access.isOrganizer ? 'organizer' : 'judge',
+            userRole: access.canManageCompetition ? 'organizer' : 'judge',
             judgedCategoryIds: access.judgedCategoryIds,
             initialEventState
         }

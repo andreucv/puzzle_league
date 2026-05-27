@@ -57,7 +57,7 @@ function makeTx() {
 		roleAssignment: {
 			findFirst: vi.fn(),
 		},
-		competitionRoleAssignment: {
+		competitionCoorganizerRoleAssignment: {
 			findFirst: vi.fn(),
 		},
 	};

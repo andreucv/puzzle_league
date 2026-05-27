@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { CategoryStatus, NotificationType, RegistrationStatus, Role, CompetitionRole } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, NotificationType, RegistrationStatus, Role } from '$lib/.prisma/generated/prisma/enums';
 import { getMaxEntriesPerCategory } from '$lib/utils/category_utils';
 import {
 	notifyRegistrationConfirmed,
@@ -205,8 +205,8 @@ async function ensureCanManageCompetition(tx: Tx, competitionId: number, actor: 
 			where: { userId: actor.userId, role: Role.ADMIN },
 			select: { id: true },
 		}),
-		tx.competitionRoleAssignment.findFirst({
-			where: { userId: actor.userId, competitionId, role: CompetitionRole.ORGANIZER },
+		tx.competitionCoorganizerRoleAssignment.findFirst({
+			where: { userId: actor.userId, competitionId },
 			select: { id: true },
 		}),
 	]);

@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { Role, CompetitionRole } from '$lib/.prisma/generated/prisma/enums';
+import { Role } from '$lib/.prisma/generated/prisma/enums';
 import type { PrismaClient } from '$lib/.prisma/generated/prisma/client';
 
 // ---------------------------------------------------------------------------
@@ -9,12 +9,13 @@ import type { PrismaClient } from '$lib/.prisma/generated/prisma/client';
 export type CompetitionAccess = {
 	isCreator: boolean;
 	isAdmin: boolean;
-	isOrganizer: boolean; // true when creator, admin, or scoped competition organizer
+	isCoorganizer: boolean;
 	isJudge: boolean;
 	judgedCategoryIds: number[];
+	canManageCompetition: boolean; // convenience: isCreator || isAdmin || isCoorganizer
 };
 
-type PrismaLike = Pick<PrismaClient, 'competition' | 'roleAssignment' | 'competitionRoleAssignment' | 'category'>;
+type PrismaLike = Pick<PrismaClient, 'competition' | 'roleAssignment' | 'competitionCoorganizerRoleAssignment' | 'categoryJudgeAssignment' | 'category' | 'entry'>;
 
 // ---------------------------------------------------------------------------
 // Core query — single entry point for competition-level access
@@ -34,28 +35,29 @@ export async function getCompetitionAccess(
 			where: { userId, role: Role.ADMIN },
 			select: { id: true },
 		}),
-		client.competitionRoleAssignment.findFirst({
-			where: { userId, competitionId, role: CompetitionRole.ORGANIZER },
+		client.competitionCoorganizerRoleAssignment.findFirst({
+			where: { userId, competitionId },
 			select: { id: true },
 		}),
-		client.category.findMany({
-			where: { competitionId, judges: { some: { id: userId } } },
-			select: { id: true },
+		client.categoryJudgeAssignment.findMany({
+			where: { userId, category: { competitionId } },
+			select: { categoryId: true },
 		}),
 	]);
 
 	const isCreator = competition?.creatorId === userId;
 	const isAdmin = !!adminRole;
-	const isScopedOrganizer = !!scopedOrganizer;
-	const isOrganizer = isCreator || isAdmin || isScopedOrganizer;
+	const isCoorganizer = !!scopedOrganizer;
+	const canManageCompetition = isCreator || isAdmin || isCoorganizer;
 	const isJudge = judgedCategories.length > 0;
 
 	return {
 		isCreator,
 		isAdmin,
-		isOrganizer,
+		isCoorganizer,
 		isJudge,
-		judgedCategoryIds: judgedCategories.map((c) => c.id),
+		judgedCategoryIds: judgedCategories.map((a) => a.categoryId),
+		canManageCompetition,
 	};
 }
 
@@ -69,7 +71,7 @@ export async function requireCompetitionOrganizer(
 	client?: PrismaLike,
 ): Promise<CompetitionAccess> {
 	const access = await getCompetitionAccess(competitionId, userId, client);
-	if (!access.isOrganizer) {
+	if (!access.canManageCompetition) {
 		throw forbiddenResponse();
 	}
 	return access;
@@ -82,7 +84,7 @@ export async function requireCategoryJudge(
 ): Promise<CompetitionAccess> {
 	const category = await client.category.findUnique({
 		where: { id: categoryId },
-		select: { competitionId: true, judges: { where: { id: userId }, select: { id: true } } },
+		select: { competitionId: true, judgeAssignments: { where: { userId }, select: { id: true } } },
 	});
 
 	if (!category) {
@@ -90,14 +92,14 @@ export async function requireCategoryJudge(
 	}
 
 	// Directly assigned as category judge
-	if (category.judges.length > 0) {
+	if (category.judgeAssignments.length > 0) {
 		const access = await getCompetitionAccess(category.competitionId, userId, client);
 		return access;
 	}
 
 	// Fall back to organizer-level access (creator, admin, scoped organizer)
 	const access = await getCompetitionAccess(category.competitionId, userId, client);
-	if (!access.isOrganizer) {
+	if (!access.canManageCompetition) {
 		throw forbiddenResponse();
 	}
 	return access;

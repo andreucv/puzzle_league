@@ -35,11 +35,11 @@ A platform user who registers for and competes in categories. The default role f
 _Avoid_: Player, competitor, puzzler
 
 **Organizer**:
-A platform user who creates and manages their own competitions. Global role grants the ability to create competitions. Competition management authority comes from being the creator, a global Admin, or having a scoped competition Organizer role (`CompetitionRoleAssignment`).
+A platform user who creates and manages their own competitions. Global role grants the ability to create competitions. Competition management authority comes from being the creator, a global Admin, or having a scoped co-organizer assignment (`CompetitionCoorganizerRoleAssignment`).
 _Avoid_: Host, creator, manager
 
 **Judge**:
-A platform user assigned to specific categories to help entry finish times. Assigned per-category via the `Category.judges` relation, not per-competition.
+A platform user assigned to specific categories to help entry finish times. Assigned per-category via `CategoryJudgeAssignment`, not per-competition.
 _Avoid_: Referee, timer, official
 
 **Admin**:

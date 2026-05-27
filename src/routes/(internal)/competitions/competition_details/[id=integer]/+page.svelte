@@ -194,7 +194,7 @@
                     {/each}
                 </div>
             {:then [userRecords, categoriesWithCounts, access]}
-                {@const isOrganizer = access.isOrganizer}
+                {@const isOrganizer = access.canManageCompetition}
                 {@const isJudge = access.isJudge}
                 {@const canAccessDuringCompetition = isOrganizer || isJudge}
                 {@const canCancel = isOrganizer && competition?.status !== 'CANCELLED' && competition?.status !== 'FINISHED'}

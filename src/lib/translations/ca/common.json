@@ -170,6 +170,7 @@
     "no_categories": "Encara no s'han afegit categories a aquesta competició.",
     "organized_by": "Organitzat per",
     "edit_button": "Edita la competició",
+    "manage": "Gestionar",
     "start_competition_button": "Comença la competició",
     "back_to_competitions_button": "Torna a competicions",
     "manage_judges_button": "Gestionar Jutges",
@@ -178,7 +179,12 @@
     "you_are_registered": "Estàs inscrit a {{n}} categoria(es)",
     "full": "Complet",
     "spots_left": "places lliures",
-    "view_live_results": "Veure Resultats en Directe"
+    "view_live_results": "Veure Resultats en Directe",
+    "view_registration": "Veure la teva inscripció",
+    "register_now": "Inscriure's",
+    "open": "Obert",
+    "registered_count": "{{current}} / {{max}} inscrits",
+    "registered_no_limit": "{{current}} inscrits"
   },
   "claim_participations": {
     "title": "Reclama participacions",
@@ -757,7 +763,7 @@
     }
   },
   "during_competition": {
-    "title": "Durant la Competició",
+    "title": "Executar Competició",
     "currently_running": "En Curs",
     "upcoming": "Pròximes",
     "completed_section": "Completades",

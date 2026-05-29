@@ -5,10 +5,12 @@
 
     let {
         actions,
-        testId
+        testId,
+        label = undefined
     }: {
         actions: OverflowAction[];
         testId: string;
+        label?: string;
     } = $props();
 
     let showMenu = $state(false);
@@ -24,21 +26,33 @@
 
 {#if actions.length > 0}
     <div class="relative">
-        <button
-            type="button"
-            class="btn-icon w-4 h-4 preset-tonal rounded-full"
-            onclick={toggle}
-            data-testid={testId}
-        >
-            <DotsVerticalIcon width="1rem" height="1rem" />
-        </button>
+        {#if label}
+            <button
+                type="button"
+                class="btn btn-sm preset-tonal-surface gap-1.5 text-sm"
+                onclick={toggle}
+                data-testid={testId}
+            >
+                <DotsVerticalIcon width="1rem" height="1rem" />
+                {label}
+            </button>
+        {:else}
+            <button
+                type="button"
+                class="btn-icon w-4 h-4 preset-tonal rounded-full"
+                onclick={toggle}
+                data-testid={testId}
+            >
+                <DotsVerticalIcon width="1rem" height="1rem" />
+            </button>
+        {/if}
         {#if showMenu}
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div class="fixed inset-0 z-40" onclick={close}></div>
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <!-- svelte-ignore a11y_no_static_element_interactions -->
-            <div class="absolute right-0 top-full mt-1 z-50 bg-surface-50-950 border border-surface-300-700 rounded-lg shadow-lg min-w-40">
+            <div class="absolute right-0 top-full mt-1 z-50 bg-surface-50-950 border border-surface-300-700 rounded-lg shadow-lg min-w-56">
                 <div class="p-1 space-y-1">
                     {#each actions as action (action.testId)}
                         {#if action.kind === 'link'}

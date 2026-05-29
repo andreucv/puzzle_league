@@ -29,6 +29,11 @@
         return category.maxParties - registered;
     }
 
+    function getTotalEntries(category: CategoryWithPuzzles): number | undefined {
+        const counts = categoriesWithCounts?.find(c => c.id === category.id);
+        return counts?.totalEntries;
+    }
+
     function getUserRecords(categoryId: number) {
         return userRecords.filter(r => r.categoryId === categoryId);
     }
@@ -45,6 +50,7 @@
                 showRegistration={true}
                 {records}
                 seatsAvailable={getSeatsAvailable(category)}
+                totalEntries={getTotalEntries(category)}
             />
         {/each}
     </div>

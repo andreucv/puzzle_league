@@ -9,6 +9,8 @@
     import { t } from '$lib/translations';
     import EndPageActionButton from '$lib/components/common/buttons/EndPageActionButton.svelte';
     import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
+    import OverflowMenu from '$lib/components/during-competition/OverflowMenu.svelte';
+    import type { OverflowAction } from '$lib/components/during-competition/types';
     import { goto } from '$app/navigation';
 
     import MapMarkerIcon from '@iconify-svelte/mdi/map-marker';
@@ -16,8 +18,6 @@
     import CalendarClockIcon from '@iconify-svelte/mdi/calendar-clock';
     import CreditCardOutlineIcon from '@iconify-svelte/mdi/credit-card-outline';
     import CancelIcon from '@iconify-svelte/mdi/cancel';
-    import AlertIcon from '@iconify-svelte/mdi/alert';
-    import LoadingIcon from '@iconify-svelte/mdi/loading';
     import AccountPlusIcon from '@iconify-svelte/mdi/account-plus';
     import TimerPlayIcon from '@iconify-svelte/mdi/timer-play';
     import PencilIcon from '@iconify-svelte/mdi/pencil';
@@ -26,32 +26,45 @@
     import CloseIcon from '@iconify-svelte/mdi/close';
     import LockOutlineIcon from '@iconify-svelte/mdi/lock-outline';
     import LoginIcon from '@iconify-svelte/mdi/login';
-    import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
     import FormatListBulletedIcon from '@iconify-svelte/mdi/format-list-bulleted';
 
     let { data } = $props();
 
     const currentUser = $derived(data.user);
 
-    // Cancel competition dialog state
-    let showCancelDialog = $state(false);
-    let isCancelling = $state(false);
     let showImageDialog = $state(false);
-    let cancelCompetitionId: number | undefined = $state(undefined);
 
-    async function handleCancelCompetition() {
-        isCancelling = true;
-        try {
-            const res = await fetch(`/api/competitions/${cancelCompetitionId}/cancel`, { method: 'POST' });
-            if (res.ok) {
-                showCancelDialog = false;
-                goto(`/competitions/competition_details/${cancelCompetitionId}`, { invalidateAll: true });
-            }
-        } catch (err) {
-            console.error('Failed to cancel competition:', err);
-        } finally {
-            isCancelling = false;
+    function buildManageActions(competitionId: number, access: { canManageCompetition: boolean; isJudge: boolean }, competitionStatus: string): OverflowAction[] {
+        const actions: OverflowAction[] = [];
+        const canAccessDuringCompetition = access.canManageCompetition || access.isJudge;
+        const isOrganizer = access.canManageCompetition;
+        const canCancel = isOrganizer && competitionStatus !== 'CANCELLED' && competitionStatus !== 'FINISHED';
+
+        if (canAccessDuringCompetition) {
+            actions.push({ kind: 'link', icon: TimerPlayIcon, label: $t('during_competition.title'), href: `/competition/${competitionId}/during_competition`, testId: 'run-competition-link' });
         }
+        if (isOrganizer) {
+            actions.push({ kind: 'link', icon: PencilIcon, label: $t('competition_details.edit_button'), href: `/competition/edit/${competitionId}`, testId: 'edit-competition-link' });
+            actions.push({ kind: 'link', icon: ClipboardCheckOutlineIcon, label: $t('manage_registrations.title'), href: `/competition/${competitionId}/manage_registrations`, testId: 'manage-registrations-button' });
+        }
+        if (canCancel) {
+            actions.push({
+                kind: 'confirm',
+                icon: CancelIcon,
+                label: $t('during_competition.cancel_competition'),
+                colorClass: 'preset-filled-error-500',
+                confirmTitle: $t('during_competition.cancel_competition_confirm_title'),
+                confirmMessage: $t('during_competition.cancel_competition_confirm_message'),
+                onConfirm: async () => {
+                    const res = await fetch(`/api/competitions/${competitionId}/cancel`, { method: 'POST' });
+                    if (res.ok) {
+                        goto(`/competitions/competition_details/${competitionId}`, { invalidateAll: true });
+                    }
+                },
+                testId: 'cancel-competition-button'
+            });
+        }
+        return actions;
     }
 </script>
 
@@ -145,6 +158,13 @@
                             </span>
                         </div>
                     {/if}
+                    <!-- Organizer/Judge manage menu -->
+                    {#await data.props.access then access}
+                        {@const actions = buildManageActions(competition.id, access, competition.status)}
+                        {#if actions.length > 0}
+                            <OverflowMenu {actions} label={$t('competition_details.manage')} testId="competition-manage-menu" />
+                        {/if}
+                    {/await}
                 </div>
                 {#if competition?.paymentMethod}
                     <div class="flex items-start gap-2 text-sm">
@@ -195,55 +215,45 @@
                 </div>
             {:then [userRecords, categoriesWithCounts, access]}
                 {@const isOrganizer = access.canManageCompetition}
-                {@const isJudge = access.isJudge}
-                {@const canAccessDuringCompetition = isOrganizer || isJudge}
-                {@const canCancel = isOrganizer && competition?.status !== 'CANCELLED' && competition?.status !== 'FINISHED'}
 
                 <div>
                     <CategoriesOverview {categories} isCreator={isOrganizer} {isMultiDay} {categoriesWithCounts} userRecords={userRecords ?? []} />
                 </div>
 
-                <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <EndPageActionButton icon={AccountPlusIcon} href="/competitions/competition_details/{competition?.id}/registration" colorClass="preset-filled-success-500" disabled={!(currentUser && (competition?.registrationOpen || isOrganizer))} text={$t('competition_details.manage_registration')} testId="signup-button" />
-                    {#if categories.some(c => c.status === 'LIVE' || c.status === 'STOPPED')}
-                        <EndPageActionButton icon={FormatListBulletedIcon} href="/competitions/competition_details/{competition?.id}/results" text={$t('competition_details.view_live_results')} />
+                <!-- Primary CTA: Registration -->
+                {@const hasRegistrations = userRecords && userRecords.length > 0}
+                {@const registrationLabel = hasRegistrations ? $t('competition_details.view_registration') : $t('competition_details.register_now')}
+                <div class="flex flex-col items-center gap-2">
+                    <EndPageActionButton icon={AccountPlusIcon} href="/competitions/competition_details/{competition?.id}/registration" colorClass="preset-filled-success-500" disabled={!(currentUser && (competition?.registrationOpen || isOrganizer))} text={registrationLabel} testId="signup-button" />
+
+                    <!-- Alert Banner: placed directly below registration button for context -->
+                    {#if !competition?.registrationOpen}
+                        <div class="flex items-center gap-2 p-3 rounded-lg bg-warning-50 dark:bg-warning-900/20 border border-warning-300 dark:border-warning-700 text-sm">
+                            <LockOutlineIcon width="1.2rem" height="1.2rem" class="text-warning-500 shrink-0" />
+                            <span>{$t('competition_details.registration_closed_banner')}</span>
+                        </div>
+                    {:else if !currentUser}
+                        <a href="/login?redirect={encodeURIComponent(`/competitions/competition_details/${competition?.id}/registration`)}" class="flex items-center gap-2 p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-300 dark:border-primary-700 text-sm hover:opacity-80 transition-opacity">
+                            <LoginIcon width="1.2rem" height="1.2rem" class="text-primary-500 shrink-0" />
+                            <span>{$t('competition_details.login_to_register')}</span>
+                        </a>
                     {/if}
-                    {#if canAccessDuringCompetition}
-                        <EndPageActionButton icon={TimerPlayIcon} href="/competition/{competition?.id}/during_competition" text={$t('during_competition.title')} />
-                    {/if}
-                    {#if isOrganizer}
-                        <EndPageActionButton icon={PencilIcon} href="/competition/edit/{competition?.id}" text={$t('competition_details.edit_button')} />
-                        <EndPageActionButton icon={ClipboardCheckOutlineIcon} href="/competition/{competition?.id}/manage_registrations" text={$t('manage_registrations.title')} testId="manage-registrations-button" />
-                    {/if}
-                    <EndPageActionButton icon={ArrowLeftIcon} href="/competitions/explore_competitions/" colorClass="preset-tonal" text={$t('competition_details.back_to_competitions_button')} />
                 </div>
 
-                <!-- Alert Banner: explain why registration is not available -->
-                {#if !competition?.registrationOpen}
-                    <div class="flex items-center gap-2 p-3 rounded-lg bg-warning-50 dark:bg-warning-900/20 border border-warning-300 dark:border-warning-700 text-sm">
-                        <LockOutlineIcon width="1.2rem" height="1.2rem" class="text-warning-500 shrink-0" />
-                        <span>{$t('competition_details.registration_closed_banner')}</span>
+                <!-- Live Results (visible to all users when applicable) -->
+                {#if categories.some(c => c.status === 'LIVE' || c.status === 'STOPPED')}
+                    <div class="flex justify-center">
+                        <EndPageActionButton icon={FormatListBulletedIcon} href="/competitions/competition_details/{competition?.id}/results" text={$t('competition_details.view_live_results')} />
                     </div>
-                {:else if !currentUser}
-                    <a href="/login?redirect={encodeURIComponent(`/competitions/competition_details/${competition?.id}/registration`)}" class="flex items-center gap-2 p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-300 dark:border-primary-700 text-sm hover:opacity-80 transition-opacity">
-                        <LoginIcon width="1.2rem" height="1.2rem" class="text-primary-500 shrink-0" />
-                        <span>{$t('competition_details.login_to_register')}</span>
-                    </a>
                 {/if}
 
-                <!-- Cancel Competition Button -->
-                {#if canCancel}
-                    <div class="flex justify-center pt-4">
-                        <button
-                            class="btn preset-filled-error-500"
-                            onclick={() => { cancelCompetitionId = competition?.id; showCancelDialog = true; }}
-                        >
-                            <CancelIcon width="1.2rem" height="1.2rem" />
-                            {$t('during_competition.cancel_competition')}
-                        </button>
-                    </div>
-                {/if}
+                <!-- Navigation link -->
+                <div class="flex justify-center">
+                    <a href="/competitions/explore_competitions/" class="inline-flex items-center gap-1 text-sm text-surface-500 dark:text-surface-400 hover:text-primary-500 transition-colors">
+                        <ArrowLeftIcon width="0.9rem" height="0.9rem" />
+                        {$t('competition_details.back_to_competitions_button')}
+                    </a>
+                </div>
             {/await}
         </div>
 
@@ -277,41 +287,3 @@
         {/if}
     {/await}
 </div>
-
-<!-- Cancel Competition Confirmation Dialog -->
-<Dialog open={showCancelDialog} onOpenChange={(e) => showCancelDialog = e.open}>
-    <Portal>
-        <Dialog.Backdrop class="fixed inset-0 z-50 bg-black/50" />
-        <Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <Dialog.Content class="card preset-outlined-surface-200-800 p-6 max-w-md w-full space-y-4">
-                <h3 class="h3 flex items-center gap-2">
-                    <AlertIcon class="text-error-500" width="1.5rem" height="1.5rem" />
-                    {$t('during_competition.cancel_competition_confirm_title')}
-                </h3>
-
-                <p class="text-sm">
-                    {$t('during_competition.cancel_competition_confirm_message')}
-                </p>
-
-                <div class="flex justify-end gap-2">
-                    <Dialog.CloseTrigger
-                        class="btn btn-sm preset-tonal"
-                        disabled={isCancelling}
-                    >
-                        {$t('during_competition.cancel')}
-                    </Dialog.CloseTrigger>
-                    <button
-                        class="btn btn-sm preset-filled-error-500"
-                        onclick={handleCancelCompetition}
-                        disabled={isCancelling}
-                    >
-                        {#if isCancelling}
-                            <LoadingIcon class="animate-spin" width="1rem" height="1rem" />
-                        {/if}
-                        {$t('during_competition.cancel_competition_confirm')}
-                    </button>
-                </div>
-            </Dialog.Content>
-        </Dialog.Positioner>
-    </Portal>
-</Dialog>

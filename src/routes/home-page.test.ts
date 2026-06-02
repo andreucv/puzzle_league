@@ -27,7 +27,7 @@ vi.mock('$lib/translations', () => {
 vi.mock('$app/stores', async () => import('../tests/mocks/app_stores'));
 vi.mock('$app/navigation', async () => import('../tests/mocks/app_navigation'));
 
-import Page from './+page.svelte';
+import Page from './(internal)/(auth)/home/+page.svelte';
 
 // ── Helpers ──
 
@@ -171,22 +171,6 @@ describe('Authenticated Home Page', () => {
 
 	// ── Anonymous landing page ──
 
-	it('does not render authenticated sections for anonymous users', () => {
-		render(Page, {
-			props: {
-				data: {
-					user: null,
-					props: {
-						registrationStatuses: null,
-						startedCompetitions: null,
-						upcomingRegisteredCompetitions: null,
-						lastResults: null,
-						otherUpcomingCompetitions: null,
-					},
-				},
-			},
-		});
-
-		expect(screen.queryByTestId('other-upcoming-section')).not.toBeInTheDocument();
-	});
+	// Note: the anonymous landing page is now at src/routes/+page.svelte (a separate route).
+	// The authenticated home page always renders the dashboard sections.
 });

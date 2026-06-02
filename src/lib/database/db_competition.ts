@@ -787,6 +787,26 @@ export async function updateCompetitionStatus(competitionId: number, status: 'NO
 }
 
 // ---------------------------------------------------------------------------
+// Landing page stats (pre-computed, served from DB)
+// ---------------------------------------------------------------------------
+
+export async function getLandingStats() {
+    return prisma.landingStats.findUnique({ where: { id: 1 } });
+}
+
+export async function upsertLandingStats(data: {
+    upcomingCount: number;
+    cityCount: number;
+    participantCount: number;
+}) {
+    return prisma.landingStats.upsert({
+        where: { id: 1 },
+        create: { id: 1, ...data },
+        update: data,
+    });
+}
+
+// ---------------------------------------------------------------------------
 // Explore competitions (with per-category registration data)
 // ---------------------------------------------------------------------------
 

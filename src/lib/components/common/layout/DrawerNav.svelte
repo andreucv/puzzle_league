@@ -49,7 +49,7 @@
     }
 
     function isActive(href: string): boolean {
-        if (href === '/') return currentPath === '/';
+        if (href === '/') return currentPath === '/' || currentPath === '/home';
         return currentPath.startsWith(href);
     }
 </script>

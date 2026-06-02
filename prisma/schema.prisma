@@ -363,3 +363,13 @@ model Jwks {
 
   @@map("jwks")
 }
+
+model LandingStats {
+  id               Int      @id @default(1)
+  upcomingCount    Int      @default(0)
+  cityCount        Int      @default(0)
+  participantCount Int      @default(0)
+  updatedAt        DateTime @updatedAt
+
+  @@map("landing_stats")
+}

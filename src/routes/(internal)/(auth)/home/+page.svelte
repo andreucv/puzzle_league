@@ -53,7 +53,7 @@
     <title>{$t('head.title')}</title>
 </svelte:head>
 
-<div class="container mx-auto px-4 space-y-6 mb-8">
+<div class="container mx-auto space-y-6 mb-8">
 
     <!-- Registration statuses -->
     {#await data.props.registrationStatuses}

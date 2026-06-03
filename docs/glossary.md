@@ -49,6 +49,18 @@ A platform user with full system access. Can modify anything across all competit
 A person participating in an entry who does not have a platform account (e.g., a minor). Created by a platform user on their behalf. May later claim their participation by creating an account.
 _Avoid_: UserIntent, placeholder, proxy, guest
 
+**Participant Tag**:
+A label defined by the organizer at the competition level (e.g. "Local participant") that marks a subset of participants as eligible for a sub-prize within a category. A tag has an eligibility rule (ALL or ANY) that governs how multi-person entries qualify: ALL requires every participant in the entry to hold the tag; ANY requires at least one. Tags are scoped to the whole competition — a participant tagged as "Local" is local for all categories they enter.
+_Avoid_: label, badge, group
+
+**Tag Assignment**:
+A record linking a Participant Tag to a specific platform user within a competition. Created either by the participant (self-declaration during registration) or directly by the organizer. Has a lifecycle: PENDING → CONFIRMED or REJECTED. Preserved independently of the entry lifecycle — a waitlisted participant's tag declaration carries through if they are later confirmed.
+_Avoid_: tag claim, tag request, tag membership
+
+**Tag Category Price**:
+An optional flat price override set by the organizer on a per-tag per-category basis. When a participant has a PENDING or CONFIRMED Tag Assignment for a tag that carries a price override in a given category, that price is shown instead of the general category price. If the tag is later rejected, the general price applies and any payment difference is handled off-platform.
+_Avoid_: discounted price, local price, tag discount
+
 ### Processes & status
 
 **Role Request**:
@@ -82,6 +94,9 @@ The number of pieces completed by an entry when the category time expires withou
 - An **Organizer** manages only **Competitions** they created
 - **Competition status** is auto-derived from its **Categories'** statuses
 - **Registration** is controlled by an independent organizer toggle, allowing late registration for upcoming categories even mid-competition
+- A **Competition** optionally has one or more **Participant Tags** (competition-scoped)
+- A **Participant Tag** has zero or more **Tag Assignments** (one per user per tag)
+- A **Participant Tag** optionally has one **Tag Category Price** per **Category** in its competition
 
 ## Entry ranking
 
@@ -107,3 +122,4 @@ The number of pieces completed by an entry when the category time expires withou
 
 - **League points calculation** — strategy for calculating points from category results is not yet defined. Deferred to a future session.
 - **Payment processing** — currently off-platform only (organizer confirms receipt manually). In-app payments are planned for the future.
+- **Prize cascade with multiple tags** — when `tagsAreMutuallyExclusive` is false on a competition, a participant with multiple confirmed tags could rank #1 in several sub-prize rankings simultaneously. The resolution (e.g. bump the prize to the next eligible ranked participant) is deferred to a future session.

@@ -73,7 +73,6 @@ export function downloadRegistrationsPdf({ competitionName, categories, translat
 		translate('manage_registrations.pdf_check_in'),
 		translate('manage_registrations.pdf_table'),
 		translate('manage_registrations.pdf_participants'),
-		translate('manage_registrations.pdf_registration_date'),
 		translate('manage_registrations.pdf_status'),
 		translate('manage_registrations.pdf_confirmed_date')
 	];
@@ -100,7 +99,6 @@ export function downloadRegistrationsPdf({ competitionName, categories, translat
 			'', // Empty check-in column
 			entry.tableNumber != null ? String(entry.tableNumber) : '',
 			getParticipantNames(entry),
-			formatDate(entry.createdAt, locale),
 			getStatusLabel(entry.status, translate),
 			formatDate(entry.confirmedAt, locale)
 		]);
@@ -112,19 +110,36 @@ export function downloadRegistrationsPdf({ competitionName, categories, translat
 			theme: 'grid',
 			headStyles: { fillColor: [60, 60, 60], fontSize: 8 },
 			bodyStyles: { fontSize: 8 },
+			rowPageBreak: 'avoid',
 			columnStyles: {
 				0: { cellWidth: 16 }, // Check-in (narrow)
 				1: { cellWidth: 14 }, // Table (narrow)
 				2: { cellWidth: 'auto' }, // Participants (expand)
-				3: { cellWidth: 30 }, // Registration date
-				4: { cellWidth: 26 }, // Status
-				5: { cellWidth: 30 } // Confirmed date
+				3: { cellWidth: 26 }, // Status
+				4: { cellWidth: 30 } // Confirmed date
 			},
-			margin: { left: 14, right: 14 }
+			margin: { left: 14, right: 14 },
+			didDrawPage: (data) => {
+				const currentPage = data.pageNumber;
+				doc.setFontSize(8);
+				doc.setTextColor(150);
+				doc.text(
+					String(currentPage),
+					pageWidth / 2,
+					doc.internal.pageSize.getHeight() - 8,
+					{ align: 'center' }
+				);
+				doc.setTextColor(0);
+			}
 		});
 
-		// Get Y position after the table for next category
-		startY = (doc as any).lastAutoTable.finalY + 12;
+		// Add a page break after each category (except the last)
+		if (category !== categories[categories.length - 1]) {
+			doc.addPage();
+			startY = 20;
+		} else {
+			startY = (doc as any).lastAutoTable.finalY + 12;
+		}
 	}
 
 	// Sanitize filename

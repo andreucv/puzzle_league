@@ -1,0 +1,39 @@
+# .graphifyignore — controls what graphify indexes into the knowledge graph.
+# graphify reads THIS file instead of .gitignore when present in the same dir,
+# so this is a superset: the meaningful .gitignore rules + graph-specific noise.
+# gitignore syntax; last match wins. _SKIP_DIRS (node_modules, .svelte-kit,
+# dist, build, graphify-out, …) are always skipped by graphify regardless.
+
+# --- i18n translation catalogs ---------------------------------------------
+# 5 JSON files exploded into ~1289 AST nodes (~51% of the old graph) and the
+# literal query matcher anchored on them, burying real route/service code.
+# Excluded so code-architecture queries surface handlers, not translation keys.
+src/lib/translations/
+
+# --- generated / non-source (mirrors .gitignore so we don't index them) -----
+.prisma/
+test-results/
+.output/
+.vercel/
+.netlify/
+.wrangler/
+playwright-report/
+blob-report/
+playwright/.cache/
+playwright/.auth/
+e2e/*/test-data*.json
+scripts/db_migration/*seed_data.json
+
+# --- env / secrets / local ---------------------------------------------------
+.env
+.env.*
+!.env.example
+.scratch/
+
+# --- OS cruft ----------------------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# --- agents and docs ----
+.agents/
+docs/explorations/

@@ -62,3 +62,10 @@ explanations/plans/
 .work-done
 TODO.md
 .env.local
+
+# Claude related files
+.claude
+CLAUDE.md
+
+# graphify related files
+graphify-out/

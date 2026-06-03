@@ -139,7 +139,7 @@
 <div class="container mx-auto max-w-4xl space-y-4">
     <!-- Header -->
     <div class="space-y-4">
-        <TitleBackButton href="/competitions/competition_details/{competition?.id}" text={$t('manage_judges.title')} subtitle={competition.name}/>
+        <TitleBackButton href="/competitions/competition_details/{competition?.id}/during_competition" useHistoryBack={true} text={$t('manage_judges.title')} subtitle={competition.name}/>
     </div>
 
     <!-- Result message -->

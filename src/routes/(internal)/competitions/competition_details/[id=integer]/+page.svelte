@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { getCompetitionStatusLabel } from '$lib/utils/competition_utils';
     import { getCountryFlag, getCountryNameFromCode } from '$lib/utils/country_utils';
     import { locale } from '$lib/translations';
     import CategoriesOverview from '$lib/components/competition/CategoriesOverview.svelte';
@@ -140,9 +139,6 @@
                                 {/if}
                             </span>
                         </div>
-                        <span class="badge preset-filled-primary-500 shrink-0">
-                            {getCompetitionStatusLabel(competition.status) || competition.status}
-                        </span>
                     </div>
                 </div>
                 <div class="space-x-3 flex items-center justify-between w-full">

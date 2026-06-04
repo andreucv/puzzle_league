@@ -21,8 +21,9 @@ playwright-report/
 blob-report/
 playwright/.cache/
 playwright/.auth/
-e2e/*/test-data*.json
-scripts/db_migration/*seed_data.json
+e2e/
+scripts/
+node_modules/
 
 # --- env / secrets / local ---------------------------------------------------
 .env
@@ -37,3 +38,7 @@ Thumbs.db
 # --- agents and docs ----
 .agents/
 docs/explorations/
+docs/agents/
+docs/ideas/
+TODO.md
+.github/

@@ -17,11 +17,12 @@
     import EntryRegistrationStatusBadge from '$lib/components/registration/EntryRegistrationStatusBadge.svelte';
 
     import AccountGroupOutlineIcon from '@iconify-svelte/mdi/account-group-outline';
+    import TableChairIcon from '@iconify-svelte/mdi/table-chair';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
     type PartyUser = { id: string; name: string; email: string; image: string | null };
     type ExternalParticipantInfo = { id: string; name: string; claimedById: string | null };
-    type UserEntry = { id?: string; status?: string; users?: PartyUser[]; externalParticipants?: ExternalParticipantInfo[] };
+    type UserEntry = { id?: string; status?: string; tableNumber?: number | null; users?: PartyUser[]; externalParticipants?: ExternalParticipantInfo[] };
 
     let {
         category,
@@ -52,6 +53,9 @@
             ? records
             : [{ status: registrationStatus, users: party ?? [], externalParticipants: externalParticipants ?? [] }]
     );
+
+    // Table numbers are actionable only before/while the category runs, not once finished.
+    const showTableNumber = $derived(['NOT_STARTED', 'LIVE', 'STOPPED'].includes(category.status));
 </script>
 
 <Card>
@@ -158,6 +162,12 @@
                                         {[...entryUsers.map(u => u.name), ...entryExternalParticipants.map(ep => ep.name)].join(', ')}
                                     </span>
                                 </div>
+                                {#if showTableNumber && entry.tableNumber != null}
+                                    <span class="badge preset-tonal-primary text-xs flex items-center gap-1 shrink-0">
+                                        <TableChairIcon width="0.8rem" height="0.8rem" />
+                                        {$t('competition_details.table', { number: entry.tableNumber })}
+                                    </span>
+                                {/if}
                                 <EntryRegistrationStatusBadge status={entry.status ?? ''} />
                             </div>
                         {/if}
@@ -204,6 +214,12 @@
                                         {[...entryUsers.map(u => u.name), ...entryExternalParticipants.map(ep => ep.name)].join(', ')}
                                     </span>
                                 </div>
+                                {#if showTableNumber && entry.tableNumber != null}
+                                    <span class="badge preset-tonal-primary text-xs flex items-center gap-1 shrink-0">
+                                        <TableChairIcon width="0.8rem" height="0.8rem" />
+                                        {$t('competition_details.table', { number: entry.tableNumber })}
+                                    </span>
+                                {/if}
                                 <EntryRegistrationStatusBadge status={entry.status ?? ''} />
                             </div>
                         {/if}

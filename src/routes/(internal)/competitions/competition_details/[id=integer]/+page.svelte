@@ -6,7 +6,7 @@
 
     import { CldImage } from 'svelte-cloudinary';
     import { t } from '$lib/translations';
-    import EndPageActionButton from '$lib/components/common/buttons/EndPageActionButton.svelte';
+    import RegistrationActionButton from '$lib/components/registration/RegistrationActionButton.svelte';
     import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
     import OverflowMenu from '$lib/components/during-competition/OverflowMenu.svelte';
     import type { OverflowAction } from '$lib/components/during-competition/types';
@@ -17,15 +17,12 @@
     import CalendarClockIcon from '@iconify-svelte/mdi/calendar-clock';
     import CreditCardOutlineIcon from '@iconify-svelte/mdi/credit-card-outline';
     import CancelIcon from '@iconify-svelte/mdi/cancel';
-    import AccountPlusIcon from '@iconify-svelte/mdi/account-plus';
     import TimerPlayIcon from '@iconify-svelte/mdi/timer-play';
     import PencilIcon from '@iconify-svelte/mdi/pencil';
     import ClipboardCheckOutlineIcon from '@iconify-svelte/mdi/clipboard-check-outline';
     import ArrowLeftIcon from '@iconify-svelte/mdi/arrow-left';
     import CloseIcon from '@iconify-svelte/mdi/close';
-    import LockOutlineIcon from '@iconify-svelte/mdi/lock-outline';
-    import LoginIcon from '@iconify-svelte/mdi/login';
-    import FormatListBulletedIcon from '@iconify-svelte/mdi/format-list-bulleted';
+    import CompetitionStatusChip from '$lib/components/common/status/CompetitionStatusChip.svelte';
 
     let { data } = $props();
 
@@ -64,6 +61,19 @@
             });
         }
         return actions;
+    }
+
+    // Registration is possible when at least one not-yet-started category still has room
+    // (or has no capacity limit). Mirrors the seat math in CategoriesOverview.
+    type CategoryCounts = { status: string; maxParties: number | null; reservedSlots?: number; totalEntries?: number };
+    function hasRegistrableSpot(categories: CategoryCounts[] | undefined): boolean {
+        if (!categories) return false;
+        return categories.some((c) => {
+            if (c.status !== 'NOT_STARTED') return false;
+            if (c.maxParties == null) return true;
+            const registered = c.reservedSlots ?? c.totalEntries ?? 0;
+            return c.maxParties - registered > 0;
+        });
     }
 </script>
 
@@ -139,6 +149,7 @@
                                 {/if}
                             </span>
                         </div>
+                        <CompetitionStatusChip competitionStatus={competition.status} />
                     </div>
                 </div>
                 <div class="space-x-3 flex items-center justify-between w-full">
@@ -218,30 +229,19 @@
 
                 <!-- Primary CTA: Registration -->
                 {@const hasRegistrations = userRecords && userRecords.length > 0}
-                {@const registrationLabel = hasRegistrations ? $t('competition_details.view_registration') : $t('competition_details.register_now')}
+                {@const registrationPath = `/competitions/competition_details/${competition?.id}/registration`}
+                {@const hasOpenSpot = hasRegistrableSpot(categoriesWithCounts)}
                 <div class="flex flex-col items-center gap-2">
-                    <EndPageActionButton icon={AccountPlusIcon} href="/competitions/competition_details/{competition?.id}/registration" colorClass="preset-filled-success-500" disabled={!(currentUser && (competition?.registrationOpen || isOrganizer))} text={registrationLabel} testId="signup-button" />
-
-                    <!-- Alert Banner: placed directly below registration button for context -->
-                    {#if !competition?.registrationOpen}
-                        <div class="flex items-center gap-2 p-3 rounded-lg bg-warning-50 dark:bg-warning-900/20 border border-warning-300 dark:border-warning-700 text-sm">
-                            <LockOutlineIcon width="1.2rem" height="1.2rem" class="text-warning-500 shrink-0" />
-                            <span>{$t('competition_details.registration_closed_banner')}</span>
-                        </div>
-                    {:else if !currentUser}
-                        <a href="/login?redirect={encodeURIComponent(`/competitions/competition_details/${competition?.id}/registration`)}" class="flex items-center gap-2 p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-300 dark:border-primary-700 text-sm hover:opacity-80 transition-opacity">
-                            <LoginIcon width="1.2rem" height="1.2rem" class="text-primary-500 shrink-0" />
-                            <span>{$t('competition_details.login_to_register')}</span>
-                        </a>
-                    {/if}
+                    <RegistrationActionButton
+                        loggedIn={!!currentUser}
+                        registrationOpen={!!competition?.registrationOpen}
+                        {isOrganizer}
+                        {hasOpenSpot}
+                        hasRegistrations={!!hasRegistrations}
+                        registrationHref={registrationPath}
+                        loginHref={`/login?redirect=${encodeURIComponent(registrationPath)}`}
+                    />
                 </div>
-
-                <!-- Live Results (visible to all users when applicable) -->
-                {#if categories.some(c => c.status === 'LIVE' || c.status === 'STOPPED')}
-                    <div class="flex justify-center">
-                        <EndPageActionButton icon={FormatListBulletedIcon} href="/competitions/competition_details/{competition?.id}/results" text={$t('competition_details.view_live_results')} />
-                    </div>
-                {/if}
 
                 <!-- Navigation link -->
                 <div class="flex justify-center">

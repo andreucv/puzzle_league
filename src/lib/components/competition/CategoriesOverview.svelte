@@ -6,7 +6,7 @@
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
     type CategoryWithCounts = Category & { totalEntries: number; finishedEntries: number; reservedSlots?: number };
-    type UserEntry = { categoryId: number; status?: string; users?: { id: string; name: string; email: string; image: string | null }[]; externalParticipants?: { id: string; name: string; claimedById: string | null }[] };
+    type UserEntry = { categoryId: number; status?: string; tableNumber?: number | null; users?: { id: string; name: string; email: string; image: string | null }[]; externalParticipants?: { id: string; name: string; claimedById: string | null }[] };
 
     let {
         categories,

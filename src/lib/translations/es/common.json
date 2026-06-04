@@ -7,7 +7,9 @@
     "today": "Hoy",
     "registration_open": "Inscripción abierta",
     "registration_closed": "Inscripción cerrada",
-    "near_you": "Cerca de ti"
+    "near_you": "Cerca de ti",
+    "table": "Mesa {{n}}",
+    "entrants_count": "{{count}} inscritos"
   },
   "competition_status": {
     "upcoming": "Próxima",
@@ -53,13 +55,12 @@
       "get_calendar": "Revisa el calendario",
       "get_calendar_description": "Comprueba el calendario para nuevos concursos"
     },
-    "your_upcoming_competitions": "Tus próximos concursos",
+    "my_upcoming_competitions": "Mis próximos concursos",
     "no_upcoming_competitions": "No estás registrado a ningún concurso",
     "no_upcoming_competitions_detail": "Parece que no estás registrado a ningun concurso. Mira el calendario y regístrate a cualquier categoría!",
     "image_alt": "Imagen de puzzles",
-    "your_last_results": "Tus últimos resultados",
+    "my_last_results": "Mis últimos resultados",
     "no_last_results": "Aún no tienes resultados",
-    "my_registrations": "Mis Inscripciones",
     "live_now": "En Directo",
     "no_live_competitions": "No hay competiciones en directo ahora",
     "no_near_competitions": "No hay próximas competiciones cerca de ti",

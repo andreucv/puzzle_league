@@ -404,7 +404,14 @@ export async function getOtherUpcomingCompetitions(userId: string, limit: number
             }
         },
         include: {
-            categories: true
+            categories: {
+                // Co-competitor count: all entries in the category (any status)
+                include: {
+                    _count: {
+                        select: { entries: true }
+                    }
+                }
+            }
         },
         orderBy: [
             { startDate: 'asc' },
@@ -463,6 +470,10 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
                                 }
                             }
                         }
+                    },
+                    // Co-competitor count: all entries in the category (any status)
+                    _count: {
+                        select: { entries: true }
                     }
                 }
             },
@@ -514,11 +525,10 @@ export async function getHomeDashboardData(userId: string) {
     const allRegisteredPromise = getUserRegisteredCompetitions(userId);
 
     // Run remaining independent queries in parallel alongside the combined one
-    const [allRegistered, otherUpcoming, lastResults, registrationStatuses] = await Promise.all([
+    const [allRegistered, otherUpcoming, lastResults] = await Promise.all([
         allRegisteredPromise,
         getOtherUpcomingCompetitions(userId, 10, 0),
-        getLastUserResults(userId, 5),
-        getUserRegistrationStatuses(userId)
+        getLastUserResults(userId, 5)
     ]);
 
     // Split by status client-side
@@ -528,62 +538,13 @@ export async function getHomeDashboardData(userId: string) {
     const startedCompetitions = allRegistered.filter(
         c => c.status === CompetitionStatus.STARTED
     );
-    const participatedCompetitions = allRegistered.filter(
-        c => c.status === CompetitionStatus.FINISHED
-    );
 
     return {
         upcomingRegisteredCompetitions,
-        participatedCompetitions,
         otherUpcomingCompetitions: otherUpcoming,
         lastResults,
         startedCompetitions,
-        registrationStatuses,
     };
-}
-
-export async function getUserRegistrationStatuses(userId: string) {
-    const competitions = await prisma.competition.findMany({
-        where: {
-            status: { in: [CompetitionStatus.NOT_STARTED, CompetitionStatus.STARTED] },
-            startDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
-            categories: {
-                some: {
-                    entries: { some: { users: { some: { id: userId } } } }
-                }
-            }
-        },
-        select: {
-            id: true,
-            name: true,
-            startDate: true,
-            registrationOpen: true,
-            status: true,
-            categories: {
-                orderBy: { startTime: 'asc' },
-                select: {
-                    type: true,
-                    entries: {
-                        where: { users: { some: { id: userId } } },
-                        select: { status: true }
-                    }
-                }
-            }
-        },
-        orderBy: { startDate: 'asc' }
-    });
-
-    return competitions.map((competition) => ({
-        id: competition.id,
-        name: competition.name,
-        startDate: competition.startDate,
-        registrationOpen: competition.registrationOpen,
-        status: competition.status,
-        categories: competition.categories.map((category) => ({
-            type: category.type,
-            entryStatus: category.entries[0]?.status ?? null
-        }))
-    }));
 }
 
 /**

@@ -50,7 +50,6 @@ function makeCompetition(id: number, overrides: Record<string, any> = {}) {
 
 function makePageData(overrides: {
 	user?: any;
-	registrationStatuses?: any[];
 	startedCompetitions?: any[];
 	upcomingRegisteredCompetitions?: any[];
 	lastResults?: any[];
@@ -60,7 +59,6 @@ function makePageData(overrides: {
 	return {
 		user,
 		props: {
-			registrationStatuses: Promise.resolve(overrides.registrationStatuses ?? []),
 			startedCompetitions: Promise.resolve(overrides.startedCompetitions ?? []),
 			upcomingRegisteredCompetitions: Promise.resolve(overrides.upcomingRegisteredCompetitions ?? []),
 			lastResults: Promise.resolve(overrides.lastResults ?? []),
@@ -87,11 +85,10 @@ describe('Authenticated Home Page', () => {
 
 	// ── Section order ──
 
-	it('renders sections in correct order: My Registrations, Live Now, Your upcoming, Your last results, Other Upcoming', async () => {
+	it('renders sections in correct order: Live Now, My upcoming, My last results, Other Upcoming', async () => {
 		render(Page, {
 			props: {
 				data: makePageData({
-					registrationStatuses: [{ id: 1, name: 'Comp 1', startDate: new Date(), registrationOpen: true, status: 'NOT_STARTED', categories: [{ type: 'INDIVIDUAL', entryStatus: 'CONFIRMED' }] }],
 					startedCompetitions: [makeCompetition(10, { status: 'STARTED' })],
 					upcomingRegisteredCompetitions: [makeCompetition(20)],
 					lastResults: [],
@@ -102,19 +99,16 @@ describe('Authenticated Home Page', () => {
 
 		await waitFor(() => {
 			const allText = document.body.textContent ?? '';
-			const myRegPos = allText.indexOf('landing_page.my_registrations');
 			const livePos = allText.indexOf('landing_page.live_now');
-			const upcomingPos = allText.indexOf('landing_page.your_upcoming_competitions');
-			const lastResultsPos = allText.indexOf('landing_page.your_last_results');
+			const upcomingPos = allText.indexOf('landing_page.my_upcoming_competitions');
+			const lastResultsPos = allText.indexOf('landing_page.my_last_results');
 			const otherPos = allText.indexOf('competitions.other_upcoming_competitions');
 
-			expect(myRegPos).toBeGreaterThan(-1);
 			expect(livePos).toBeGreaterThan(-1);
 			expect(upcomingPos).toBeGreaterThan(-1);
 			expect(lastResultsPos).toBeGreaterThan(-1);
 			expect(otherPos).toBeGreaterThan(-1);
 
-			expect(myRegPos).toBeLessThan(livePos);
 			expect(livePos).toBeLessThan(upcomingPos);
 			expect(upcomingPos).toBeLessThan(lastResultsPos);
 			expect(lastResultsPos).toBeLessThan(otherPos);

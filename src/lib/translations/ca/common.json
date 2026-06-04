@@ -7,7 +7,9 @@
     "today": "Avui",
     "registration_open": "Inscripció oberta",
     "registration_closed": "Inscripció tancada",
-    "near_you": "A prop"
+    "near_you": "A prop",
+    "table": "Taula {{n}}",
+    "entrants_count": "{{count}} inscrits"
   },
   "competition_status": {
     "upcoming": "Propera",
@@ -53,13 +55,12 @@
       "get_calendar": "Revisa el calendari",
       "get_calendar_description": "Comprova el calendari per nous concursos"
     },
-    "your_upcoming_competitions": "Els teus pròxims concursos",
+    "my_upcoming_competitions": "Els meus pròxims concursos",
     "no_upcoming_competitions": "No estàs registrat a cap concurs",
     "no_upcoming_competitions_detail": "Sembla que no estàs registrat a cap proper concurs. Mira al calendari i registra't a qualsevol categoria!",
     "image_alt": "Imatge de puzzles",
-    "your_last_results": "Els teus últims resultats",
+    "my_last_results": "Els meus últims resultats",
     "no_last_results": "Encara no tens resultats",
-    "my_registrations": "Les meves Inscripcions",
     "live_now": "En Directe",
     "no_live_competitions": "No hi ha competicions en directe ara",
     "no_near_competitions": "No hi ha pròximes competicions a prop teu",

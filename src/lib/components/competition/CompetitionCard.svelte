@@ -5,6 +5,8 @@
     import MapMarkerRadiusIcon from '@iconify-svelte/mdi/map-marker-radius';
     import DoorOpenIcon from '@iconify-svelte/mdi/door-open';
     import DoorClosedLockIcon from '@iconify-svelte/mdi/door-closed-lock';
+    import AccountGroupOutlineIcon from '@iconify-svelte/mdi/account-group-outline';
+    import TableChairIcon from '@iconify-svelte/mdi/table-chair';
     import CategoryRegistrationChip from '$lib/components/category/CategoryRegistrationChip.svelte';
     import CompetitionStatusChip from '$lib/components/competition/CompetitionStatusChip.svelte';
     import { t, locale } from '$lib/translations';
@@ -17,12 +19,15 @@
                 startTime: Date;
                 endTime: Date;
                 entries?: Array<{
+                    status?: string;
+                    tableNumber?: number | null;
                     users?: Array<{
                         id: string;
                         name: string;
                         image?: string | null;
                     }>;
                 }>;
+                _count?: { entries: number };
             }>;
             location?: string | null;
         };
@@ -76,6 +81,18 @@
     const isUserRegistered = $derived(
         competition.categories?.some((c: any) => isUserInCategory(c)) ?? false
     );
+
+    // Table number assigned to the current user's entry (when available)
+    const userTableNumber = $derived.by(() => {
+        if (!currentUserId || !competition.categories) return null;
+        for (const category of competition.categories) {
+            const entry = category.entries?.find((e: any) =>
+                e.users?.some((u: any) => u.id === currentUserId)
+            );
+            if (entry?.tableNumber != null) return entry.tableNumber;
+        }
+        return null;
+    });
 
     // Days until text
     const daysUntilText = $derived.by(() => {
@@ -133,6 +150,12 @@
                         </span>
                     {/if}
                     <CompetitionStatusChip competition_status={competition.status} />
+                    {#if userTableNumber != null}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300 rounded-full text-xs font-semibold">
+                            <TableChairIcon width="1rem" height="1rem" />
+                            {$t('competition_card.table', { n: userTableNumber })}
+                        </span>
+                    {/if}
                 </div>
 
                 <!-- Registration status (only when user is not registered) -->
@@ -158,7 +181,16 @@
                         {#each competition.categories as category (category.id)}
                             {@const registered = isUserInCategory(category)}
                             {@const status = getUserRegistrationStatus(category)}
-                            <CategoryRegistrationChip categoryType={category.type} registrationStatus={registered ? status : null} />
+                            {@const entrants = category._count?.entries ?? 0}
+                            <span class="inline-flex items-center gap-1">
+                                <CategoryRegistrationChip categoryType={category.type} registrationStatus={registered ? status : null} />
+                                {#if entrants > 0}
+                                    <span class="inline-flex items-center gap-0.5 text-xs text-surface-500 dark:text-surface-400" title={$t('competition_card.entrants_count', { count: entrants })}>
+                                        <AccountGroupOutlineIcon width="0.85rem" height="0.85rem" />
+                                        {entrants}
+                                    </span>
+                                {/if}
+                            </span>
                         {/each}
                     </div>
                 {/if}

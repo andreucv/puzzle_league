@@ -25,7 +25,9 @@
     "today": "Today",
     "registration_open": "Registration Open",
     "registration_closed": "Registration Closed",
-    "near_you": "Near you"
+    "near_you": "Near you",
+    "table": "Table {{n}}",
+    "entrants_count": "{{count}} registered"
   },
   "competition_status": {
     "upcoming": "Upcoming",
@@ -53,13 +55,12 @@
       "get_calendar": "Check the calendar",
       "get_calendar_description": "Get to know upcoming puzzling competitions"
     },
-    "your_upcoming_competitions": "Your upcoming competitions",
+    "my_upcoming_competitions": "My upcoming competitions",
     "no_upcoming_competitions": "Not registered to any competition",
     "no_upcoming_competitions_detail": "Seems you are not registered to any upcoming competition. Look in the calendar and register for any category.",
     "image_alt": "Puzzle image",
-    "your_last_results": "Your last results",
+    "my_last_results": "My last results",
     "no_last_results": "No results yet",
-    "my_registrations": "My Registrations",
     "live_now": "Live Now",
     "no_live_competitions": "No live competitions right now",
     "no_near_competitions": "No upcoming competitions near you",

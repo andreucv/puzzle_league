@@ -8,8 +8,10 @@
     "registration_open": "Inscripción abierta",
     "registration_closed": "Inscripción cerrada",
     "near_you": "Cerca de ti",
-    "table": "Mesa {{n}}",
-    "entrants_count": "{{count}} inscritos"
+    "table": "Mesa {{number}}",
+    "capacity_title": "{{current}}/{{max}} inscritos",
+    "registered_count": "{{count}} inscritos",
+    "more_categories": "+{{count}} categorías más"
   },
   "competition_status": {
     "upcoming": "Próxima",

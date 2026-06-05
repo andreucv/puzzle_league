@@ -214,7 +214,13 @@ export async function getAllCompetitions() {
         const competitions = await prisma.competition.findMany({
             include: {
                 categories: {
-                    orderBy: { startTime: 'asc' }
+                    orderBy: { startTime: 'asc' },
+                    include: {
+                        // Reserved slots: confirmed + pending entries in the category
+                        _count: {
+                            select: { entries: { where: { status: { in: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_CONFIRMATION] } } } }
+                        }
+                    }
                 },
                 league: true,
                 _count: {
@@ -249,7 +255,13 @@ export async function getMonthCompetitions(month: number, year: number) {
             },
             include: {
                 categories: {
-                    orderBy: { startTime: 'asc' }
+                    orderBy: { startTime: 'asc' },
+                    include: {
+                        // Reserved slots: confirmed + pending entries in the category
+                        _count: {
+                            select: { entries: { where: { status: { in: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_CONFIRMATION] } } } }
+                        }
+                    }
                 },
                 _count: {
                     select: {
@@ -298,7 +310,14 @@ export async function getUpcomingCompetitions(n_objects: number, offset: number)
             }
         },
         include: {
-            categories: true
+            categories: {
+                include: {
+                    // Reserved slots: confirmed + pending entries in the category
+                    _count: {
+                        select: { entries: { where: { status: { in: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_CONFIRMATION] } } } }
+                    }
+                }
+            }
         },
         orderBy: {
             startDate: 'asc'
@@ -369,7 +388,14 @@ export async function getNearCompetitions(n_objects: number, country?: string, p
         take: n_objects,
         where: whereClause,
         include: {
-            categories: true
+            categories: {
+                include: {
+                    // Reserved slots: confirmed + pending entries in the category
+                    _count: {
+                        select: { entries: { where: { status: { in: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_CONFIRMATION] } } } }
+                    }
+                }
+            }
         },
         orderBy: {
             startDate: 'asc'
@@ -405,10 +431,10 @@ export async function getOtherUpcomingCompetitions(userId: string, limit: number
         },
         include: {
             categories: {
-                // Co-competitor count: all entries in the category (any status)
                 include: {
+                    // Reserved slots: confirmed + pending entries in the category
                     _count: {
-                        select: { entries: true }
+                        select: { entries: { where: { status: { in: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_CONFIRMATION] } } } }
                     }
                 }
             }
@@ -471,9 +497,9 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
                             }
                         }
                     },
-                    // Co-competitor count: all entries in the category (any status)
+                    // Reserved slots: confirmed + pending entries in the category
                     _count: {
-                        select: { entries: true }
+                        select: { entries: { where: { status: { in: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_CONFIRMATION] } } } }
                     }
                 }
             },
@@ -788,6 +814,10 @@ export async function getExploreCompetitionsData(userId?: string) {
                                     },
                                 },
                             },
+                        },
+                        // Reserved slots: confirmed + pending entries in the category
+                        _count: {
+                            select: { entries: { where: { status: { in: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_CONFIRMATION] } } } }
                         },
                     },
                 },

@@ -115,14 +115,24 @@ describe('getOtherUpcomingCompetitions', () => {
 		expect(result).toHaveLength(2);
 	});
 
-	it('includes categories in the query', async () => {
+	it('includes categories with the reserved-slot count (confirmed + pending)', async () => {
 		mockFindMany.mockResolvedValue([]);
 
 		await getOtherUpcomingCompetitions('user-1', 10, 0);
 
 		expect(mockFindMany).toHaveBeenCalledWith(
 			expect.objectContaining({
-				include: { categories: true },
+				include: {
+					categories: {
+						include: {
+							_count: {
+								select: {
+									entries: { where: { status: { in: ['CONFIRMED', 'PENDING_CONFIRMATION'] } } }
+								}
+							}
+						}
+					}
+				},
 			})
 		);
 	});

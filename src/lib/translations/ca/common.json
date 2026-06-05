@@ -8,8 +8,10 @@
     "registration_open": "Inscripció oberta",
     "registration_closed": "Inscripció tancada",
     "near_you": "A prop",
-    "table": "Taula {{n}}",
-    "entrants_count": "{{count}} inscrits"
+    "table": "Taula {{number}}",
+    "capacity_title": "{{current}}/{{max}} inscrits",
+    "registered_count": "{{count}} inscrits",
+    "more_categories": "+{{count}} categories més"
   },
   "competition_status": {
     "upcoming": "Propera",

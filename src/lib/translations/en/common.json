@@ -26,8 +26,10 @@
     "registration_open": "Registration Open",
     "registration_closed": "Registration Closed",
     "near_you": "Near you",
-    "table": "Table {{n}}",
-    "entrants_count": "{{count}} registered"
+    "table": "Table {{number}}",
+    "capacity_title": "{{current}}/{{max}} registered",
+    "registered_count": "{{count}} registered",
+    "more_categories": "+{{count}} more categories"
   },
   "competition_status": {
     "upcoming": "Upcoming",

@@ -17,7 +17,7 @@
     import EntryRegistrationStatusBadge from '$lib/components/registration/EntryRegistrationStatusBadge.svelte';
 
     import AccountGroupOutlineIcon from '@iconify-svelte/mdi/account-group-outline';
-    import TableChairIcon from '@iconify-svelte/mdi/table-chair';
+    import TableFurnitureIcon from '@iconify-svelte/mdi/table-furniture';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
     type PartyUser = { id: string; name: string; email: string; image: string | null };
@@ -164,7 +164,7 @@
                                 </div>
                                 {#if showTableNumber && entry.tableNumber != null}
                                     <span class="badge preset-tonal-primary text-xs flex items-center gap-1 shrink-0">
-                                        <TableChairIcon width="0.8rem" height="0.8rem" />
+                                        <TableFurnitureIcon width="0.8rem" height="0.8rem" />
                                         {$t('competition_details.table', { number: entry.tableNumber })}
                                     </span>
                                 {/if}
@@ -216,7 +216,7 @@
                                 </div>
                                 {#if showTableNumber && entry.tableNumber != null}
                                     <span class="badge preset-tonal-primary text-xs flex items-center gap-1 shrink-0">
-                                        <TableChairIcon width="0.8rem" height="0.8rem" />
+                                        <TableFurnitureIcon width="0.8rem" height="0.8rem" />
                                         {$t('competition_details.table', { number: entry.tableNumber })}
                                     </span>
                                 {/if}

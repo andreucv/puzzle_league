@@ -59,10 +59,10 @@ function makePageData(overrides: {
 	return {
 		user,
 		props: {
-			startedCompetitions: Promise.resolve(overrides.startedCompetitions ?? []),
-			upcomingRegisteredCompetitions: Promise.resolve(overrides.upcomingRegisteredCompetitions ?? []),
-			lastResults: Promise.resolve(overrides.lastResults ?? []),
-			otherUpcomingCompetitions: Promise.resolve(overrides.otherUpcomingCompetitions ?? []),
+			startedCompetitions: overrides.startedCompetitions ?? [],
+			upcomingRegisteredCompetitions: overrides.upcomingRegisteredCompetitions ?? [],
+			lastResults: overrides.lastResults ?? [],
+			otherUpcomingCompetitions: overrides.otherUpcomingCompetitions ?? [],
 		},
 	};
 }

@@ -28,6 +28,7 @@
     let selected_image_src = $state<string | undefined>(undefined);
     let formErrors = $state<Record<string, string>>({});
 
+    // svelte-ignore state_referenced_locally
     const { form, errors, message, enhance } = superForm(data.form, {
         dataType: 'json',
         async onSubmit({ cancel }) {

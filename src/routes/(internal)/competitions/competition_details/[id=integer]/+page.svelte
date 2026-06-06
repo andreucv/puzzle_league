@@ -115,6 +115,7 @@
         {@const isMultiDay = startDate.toDateString() !== endDate.toDateString()}
         {@const categories = competition?.categories || []}
 
+        {#if competition}
         <!-- Header Section -->
         <div class="space-y-3">
             <div class="space-y-4 mb-6">
@@ -280,6 +281,9 @@
                     </Dialog.Positioner>
                 </Portal>
             </Dialog>
+        {/if}
+        {:else}
+            <p class="text-center text-surface-600 dark:text-surface-400 py-12">{$t('error_pages.not_found')}</p>
         {/if}
     {/await}
 </div>

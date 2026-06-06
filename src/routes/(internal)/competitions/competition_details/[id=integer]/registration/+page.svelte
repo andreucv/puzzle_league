@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { User, Category, CategoryType } from '@prisma/client';
+    import type { User, Category, CategoryType } from '$lib/.prisma/generated/prisma/browser';
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
     import { enhance } from '$app/forms';
     import { invalidate } from '$app/navigation';
@@ -612,7 +612,7 @@
                                 <!-- Row 1: Status + created by you + unregister -->
                                 <div class="flex items-center justify-between gap-2">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <RegistrationStatusBadge status={entry.status} translation={$t} />
+                                        <RegistrationStatusBadge status={entry.status} />
                                         {#if entry.creatorId === currentUser?.id && !isUserInEntry(entry)}
                                             <span class="text-xs text-surface-500 italic">{$t('registration.created_by_you')}</span>
                                         {/if}
@@ -995,7 +995,7 @@
                             const catHeader = $t('registration.toast_category_header');
                             const entHeader = $t('registration.toast_entries_header');
                             const rows = s.perCategory.map(c =>
-                                `<tr><td class="py-0.5">${$t(getCategoryTypeName(c.type))}</td><td class="py-0.5 text-right font-medium">${c.count}</td></tr>`
+                                `<tr><td class="py-0.5">${$t(getCategoryTypeName(c.type as CategoryType))}</td><td class="py-0.5 text-right font-medium">${c.count}</td></tr>`
                             ).join('');
                             const totalRow = s.perCategory.length > 1
                                 ? `<tr class="border-t border-surface-300 dark:border-surface-600"><td class="pt-1 font-semibold">Total</td><td class="pt-1 text-right font-semibold">${s.totalEntries}</td></tr>`

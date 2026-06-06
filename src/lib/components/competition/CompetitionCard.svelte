@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Competition } from "@prisma/client";
+    import type { Competition } from "$lib/.prisma/generated/prisma/browser";
     import { CldImage } from 'svelte-cloudinary';
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import MapMarkerRadiusIcon from '@iconify-svelte/mdi/map-marker-radius';
@@ -52,6 +52,7 @@
     // Calculate days until competition
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    // svelte-ignore state_referenced_locally
     const competitionDate = new Date(competition.startDate);
     competitionDate.setHours(0, 0, 0, 0);
     const timeDiff = competitionDate.getTime() - today.getTime();

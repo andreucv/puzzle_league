@@ -4,14 +4,15 @@ import { getUserWithRoles } from "$lib/database/db_user";
 import { env } from '$env/dynamic/private';
 
 // Locale priority: DB user preference > Accept-Language header > default "es"
-function determineLocale(user, request) {
+function determineLocale(user: { locale?: string | null } | null, request: Request) {
     let locale = "es"; // default
 
+    const acceptLanguage = request.headers.get('accept-language');
     if(user?.locale) {
         locale = user.locale;
     }
-    else if(request.headers.get('accept-language')) {
-        locale = request.headers.get('accept-language').split(',')[0].split('-')[0];
+    else if(acceptLanguage) {
+        locale = acceptLanguage.split(',')[0].split('-')[0];
     }
 
     // We look for locales in our translations, if not supported, fallback to "es"

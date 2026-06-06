@@ -32,6 +32,7 @@
     let startedCategories = $derived(
         categoriesWithRegistrations.filter((c: any) => c.status !== 'NOT_STARTED')
     );
+    // svelte-ignore state_referenced_locally
     let registrationOpen = $state(data.competition.registrationOpen);
     let searchFilter = $state('');
 

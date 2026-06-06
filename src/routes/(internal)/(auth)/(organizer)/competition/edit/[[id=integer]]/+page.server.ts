@@ -1,7 +1,8 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import type { Action, Actions, PageServerLoad } from '../$types';
+import type { Action, Actions, PageServerLoad } from './$types';
 import { updateCompetition, getCompetitionWithCategories } from '$lib/database/db_competition';
 import { CategoryType, CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
+import type { Prisma } from '$lib/.prisma/generated/prisma/client';
 import { getPostHogClient } from '$lib/server/posthog';
 import { getCompetitionAccess } from '$lib/services/competition-access';
 
@@ -45,7 +46,7 @@ export const load: PageServerLoad = async (event) => {
 
             if (competition.status !== CompetitionStatus.NOT_STARTED) {
                 const categoryTypes = Object.values(CategoryType);
-                const form = await superValidate(null, zod4(CompetitionEditSchema as any));
+                const form = await superValidate(null, zod4(CompetitionEditSchema));
                 return {
                     form,
                     props: { categoryTypes },
@@ -79,7 +80,9 @@ export const load: PageServerLoad = async (event) => {
         }
 
         const categoryTypes = Object.values(CategoryType);
-        const form = await superValidate(competitionData, zod4(CompetitionEditSchema as any));
+        // Categories are seeded as a flat array (the shape the page reads on load); the page
+        // reshapes them into Prisma create/update/delete before submit, so cast the seed data.
+        const form = await superValidate(competitionData as any, zod4(CompetitionEditSchema));
 
         return {
             form,
@@ -102,7 +105,7 @@ const create_update_competition: Action = async ({ locals, request, params }) =>
     }
 
     const competitionId = parseInt(params.id ?? '0');
-    const form = await superValidate(request, zod4(CompetitionEditSchema as any));
+    const form = await superValidate(request, zod4(CompetitionEditSchema));
     const formData = form.data as CompetitionEditData;
 
     if (!form.valid) {
@@ -126,7 +129,8 @@ const create_update_competition: Action = async ({ locals, request, params }) =>
     // Auto-compute competition startDate/endDate from category datetimes
     autoComputeDateBounds(competitionData);
 
-    const result = await updateCompetition(competitionId, competitionData);
+    // competitionData is reshaped into Prisma's nested-write form by the transforms above.
+    const result = await updateCompetition(competitionId, competitionData as unknown as Prisma.CompetitionUpdateInput);
     console.log('competition/edit/+page.server.ts: on action result', result);
 
     if (!result.success) {

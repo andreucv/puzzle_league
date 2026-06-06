@@ -19,7 +19,6 @@
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
 
     let { data } = $props();
-    console.log("competition/edit/+page.svelte: data", data);
 
     // Country combobox data
     const countryData = $derived(countries.map(c => ({
@@ -32,7 +31,9 @@
         value: c.code,
         emoji: getCountryFlag(c.code)
     })));
+    // svelte-ignore state_referenced_locally
     let countryValue = $state<string[]>(data.form?.data?.country ? [data.form.data.country as string] : []);
+    // svelte-ignore state_referenced_locally
     let countryInputValue = $state(
         data.form?.data?.country
             ? (getLocalizedCountryName(data.form.data.country as string, $locale) || '')
@@ -64,6 +65,7 @@
     // Timeout error state (shown separately since $message is controlled by superForm)
     let timeoutError = $state<string | null>(null);
 
+    // svelte-ignore state_referenced_locally
     const { form, errors, constraints, message, enhance } = superForm(data.form, {
         dataType: "json",
         async onSubmit({ cancel }) {
@@ -177,28 +179,31 @@
 
     let toUpdateCategories = [] as any[];
     let toUpdateCategoriesTimes = [] as any[];
-    for (let i = 0; i < $form.categories?.length; i++) {
+    // On load $form.categories is the flat array of existing categories (it is reshaped into
+    // create/update/delete further below before submit).
+    const loadedCategories = ($form.categories as any[]) || [];
+    for (let i = 0; i < loadedCategories.length; i++) {
         toUpdateCategories.push(
             {
                 where: {
-                    id: $form.categories[i].id
+                    id: loadedCategories[i].id
                 },
                 data: {
-                    ...$form.categories[i],
+                    ...loadedCategories[i],
                 }
             }
         );
         delete toUpdateCategories[i].data.id;
         delete toUpdateCategories[i].data.competitionId;
 
-        const start_time = new Date($form.categories[i].startTime);
-        const end_time = new Date($form.categories[i].endTime);
+        const start_time = new Date(loadedCategories[i].startTime);
+        const end_time = new Date(loadedCategories[i].endTime);
         toUpdateCategoriesTimes[i] = {startTime: `${start_time.getHours().toString().padStart(2, '0')}:${start_time.getMinutes().toString().padStart(2, '0')}`,
                                         endTime: `${end_time.getHours().toString().padStart(2, '0')}:${end_time.getMinutes().toString().padStart(2, '0')}`};
     }
 
     // Here inject the data from the current competition in form
-    let initialCompetitionStartDate: CalendarDate | null = null;
+    let initialCompetitionStartDate = $state<CalendarDate | null>(null);
     let selected_image_src = $state<string | undefined>(undefined);
 
     let categories = $state<{
@@ -226,7 +231,7 @@
 
     // Date validation error
     let dateError = $state<string | null>(null);
-    let datePickerRef: HTMLDivElement;
+    let datePickerRef = $state<HTMLDivElement>();
 
     // Multi-day state
     let isMultiDay = $state(false);
@@ -255,8 +260,6 @@
         categories_times_obj_arr.update = toUpdateCategoriesTimes;
 
         initialCompetitionStartDate = new CalendarDate(new Date($form.startDate as string).getFullYear(), new Date($form.startDate as string).getMonth() + 1, new Date($form.startDate as string).getDate());
-        console.log("initialCompetitionStartDate", $form.startDate);
-        console.log("initialCompetitionStartDate", initialCompetitionStartDate);
         selected_image_src = ($form.image_cld_id as string) || undefined;
 
         // Auto-detect multi-day: check if categories span multiple calendar days
@@ -281,6 +284,7 @@
 
     // Update form with creator ID when loaded
     $form.status = "NOT_STARTED";
+    // svelte-ignore state_referenced_locally
     $form.creator = { connect: { id: data.user.id } };
     $form.image_cld_id = undefined;
 
@@ -326,7 +330,7 @@
 
     function confirmRemoveCategory() {
         if (pendingRemoval) {
-            removeCategory(pendingRemoval.source, pendingRemoval.index);
+            removeCategory(pendingRemoval.source as 'update' | 'create', pendingRemoval.index);
             pendingRemoval = null;
             showRemoveConfirmation = false;
         }
@@ -1533,7 +1537,7 @@
                 type="submit"
                 class="btn preset-filled-primary-500 rounded-lg"
                 data-testid="submit-competition"
-                disabled={$form.isValid === false || isSubmitting}
+                disabled={isSubmitting}
             >
                 {#if isSubmitting}
                     <Icon icon="mdi:loading" width="1.2rem" height="1.2rem" class="animate-spin" />

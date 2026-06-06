@@ -137,7 +137,7 @@ export async function startCategory(categoryId: number, options?: StartAutoStopO
 	});
 
 	// Schedule auto-stop if requested
-	if (options?.autoStop) {
+	if (options?.autoStop && options.scheduler) {
 		await options.scheduler.scheduleAutoStop(categoryId, updatedCategory.competitionId, options.deadline);
 	}
 

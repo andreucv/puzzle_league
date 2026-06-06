@@ -3,10 +3,11 @@
 	import InfiniteScroll from '$lib/components/common/InfiniteScroll.svelte';
 	import { t } from '$lib/translations';
 	import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
-	import type { Competition } from '@prisma/client';
+	import type { Competition } from '$lib/.prisma/generated/prisma/browser';
 	import { getStartOfWeek, addDays } from '$lib/utils/date_utils';
 
 	let { data } = $props();
+	// svelte-ignore state_referenced_locally
 	let competitions = $state<Competition[]>(data.competitions);
 	let page = $state(1);
 	let hasMore = $state(true);

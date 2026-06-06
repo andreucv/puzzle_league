@@ -1,4 +1,4 @@
-import type { CategoryType } from "@prisma/client";
+import type { CategoryType } from "$lib/.prisma/generated/prisma/browser";
 
 import AccountIcon from '@iconify-svelte/mdi/account';
 import AccountMultipleIcon from '@iconify-svelte/mdi/account-multiple';

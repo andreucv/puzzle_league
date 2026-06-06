@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Competition } from '@prisma/client';
+	import type { Competition } from '$lib/.prisma/generated/prisma/browser';
 
 	let { competition }: { competition: Competition } = $props();
 </script>

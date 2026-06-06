@@ -13,6 +13,7 @@
         open?: boolean;
     } = $props();
 
+    // svelte-ignore state_referenced_locally
     let isOpen = $state(initialOpen);
 </script>
 

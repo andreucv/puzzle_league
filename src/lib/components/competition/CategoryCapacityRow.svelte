@@ -79,7 +79,7 @@
         {#if showBar}
             <div class="flex items-center gap-1.5" title={$t('competition_card.capacity_title', { current: reserved, max })}>
                 <!-- Bar is decorative; hidden on small screens where N/max already states capacity -->
-                <Progress value={reserved} max={max} class="hidden sm:block sm:w-14">
+                <Progress value={reserved} max={max ?? undefined} class="hidden sm:block sm:w-14">
                     <Progress.Track class="h-1.5 bg-surface-200 dark:bg-surface-700">
                         <Progress.Range class={rangeClass} />
                     </Progress.Track>

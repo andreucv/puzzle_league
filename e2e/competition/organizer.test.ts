@@ -142,6 +142,12 @@ async function navigateToCreateForm(page: Page) {
     await expect(page.getByRole('heading', { name: 'Create new competition' }).first()).toBeVisible();
 }
 
+/** Opens the "Manage" overflow menu on the competition details page and clicks "Edit Competition". */
+async function navigateToEditFromManageMenu(page: Page) {
+    await page.getByTestId('competition-manage-menu').click();
+    await page.getByTestId('edit-competition-link').click();
+}
+
 /** Fills the main competition detail fields (name, location, description, country, postal code, payment method). */
 async function fillCompetitionDetails(page: Page, data: CompetitionData) {
     await page.locator('input[name="competition_name"]').fill(data.name);
@@ -284,7 +290,7 @@ test.describe('Single-day competition', () => {
         await assertCompetitionCreated(page, competition_data.competition, competition_data.categories);
 
         // Navigate to edit and update the competition
-        await page.getByRole('link', { name: 'Edit Competition' }).click();
+        await navigateToEditFromManageMenu(page);
         await expect(page.getByRole('heading', { name: 'Edit competition' }).first()).toBeVisible();
 
         // Update details and submit again
@@ -414,7 +420,7 @@ test.describe('Multi-day competition', () => {
         await assertCompetitionCreated(page, multiday_competition_data.competition, multiday_competition_data.categories);
 
         // Navigate to edit
-        await page.getByRole('link', { name: 'Edit Competition' }).click();
+        await navigateToEditFromManageMenu(page);
         await expect(page.getByRole('heading', { name: 'Edit competition' }).first()).toBeVisible();
 
         // Multi-day mode should be auto-detected

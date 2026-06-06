@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CategoryType } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryType, CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
 import { v2 as cloudinary } from 'cloudinary';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } from '$env/static/private';
 
@@ -66,7 +66,7 @@ export const CompetitionEditSchema = z.object({
 	image_cld_id: z.string().nullable().optional(),
 	startDate: z.string().min(1, 'Start date is required'),
 	endDate: z.string().min(1, 'End date is required'),
-	status: z.string(),
+	status: z.nativeEnum(CompetitionStatus),
 	registrationOpen: z.boolean().optional(),
 	showPaymentWarning: z.boolean().optional(),
 	categories: z

@@ -13,6 +13,7 @@
 
     let searchQuery = $state('');
     let searchResults = $state<any[]>([]);
+    // svelte-ignore state_referenced_locally
     let linkedPuzzles = $state<any[]>(initialPuzzles);
     let showSearch = $state(false);
     let searching = $state(false);

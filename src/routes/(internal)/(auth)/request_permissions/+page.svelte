@@ -11,7 +11,9 @@
 	let additionalInfo = $state('');
 	let isSubmitting = $state(false);
 
+	// svelte-ignore state_referenced_locally
 	let originalRoles = data.props.filteredRoles;
+	// svelte-ignore state_referenced_locally
 	let requestedRoles = (data.props.requests || []).map((request: any) => request.role);
 	let optionsAvailable = $state(originalRoles.filter((role: any) => !requestedRoles.includes(role)));
     let formDisabled = $state(optionsAvailable.length === 0);

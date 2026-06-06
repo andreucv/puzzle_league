@@ -21,7 +21,7 @@ export const load: PageServerLoad = async ( event ) => {
             categoriesWithCounts: getCompetitionCategories(competitionId),
             access: user
                 ? getCompetitionAccess(competitionId, user.id)
-                : Promise.resolve({ isCreator: false, isAdmin: false, isOrganizer: false, isJudge: false, judgedCategoryIds: [] }),
+                : Promise.resolve({ isCreator: false, isAdmin: false, isCoorganizer: false, isJudge: false, judgedCategoryIds: [], canManageCompetition: false }),
         }
     }
 }

@@ -7,6 +7,39 @@ import AccountChildIcon from '@iconify-svelte/mdi/account-child';
 import ChessKnightIcon from '@iconify-svelte/mdi/chess-knight';
 import ShapeIcon from '@iconify-svelte/mdi/shape';
 
+import TimerSandIcon from '@iconify-svelte/mdi/timer-sand';
+import PlayCircleOutlineIcon from '@iconify-svelte/mdi/play-circle-outline';
+import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
+import CancelIcon from '@iconify-svelte/mdi/cancel';
+import PauseCircleOutlineIcon from '@iconify-svelte/mdi/pause-circle-outline';
+
+type CategoryStatusColor = 'warning' | 'success' | 'error' | 'surface';
+
+export type CategoryStatusVisual = {
+    labelKey: string;
+    icon: typeof CheckCircleIcon;
+    color: CategoryStatusColor;
+};
+
+/**
+ * Single source of truth for how a CategoryStatus is presented (icon, color, label key).
+ * Each consumer maps `color` to its own styling (badge preset vs. text color).
+ */
+export function getCategoryStatusVisual(status: string): CategoryStatusVisual {
+    switch (status) {
+        case 'LIVE':
+            return { labelKey: 'category_status.in_progress', icon: PlayCircleOutlineIcon, color: 'warning' };
+        case 'STOPPED':
+            return { labelKey: 'category_status.stopped', icon: PauseCircleOutlineIcon, color: 'warning' };
+        case 'COMPLETE':
+            return { labelKey: 'category_status.completed', icon: CheckCircleIcon, color: 'success' };
+        case 'CANCELED':
+            return { labelKey: 'category_status.canceled', icon: CancelIcon, color: 'error' };
+        default:
+            return { labelKey: 'category_status.not_started', icon: TimerSandIcon, color: 'surface' };
+    }
+}
+
 export function getCategoryTypeName(type: CategoryType) {
     const typeNames: Record<CategoryType, string> = {
         INDIVIDUAL: 'category_names.individual',

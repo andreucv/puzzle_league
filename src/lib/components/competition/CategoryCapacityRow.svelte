@@ -82,7 +82,7 @@
         {:else}
             <span class="flex items-center gap-1 text-xs text-surface-500 dark:text-surface-400">
                 <AccountGroupOutlineIcon width="0.85rem" height="0.85rem" class="shrink-0" />
-                {$t('competition_card.registered_count', { count })}
+                {count}
             </span>
         {/if}
     </div>

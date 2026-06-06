@@ -28,7 +28,7 @@
     "near_you": "Near you",
     "table": "Table {{number}}",
     "capacity_title": "{{current}}/{{max}} registered",
-    "registered_count": "{{count}} registered",
+    "registered_count": "{{count}}",
     "more_categories": "+{{count}} more categories"
   },
   "competition_status": {

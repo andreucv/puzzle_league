@@ -50,16 +50,16 @@ A person participating in an entry who does not have a platform account (e.g., a
 _Avoid_: UserIntent, placeholder, proxy, guest
 
 **Participant Tag**:
-A label defined by the organizer at the competition level (e.g. "Local participant") that marks a subset of participants as eligible for a sub-prize within a category. A tag has an eligibility rule (ALL or ANY) that governs how multi-person entries qualify: ALL requires every participant in the entry to hold the tag; ANY requires at least one. Tags are scoped to the whole competition — a participant tagged as "Local" is local for all categories they enter.
+A fixed, predefined tag type (the `ParticipantTagType` enum in `schema.prisma`: `LOCAL_MUNICIPALITY`, `JUVENILE`) that marks an **entry** as eligible for a sub-prize within a category. Organizers do **not** create tags; the tag set is the enum. A tag is an **entry-level qualification**: it is claimed for the whole entry, not for individual participants, and the organizer judges whether the entry qualifies (age, locality, etc. are not computed). A tag becomes claimable in a category only when the organizer adds a Tag Category for it. An entry may hold at most one tag.
 _Avoid_: label, badge, group
 
-**Tag Assignment**:
-A record linking a Participant Tag to a specific platform user within a competition. Created either by the participant (self-declaration during registration) or directly by the organizer. Has a lifecycle: PENDING → CONFIRMED or REJECTED. Preserved independently of the entry lifecycle — a waitlisted participant's tag declaration carries through if they are later confirmed.
-_Avoid_: tag claim, tag request, tag membership
+**Entry Tag**:
+A record linking a Participant Tag to a specific entry. Created either by the registrant (claimed during registration) or directly by the organizer (assigned as CONFIRMED). Has a lifecycle: PENDING → CONFIRMED or REJECTED. There is at most one Entry Tag per entry (one mutable claim slot), preserved independently of the registration lifecycle — a waitlisted entry's claim carries through if it is later confirmed/promoted.
+_Avoid_: tag assignment, tag claim, tag membership
 
-**Tag Category Price**:
-An optional flat price override set by the organizer on a per-tag per-category basis. When a participant has a PENDING or CONFIRMED Tag Assignment for a tag that carries a price override in a given category, that price is shown instead of the general category price. If the tag is later rejected, the general price applies and any payment difference is handled off-platform.
-_Avoid_: discounted price, local price, tag discount
+**Tag Category**:
+The link that makes a Participant Tag claimable in a given Category, carrying an optional flat `priceOverride`. This is the **organizer's entry point** for tags: adding a Tag Category row (in the competition edit form) is what makes a tag claimable at registration. A tag is available in a category **if and only if** a Tag Category row exists. When an entry has a PENDING or CONFIRMED Entry Tag whose Tag Category carries a price override, that price is shown instead of the general category price. If the tag is later rejected, the general price applies and any payment difference is handled off-platform.
+_Avoid_: tag category price, discounted price, local price, tag discount
 
 ### Processes & status
 
@@ -94,9 +94,9 @@ The number of pieces completed by an entry when the category time expires withou
 - An **Organizer** manages only **Competitions** they created
 - **Competition status** is auto-derived from its **Categories'** statuses
 - **Registration** is controlled by an independent organizer toggle, allowing late registration for upcoming categories even mid-competition
-- A **Competition** optionally has one or more **Participant Tags** (competition-scoped)
-- A **Participant Tag** has zero or more **Tag Assignments** (one per user per tag)
-- A **Participant Tag** optionally has one **Tag Category Price** per **Category** in its competition
+- **Participant Tags** are a fixed enum (`ParticipantTagType`), not per-competition records
+- A **Tag Category** makes a Participant Tag claimable in a **Category** (with an optional price override); availability = the row exists
+- An **Entry** has at most one **Entry Tag** (the claimed tag enum value, with PENDING/CONFIRMED/REJECTED status)
 
 ## Entry ranking
 
@@ -122,4 +122,4 @@ The number of pieces completed by an entry when the category time expires withou
 
 - **League points calculation** — strategy for calculating points from category results is not yet defined. Deferred to a future session.
 - **Payment processing** — currently off-platform only (organizer confirms receipt manually). In-app payments are planned for the future.
-- **Prize cascade with multiple tags** — when `tagsAreMutuallyExclusive` is false on a competition, a participant with multiple confirmed tags could rank #1 in several sub-prize rankings simultaneously. The resolution (e.g. bump the prize to the next eligible ranked participant) is deferred to a future session.
+- **Prize cascade / multiple tags** — an entry currently holds at most one tag, so sub-prize rankings never overlap. Allowing an entry to hold multiple tags (and the resulting cascade when one entry tops several sub-prize rankings) is a deferred future extension.

@@ -71,6 +71,7 @@ declare global {
             nPiecesCompleted: number | null;
             users: ResultEntryUser[];
             externalParticipants: ResultExternalParticipant[];
+            confirmedTag: string | null;
         }
         interface ResultCategory {
             id: number;
@@ -83,6 +84,7 @@ declare global {
             realEndTime: Date | null;
             puzzles: ResultPuzzleData[];
             entries: ResultEntry[];
+            availableTags: string[];
             _count: { entries: number };
         }
     }

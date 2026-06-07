@@ -1,6 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { Action, Actions, PageServerLoad } from '../$types';
 import { updateCompetition, getCompetitionWithCategories } from '$lib/database/db_competition';
+import { PARTICIPANT_TAG_TYPES } from '$lib/database/db_participant_tags';
 import { CategoryType, CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
 import { getPostHogClient } from '$lib/server/posthog';
 import { getCompetitionAccess } from '$lib/services/competition-access';
@@ -13,6 +14,7 @@ import {
     type CompetitionEditData,
     resolveImageUpload,
     transformPuzzleIds,
+    transformTagCategories,
     autoComputeDateBounds,
 } from '../services/competition-form';
 
@@ -74,6 +76,10 @@ export const load: PageServerLoad = async (event) => {
                     startTime: cat.startTime.toISOString(),
                     endTime: cat.endTime.toISOString(),
                     puzzleIds: (cat as any).puzzles?.map((p: any) => p.id) || [],
+                    tagCategories: (cat as any).tagCategories?.map((tc: any) => ({
+                        tag: tc.tag,
+                        priceOverride: tc.priceOverride,
+                    })) || [],
                 }))
             };
         }
@@ -84,7 +90,8 @@ export const load: PageServerLoad = async (event) => {
         return {
             form,
             props: {
-                categoryTypes
+                categoryTypes,
+                participantTags: PARTICIPANT_TAG_TYPES
             }
         };
 
@@ -122,6 +129,9 @@ const create_update_competition: Action = async ({ locals, request, params }) =>
 
     // Transform puzzleIds into Prisma connect operations for each category
     transformPuzzleIds(competitionData.categories);
+
+    // Transform per-category tag selections into nested TagCategory writes
+    transformTagCategories(competitionData.categories);
 
     // Auto-compute competition startDate/endDate from category datetimes
     autoComputeDateBounds(competitionData);

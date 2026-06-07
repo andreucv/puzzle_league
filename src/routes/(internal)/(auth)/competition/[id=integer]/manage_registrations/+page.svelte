@@ -264,6 +264,7 @@
 
             <RegistrationList
                 entries={category.entries}
+                availableTags={(category.tagCategories ?? []).map((tc: any) => tc.tag)}
                 processingEntryId={processingEntryId}
                 {searchFilter}
                 onConfirm={handleConfirm}

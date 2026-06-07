@@ -4,6 +4,7 @@ import { getCategoryEntriesFromCompetition, getRegisteredUserIdsByCategory } fro
 import { isRegistrationWorkflowError, submitRegistration, unregisterRegistration } from "$lib/services/registration-workflow";
 import { redirect } from "@sveltejs/kit";
 import { getCompetitionAccess } from "$lib/services/competition-access";
+import { getAvailableTagsByCategory } from "$lib/database/db_participant_tags";
 
 export const load: PageServerLoad = async (event) => {
     const user = event.locals.user;
@@ -22,11 +23,12 @@ export const load: PageServerLoad = async (event) => {
         throw redirect(302, '/competitions/explore_competitions');
     }
 
-    const [existingEntries, registeredUserIds, categoriesWithCounts, competitionAccess] = await Promise.all([
+    const [existingEntries, registeredUserIds, categoriesWithCounts, competitionAccess, availableTagsByCategory] = await Promise.all([
         getCategoryEntriesFromCompetition(competitionId, user.id),
         getRegisteredUserIdsByCategory(competitionId),
         getCompetitionCategories(competitionId),
-        getCompetitionAccess(competitionId, user.id)
+        getCompetitionAccess(competitionId, user.id),
+        getAvailableTagsByCategory(competitionId)
     ]);
 
     return {
@@ -35,6 +37,7 @@ export const load: PageServerLoad = async (event) => {
         registeredUserIds,
         categoriesWithCounts,
         isOrganizer: competitionAccess.canManageCompetition,
+        availableTagsByCategory,
     };
 };
 

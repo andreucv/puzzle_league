@@ -163,9 +163,9 @@
                                     </span>
                                 </div>
                                 {#if showTableNumber && entry.tableNumber != null}
-                                    <span class="badge preset-tonal-primary text-xs flex items-center gap-1 shrink-0">
-                                        <TableFurnitureIcon width="0.8rem" height="0.8rem" />
-                                        {$t('competition_details.table', { number: entry.tableNumber })}
+                                    <span class="badge preset-tonal-primary text-xs flex items-center justify-center gap-1 shrink-0 w-12">
+                                        <TableFurnitureIcon width="0.8rem" height="0.8rem" class="shrink-0" />
+                                        {$t('competition_details.table_short', { number: entry.tableNumber })}
                                     </span>
                                 {/if}
                                 <EntryRegistrationStatusBadge status={entry.status ?? ''} />
@@ -215,9 +215,9 @@
                                     </span>
                                 </div>
                                 {#if showTableNumber && entry.tableNumber != null}
-                                    <span class="badge preset-tonal-primary text-xs flex items-center gap-1 shrink-0">
-                                        <TableFurnitureIcon width="0.8rem" height="0.8rem" />
-                                        {$t('competition_details.table', { number: entry.tableNumber })}
+                                    <span class="badge preset-tonal-primary text-xs flex items-center justify-center gap-1 shrink-0 w-12">
+                                        <TableFurnitureIcon width="0.8rem" height="0.8rem" class="shrink-0" />
+                                        {$t('competition_details.table_short', { number: entry.tableNumber })}
                                     </span>
                                 {/if}
                                 <EntryRegistrationStatusBadge status={entry.status ?? ''} />

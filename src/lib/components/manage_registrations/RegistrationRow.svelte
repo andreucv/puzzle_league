@@ -7,11 +7,11 @@
     import CloseIcon from '@iconify-svelte/mdi/close';
     import BellRingOutlineIcon from '@iconify-svelte/mdi/bell-ring-outline';
     import ChevronRightIcon from '@iconify-svelte/mdi/chevron-right';
+    import TagOutlineIcon from '@iconify-svelte/mdi/tag-outline';
     import ConfirmActionButton from '$lib/components/common/buttons/ConfirmActionButton.svelte';
     import ConfirmPopover from '$lib/components/common/ConfirmPopover.svelte';
-    import TrashCanOutlineIcon from '@iconify-svelte/mdi/trash-can-outline';
+    import EntryTagControls from './EntryTagControls.svelte';
     import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/registration';
-    import { invalidateAll } from '$app/navigation';
 
     let { entry, availableTags = [], showConfirm = false, showRefuse = false, showRemind = false, processing = false, selected = false, onConfirm, onRefuse, onRemind, onSelect }: {
         entry: any;
@@ -27,33 +27,13 @@
         onSelect?: (id: string) => void;
     } = $props();
 
-    // ---- Entry tag (sub-prize) review -------------------------------------
-    let tagProcessing = $state(false);
-
-    async function runTagRequest(url: string, method: string, body?: unknown) {
-        tagProcessing = true;
-        try {
-            const res = await fetch(url, {
-                method,
-                headers: body ? { 'Content-Type': 'application/json' } : undefined,
-                body: body ? JSON.stringify(body) : undefined,
-            });
-            if (res.ok) await invalidateAll();
-        } finally {
-            tagProcessing = false;
-        }
-    }
-
-    const confirmTag = () => runTagRequest(`/api/entry-tags/${entry.entryTag.id}/confirm`, 'POST');
-    const rejectTag = () => runTagRequest(`/api/entry-tags/${entry.entryTag.id}/reject`, 'POST');
-    const removeTag = () => runTagRequest(`/api/entry-tags/${entry.entryTag.id}`, 'DELETE');
-    function assignTag(tag: string) {
-        if (!tag) return;
-        runTagRequest('/api/entry-tags', 'POST', { entryId: entry.id, tag });
-    }
-
     let hasActions = $derived(showConfirm || showRefuse || showRemind);
     let showReminderPopover = $state(false);
+
+    // Tag management modal (shared by the status chip and the action-menu assign button)
+    let tagModalOpen = $state(false);
+    // Untagged entries surface an "assign tag" button in the reveal action menu instead of inline.
+    let canAssignTag = $derived(!entry.entryTag && availableTags.length > 0);
 
     let isOnCooldown = $derived(() => {
         if (!entry.lastRemindedAt) return false;
@@ -121,36 +101,9 @@
             </a>
         {/if}
 
-        <!-- Sub-prize tag review -->
-        {#if entry.entryTag || availableTags.length > 0}
-            <!-- svelte-ignore a11y_click_events_have_key_events -->
-            <!-- svelte-ignore a11y_no_static_element_interactions -->
-            <div class="mt-1 flex items-center gap-1 flex-wrap" onclick={(e) => e.stopPropagation()}>
-                {#if entry.entryTag}
-                    <span class="badge text-[0.6rem] {entry.entryTag.status === 'CONFIRMED' ? 'preset-filled-success-500' : entry.entryTag.status === 'REJECTED' ? 'preset-tonal-error' : 'preset-tonal-warning'}">
-                        {$t('participant_tags.' + entry.entryTag.tag)}{#if entry.entryTag.status === 'PENDING'} · {$t('manage_registrations.tag_status_pending')}{:else if entry.entryTag.status === 'REJECTED'} · {$t('manage_registrations.tag_status_rejected')}{/if}
-                    </span>
-                    {#if entry.entryTag.status === 'PENDING'}
-                        <button type="button" class="btn-icon btn-icon-sm preset-filled-success-500 w-5 h-5" disabled={tagProcessing} onclick={confirmTag} aria-label={$t('manage_registrations.tag_confirm')}>
-                            <CheckIcon width="0.8rem" height="0.8rem" />
-                        </button>
-                        <button type="button" class="btn-icon btn-icon-sm preset-filled-error-500 w-5 h-5" disabled={tagProcessing} onclick={rejectTag} aria-label={$t('manage_registrations.tag_reject')}>
-                            <CloseIcon width="0.8rem" height="0.8rem" />
-                        </button>
-                    {/if}
-                    <button type="button" class="btn-icon btn-icon-sm preset-tonal w-5 h-5" disabled={tagProcessing} onclick={removeTag} aria-label={$t('manage_registrations.tag_remove')}>
-                        <TrashCanOutlineIcon width="0.8rem" height="0.8rem" />
-                    </button>
-                {:else}
-                    <select class="select select-sm text-xs h-6 py-0 max-w-[10rem]" disabled={tagProcessing} onchange={(e) => assignTag(e.currentTarget.value)}>
-                        <option value="">{$t('manage_registrations.tag_assign_placeholder')}</option>
-                        {#each availableTags as tagOption}
-                            <option value={tagOption}>{$t('participant_tags.' + tagOption)}</option>
-                        {/each}
-                    </select>
-                {/if}
-            </div>
-        {/if}
+        <!-- Sub-prize tag: tagged entries show a status chip here; the modal is shared with
+             the action-menu assign button for untagged entries. -->
+        <EntryTagControls {entry} {availableTags} bind:open={tagModalOpen} />
     </div>
 
     <!-- Right side: table number + date + actions -->
@@ -161,16 +114,16 @@
     >
         <!-- Table number badge (only for confirmed entries with an assigned table) -->
         {#if entry.tableNumber != null}
-            <span class="badge preset-tonal-primary text-xs mr-2" data-testid="table-number-{entry.id}">
-                {$t('manage_registrations.table_number', { number: entry.tableNumber })}
+            <span class="badge preset-tonal-primary text-xs mr-2 w-9 justify-center shrink-0" data-testid="table-number-{entry.id}">
+                {$t('manage_registrations.table_number_short', { number: entry.tableNumber })}
             </span>
         {/if}
 
         <!-- Date (always visible, sits behind buttons when selected) -->
         {#if registrationDate}
-            <div class="text-right whitespace-nowrap">
+            <div class="text-right whitespace-nowrap w-10 shrink-0">
                 <span class="text-[0.7rem] leading-tight text-surface-400 dark:text-surface-500">
-                    {registrationDate.date} · {registrationDate.time}
+                    <span class="block sm:inline">{registrationDate.date}</span><span class="hidden sm:inline"> · </span><span class="block sm:inline">{registrationDate.time}</span>
                 </span>
                 {#if showRemind && entry.lastRemindedAt}
                     <div class="text-[0.6rem] leading-tight {isOnCooldown() ? 'text-warning-500' : 'text-surface-400 dark:text-surface-500'}">
@@ -188,6 +141,20 @@
         <!-- Action buttons overlay when selected -->
         {#if selected}
             <div class="absolute inset-0 flex items-center justify-end gap-3 z-10 pointer-events-none">
+                {#if canAssignTag}
+                    <div class="pointer-events-auto" onclick={(e) => e.stopPropagation()}>
+                        <button
+                            type="button"
+                            class="btn-icon w-4 h-4 rounded-full ring-2 ring-inset ring-primary-500 bg-surface-50 dark:bg-surface-800 text-primary-500"
+                            disabled={processing}
+                            onclick={() => (tagModalOpen = true)}
+                            aria-label={$t('manage_registrations.tag_add')}
+                            data-testid="assign-tag-{entry.id}"
+                        >
+                            <TagOutlineIcon width="1rem" height="1rem" />
+                        </button>
+                    </div>
+                {/if}
                 {#if showRemind}
                     <div class="pointer-events-auto relative" onclick={(e) => e.stopPropagation()}>
                         <button

@@ -8,7 +8,9 @@
 
     let { entries, availableTags = [], processingEntryId = null, searchFilter = '', onConfirm, onRefuse, onRemind }: {
         entries: any[];
-        availableTags?: { id: string; name: string }[];
+        // Enum tag values (e.g. LOCAL_MUNICIPALITY); the manage page passes
+        // category.tagCategories.map(tc => tc.tag) and RegistrationRow consumes a string[].
+        availableTags?: string[];
         processingEntryId?: string | null;
         searchFilter?: string;
         onConfirm: (id: string) => void;

@@ -3,6 +3,7 @@
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
     import Card from '$lib/components/common/card/Card.svelte';
     import EntryList from './EntryList.svelte';
+    import LastFinishedBanner from './LastFinishedBanner.svelte';
     import OverflowMenu from './OverflowMenu.svelte';
     import ConfirmActionButton from '$lib/components/common/buttons/ConfirmActionButton.svelte';
     import SearchInput from '$lib/components/common/SearchInput.svelte';
@@ -261,20 +262,63 @@
         isStopped ? `overflow-menu-stopped-${category.id}` : `overflow-menu-${category.id}`
     );
 
+    // --- "Just marked" confirmation banner (LIVE finish only) ---
+    // Holds the judge's most recent finish so they get feedback on WHAT they marked.
+    // Auto-dismisses after 5s; a new finish replaces it and resets the timer.
+    const BANNER_DURATION_MS = 5000;
+    let lastFinished = $state<{ recordId: string; tableNumber: number | null; names: string[]; duration: string | null } | null>(null);
+    let bannerTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function clearBanner() {
+        if (bannerTimer) {
+            clearTimeout(bannerTimer);
+            bannerTimer = null;
+        }
+        lastFinished = null;
+    }
+
+    function showFinishedBanner(record: any, finishTime: Date) {
+        const names = [
+            ...(record.users ?? []).map((u: any) => u.name),
+            ...(record.externalParticipants ?? []).map((p: any) => p.name)
+        ];
+        const duration = category.realStartTime
+            ? calculateDuration(new Date(category.realStartTime), finishTime)
+            : null;
+        if (bannerTimer) clearTimeout(bannerTimer);
+        lastFinished = { recordId: record.id, tableNumber: record.tableNumber ?? null, names, duration };
+        bannerTimer = setTimeout(() => { lastFinished = null; bannerTimer = null; }, BANNER_DURATION_MS);
+    }
+
+    // Clean up the timer when the card unmounts
+    $effect(() => () => {
+        if (bannerTimer) clearTimeout(bannerTimer);
+    });
+
+    async function handleBannerUndo() {
+        if (!lastFinished) return;
+        const recordId = lastFinished.recordId;
+        clearBanner();
+        await handleRecordUndoFinish(recordId);
+    }
+
     // --- Record action handlers ---
     // Each handler performs an optimistic local update after a successful API call.
     // Selection clearing is handled by EntryList internally.
 
     async function handleRecordFinish(recordId: string) {
         if (!records) return;
+        const record = records.allEntries.find((r: any) => r.id === recordId);
+        const finishTime = new Date();
         const response = await fetch(`/api/entries/${recordId}/result`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ finishTime: new Date().toISOString() })
+            body: JSON.stringify({ finishTime: finishTime.toISOString() })
         });
         if (response.ok) {
+            if (record) showFinishedBanner(record, finishTime);
             records.allEntries = records.allEntries.map((r: any) =>
-                r.id === recordId ? { ...r, finishTime: new Date().toISOString() } : r
+                r.id === recordId ? { ...r, finishTime: finishTime.toISOString() } : r
             );
             localFinishedCount = records.finishedEntries.length;
             // No refreshAll() here — the Ably event will trigger a version change
@@ -555,6 +599,16 @@
 
         <!-- Record lists (LIVE) -->
         {#if isLive && records}
+            {#if lastFinished}
+                <LastFinishedBanner
+                    recordId={lastFinished.recordId}
+                    tableNumber={lastFinished.tableNumber}
+                    names={lastFinished.names}
+                    duration={lastFinished.duration}
+                    onUndo={handleBannerUndo}
+                />
+            {/if}
+
             <EntryList
                 icon={ClockOutlineIcon}
                 label={$t('during_competition.pending_records')}

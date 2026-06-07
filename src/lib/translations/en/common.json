@@ -931,6 +931,8 @@
     "cancel_competition_success": "Competition has been cancelled.",
     "cancel_competition_error": "Failed to cancel competition.",
     "undo_finish": "Return to Pending",
+    "just_marked": "Just marked",
+    "undo": "Undo",
     "stopped": "Stopped",
     "stopped_section": "Waiting for Results",
     "dnf_pending_review": "DNF entries pending review",

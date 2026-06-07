@@ -44,7 +44,7 @@
                     checked={isSelected(tag)}
                     onchange={(e) => toggle(tag, (e.target as HTMLInputElement).checked)}
                 />
-                {$t('participant_tags.' + tag)}
+                <span>{$t('participant_tags.' + tag)}</span>
             </label>
             {#if isSelected(tag)}
                 <input

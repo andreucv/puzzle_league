@@ -24,7 +24,7 @@ export const CategorySchema = z.object({
 	type: z.nativeEnum(CategoryType, { error: 'Please select a category type' }),
 	startTime: z.string().min(1, 'Start time is required'),
 	endTime: z.string().min(1, 'End time is required'),
-	maxParties: z.number().int().min(1, 'Max parties must be at least 1').nullable().optional(),
+	maxParties: z.number().int().min(1, 'Max parties must be at least 1'),
 	maxPartySize: z.number().int().min(1, 'Party size must be at least 1').nullable().optional(),
 	price: z.number().int().min(0, 'Price must be 0 or greater'),
 	status: z.string().optional(),

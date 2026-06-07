@@ -769,7 +769,6 @@ export async function updateCompetition(
             };
         });
 
-        console.log("db_competition.ts: result", result);
         return {
             success: true,
             data: result,

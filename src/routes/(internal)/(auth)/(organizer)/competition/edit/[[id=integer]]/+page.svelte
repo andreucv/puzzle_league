@@ -7,6 +7,7 @@
     import { CalendarDate, today, getLocalTimeZone, Time, fromDate, parseAbsolute, toCalendarDateTime} from "@internationalized/date";
     import { getCategoryTypeName, getPartySizeByCategoryType } from "$lib/utils/category_utils.js";
     import { validateCompetitionForm } from "$lib/utils/competition_form_validation";
+    import { collectFormErrorMessages } from "$lib/utils/form_errors";
     import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
     import { FileUpload, Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
     import { CldImage } from 'svelte-cloudinary';
@@ -51,7 +52,7 @@
     let isSubmitting = $state(false);
     let loadingMessage = $state('');
     let submissionStartTime = 0;
-    const MIN_LOADING_TIME = 2000; // Minimum 2 seconds display
+    const MIN_LOADING_TIME = 400; // Brief minimum to avoid a spinner flash on fast saves
 
     // Helper to ensure minimum loading time
     async function hideLoading() {
@@ -178,6 +179,10 @@
     }
     const isEdit = $form.id !== undefined;
 
+    // Server-side validation errors, flattened into readable lines so the organizer
+    // sees exactly which field/category to fix instead of a generic "not valid".
+    const serverErrorMessages = $derived(collectFormErrorMessages($errors));
+
     let toUpdateCategories = [] as any[];
     let toUpdateCategoriesTimes = [] as any[];
     // On load $form.categories is the flat array of existing categories (it is reshaped into
@@ -285,8 +290,17 @@
 
     // Update form with creator ID when loaded
     $form.status = "NOT_STARTED";
-    // svelte-ignore state_referenced_locally
-    $form.creator = { connect: { id: data.user.id } };
+    if (!isEdit) {
+        // On create, connect the creator to the current user.
+        // svelte-ignore state_referenced_locally
+        $form.creator = { connect: { id: data.user.id } };
+    } else {
+        // On edit, drop the loaded creator relation: the loader hydrates it as a full
+        // User object which does not match the { connect: { id } } schema shape and
+        // would fail validation. Leaving it undefined also guarantees we never reassign
+        // the creator when an admin or co-organizer edits someone else's competition.
+        $form.creator = undefined;
+    }
     $form.image_cld_id = undefined;
 
     $effect(() => {
@@ -350,7 +364,6 @@
             categoryErrors.create = categoryErrors.create.filter((_: any, i: number) => i !== index);
         } else if (source === "update") {
             const categoryToDelete = categories.update[index].where.id;
-            console.log("categoryToDelete", categoryToDelete);
             categories.delete = [...categories.delete, {id: categoryToDelete}];
             categories.update = categories.update.filter((_: any, i: number) => i !== index);
             categories_times_obj_arr.update = categories_times_obj_arr.update.filter((_: any, i: number) => i !== index);
@@ -865,6 +878,30 @@
                         <div class="flex flex-col">
                             <span class="text-sm font-medium">{$t('competition.create.show_payment_warning')}</span>
                             <span class="text-xs text-surface-500">{$t('competition.create.show_payment_warning_help')}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Open registration toggle -->
+                <div class="label lg:col-span-2">
+                    <div class="flex items-center gap-3">
+                        <button
+                            type="button"
+                            role="switch"
+                            aria-checked={$form.registrationOpen}
+                            aria-label={$t('competition.create.registration_open')}
+                            class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 {$form.registrationOpen ? 'bg-primary-500' : 'bg-surface-300 dark:bg-surface-600'}"
+                            onclick={() => { $form.registrationOpen = !$form.registrationOpen; }}
+                            data-testid="registration-open-toggle"
+                        >
+                            <span
+                                aria-hidden="true"
+                                class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {$form.registrationOpen ? 'translate-x-5' : 'translate-x-0'}"
+                            ></span>
+                        </button>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium">{$t('competition.create.registration_open')}</span>
+                            <span class="text-xs text-surface-500">{$t('competition.create.registration_open_help')}</span>
                         </div>
                     </div>
                 </div>
@@ -1520,10 +1557,21 @@
                 </div>
             </div>
         {:else if $message && $message.success === false }
-            <div class="alert preset-filled-error-500 rounded-lg mt-4 p-2 flex items-center gap-2">
-                <Icon icon="mdi:alert-circle" width="1.5rem" height="1.5rem" />
-                <h4 class="font-semibold">{$t('competition.error')}</h4>
-                <p>{$message.message}</p>
+            <div class="alert preset-filled-error-500 rounded-lg mt-4 p-2 flex items-start gap-2">
+                <Icon icon="mdi:alert-circle" width="1.5rem" height="1.5rem" class="mt-0.5 shrink-0" />
+                <div>
+                    <h4 class="font-semibold">{$t('competition.error')}</h4>
+                    {#if serverErrorMessages.length > 0}
+                        <p class="mt-1">{$t('competition.fix_errors')}</p>
+                        <ul class="list-disc list-inside mt-1 space-y-0.5">
+                            {#each serverErrorMessages as errorLine}
+                                <li>{errorLine}</li>
+                            {/each}
+                        </ul>
+                    {:else}
+                        <p>{$message.message}</p>
+                    {/if}
+                </div>
             </div>
         {/if}
 

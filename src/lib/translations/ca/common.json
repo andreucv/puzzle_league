@@ -409,7 +409,15 @@
       "show_payment_warning": "Mostra avís de pagament a la inscripció",
       "show_payment_warning_help": "Quan està activat, els participants han de confirmar la quota abans de completar la seva inscripció",
       "price": "Preu (€)",
-      "price_placeholder": "Preu de la categoria en euros"
+      "price_placeholder": "Preu de la categoria en euros",
+      "registration_open": "Inscripció oberta",
+      "registration_open_help": "Quan està activat, els participants es poden inscriure tan aviat com es publiqui la competició",
+      "puzzles_title": "Trencaclosques",
+      "add_puzzle": "Afegeix trencaclosques",
+      "puzzle_search_placeholder": "Cerca per nom, marca o codi de barres...",
+      "no_puzzles_found": "No s'han trobat trencaclosques",
+      "create_puzzle": "Crea un nou trencaclosques",
+      "remove_puzzle": "Elimina el trencaclosques"
     },
     "edit": {
       "title": "Edita Competició",
@@ -457,6 +465,7 @@
     "confirm_removal_title": "Confirmeu l'eliminació",
     "created_success": "Concurs creat!",
     "error": "Error",
+    "fix_errors": "Corregeix el següent abans de desar:",
     "remove": "Eliminar",
     "saving": "S'està desant...",
     "view_updated": "Veure competició actualitzada →"

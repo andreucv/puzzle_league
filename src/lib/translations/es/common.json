@@ -294,7 +294,15 @@
       "show_payment_warning": "Mostrar aviso de pago en la inscripción",
       "show_payment_warning_help": "Cuando está activado, los participantes deben confirmar la cuota antes de completar su inscripción",
       "price": "Precio (€)",
-      "price_placeholder": "Precio de la categoría en euros"
+      "price_placeholder": "Precio de la categoría en euros",
+      "registration_open": "Inscripción abierta",
+      "registration_open_help": "Cuando está activado, los participantes pueden inscribirse en cuanto se publique la competición",
+      "puzzles_title": "Puzles",
+      "add_puzzle": "Añadir puzle",
+      "puzzle_search_placeholder": "Buscar por nombre, marca o código de barras...",
+      "no_puzzles_found": "No se encontraron puzles",
+      "create_puzzle": "Crear nuevo puzle",
+      "remove_puzzle": "Eliminar puzle"
     },
     "edit": {
       "title": "Edita Competición",
@@ -342,6 +350,7 @@
     "confirm_removal_title": "Confirmar eliminación",
     "created_success": "¡Concurso creado!",
     "error": "Error",
+    "fix_errors": "Corrige lo siguiente antes de guardar:",
     "remove": "Eliminar",
     "saving": "Guardando...",
     "view_updated": "Ver concurso actualizado →"

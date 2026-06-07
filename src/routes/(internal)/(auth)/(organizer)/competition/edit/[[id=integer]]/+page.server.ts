@@ -141,7 +141,6 @@ const create_update_competition: Action = async ({ locals, request, params }) =>
 
     // competitionData is reshaped into Prisma's nested-write form by the transforms above.
     const result = await updateCompetition(competitionId, competitionData as unknown as Prisma.CompetitionUpdateInput);
-    console.log('competition/edit/+page.server.ts: on action result', result);
 
     if (!result.success) {
         return message(form, {success: false, message: "Something went wrong"});

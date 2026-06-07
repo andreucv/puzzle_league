@@ -47,6 +47,13 @@
     let registeredUserIds = $derived(data.registeredUserIds as Record<number, string[]> || {});
     let categoriesWithCounts = $derived(data.categoriesWithCounts || []);
     let isOrganizer = $derived(data.isOrganizer || false);
+    let availableTagsByCategory = $derived(
+        (data.availableTagsByCategory as Record<number, { tag: string; priceOverride: number | null }[]>) || {}
+    );
+
+    function getAvailableTags(categoryId: number) {
+        return availableTagsByCategory[categoryId] || [];
+    }
 
     let canRegister = $derived(competition?.registrationOpen || isOrganizer);
 
@@ -70,6 +77,7 @@
         users: User[];
         extParticipantNames: string[];
         existingExternalParticipants: { id: string; name: string }[];
+        claimedTag?: string;
     }
 
     // ---------------------------------------------------------------------------
@@ -404,29 +412,60 @@
         return result;
     });
 
+    // Effective per-entry price for a slot: a claimed tag's priceOverride (if any)
+    // replaces the base category price. A PENDING claim already drives the price.
+    function getSlotUnitPrice(category: Category, slot: PendingSignup): number {
+        const base = (category as any).price ?? 0;
+        if (!slot.claimedTag) return base;
+        const tag = getAvailableTags(category.id).find(t => t.tag === slot.claimedTag);
+        return tag && tag.priceOverride != null ? tag.priceOverride : base;
+    }
+
     let paymentFeeBreakdown = $derived(() => {
-        const items: { name: string; count: number; unitPrice: number }[] = [];
+        const itemsMap = new Map<string, { name: string; count: number; unitPrice: number }>();
         let total = 0;
         for (const [categoryId, slots] of pendingSignups) {
             const category = categories.find((c: Category) => c.id === categoryId);
             if (!category) continue;
-            const price = (category as any).price ?? 0;
-            if (price > 0) {
-                // Only count entries that will get reserved slots, not waitlisted ones
-                const spotsLeft = getSpotsLeft(category);
-                const payableCount = competition?.showPaymentWarning && spotsLeft !== undefined
-                    ? Math.min(slots.length, Math.max(0, spotsLeft))
-                    : slots.length;
-                if (payableCount <= 0) continue;
+            // Only count entries that will get reserved slots, not waitlisted ones
+            const spotsLeft = getSpotsLeft(category);
+            const payableCount = competition?.showPaymentWarning && spotsLeft !== undefined
+                ? Math.min(slots.length, Math.max(0, spotsLeft))
+                : slots.length;
+            if (payableCount <= 0) continue;
 
-                const typeName = $t(getCategoryTypeName(category.type));
-                const description = category.description ? `${typeName} (${category.description})` : typeName;
-                items.push({ name: description, count: payableCount, unitPrice: price });
-                total += price * payableCount;
+            const typeName = $t(getCategoryTypeName(category.type));
+            const description = category.description ? `${typeName} (${category.description})` : typeName;
+            // Price per slot (tags can make slots in the same category cost differently)
+            for (let i = 0; i < payableCount; i++) {
+                const unitPrice = getSlotUnitPrice(category, slots[i]);
+                if (unitPrice <= 0) continue;
+                const key = `${categoryId}:${unitPrice}`;
+                const existing = itemsMap.get(key);
+                if (existing) existing.count += 1;
+                else itemsMap.set(key, { name: description, count: 1, unitPrice });
+                total += unitPrice;
             }
         }
-        return { items, total };
+        return { items: [...itemsMap.values()], total };
     });
+
+    // True when any queued slot claims a tag that overrides the price — used to
+    // warn that a rejected claim must be reconciled off-platform.
+    let hasClaimedPricedTag = $derived(() => {
+        for (const [categoryId, slots] of pendingSignups) {
+            for (const slot of slots) {
+                if (!slot.claimedTag) continue;
+                const tag = getAvailableTags(categoryId).find(t => t.tag === slot.claimedTag);
+                if (tag && tag.priceOverride != null) return true;
+            }
+        }
+        return false;
+    });
+
+    function setSlotTag(categoryId: number, slotId: number, tag: string) {
+        updateSlot(categoryId, slotId, s => ({ ...s, claimedTag: tag || undefined }));
+    }
 
     // Build summary for submit bar
     let signupSummary = $derived(() => {
@@ -450,7 +489,7 @@
     // ---------------------------------------------------------------------------
 
     function buildSignupPayload() {
-        const payload: { categoryId: number; teammateIds: string[]; externalParticipantNames?: string[]; externalParticipantIds?: string[]; registeredBySelf?: boolean }[] = [];
+        const payload: { categoryId: number; teammateIds: string[]; externalParticipantNames?: string[]; externalParticipantIds?: string[]; registeredBySelf?: boolean; claimedTag?: string }[] = [];
         for (const [categoryId, slots] of pendingSignups) {
             for (const slot of slots) {
                 const currentUserInParty = slot.users.some(u => u.id === currentUser?.id);
@@ -462,7 +501,8 @@
                     teammateIds,
                     ...(slot.extParticipantNames.length > 0 ? { externalParticipantNames: slot.extParticipantNames } : {}),
                     ...(slot.existingExternalParticipants.length > 0 ? { externalParticipantIds: slot.existingExternalParticipants.map(i => i.id) } : {}),
-                    ...(!currentUserInParty ? { registeredBySelf: false } : {})
+                    ...(!currentUserInParty ? { registeredBySelf: false } : {}),
+                    ...(slot.claimedTag ? { claimedTag: slot.claimedTag } : {})
                 });
             }
         }
@@ -717,7 +757,8 @@
                     {#if slotComplete}
                         <!-- Completed queued slot - dashed border -->
                         {@const allNames = [...slot.users.map(u => ({ name: u.name, isUser: true, id: u.id })), ...slot.extParticipantNames.map(n => ({ name: n, isUser: false, id: null })), ...slot.existingExternalParticipants.map(e => ({ name: e.name, isUser: false, id: null }))]}
-                        <div class="flex items-center justify-between gap-2 p-3 border-2 border-dashed border-primary-400 dark:border-primary-500 rounded-lg bg-primary-50/30 dark:bg-primary-900/10" transition:slide={{ duration: 200 }}>
+                        <div class="flex flex-col gap-2 p-3 border-2 border-dashed border-primary-400 dark:border-primary-500 rounded-lg bg-primary-50/30 dark:bg-primary-900/10" transition:slide={{ duration: 200 }}>
+                          <div class="flex items-center justify-between gap-2">
                             <div class="flex items-center gap-3 min-w-0">
                                 <div class="flex items-center shrink-0">
                                     {#each slot.users as member, i}
@@ -754,6 +795,24 @@
                             >
                                 <CloseIcon width="1.2rem" height="1.2rem" />
                             </button>
+                          </div>
+                          {#if getAvailableTags(category.id).length > 0}
+                            <label class="flex items-center gap-2 text-sm">
+                                <span class="text-surface-600 dark:text-surface-300 shrink-0">{$t('registration.tag_label')}</span>
+                                <select
+                                    class="select select-sm flex-1"
+                                    value={slot.claimedTag ?? ''}
+                                    onchange={(e) => setSlotTag(category.id, slot.slotId, e.currentTarget.value)}
+                                >
+                                    <option value="">{$t('registration.tag_none')}</option>
+                                    {#each getAvailableTags(category.id) as tagOption}
+                                        <option value={tagOption.tag}>
+                                            {$t('participant_tags.' + tagOption.tag)}{tagOption.priceOverride != null ? ` — ${tagOption.priceOverride}€` : ''}
+                                        </option>
+                                    {/each}
+                                </select>
+                            </label>
+                          {/if}
                         </div>
                     {:else}
                         <!-- In-progress team builder -->
@@ -1126,6 +1185,11 @@
                                             <span>{breakdown.total}€</span>
                                         </div>
                                     </div>
+                                    {#if hasClaimedPricedTag()}
+                                        <p class="text-xs text-warning-700 dark:text-warning-300">
+                                            {$t('registration.tag_price_reconcile_warning')}
+                                        </p>
+                                    {/if}
                                 {/if}
 
                                 <div class="flex justify-end gap-2 pt-1">

@@ -243,3 +243,10 @@ The workflow emits notifications at these points:
 - Waitlist promotion notifies participants according to whether the promoted Entry is now confirmed or pending.
 - Payment reminders notify platform participants and creators who registered others.
 - Table assignment publishing notifies participants whose table number changed.
+- Tag claim rejection notifies the entry creator (`TAG_REJECTED`); confirmation is not notified.
+
+## Participant Tag Claims
+
+During registration a registrant may claim at most one **Participant Tag** per entry, creating an **Entry Tag** with status `PENDING` (see [glossary](../glossary.md)). The organizer confirms or rejects it on the manage-registrations page, or assigns one directly as `CONFIRMED`.
+
+Tag claims are **independent of the registration status**. The `EntryTag` is never altered by registration status transitions: a `WAITLISTED` entry keeps its claim, and the claim rides through unchanged when the entry is promoted to `PENDING_CONFIRMATION` or `CONFIRMED`. Pricing follows the claim — a `PENDING` or `CONFIRMED` claim whose `TagCategory` has a `priceOverride` drives the displayed/charged price; a rejection reverts to the base category price with any difference reconciled off-platform (consistent with `showPaymentWarning`). Only `CONFIRMED` tags appear publicly on the results ranking.

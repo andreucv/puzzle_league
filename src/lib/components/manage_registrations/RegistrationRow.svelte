@@ -9,10 +9,13 @@
     import ChevronRightIcon from '@iconify-svelte/mdi/chevron-right';
     import ConfirmActionButton from '$lib/components/common/buttons/ConfirmActionButton.svelte';
     import ConfirmPopover from '$lib/components/common/ConfirmPopover.svelte';
+    import TrashCanOutlineIcon from '@iconify-svelte/mdi/trash-can-outline';
     import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/registration';
+    import { invalidateAll } from '$app/navigation';
 
-    let { entry, showConfirm = false, showRefuse = false, showRemind = false, processing = false, selected = false, onConfirm, onRefuse, onRemind, onSelect }: {
+    let { entry, availableTags = [], showConfirm = false, showRefuse = false, showRemind = false, processing = false, selected = false, onConfirm, onRefuse, onRemind, onSelect }: {
         entry: any;
+        availableTags?: string[];
         showConfirm?: boolean;
         showRefuse?: boolean;
         showRemind?: boolean;
@@ -23,6 +26,31 @@
         onRemind?: (id: string, note?: string) => void;
         onSelect?: (id: string) => void;
     } = $props();
+
+    // ---- Entry tag (sub-prize) review -------------------------------------
+    let tagProcessing = $state(false);
+
+    async function runTagRequest(url: string, method: string, body?: unknown) {
+        tagProcessing = true;
+        try {
+            const res = await fetch(url, {
+                method,
+                headers: body ? { 'Content-Type': 'application/json' } : undefined,
+                body: body ? JSON.stringify(body) : undefined,
+            });
+            if (res.ok) await invalidateAll();
+        } finally {
+            tagProcessing = false;
+        }
+    }
+
+    const confirmTag = () => runTagRequest(`/api/entry-tags/${entry.entryTag.id}/confirm`, 'POST');
+    const rejectTag = () => runTagRequest(`/api/entry-tags/${entry.entryTag.id}/reject`, 'POST');
+    const removeTag = () => runTagRequest(`/api/entry-tags/${entry.entryTag.id}`, 'DELETE');
+    function assignTag(tag: string) {
+        if (!tag) return;
+        runTagRequest('/api/entry-tags', 'POST', { entryId: entry.id, tag });
+    }
 
     let hasActions = $derived(showConfirm || showRefuse || showRemind);
     let showReminderPopover = $state(false);
@@ -91,6 +119,37 @@
                 <AccountEditOutlineIcon width="0.75rem" height="0.75rem" class="shrink-0" />
                 {entry.creator.name ?? entry.creator.email}
             </a>
+        {/if}
+
+        <!-- Sub-prize tag review -->
+        {#if entry.entryTag || availableTags.length > 0}
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div class="mt-1 flex items-center gap-1 flex-wrap" onclick={(e) => e.stopPropagation()}>
+                {#if entry.entryTag}
+                    <span class="badge text-[0.6rem] {entry.entryTag.status === 'CONFIRMED' ? 'preset-filled-success-500' : entry.entryTag.status === 'REJECTED' ? 'preset-tonal-error' : 'preset-tonal-warning'}">
+                        {$t('participant_tags.' + entry.entryTag.tag)}{#if entry.entryTag.status === 'PENDING'} · {$t('manage_registrations.tag_status_pending')}{:else if entry.entryTag.status === 'REJECTED'} · {$t('manage_registrations.tag_status_rejected')}{/if}
+                    </span>
+                    {#if entry.entryTag.status === 'PENDING'}
+                        <button type="button" class="btn-icon btn-icon-sm preset-filled-success-500 w-5 h-5" disabled={tagProcessing} onclick={confirmTag} aria-label={$t('manage_registrations.tag_confirm')}>
+                            <CheckIcon width="0.8rem" height="0.8rem" />
+                        </button>
+                        <button type="button" class="btn-icon btn-icon-sm preset-filled-error-500 w-5 h-5" disabled={tagProcessing} onclick={rejectTag} aria-label={$t('manage_registrations.tag_reject')}>
+                            <CloseIcon width="0.8rem" height="0.8rem" />
+                        </button>
+                    {/if}
+                    <button type="button" class="btn-icon btn-icon-sm preset-tonal w-5 h-5" disabled={tagProcessing} onclick={removeTag} aria-label={$t('manage_registrations.tag_remove')}>
+                        <TrashCanOutlineIcon width="0.8rem" height="0.8rem" />
+                    </button>
+                {:else}
+                    <select class="select select-sm text-xs h-6 py-0 max-w-[10rem]" disabled={tagProcessing} onchange={(e) => assignTag(e.currentTarget.value)}>
+                        <option value="">{$t('manage_registrations.tag_assign_placeholder')}</option>
+                        {#each availableTags as tagOption}
+                            <option value={tagOption}>{$t('participant_tags.' + tagOption)}</option>
+                        {/each}
+                    </select>
+                {/if}
+            </div>
         {/if}
     </div>
 

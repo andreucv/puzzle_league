@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { CategoryStatus, NotificationType, RegistrationStatus, Role } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, EntryTagStatus, NotificationType, ParticipantTagType, RegistrationStatus, Role } from '$lib/.prisma/generated/prisma/enums';
 import { getMaxEntriesPerCategory } from '$lib/utils/category_utils';
 import {
 	notifyRegistrationConfirmed,
@@ -26,6 +26,8 @@ export interface CategorySignup {
 	externalParticipantNames?: string[];
 	externalParticipantIds?: string[];
 	registeredBySelf?: boolean;
+	/** Optional participant-claimed tag for this entry (created as PENDING). */
+	claimedTag?: ParticipantTagType;
 }
 
 export interface RegistrationSummary {
@@ -119,6 +121,13 @@ function assertValidSignups(signups: unknown): CategorySignup[] {
 		if (data.registeredBySelf !== undefined && typeof data.registeredBySelf !== 'boolean') {
 			throw new RegistrationWorkflowError('VALIDATION_FAILED', 'Invalid registration ownership');
 		}
+		if (
+			data.claimedTag !== undefined &&
+			data.claimedTag !== null &&
+			!Object.values(ParticipantTagType).includes(data.claimedTag as ParticipantTagType)
+		) {
+			throw new RegistrationWorkflowError('VALIDATION_FAILED', 'Invalid claimed tag');
+		}
 
 		return {
 			categoryId: data.categoryId,
@@ -126,6 +135,7 @@ function assertValidSignups(signups: unknown): CategorySignup[] {
 			externalParticipantNames: data.externalParticipantNames,
 			externalParticipantIds: data.externalParticipantIds,
 			registeredBySelf: data.registeredBySelf,
+			claimedTag: (data.claimedTag as ParticipantTagType | undefined) || undefined,
 		} as CategorySignup;
 	});
 }
@@ -449,6 +459,19 @@ export async function submitRegistration({
 					},
 				},
 			});
+
+			if (signup.claimedTag) {
+				const tagCategory = await tx.tagCategory.findUnique({
+					where: { tag_categoryId: { tag: signup.claimedTag, categoryId: signup.categoryId } },
+					select: { id: true },
+				});
+				if (!tagCategory) {
+					throw new RegistrationWorkflowError('VALIDATION_FAILED', 'The claimed tag is not available for this category');
+				}
+				await tx.entryTag.create({
+					data: { entryId: entry.id, tag: signup.claimedTag, status: EntryTagStatus.PENDING },
+				});
+			}
 
 			createdEntries.push(entry);
 		}

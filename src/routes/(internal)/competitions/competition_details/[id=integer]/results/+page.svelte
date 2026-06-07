@@ -88,14 +88,24 @@
                 .sort((a, b) => (b.nPiecesCompleted ?? 0) - (a.nPiecesCompleted ?? 0))
             : []
     );
-    const dnsEntries = $derived(
+    const dnsEntriesAll = $derived(
         selectedCategory
             ? selectedCategory.entries.filter((r) => r.finishTime == null && r.nPiecesCompleted == null)
             : []
     );
 
-    // Combined ranked entries: finished + partial (for position numbering)
-    const rankedEntries = $derived([...finishedEntries, ...partialEntries]);
+    // Sub-prize tag filter: confirmed-tag badges show always, but the toggle
+    // narrows the ranking to entries carrying the selected tag (order preserved).
+    const tagOptions = $derived(selectedCategory?.availableTags ?? []);
+    let selectedTag = $state<string | null>(null);
+    function entryMatchesTag(r: App.ResultEntry): boolean {
+        return !selectedTag || r.confirmedTag === selectedTag;
+    }
+
+    // Combined ranked entries: finished + partial (for position numbering),
+    // narrowed by the active tag filter.
+    const rankedEntries = $derived([...finishedEntries, ...partialEntries].filter(entryMatchesTag));
+    const dnsEntries = $derived(dnsEntriesAll.filter(entryMatchesTag));
 
     const firstFinish = $derived(
         finishedEntries.length > 0 && finishedEntries[0].finishTime
@@ -154,6 +164,7 @@
 
     function selectCategory(id: number) {
         selectedCategoryId = id;
+        selectedTag = null;
         history.replaceState(null, '', `#category-${id}`);
     }
 
@@ -357,6 +368,29 @@
                         </div>
                     {/if}
 
+                    <!-- Sub-prize tag filter -->
+                    {#if tagOptions.length > 0}
+                        <div class="flex flex-wrap items-center gap-2 mt-3">
+                            <span class="text-xs text-surface-500">{$t('results.filter_by_tag')}</span>
+                            <button
+                                type="button"
+                                class="badge {selectedTag === null ? 'preset-filled-primary-500' : 'preset-tonal'}"
+                                onclick={() => (selectedTag = null)}
+                            >
+                                {$t('results.tag_filter_all')}
+                            </button>
+                            {#each tagOptions as tagOption}
+                                <button
+                                    type="button"
+                                    class="badge {selectedTag === tagOption ? 'preset-filled-primary-500' : 'preset-tonal'}"
+                                    onclick={() => (selectedTag = tagOption)}
+                                >
+                                    {$t('participant_tags.' + tagOption)}
+                                </button>
+                            {/each}
+                        </div>
+                    {/if}
+
                     <!-- Results table -->
                     {#if rankedEntries.length > 0 || (isComplete && dnsEntries.length > 0)}
                         <div class="{puzzle ? 'mt-4' : ''} -mx-4 -mb-2">
@@ -422,6 +456,9 @@
                                                                 <span class="text-sm italic text-surface-500">{ui.name}</span>
                                                             </div>
                                                         {/each}
+                                                        {#if record.confirmedTag}
+                                                            <span class="badge preset-tonal-primary text-xs">{$t('participant_tags.' + record.confirmedTag)}</span>
+                                                        {/if}
                                                     </div>
                                                 </td>
                                                 <td class="px-4 py-3 text-right">
@@ -572,6 +609,9 @@
                                                         <span class="text-sm italic text-surface-500 truncate">{ui.name}</span>
                                                     </div>
                                                 {/each}
+                                                {#if record.confirmedTag}
+                                                    <span class="badge preset-tonal-primary text-xs">{$t('participant_tags.' + record.confirmedTag)}</span>
+                                                {/if}
                                             </div>
                                             <div class="shrink-0 text-right">
                                                 {#if partial}

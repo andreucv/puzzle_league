@@ -1,4 +1,4 @@
-import { CategoryStatus, CompetitionStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, CompetitionStatus, EntryTagStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
 import type { Prisma } from '$lib/.prisma/generated/prisma/client';
 import type { Competition, Category } from '$lib/.prisma/generated/prisma/browser';
 import { prisma } from '$lib/database/create_prisma_client';
@@ -30,7 +30,10 @@ export async function getCompetitionWithCategories(competitionId: number) {
                 categories: {
                     orderBy: { startTime: 'asc' },
                     include: {
-                        puzzles: true
+                        puzzles: true,
+                        tagCategories: {
+                            select: { tag: true, priceOverride: true }
+                        }
                     }
                 },
                 creator: true
@@ -130,8 +133,17 @@ export async function getCompetitionResults(competitionId: number) {
                                         id: true,
                                         name: true
                                     }
+                                },
+                                entryTag: {
+                                    select: {
+                                        status: true,
+                                        tag: true
+                                    }
                                 }
                             }
+                        },
+                        tagCategories: {
+                            select: { tag: true }
                         },
                         _count: {
                             select: { entries: { where: { status: RegistrationStatus.CONFIRMED } } }
@@ -141,7 +153,21 @@ export async function getCompetitionResults(competitionId: number) {
             }
         });
 
-        return competition;
+        if (!competition) return competition;
+
+        // Only CONFIRMED tags are surfaced publicly; PENDING/REJECTED are stripped.
+        // `availableTags` per category drives the sub-prize filter toggle.
+        return {
+            ...competition,
+            categories: competition.categories.map(({ tagCategories, ...category }) => ({
+                ...category,
+                availableTags: [...new Set(tagCategories.map((tc) => tc.tag))],
+                entries: category.entries.map(({ entryTag, ...entry }) => ({
+                    ...entry,
+                    confirmedTag: entryTag?.status === EntryTagStatus.CONFIRMED ? entryTag.tag : null,
+                })),
+            })),
+        };
     } catch (error) {
         console.error('Error getting competition results:', error);
         throw error;

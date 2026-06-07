@@ -16,6 +16,7 @@
     import CustomDatePicker from "$lib/components/bits_ui/CustomDatePicker.svelte";
     import LoadingOverlay from "$lib/components/common/LoadingOverlay.svelte";
     import PuzzleLinkSection from "../components/PuzzleLinkSection.svelte";
+    import CategoryTagSelector from "$lib/components/competition_edit/CategoryTagSelector.svelte";
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
 
     let { data } = $props();
@@ -312,6 +313,7 @@
             price: 0,
             status: "NOT_STARTED",
             puzzleIds: [],
+            tagCategories: [],
         }];
 
         categories_times_obj_arr.create = [...categories_times_obj_arr.create, {startTime: "", endTime: "", date: defaultDate, endDate: defaultDate}];
@@ -1196,6 +1198,13 @@
                                 </div>
                             </div>
 
+                            <!-- Sub-prize tags -->
+                            <div class="mt-4 border-t border-surface-200 dark:border-surface-700 pt-3">
+                                <CategoryTagSelector
+                                    tags={data.props?.participantTags ?? []}
+                                    bind:tagCategories={categories.update[i].data.tagCategories}
+                                />
+                            </div>
                             {/if}
                             <!-- Puzzles Section -->
                             <PuzzleLinkSection
@@ -1406,6 +1415,14 @@
                                         maxlength="60"
                                     />
                                 </div>
+                            </div>
+
+                            <!-- Sub-prize tags -->
+                            <div class="mt-4 border-t border-surface-200 dark:border-surface-700 pt-3">
+                                <CategoryTagSelector
+                                    tags={data.props?.participantTags ?? []}
+                                    bind:tagCategories={categories.create[i].tagCategories}
+                                />
                             </div>
                             {/if}
                             <!-- Puzzles Section -->

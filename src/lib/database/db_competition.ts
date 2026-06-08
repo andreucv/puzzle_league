@@ -1,4 +1,4 @@
-import { CategoryStatus, CompetitionStatus, RegistrationStatus, Role } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, CompetitionStatus, EntryTagStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
 import type { Prisma } from '$lib/.prisma/generated/prisma/client';
 import type { Competition, Category } from '$lib/.prisma/generated/prisma/browser';
 import { prisma } from '$lib/database/create_prisma_client';
@@ -30,7 +30,10 @@ export async function getCompetitionWithCategories(competitionId: number) {
                 categories: {
                     orderBy: { startTime: 'asc' },
                     include: {
-                        puzzles: true
+                        puzzles: true,
+                        tagCategories: {
+                            select: { tag: true, priceOverride: true }
+                        }
                     }
                 },
                 creator: true
@@ -130,8 +133,17 @@ export async function getCompetitionResults(competitionId: number) {
                                         id: true,
                                         name: true
                                     }
+                                },
+                                entryTag: {
+                                    select: {
+                                        status: true,
+                                        tag: true
+                                    }
                                 }
                             }
+                        },
+                        tagCategories: {
+                            select: { tag: true }
                         },
                         _count: {
                             select: { entries: { where: { status: RegistrationStatus.CONFIRMED } } }
@@ -141,7 +153,21 @@ export async function getCompetitionResults(competitionId: number) {
             }
         });
 
-        return competition;
+        if (!competition) return competition;
+
+        // Only CONFIRMED tags are surfaced publicly; PENDING/REJECTED are stripped.
+        // `availableTags` per category drives the sub-prize filter toggle.
+        return {
+            ...competition,
+            categories: competition.categories.map(({ tagCategories, ...category }) => ({
+                ...category,
+                availableTags: [...new Set(tagCategories.map((tc) => tc.tag))],
+                entries: category.entries.map(({ entryTag, ...entry }) => ({
+                    ...entry,
+                    confirmedTag: entryTag?.status === EntryTagStatus.CONFIRMED ? entryTag.tag : null,
+                })),
+            })),
+        };
     } catch (error) {
         console.error('Error getting competition results:', error);
         throw error;
@@ -150,7 +176,7 @@ export async function getCompetitionResults(competitionId: number) {
 
 export async function getCompetitionCategories(
     competitionId: number
-): Promise<Array<Category & { totalEntries: number; finishedEntries: number; pendingEntries: number; confirmedEntries: number }>> {
+): Promise<Array<Category & { totalEntries: number; finishedEntries: number; pendingEntries: number; confirmedEntries: number; reservedSlots: number }>> {
     try {
         // Fetch categories and all record counts in parallel (2 queries instead of 4N+1)
         const [categories, statusCounts, finishedCounts] = await Promise.all([
@@ -196,6 +222,7 @@ export async function getCompetitionCategories(
                 finishedEntries: finishedMap.get(category.id) ?? 0,
                 pendingEntries: counts.pending,
                 confirmedEntries: counts.confirmed,
+                reservedSlots: counts.confirmed + counts.pending,
             };
         });
     } catch (error) {
@@ -213,13 +240,18 @@ export async function getAllCompetitions() {
         const competitions = await prisma.competition.findMany({
             include: {
                 categories: {
-                    orderBy: { startTime: 'asc' }
+                    orderBy: { startTime: 'asc' },
+                    include: {
+                        // Reserved slots: confirmed + pending entries in the category
+                        _count: {
+                            select: { entries: { where: { status: { in: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_CONFIRMATION] } } } }
+                        }
+                    }
                 },
                 league: true,
                 _count: {
                     select: {
-                        categories: true,
-                        roleAssignments: true
+                        categories: true
                     }
                 }
             },
@@ -249,12 +281,17 @@ export async function getMonthCompetitions(month: number, year: number) {
             },
             include: {
                 categories: {
-                    orderBy: { startTime: 'asc' }
+                    orderBy: { startTime: 'asc' },
+                    include: {
+                        // Reserved slots: confirmed + pending entries in the category
+                        _count: {
+                            select: { entries: { where: { status: { in: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_CONFIRMATION] } } } }
+                        }
+                    }
                 },
                 _count: {
                     select: {
-                        categories: true,
-                        roleAssignments: true
+                        categories: true
                     }
                 }
             },
@@ -299,7 +336,14 @@ export async function getUpcomingCompetitions(n_objects: number, offset: number)
             }
         },
         include: {
-            categories: true
+            categories: {
+                include: {
+                    // Reserved slots: confirmed + pending entries in the category
+                    _count: {
+                        select: { entries: { where: { status: { in: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_CONFIRMATION] } } } }
+                    }
+                }
+            }
         },
         orderBy: {
             startDate: 'asc'
@@ -370,7 +414,14 @@ export async function getNearCompetitions(n_objects: number, country?: string, p
         take: n_objects,
         where: whereClause,
         include: {
-            categories: true
+            categories: {
+                include: {
+                    // Reserved slots: confirmed + pending entries in the category
+                    _count: {
+                        select: { entries: { where: { status: { in: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_CONFIRMATION] } } } }
+                    }
+                }
+            }
         },
         orderBy: {
             startDate: 'asc'
@@ -405,7 +456,14 @@ export async function getOtherUpcomingCompetitions(userId: string, limit: number
             }
         },
         include: {
-            categories: true
+            categories: {
+                include: {
+                    // Reserved slots: confirmed + pending entries in the category
+                    _count: {
+                        select: { entries: { where: { status: { in: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_CONFIRMATION] } } } }
+                    }
+                }
+            }
         },
         orderBy: [
             { startDate: 'asc' },
@@ -464,6 +522,10 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
                                 }
                             }
                         }
+                    },
+                    // Reserved slots: confirmed + pending entries in the category
+                    _count: {
+                        select: { entries: { where: { status: { in: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_CONFIRMATION] } } } }
                     }
                 }
             },
@@ -515,11 +577,10 @@ export async function getHomeDashboardData(userId: string) {
     const allRegisteredPromise = getUserRegisteredCompetitions(userId);
 
     // Run remaining independent queries in parallel alongside the combined one
-    const [allRegistered, otherUpcoming, lastResults, registrationStatuses] = await Promise.all([
+    const [allRegistered, otherUpcoming, lastResults] = await Promise.all([
         allRegisteredPromise,
         getOtherUpcomingCompetitions(userId, 10, 0),
-        getLastUserResults(userId, 5),
-        getUserRegistrationStatuses(userId)
+        getLastUserResults(userId, 5)
     ]);
 
     // Split by status client-side
@@ -529,62 +590,13 @@ export async function getHomeDashboardData(userId: string) {
     const startedCompetitions = allRegistered.filter(
         c => c.status === CompetitionStatus.STARTED
     );
-    const participatedCompetitions = allRegistered.filter(
-        c => c.status === CompetitionStatus.FINISHED
-    );
 
     return {
         upcomingRegisteredCompetitions,
-        participatedCompetitions,
         otherUpcomingCompetitions: otherUpcoming,
         lastResults,
         startedCompetitions,
-        registrationStatuses,
     };
-}
-
-export async function getUserRegistrationStatuses(userId: string) {
-    const competitions = await prisma.competition.findMany({
-        where: {
-            status: { in: [CompetitionStatus.NOT_STARTED, CompetitionStatus.STARTED] },
-            startDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
-            categories: {
-                some: {
-                    entries: { some: { users: { some: { id: userId } } } }
-                }
-            }
-        },
-        select: {
-            id: true,
-            name: true,
-            startDate: true,
-            registrationOpen: true,
-            status: true,
-            categories: {
-                orderBy: { startTime: 'asc' },
-                select: {
-                    type: true,
-                    entries: {
-                        where: { users: { some: { id: userId } } },
-                        select: { status: true }
-                    }
-                }
-            }
-        },
-        orderBy: { startDate: 'asc' }
-    });
-
-    return competitions.map((competition) => ({
-        id: competition.id,
-        name: competition.name,
-        startDate: competition.startDate,
-        registrationOpen: competition.registrationOpen,
-        status: competition.status,
-        categories: competition.categories.map((category) => ({
-            type: category.type,
-            entryStatus: category.entries[0]?.status ?? null
-        }))
-    }));
 }
 
 /**
@@ -690,41 +702,6 @@ export async function getLastUserResults(userId: string, limit: number = 5) {
 }
 
 // ---------------------------------------------------------------------------
-// Access control
-// ---------------------------------------------------------------------------
-
-/**
- * Returns whether a user can access the During Competition page for a given competition.
- * Allowed: the competition's creator, admins, and judges assigned to a category in this competition.
- */
-export async function getDuringCompetitionAccess(
-    competitionId: number,
-    userId: string
-): Promise<{ isOrganizer: boolean; isJudge: boolean; judgedCategoryIds: number[] }> {
-    const [isCreator, isAdmin, judgedCategories] = await Promise.all([
-        prisma.competition.findFirst({
-            where: { id: competitionId, creatorId: userId },
-            select: { id: true }
-        }),
-        prisma.roleAssignment.findFirst({
-            where: { userId, role: Role.ADMIN }
-        }),
-        prisma.category.findMany({
-            where: {
-                competitionId,
-                judges: { some: { id: userId } }
-            },
-            select: { id: true }
-        })
-    ]);
-
-    return {
-        isOrganizer: !!(isCreator || isAdmin),
-        isJudge: judgedCategories.length > 0,
-        judgedCategoryIds: judgedCategories.map((c) => c.id)
-    };
-}
-
 // ---------------------------------------------------------------------------
 // Competition mutations
 // ---------------------------------------------------------------------------
@@ -792,7 +769,6 @@ export async function updateCompetition(
             };
         });
 
-        console.log("db_competition.ts: result", result);
         return {
             success: true,
             data: result,
@@ -823,6 +799,26 @@ export async function updateCompetitionStatus(competitionId: number, status: 'NO
 }
 
 // ---------------------------------------------------------------------------
+// Landing page stats (pre-computed, served from DB)
+// ---------------------------------------------------------------------------
+
+export async function getLandingStats() {
+    return prisma.landingStats.findUnique({ where: { id: 1 } });
+}
+
+export async function upsertLandingStats(data: {
+    upcomingCount: number;
+    cityCount: number;
+    participantCount: number;
+}) {
+    return prisma.landingStats.upsert({
+        where: { id: 1 },
+        create: { id: 1, ...data },
+        update: data,
+    });
+}
+
+// ---------------------------------------------------------------------------
 // Explore competitions (with per-category registration data)
 // ---------------------------------------------------------------------------
 
@@ -843,6 +839,10 @@ export async function getExploreCompetitionsData(userId?: string) {
                                     },
                                 },
                             },
+                        },
+                        // Reserved slots: confirmed + pending entries in the category
+                        _count: {
+                            select: { entries: { where: { status: { in: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_CONFIRMATION] } } } }
                         },
                     },
                 },
@@ -872,8 +872,8 @@ export async function getCompetitionWithJudges(competitionId: number) {
         include: {
             categories: {
                 include: {
-                    judges: {
-                        select: { id: true, name: true, email: true }
+                    judgeAssignments: {
+                        select: { user: { select: { id: true, name: true, email: true } } }
                     }
                 },
                 orderBy: { startTime: 'asc' }
@@ -894,7 +894,7 @@ export async function getCompetitionWithJudges(competitionId: number) {
             description: cat.description,
             subname: cat.subname,
             type: cat.type,
-            judges: cat.judges
+            judges: cat.judgeAssignments.map((a) => a.user)
         }))
     };
 }

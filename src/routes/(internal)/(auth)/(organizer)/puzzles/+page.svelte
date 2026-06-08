@@ -8,7 +8,7 @@
     let { data } = $props();
     let filter = $state('');
 
-    const puzzles = data.props.puzzles;
+    const puzzles = $derived(data.props.puzzles);
 
     const filteredPuzzles = $derived(
         puzzles.filter((p: any) => {

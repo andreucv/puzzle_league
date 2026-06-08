@@ -95,8 +95,18 @@ export async function getRegistrationsForCompetition(competitionId: number) {
                                 name: true,
                                 email: true
                             }
+                        },
+                        entryTag: {
+                            select: {
+                                id: true,
+                                status: true,
+                                tag: true
+                            }
                         }
                     }
+                },
+                tagCategories: {
+                    select: { tag: true }
                 }
             }
         });

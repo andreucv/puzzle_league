@@ -11,9 +11,97 @@ interface RegistrationEntry {
 		competitionId: number;
 		description: string;
 		subname: string | null;
-		type: CategoryType;
+		type: string;
 		competition: { name: string };
 	};
+}
+
+interface SubmittedRegistrationEntry extends RegistrationEntry {
+	status: RegistrationStatus;
+	category: RegistrationEntry['category'] & {
+		competition: { id?: number; name: string };
+	};
+}
+
+function competitionDetailsLink(category: RegistrationEntry['category'] & { competition?: { id?: number } }): string {
+	return `/competitions/competition_details/${category.competitionId ?? category.competition?.id}`;
+}
+
+/**
+ * Notify teammates after a submitted Entry is created. The registering actor
+ * is not notified here because their form submission already confirms the
+ * outcome; waitlisted Entries use notifyRegistrationWaitlisted instead.
+ */
+export async function notifyRegistrationCreatedForTeammates(
+	entry: SubmittedRegistrationEntry,
+	actorUserId: string,
+	actorName?: string,
+): Promise<void> {
+	if (entry.status === RegistrationStatus.WAITLISTED) return;
+
+	const otherUserIds = entry.users
+		.map((user) => user.id)
+		.filter((id) => id !== actorUserId);
+
+	if (otherUserIds.length === 0) return;
+
+	const categoryName = entry.category.description || entry.category.type;
+	const competitionName = entry.category.competition.name;
+	const link = competitionDetailsLink(entry.category);
+
+	if (entry.status === RegistrationStatus.CONFIRMED) {
+		const confirmedBy = actorName || entry.users.find((user) => user.id === actorUserId)?.name || 'the organizer';
+		await Promise.all(
+			otherUserIds.map((userId) =>
+				createNotification({
+					userId,
+					type: NotificationType.REGISTRATION_CONFIRMED,
+					title: 'notifications.titles.registration_confirmed',
+					message: 'notifications.messages.registration_confirmed',
+					link,
+					data: {
+						categoryName,
+						competitionName,
+						confirmedBy,
+					},
+				}),
+			),
+		);
+		return;
+	}
+
+	const registeredBy = actorName || entry.users.find((user) => user.id === actorUserId)?.name || 'a teammate';
+	await Promise.all(
+		otherUserIds.map((userId) =>
+			createNotification({
+				userId,
+				type: NotificationType.REGISTRATION_CREATED,
+				title: 'notifications.titles.registration_created',
+				message: 'notifications.messages.registration_created',
+				link,
+				data: {
+					categoryName,
+					competitionName,
+					registeredBy,
+				},
+			}),
+		),
+	);
+}
+
+/** Notify platform users on a newly waitlisted Entry. */
+export async function notifyRegistrationWaitlisted(entry: SubmittedRegistrationEntry): Promise<void> {
+	const userIds = entry.users.map((user) => user.id);
+	if (userIds.length === 0) return;
+
+	await createNotificationForUsers(
+		userIds,
+		NotificationType.REGISTRATION_WAITLISTED,
+		'notifications.titles.registration_waitlisted',
+		'notifications.messages.registration_waitlisted',
+		competitionDetailsLink(entry.category),
+		{ categoryName: entry.category.description ?? entry.category.type },
+	);
 }
 
 /**
@@ -30,13 +118,13 @@ export async function notifyRegistrationConfirmed(
 	entry: RegistrationEntry,
 	actorName?: string,
 ): Promise<void> {
-	const typeLabel = getCategoryTypeName(entry.category.type);
+	const typeLabel = getCategoryTypeName(entry.category.type as CategoryType);
 	// @: prefix marks the value as a translation key to be resolved at render time
 	const categoryName = entry.category.subname
 		? `@:${typeLabel} - ${entry.category.subname}`
 		: `@:${typeLabel}`;
 	const competitionName = entry.category.competition.name;
-	const link = `/competitions/competition_details/${entry.category.competitionId}`;
+	const link = competitionDetailsLink(entry.category);
 	const confirmedBy = actorName || '';
 
 	const realUserIds = entry.users.map((u) => u.id);
@@ -110,12 +198,12 @@ export async function notifyRegistrationRefused(
 	entry: RegistrationEntry,
 	actorName?: string,
 ): Promise<void> {
-	const typeLabel = getCategoryTypeName(entry.category.type);
+	const typeLabel = getCategoryTypeName(entry.category.type as CategoryType);
 	const categoryName = entry.category.subname
 		? `@:${typeLabel} - ${entry.category.subname}`
 		: `@:${typeLabel}`;
 	const competitionName = entry.category.competition.name;
-	const link = `/competitions/competition_details/${entry.category.competitionId}`;
+	const link = competitionDetailsLink(entry.category);
 
 	const realUserIds = entry.users.map((u) => u.id);
 	const creatorIsParticipant = realUserIds.includes(entry.creatorId);
@@ -176,7 +264,7 @@ export async function notifyRegistrationRefused(
 // Waitlist promotion notification
 // ---------------------------------------------------------------------------
 
-import type { PromotedEntry } from '$lib/database/db_registration';
+import type { PromotedEntry } from '$lib/services/registration-workflow';
 
 /**
  * Send notifications when a waitlisted entry is promoted because a slot opened up.
@@ -198,7 +286,7 @@ export async function notifyWaitlistPromotion(
 		? `@:${typeLabel} - ${entry.category.subname}`
 		: `@:${typeLabel}`;
 	const competitionName = entry.category.competition.name;
-	const link = `/competitions/competition_details/${entry.category.competitionId}`;
+	const link = competitionDetailsLink(entry.category);
 
 	// Auto-confirmed promotions (free categories) use REGISTRATION_CONFIRMED;
 	// pending promotions use REGISTRATION_PROMOTED.
@@ -305,12 +393,12 @@ export async function notifyPaymentReminder(
 
 	// All entries share the same category context
 	const firstEntry = entries[0];
-	const typeLabel = getCategoryTypeName(firstEntry.category.type);
+	const typeLabel = getCategoryTypeName(firstEntry.category.type as CategoryType);
 	const categoryName = firstEntry.category.subname
 		? `@:${typeLabel} - ${firstEntry.category.subname}`
 		: `@:${typeLabel}`;
 	const competitionName = firstEntry.category.competition.name;
-	const link = `/competitions/competition_details/${firstEntry.category.competitionId}`;
+	const link = competitionDetailsLink(firstEntry.category);
 
 	const hasNote = !!note?.trim();
 	const baseData: Record<string, string> = { categoryName, competitionName };
@@ -426,12 +514,12 @@ export async function notifyTableAssignments(
 	records: TableAssignmentRecord[],
 	category: TableAssignmentCategory,
 ): Promise<void> {
-	const typeLabel = getCategoryTypeName(category.type);
+	const typeLabel = getCategoryTypeName(category.type as CategoryType);
 	const categoryName = category.subname
 		? `@:${typeLabel} - ${category.subname}`
 		: `@:${typeLabel}`;
 	const competitionName = category.competition.name;
-	const link = `/competitions/competition_details/${category.competitionId}`;
+	const link = competitionDetailsLink(category);
 
 	const promises: Promise<unknown>[] = [];
 

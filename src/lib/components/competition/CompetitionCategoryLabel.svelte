@@ -24,8 +24,8 @@
         return record?.users || null;
     }
 
-    const userTeam = getUserTeam(category);
-    const isRegistered = isUserInCategory(category);
+    const userTeam = $derived(getUserTeam(category));
+    const isRegistered = $derived(isUserInCategory(category));
 
     const categoryNameLabel = $derived($t(getCategoryTypeName(category.type)));
 </script>

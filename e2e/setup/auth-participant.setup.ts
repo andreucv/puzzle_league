@@ -21,7 +21,7 @@ setup('authenticate_participant', async ({ page }) => {
     // Sometimes login flow sets cookies in the process of several redirects.
     // Wait for the final URL to ensure that the cookies are actually set.
     // Extended timeout: on cold start the auth API may be slow to respond.
-    await page.waitForURL('/', { timeout: 60_000 });
+    await page.waitForURL('/home', { timeout: 60_000 });
 
     await page.context().storageState({ path: authFile });
 });

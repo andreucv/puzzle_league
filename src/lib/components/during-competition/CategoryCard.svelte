@@ -1,8 +1,9 @@
 <script lang="ts">
-    import { calculateDuration, formatCountdown } from '$lib/utils/category_utils';
+    import { calculateDuration, formatCountdown, formatTimeDelta } from '$lib/utils/category_utils';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
     import Card from '$lib/components/common/card/Card.svelte';
     import EntryList from './EntryList.svelte';
+    import LastFinishedBanner from './LastFinishedBanner.svelte';
     import OverflowMenu from './OverflowMenu.svelte';
     import ConfirmActionButton from '$lib/components/common/buttons/ConfirmActionButton.svelte';
     import SearchInput from '$lib/components/common/SearchInput.svelte';
@@ -261,21 +262,87 @@
         isStopped ? `overflow-menu-stopped-${category.id}` : `overflow-menu-${category.id}`
     );
 
+    // --- Finish confirmation banner (LIVE finish only) ---
+    // Holds the id of the judge's most recent finish so they get feedback on WHAT they
+    // marked. Position, gap and names are derived live from the finished entries list so
+    // they stay in sync with finishes coming from other judges via Ably.
+    // Auto-dismisses after 10s; a new finish replaces it and resets the timer.
+    const BANNER_DURATION_MS = 10000;
+    let lastFinishedId = $state<string | null>(null);
+    let bannerTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function clearBanner() {
+        if (bannerTimer) {
+            clearTimeout(bannerTimer);
+            bannerTimer = null;
+        }
+        lastFinishedId = null;
+    }
+
+    function showFinishedBanner(recordId: string) {
+        if (bannerTimer) clearTimeout(bannerTimer);
+        lastFinishedId = recordId;
+        bannerTimer = setTimeout(() => { lastFinishedId = null; bannerTimer = null; }, BANNER_DURATION_MS);
+    }
+
+    // Derive the banner content from the live finished list (ranked by finish time),
+    // so the position and gap-to-previous reflect every judge's marks, not a snapshot.
+    let bannerInfo = $derived.by(() => {
+        if (!lastFinishedId || !records) return null;
+        const finished = records.finishedEntries
+            .filter((r: any) => r.finishTime)
+            .slice()
+            .sort((a: any, b: any) => new Date(a.finishTime).getTime() - new Date(b.finishTime).getTime());
+        const idx = finished.findIndex((r: any) => r.id === lastFinishedId);
+        if (idx === -1) return null;
+
+        const record = finished[idx];
+        const finishDate = new Date(record.finishTime);
+        const names = [
+            ...(record.users ?? []).map((u: any) => u.name),
+            ...(record.externalParticipants ?? []).map((p: any) => p.name)
+        ];
+        return {
+            recordId: record.id as string,
+            position: idx + 1,
+            tableNumber: (record.tableNumber ?? null) as number | null,
+            names,
+            duration: category.realStartTime
+                ? calculateDuration(new Date(category.realStartTime), finishDate)
+                : null,
+            gap: idx > 0 ? formatTimeDelta(new Date(finished[idx - 1].finishTime), finishDate) : null
+        };
+    });
+
+    // Clean up the timer when the card unmounts
+    $effect(() => () => {
+        if (bannerTimer) clearTimeout(bannerTimer);
+    });
+
+    async function handleBannerUndo() {
+        if (!bannerInfo) return;
+        const recordId = bannerInfo.recordId;
+        clearBanner();
+        await handleRecordUndoFinish(recordId);
+    }
+
     // --- Record action handlers ---
     // Each handler performs an optimistic local update after a successful API call.
     // Selection clearing is handled by EntryList internally.
 
     async function handleRecordFinish(recordId: string) {
         if (!records) return;
+        const finishTime = new Date();
         const response = await fetch(`/api/entries/${recordId}/result`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ finishTime: new Date().toISOString() })
+            body: JSON.stringify({ finishTime: finishTime.toISOString() })
         });
         if (response.ok) {
             records.allEntries = records.allEntries.map((r: any) =>
-                r.id === recordId ? { ...r, finishTime: new Date().toISOString() } : r
+                r.id === recordId ? { ...r, finishTime: finishTime.toISOString() } : r
             );
+            showFinishedBanner(recordId);
             localFinishedCount = records.finishedEntries.length;
             // No refreshAll() here — the Ably event will trigger a version change
             // which the version-tracking effect uses to refresh only this card's records.
@@ -555,6 +622,18 @@
 
         <!-- Record lists (LIVE) -->
         {#if isLive && records}
+            {#if bannerInfo}
+                <LastFinishedBanner
+                    recordId={bannerInfo.recordId}
+                    position={bannerInfo.position}
+                    tableNumber={bannerInfo.tableNumber}
+                    names={bannerInfo.names}
+                    duration={bannerInfo.duration}
+                    gap={bannerInfo.gap}
+                    onUndo={handleBannerUndo}
+                />
+            {/if}
+
             <EntryList
                 icon={ClockOutlineIcon}
                 label={$t('during_competition.pending_records')}

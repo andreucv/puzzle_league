@@ -73,7 +73,7 @@ export const load: PageServerLoad = async (event) => {
 ```ts
 // ✅ CORRECT — only needs user.id, no enriched data required
 export const load: PageServerLoad = async (event) => {
-    const { isOrganizer, isJudge } = await getDuringCompetitionAccess(competitionId, event.locals.user.id);
+    const access = await getCompetitionAccess(competitionId, event.locals.user.id);
 };
 ```
 
@@ -90,8 +90,8 @@ const categories = await getCategories(id);
 const access = await getAccess(id, userId);
 
 // ✅ CORRECT — parallel, all run at the same time
-const [records, categories, access] = await Promise.all([
-    getRecords(id, userId),
+const [entries, categories, access] = await Promise.all([
+    getEntries(id, userId),
     getCategories(id),
     getAccess(id, userId),
 ]);
@@ -99,21 +99,21 @@ const [records, categories, access] = await Promise.all([
 
 ## 3. Avoid N+1 query patterns in database utilities
 
-Never fetch a list of records and then run individual queries per item. Use `groupBy`, `aggregate`, or batch queries instead.
+Never fetch a list of entries and then run individual queries per item. Use `groupBy`, `aggregate`, or batch queries instead.
 
 ```ts
 // ❌ WRONG — 4 queries per category (N+1 pattern)
 const categories = await prisma.category.findMany({ where: { competitionId } });
 const enriched = await Promise.all(
     categories.map(async (cat) => {
-        const total = await prisma.record.count({ where: { categoryId: cat.id } });
-        const finished = await prisma.record.count({ where: { categoryId: cat.id, finishTime: { not: null } } });
+        const total = await prisma.entry.count({ where: { categoryId: cat.id } });
+        const finished = await prisma.entry.count({ where: { categoryId: cat.id, finishTime: { not: null } } });
         return { ...cat, total, finished };
     })
 );
 
 // ✅ CORRECT — 1 groupBy query replaces N individual counts
-const counts = await prisma.record.groupBy({
+const counts = await prisma.entry.groupBy({
     by: ['categoryId', 'status'],
     _count: true,
     where: { category: { competitionId } }

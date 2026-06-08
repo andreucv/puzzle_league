@@ -54,10 +54,8 @@ const ROUTE_GUARDS: [RegExp, RouteGuard][] = [
   [/^\/api\/events\/notifications$/, { guard: 'authenticated' }],
 
   // ---- Competition-scoped: ORGANIZER ----
-  [/^\/api\/competitions\/[^/]+\/manage$/, { guard: 'competitionOrganizer' }],
   [/^\/api\/competitions\/[^/]+\/cancel$/, { guard: 'competitionOrganizer' }],
   [/^\/api\/competitions\/[^/]+\/toggle_registration$/, { guard: 'competitionOrganizer' }],
-  [/^\/api\/competitions\/[^/]+\/judges$/, { guard: 'competitionOrganizer' }],
   [/^\/api\/competitions\/[^/]+\/copy-judges$/, { guard: 'competitionOrganizer' }],
 
   // ---- Competition-scoped: JUDGE or ORGANIZER ----

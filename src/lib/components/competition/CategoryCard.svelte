@@ -16,10 +16,13 @@
     import FormatListBulletedIcon from '@iconify-svelte/mdi/format-list-bulleted';
     import EntryRegistrationStatusBadge from '$lib/components/registration/EntryRegistrationStatusBadge.svelte';
 
+    import AccountGroupOutlineIcon from '@iconify-svelte/mdi/account-group-outline';
+    import TableFurnitureIcon from '@iconify-svelte/mdi/table-furniture';
+
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
     type PartyUser = { id: string; name: string; email: string; image: string | null };
     type ExternalParticipantInfo = { id: string; name: string; claimedById: string | null };
-    type UserEntry = { id?: string; status?: string; users?: PartyUser[]; externalParticipants?: ExternalParticipantInfo[] };
+    type UserEntry = { id?: string; status?: string; tableNumber?: number | null; users?: PartyUser[]; externalParticipants?: ExternalParticipantInfo[] };
 
     let {
         category,
@@ -30,7 +33,8 @@
         registrationStatus = undefined,
         party = null,
         externalParticipants = null,
-        seatsAvailable = undefined
+        seatsAvailable = undefined,
+        totalEntries = undefined
     }: {
         category: CategoryWithPuzzles;
         isCreator?: boolean;
@@ -41,6 +45,7 @@
         party?: PartyUser[] | null;
         externalParticipants?: ExternalParticipantInfo[] | null;
         seatsAvailable?: number;
+        totalEntries?: number;
     } = $props();
 
     const normalizedEntries = $derived(
@@ -48,6 +53,9 @@
             ? records
             : [{ status: registrationStatus, users: party ?? [], externalParticipants: externalParticipants ?? [] }]
     );
+
+    // Table numbers are actionable only before/while the category runs, not once finished.
+    const showTableNumber = $derived(['NOT_STARTED', 'LIVE', 'STOPPED'].includes(category.status));
 </script>
 
 <Card>
@@ -104,6 +112,18 @@
         </div>
     {/if}
 
+    <!-- Capacity indicator (always visible when data available) -->
+    {#if totalEntries !== undefined}
+        <div class="flex items-center gap-2 text-xs text-surface-600 dark:text-surface-400">
+            <AccountGroupOutlineIcon width="0.9rem" height="0.9rem" class="shrink-0" />
+            {#if category.maxParties != null}
+                <span>{$t('competition_details.registered_count', { current: totalEntries, max: category.maxParties })}</span>
+            {:else}
+                <span>{$t('competition_details.registered_no_limit', { current: totalEntries })}</span>
+            {/if}
+        </div>
+    {/if}
+
     <!-- Footer: Registration status (optional) -->
     {#if showRegistration}
         <hr class="border-t border-surface-300 dark:border-surface-600" />
@@ -142,7 +162,13 @@
                                         {[...entryUsers.map(u => u.name), ...entryExternalParticipants.map(ep => ep.name)].join(', ')}
                                     </span>
                                 </div>
-                                <RegistrationStatusBadge status={entry.status ?? ''} />
+                                {#if showTableNumber && entry.tableNumber != null}
+                                    <span class="badge preset-tonal-primary text-xs flex items-center justify-center gap-1 shrink-0 w-12">
+                                        <TableFurnitureIcon width="0.8rem" height="0.8rem" class="shrink-0" />
+                                        {$t('competition_details.table_short', { number: entry.tableNumber })}
+                                    </span>
+                                {/if}
+                                <EntryRegistrationStatusBadge status={entry.status ?? ''} />
                             </div>
                         {/if}
                     {/each}
@@ -188,6 +214,12 @@
                                         {[...entryUsers.map(u => u.name), ...entryExternalParticipants.map(ep => ep.name)].join(', ')}
                                     </span>
                                 </div>
+                                {#if showTableNumber && entry.tableNumber != null}
+                                    <span class="badge preset-tonal-primary text-xs flex items-center justify-center gap-1 shrink-0 w-12">
+                                        <TableFurnitureIcon width="0.8rem" height="0.8rem" class="shrink-0" />
+                                        {$t('competition_details.table_short', { number: entry.tableNumber })}
+                                    </span>
+                                {/if}
                                 <EntryRegistrationStatusBadge status={entry.status ?? ''} />
                             </div>
                         {/if}
@@ -217,7 +249,7 @@
                     {/if}
                     <span class="badge preset-tonal-surface text-xs flex items-center gap-1 shrink-0">
                         <AccountPlusOutlineIcon width="0.8rem" height="0.8rem" />
-                        Open
+                        {$t('competition_details.open')}
                     </span>
                 </div>
             {/if}

@@ -50,12 +50,12 @@ describe('EntryRow', () => {
 
 	it('displays table number badge when tableNumber is set', () => {
 		renderRow({ record: makeRecord({ tableNumber: 7 }) });
-		expect(screen.getByText('#7')).toBeInTheDocument();
+		expect(screen.getByText('T7')).toBeInTheDocument();
 	});
 
 	it('hides table number badge when tableNumber is null', () => {
 		renderRow({ record: makeRecord({ tableNumber: null }) });
-		expect(screen.queryByText(/#\d+/)).not.toBeInTheDocument();
+		expect(screen.queryByText(/T\d+/)).not.toBeInTheDocument();
 	});
 
 	it('displays user names', () => {

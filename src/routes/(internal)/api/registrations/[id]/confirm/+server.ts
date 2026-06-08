@@ -1,61 +1,41 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { confirmRegistration } from '$lib/database/db_registration';
-import { prisma } from '$lib/database/create_prisma_client';
-import { notifyRegistrationConfirmed } from '$lib/notifications/registration_notifications';
+import { confirmRegistration, isRegistrationWorkflowError, registrationWorkflowHttpStatus } from '$lib/services/registration-workflow';
 import { getPostHogClient } from '$lib/server/posthog';
 
 export const POST = async (event: RequestEvent) => {
 	try {
 		const entryId = event.params.id as string;
-		const actorName = event.locals.user?.name || undefined;
+		const user = event.locals.user;
 
 		if (!entryId) {
 			return json({ error: 'Invalid entry ID' }, { status: 400 });
 		}
+		if (!user) {
+			return json({ error: 'You must be logged in' }, { status: 401 });
+		}
 
-		const entry = await prisma.entry.findUnique({
-			where: { id: entryId },
-			include: {
-				category: {
-					select: {
-						competitionId: true,
-						description: true,
-						subname: true,
-						type: true,
-						competition: { select: { name: true } }
-					}
-				},
-				users: { select: { id: true, name: true } },
-				externalParticipants: { select: { name: true } }
-			}
+		const result = await confirmRegistration({
+			entryId,
+			actor: { userId: user.id, name: user.name ?? undefined, isOrganizer: false },
 		});
-
-		if (!entry) {
-			return json({ error: 'Entry not found' }, { status: 404 });
-		}
-
-		const result = await confirmRegistration(entryId);
-
-		if (!result.success) {
-			return json({ error: result.error }, { status: 400 });
-		}
-
-		await notifyRegistrationConfirmed(entry, actorName);
 
 		const posthog = getPostHogClient();
 		posthog.capture({
-			distinctId: event.locals.user?.id ?? 'server',
+			distinctId: user.id,
 			event: 'registration_confirmed',
 			properties: {
 				entry_id: entryId,
-				competition_id: entry.category.competitionId,
-				competition_name: entry.category.competition.name,
-				category_type: entry.category.type
+				competition_id: result.entry.category.competitionId,
+				competition_name: result.entry.category.competition.name,
+				category_type: result.entry.category.type
 			}
 		});
 
-		return json({ success: true, data: result.data });
+		return json({ success: true, data: result.entry });
 	} catch (error) {
+		if (isRegistrationWorkflowError(error)) {
+			return json({ error: error.message }, { status: registrationWorkflowHttpStatus(error) });
+		}
 		console.error('Error confirming registration:', error);
 		return json({ error: 'Failed to confirm registration' }, { status: 500 });
 	}

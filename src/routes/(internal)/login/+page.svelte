@@ -39,7 +39,7 @@
         errorMessage = "";
         try {
             const { data, error } = await authClient.signIn.email({ email, password });
-            if (!error && data?.user) {
+            if (!error && data && 'user' in data && data.user) {
                 posthog.identify(data.user.id, { email: data.user.email, name: data.user.name });
                 posthog.capture('user_logged_in', { method: 'email' });
             }
@@ -61,7 +61,7 @@
             const { data, error } = await authClient.signUp.email({
                 email, password, name, callbackURL: '/verify-email',
             });
-            if (!error && data?.user) {
+            if (!error && data && 'user' in data && data.user) {
                 posthog.identify(data.user.id, { email: data.user.email, name: data.user.name });
                 posthog.capture('user_registered', { method: 'email' });
             }
@@ -80,7 +80,7 @@
                 provider: "google",
                 callbackURL: getSafeRedirect(),
             });
-            if (!error && data?.user) {
+            if (!error && data && 'user' in data && data.user) {
                 posthog.identify(data.user.id, { email: data.user.email, name: data.user.name });
                 posthog.capture('user_logged_in', { method: 'google' });
             }

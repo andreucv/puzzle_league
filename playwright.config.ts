@@ -62,7 +62,7 @@ export default defineConfig({
         },
         {
             name: 'organizer',
-            testMatch: /.*\/organizer\.test\.ts/,
+            testMatch: /.*\/.*organizer\.test\.ts/,
             use: { ...devices['Desktop Chrome'] },
             dependencies: ['setup_organizer', 'setup_participant'],
         },

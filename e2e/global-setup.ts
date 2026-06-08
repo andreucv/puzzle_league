@@ -176,14 +176,14 @@ export default async function globalSetup() {
     console.log('   🔧 Applying schema (prisma db push)...');
     runCommand('npx prisma db push --accept-data-loss', {
         cwd: ROOT,
-        env: { ...process.env, DATABASE_URL: testDbUrl },
+        env: { ...process.env, DATABASE_URL: testDbUrl, DATABASE_ACCELERATE_URL: testDbUrl },
     });
 
     // 4. Seed test users
     console.log('   🌱 Seeding test users...');
     runCommand('npx tsx scripts/db_migration/action_seed_local_users.ts', {
         cwd: ROOT,
-        env: { ...process.env, DATABASE_URL: testDbUrl },
+        env: { ...process.env, DATABASE_URL: testDbUrl, DATABASE_ACCELERATE_URL: testDbUrl },
     });
 
     // 5. Build the app (skip if source hasn't changed)
@@ -194,15 +194,25 @@ export default async function globalSetup() {
             env: {
                 ...process.env,
                 DATABASE_URL: testDbUrl,
+                DATABASE_ACCELERATE_URL: testDbUrl,
                 BETTER_AUTH_URL: `http://localhost:${PREVIEW_PORT}`,
             },
         });
     }
 
-    // 6. Start preview server (skip if already running with same build)
+    // 6. Start preview server (skip if already running with same build AND same database)
     let serverPid: number;
-    if (!needsBuild && serverIsUp && previousState?.serverPid) {
-        serverPid = previousState.serverPid;
+    const canReuseServer = !needsBuild && serverIsUp && previousState?.serverPid
+        && previousState.dbUrl === testDbUrl;
+
+    if (!canReuseServer && serverIsUp) {
+        // Server is up but can't be reused (wrong DB or stale build) — kill it
+        console.log('   🔄 Server running with stale config — restarting...');
+        killLeftoverServer();
+    }
+
+    if (canReuseServer) {
+        serverPid = previousState!.serverPid!;
         console.log(`   ✅ Reusing preview server (PID: ${serverPid})\n`);
     } else {
         console.log('   🚀 Starting preview server...');
@@ -213,6 +223,7 @@ export default async function globalSetup() {
             env: {
                 ...process.env,
                 DATABASE_URL: testDbUrl,
+                DATABASE_ACCELERATE_URL: testDbUrl,
                 BETTER_AUTH_URL: `http://localhost:${PREVIEW_PORT}`,
             },
         });
@@ -239,5 +250,6 @@ export default async function globalSetup() {
 
     // 8. Set env for Playwright test processes
     process.env.DATABASE_URL = testDbUrl;
+    process.env.DATABASE_ACCELERATE_URL = testDbUrl;
     process.env.BETTER_AUTH_URL = `http://localhost:${PREVIEW_PORT}`;
 }

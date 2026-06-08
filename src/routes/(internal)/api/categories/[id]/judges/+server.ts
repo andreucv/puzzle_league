@@ -21,15 +21,16 @@ export const POST: RequestHandler = async (event) => {
 			return json({ error: 'User not found' }, { status: 404 });
 		}
 
-		const updated = await prisma.category.update({
-			where: { id: categoryId },
-			data: { judges: { connect: { id: userId } } },
-			include: {
-				judges: { select: { id: true, name: true, email: true } }
-			}
+		await prisma.categoryJudgeAssignment.create({
+			data: { userId, categoryId },
 		});
 
-		return json({ success: true, judges: updated.judges });
+		const judges = await prisma.categoryJudgeAssignment.findMany({
+			where: { categoryId },
+			select: { user: { select: { id: true, name: true, email: true } } },
+		});
+
+		return json({ success: true, judges: judges.map((j) => j.user) });
 	} catch (error) {
 		console.error('Error adding judge to category:', error);
 		return json({ error: 'Failed to add judge' }, { status: 500 });

@@ -17,13 +17,15 @@ import CategoryCard from './CategoryCard.svelte';
 
 function mockFetchRecords(finished: any[] = [], pending: any[] = []) {
 	return vi.fn((url: string) => {
-		if (typeof url === 'string' && url.includes('/records')) {
+		// Category entries list endpoint: /api/categories/{id}/entries
+		// (distinct from per-entry result/pieces endpoints under /api/entries/{id}/...)
+		if (typeof url === 'string' && url.includes('/categories/') && url.includes('/entries')) {
 			return Promise.resolve({
 				ok: true,
 				json: () => Promise.resolve({ records: [...finished, ...pending] })
 			});
 		}
-		// Default: results API
+		// Default: per-entry result/pieces API
 		return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
 	});
 }
@@ -70,6 +72,10 @@ describe('CategoryCard', () => {
 		// JSDOM doesn't implement the Web Animations API used by Svelte's flip/animate
 		if (!Element.prototype.animate) {
 			Element.prototype.animate = vi.fn(() => ({ cancel: vi.fn(), finished: Promise.resolve() })) as any;
+		}
+		// Svelte's slide outro calls getAnimations(); jsdom lacks it
+		if (!Element.prototype.getAnimations) {
+			Element.prototype.getAnimations = vi.fn(() => []) as any;
 		}
 	});
 
@@ -161,7 +167,7 @@ describe('CategoryCard', () => {
 			renderCard(liveCategory);
 			await waitFor(() => {
 				const calls = fetchMock.mock.calls.map((c: any[]) => c[0]);
-				expect(calls.some((url: string) => url.includes('/records'))).toBe(true);
+				expect(calls.some((url: string) => url.includes('/categories/') && url.includes('/entries'))).toBe(true);
 			});
 		});
 
@@ -225,7 +231,7 @@ describe('CategoryCard', () => {
 			renderCard(stoppedCategory);
 			await waitFor(() => {
 				const calls = fetchMock.mock.calls.map((c: any[]) => c[0]);
-				expect(calls.some((url: string) => url.includes('/records'))).toBe(true);
+				expect(calls.some((url: string) => url.includes('/categories/') && url.includes('/entries'))).toBe(true);
 			});
 		});
 
@@ -478,6 +484,143 @@ describe('CategoryCard', () => {
 					(c: any[]) => typeof c[0] === 'string' && c[0].includes('/api/entries/rec-3/pieces')
 				);
 				expect(piecesCalls.length).toBeGreaterThan(0);
+			});
+		});
+	});
+
+	// =====================================================================
+	// "Just marked" confirmation banner (LIVE finish only)
+	// =====================================================================
+	describe('Just-finished banner', () => {
+		const pendingA = {
+			id: 'rec-1',
+			tableNumber: 12,
+			finishTime: null,
+			nPiecesCompleted: null,
+			status: 'ACTIVE',
+			users: [{ id: 'u1', name: 'Alice', email: 'a@t.com', image: null }],
+			externalParticipants: []
+		};
+		const pendingB = {
+			id: 'rec-2',
+			tableNumber: 8,
+			finishTime: null,
+			nPiecesCompleted: null,
+			status: 'ACTIVE',
+			users: [{ id: 'u2', name: 'Bob', email: 'b@t.com', image: null }],
+			externalParticipants: []
+		};
+
+		const liveCategory = {
+			status: 'LIVE',
+			realStartTime: '2026-01-01T10:00:00Z',
+			totalEntries: 2,
+			finishedEntries: 0
+		};
+
+		async function finishRecord(id: string) {
+			await fireEvent.click(screen.getByTestId(`record-row-${id}`));
+			await waitFor(() => {
+				expect(screen.getByTestId(`finish-record-${id}`)).toBeInTheDocument();
+			});
+			await fireEvent.click(screen.getByTestId(`finish-record-${id}`));
+		}
+
+		it('shows the banner with table and participant name after finishing', async () => {
+			fetchMock = mockFetchRecords([], [pendingA]);
+			vi.stubGlobal('fetch', fetchMock);
+			renderCard(liveCategory);
+
+			await waitFor(() => {
+				expect(screen.getByTestId('record-row-rec-1')).toBeInTheDocument();
+			});
+
+			await finishRecord('rec-1');
+
+			await waitFor(() => {
+				const banner = screen.getByTestId('last-finished-banner-rec-1');
+				expect(banner).toBeInTheDocument();
+				expect(banner).toHaveTextContent('T12');
+				expect(banner).toHaveTextContent('Alice');
+			});
+		});
+
+		it('auto-dismisses the banner after 10 seconds', async () => {
+			vi.useFakeTimers();
+			try {
+				fetchMock = mockFetchRecords([], [pendingA]);
+				vi.stubGlobal('fetch', fetchMock);
+				renderCard(liveCategory);
+
+				// Flush initial load + reactivity
+				await vi.advanceTimersByTimeAsync(200);
+				await fireEvent.click(screen.getByTestId('record-row-rec-1'));
+				await vi.advanceTimersByTimeAsync(0);
+				await fireEvent.click(screen.getByTestId('finish-record-rec-1'));
+				await vi.advanceTimersByTimeAsync(0);
+
+				expect(screen.getByTestId('last-finished-banner-rec-1')).toBeInTheDocument();
+
+				// Advance past the 10s lifetime (+ outro transition)
+				await vi.advanceTimersByTimeAsync(10000 + 400);
+
+				expect(screen.queryByTestId('last-finished-banner-rec-1')).not.toBeInTheDocument();
+			} finally {
+				vi.useRealTimers();
+			}
+		});
+
+		it('Undo from the banner DELETEs the result and hides the banner', async () => {
+			fetchMock = mockFetchRecords([], [pendingA]);
+			vi.stubGlobal('fetch', fetchMock);
+			renderCard(liveCategory);
+
+			await waitFor(() => {
+				expect(screen.getByTestId('record-row-rec-1')).toBeInTheDocument();
+			});
+
+			await finishRecord('rec-1');
+
+			await waitFor(() => {
+				expect(screen.getByTestId('last-finished-undo-rec-1')).toBeInTheDocument();
+			});
+
+			await fireEvent.click(screen.getByTestId('last-finished-undo-rec-1'));
+
+			await waitFor(() => {
+				const deleteCalls = fetchMock.mock.calls.filter(
+					(c: any[]) =>
+						typeof c[0] === 'string' &&
+						c[0].includes('/api/entries/rec-1/result') &&
+						c[1]?.method === 'DELETE'
+				);
+				expect(deleteCalls.length).toBeGreaterThan(0);
+			});
+
+			await waitFor(() => {
+				expect(screen.queryByTestId('last-finished-banner-rec-1')).not.toBeInTheDocument();
+			});
+		});
+
+		it('a second finish replaces the banner', async () => {
+			fetchMock = mockFetchRecords([], [pendingA, pendingB]);
+			vi.stubGlobal('fetch', fetchMock);
+			renderCard(liveCategory);
+
+			await waitFor(() => {
+				expect(screen.getByTestId('record-row-rec-1')).toBeInTheDocument();
+				expect(screen.getByTestId('record-row-rec-2')).toBeInTheDocument();
+			});
+
+			await finishRecord('rec-1');
+			await waitFor(() => {
+				expect(screen.getByTestId('last-finished-banner-rec-1')).toBeInTheDocument();
+			});
+
+			await finishRecord('rec-2');
+			await waitFor(() => {
+				expect(screen.getByTestId('last-finished-banner-rec-2')).toBeInTheDocument();
+				expect(screen.queryByTestId('last-finished-banner-rec-1')).not.toBeInTheDocument();
 			});
 		});
 	});

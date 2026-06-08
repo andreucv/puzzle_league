@@ -1,11 +1,12 @@
 <script lang="ts">
-    import type { Competition } from "@prisma/client";
+    import type { Competition } from "$lib/.prisma/generated/prisma/browser";
     import { CldImage } from 'svelte-cloudinary';
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import MapMarkerRadiusIcon from '@iconify-svelte/mdi/map-marker-radius';
     import DoorOpenIcon from '@iconify-svelte/mdi/door-open';
     import DoorClosedLockIcon from '@iconify-svelte/mdi/door-closed-lock';
-    import CategoryRegistrationChip from '$lib/components/category/CategoryRegistrationChip.svelte';
+    import TableChairIcon from '@iconify-svelte/mdi/table-chair';
+    import CategoryCapacityRow from '$lib/components/competition/CategoryCapacityRow.svelte';
     import CompetitionStatusChip from '$lib/components/competition/CompetitionStatusChip.svelte';
     import { t, locale } from '$lib/translations';
 
@@ -14,15 +15,21 @@
             categories?: Array<{
                 id: number;
                 type: string;
+                subname?: string | null;
                 startTime: Date;
                 endTime: Date;
+                maxParties?: number | null;
                 entries?: Array<{
+                    status?: string;
+                    tableNumber?: number | null;
                     users?: Array<{
                         id: string;
                         name: string;
                         image?: string | null;
                     }>;
                 }>;
+                // Reserved slots: confirmed + pending entries in the category
+                _count?: { entries: number };
             }>;
             location?: string | null;
         };
@@ -45,6 +52,7 @@
     // Calculate days until competition
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    // svelte-ignore state_referenced_locally
     const competitionDate = new Date(competition.startDate);
     competitionDate.setHours(0, 0, 0, 0);
     const timeDiff = competitionDate.getTime() - today.getTime();
@@ -77,6 +85,18 @@
         competition.categories?.some((c: any) => isUserInCategory(c)) ?? false
     );
 
+    // Table number assigned to the current user's entry (when available)
+    const userTableNumber = $derived.by(() => {
+        if (!currentUserId || !competition.categories) return null;
+        for (const category of competition.categories) {
+            const entry = category.entries?.find((e: any) =>
+                e.users?.some((u: any) => u.id === currentUserId)
+            );
+            if (entry?.tableNumber != null) return entry.tableNumber;
+        }
+        return null;
+    });
+
     // Days until text
     const daysUntilText = $derived.by(() => {
         if (daysUntil < 0) return $t('competition_card.days_ago', { count: Math.abs(daysUntil) });
@@ -99,7 +119,7 @@
     <div class="card card-hover overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300">
         <div class="flex">
             <!-- Competition Image (left) -->
-            <div class="w-28 sm:w-36 flex-shrink-0 overflow-hidden">
+            <div class="w-20 sm:w-32 md:w-36 flex-shrink-0 overflow-hidden">
                 {#if competition.image_cld_id}
                     <CldImage
                         src={competition.image_cld_id}
@@ -133,6 +153,7 @@
                         </span>
                     {/if}
                     <CompetitionStatusChip competition_status={competition.status} />
+                    <!-- We do not show userTableNumber here, because they can have more than one number in different categories, so it is missleading -->
                 </div>
 
                 <!-- Registration status (only when user is not registered) -->
@@ -152,24 +173,34 @@
                     </div>
                 {/if}
 
-                <!-- Category chips showing user registration -->
+                <!-- Per-category capacity rows (capped at 2, then "+N more") -->
                 {#if competition.categories && competition.categories.length > 0 && !noShowCategories}
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                        {#each competition.categories as category (category.id)}
-                            {@const registered = isUserInCategory(category)}
-                            {@const status = getUserRegistrationStatus(category)}
-                            <CategoryRegistrationChip categoryType={category.type} registrationStatus={registered ? status : null} />
+                    {@const visibleCategories = competition.categories.slice(0, 2)}
+                    {@const extraCategories = competition.categories.length - visibleCategories.length}
+                    <div class="flex flex-col gap-1">
+                        {#each visibleCategories as category (category.id)}
+                            <CategoryCapacityRow
+                                {category}
+                                competitionStatus={competition.status}
+                                registrationStatus={getUserRegistrationStatus(category)}
+                            />
                         {/each}
+                        {#if extraCategories > 0}
+                            <span class="text-xs text-surface-500 dark:text-surface-400 pl-[1.4rem]">
+                                {$t('competition_card.more_categories', { count: extraCategories })} ›
+                            </span>
+                        {/if}
                     </div>
                 {/if}
             </div>
 
             <!-- Calendar-style Date Display (right) -->
-            <div class="w-22 sm:w-24 flex-shrink-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 p-2 border-l border-surface-200 dark:border-surface-700">
-                <span class="text-3xl sm:text-4xl font-bold text-primary-700 dark:text-primary-300 leading-none">{dayNumber}</span>
+            <div class="w-16 sm:w-20 md:w-24 flex-shrink-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 p-2 border-l border-surface-200 dark:border-surface-700">
+                <span class="text-2xl sm:text-4xl font-bold text-primary-700 dark:text-primary-300 leading-none">{dayNumber}</span>
                 <span class="text-sm font-semibold text-primary-600 dark:text-primary-400 uppercase">{monthAbbr}</span>
                 <span class="text-xs text-surface-500 dark:text-surface-400">{year}</span>
-                <span class="mt-1.5 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold {daysUntilChipStyle}">
+                <!-- Relative-time chip: hidden on mobile (date above already conveys timing); shown at sm+ -->
+                <span class="mt-1.5 hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold {daysUntilChipStyle}">
                     {daysUntilText}
                 </span>
             </div>

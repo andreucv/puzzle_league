@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { User, Category, CategoryType } from '@prisma/client';
+    import type { User, Category, CategoryType } from '$lib/.prisma/generated/prisma/browser';
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
     import { enhance } from '$app/forms';
     import { invalidate } from '$app/navigation';
@@ -47,6 +47,13 @@
     let registeredUserIds = $derived(data.registeredUserIds as Record<number, string[]> || {});
     let categoriesWithCounts = $derived(data.categoriesWithCounts || []);
     let isOrganizer = $derived(data.isOrganizer || false);
+    let availableTagsByCategory = $derived(
+        (data.availableTagsByCategory as Record<number, { tag: string; priceOverride: number | null }[]>) || {}
+    );
+
+    function getAvailableTags(categoryId: number) {
+        return availableTagsByCategory[categoryId] || [];
+    }
 
     let canRegister = $derived(competition?.registrationOpen || isOrganizer);
 
@@ -56,7 +63,8 @@
 
     function getSpotsLeft(category: Category): number | undefined {
         if (category.maxParties == null) return undefined;
-        const registered = categoriesWithCounts.find((c: any) => c.id === category.id)?.totalEntries ?? 0;
+        const counts = categoriesWithCounts.find((c: any) => c.id === category.id);
+        const registered = counts?.reservedSlots ?? counts?.totalEntries ?? 0;
         return category.maxParties - registered;
     }
 
@@ -69,6 +77,7 @@
         users: User[];
         extParticipantNames: string[];
         existingExternalParticipants: { id: string; name: string }[];
+        claimedTag?: string;
     }
 
     // ---------------------------------------------------------------------------
@@ -382,22 +391,81 @@
         return false;
     });
 
-    let paymentFeeBreakdown = $derived(() => {
-        const items: { name: string; count: number; unitPrice: number }[] = [];
-        let total = 0;
+    // Paid categories from queued signups that will be waitlisted (partially or fully)
+    let waitlistedPaidCategories = $derived(() => {
+        if (!competition?.showPaymentWarning) return [];
+        const result: { name: string; waitlistedCount: number }[] = [];
         for (const [categoryId, slots] of pendingSignups) {
             const category = categories.find((c: Category) => c.id === categoryId);
             if (!category) continue;
             const price = (category as any).price ?? 0;
-            if (price > 0) {
+            if (price <= 0) continue;
+            const spotsLeft = getSpotsLeft(category);
+            if (spotsLeft === undefined) continue;
+            const waitlistedCount = Math.max(0, slots.length - Math.max(0, spotsLeft));
+            if (waitlistedCount > 0) {
                 const typeName = $t(getCategoryTypeName(category.type));
-                const description = category.description ? `${typeName} (${category.description})` : typeName;
-                items.push({ name: description, count: slots.length, unitPrice: price });
-                total += price * slots.length;
+                const name = category.description ? `${typeName} (${category.description})` : typeName;
+                result.push({ name, waitlistedCount });
             }
         }
-        return { items, total };
+        return result;
     });
+
+    // Effective per-entry price for a slot: a claimed tag's priceOverride (if any)
+    // replaces the base category price. A PENDING claim already drives the price.
+    function getSlotUnitPrice(category: Category, slot: PendingSignup): number {
+        const base = (category as any).price ?? 0;
+        if (!slot.claimedTag) return base;
+        const tag = getAvailableTags(category.id).find(t => t.tag === slot.claimedTag);
+        return tag && tag.priceOverride != null ? tag.priceOverride : base;
+    }
+
+    let paymentFeeBreakdown = $derived(() => {
+        const itemsMap = new Map<string, { name: string; count: number; unitPrice: number }>();
+        let total = 0;
+        for (const [categoryId, slots] of pendingSignups) {
+            const category = categories.find((c: Category) => c.id === categoryId);
+            if (!category) continue;
+            // Only count entries that will get reserved slots, not waitlisted ones
+            const spotsLeft = getSpotsLeft(category);
+            const payableCount = competition?.showPaymentWarning && spotsLeft !== undefined
+                ? Math.min(slots.length, Math.max(0, spotsLeft))
+                : slots.length;
+            if (payableCount <= 0) continue;
+
+            const typeName = $t(getCategoryTypeName(category.type));
+            const description = category.description ? `${typeName} (${category.description})` : typeName;
+            // Price per slot (tags can make slots in the same category cost differently)
+            for (let i = 0; i < payableCount; i++) {
+                const unitPrice = getSlotUnitPrice(category, slots[i]);
+                if (unitPrice <= 0) continue;
+                const key = `${categoryId}:${unitPrice}`;
+                const existing = itemsMap.get(key);
+                if (existing) existing.count += 1;
+                else itemsMap.set(key, { name: description, count: 1, unitPrice });
+                total += unitPrice;
+            }
+        }
+        return { items: [...itemsMap.values()], total };
+    });
+
+    // True when any queued slot claims a tag that overrides the price — used to
+    // warn that a rejected claim must be reconciled off-platform.
+    let hasClaimedPricedTag = $derived(() => {
+        for (const [categoryId, slots] of pendingSignups) {
+            for (const slot of slots) {
+                if (!slot.claimedTag) continue;
+                const tag = getAvailableTags(categoryId).find(t => t.tag === slot.claimedTag);
+                if (tag && tag.priceOverride != null) return true;
+            }
+        }
+        return false;
+    });
+
+    function setSlotTag(categoryId: number, slotId: number, tag: string) {
+        updateSlot(categoryId, slotId, s => ({ ...s, claimedTag: tag || undefined }));
+    }
 
     // Build summary for submit bar
     let signupSummary = $derived(() => {
@@ -421,7 +489,7 @@
     // ---------------------------------------------------------------------------
 
     function buildSignupPayload() {
-        const payload: { categoryId: number; teammateIds: string[]; externalParticipantNames?: string[]; externalParticipantIds?: string[]; registeredBySelf?: boolean }[] = [];
+        const payload: { categoryId: number; teammateIds: string[]; externalParticipantNames?: string[]; externalParticipantIds?: string[]; registeredBySelf?: boolean; claimedTag?: string }[] = [];
         for (const [categoryId, slots] of pendingSignups) {
             for (const slot of slots) {
                 const currentUserInParty = slot.users.some(u => u.id === currentUser?.id);
@@ -433,7 +501,8 @@
                     teammateIds,
                     ...(slot.extParticipantNames.length > 0 ? { externalParticipantNames: slot.extParticipantNames } : {}),
                     ...(slot.existingExternalParticipants.length > 0 ? { externalParticipantIds: slot.existingExternalParticipants.map(i => i.id) } : {}),
-                    ...(!currentUserInParty ? { registeredBySelf: false } : {})
+                    ...(!currentUserInParty ? { registeredBySelf: false } : {}),
+                    ...(slot.claimedTag ? { claimedTag: slot.claimedTag } : {})
                 });
             }
         }
@@ -583,7 +652,7 @@
                                 <!-- Row 1: Status + created by you + unregister -->
                                 <div class="flex items-center justify-between gap-2">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <RegistrationStatusBadge status={entry.status} translation={$t} />
+                                        <RegistrationStatusBadge status={entry.status} />
                                         {#if entry.creatorId === currentUser?.id && !isUserInEntry(entry)}
                                             <span class="text-xs text-surface-500 italic">{$t('registration.created_by_you')}</span>
                                         {/if}
@@ -688,7 +757,8 @@
                     {#if slotComplete}
                         <!-- Completed queued slot - dashed border -->
                         {@const allNames = [...slot.users.map(u => ({ name: u.name, isUser: true, id: u.id })), ...slot.extParticipantNames.map(n => ({ name: n, isUser: false, id: null })), ...slot.existingExternalParticipants.map(e => ({ name: e.name, isUser: false, id: null }))]}
-                        <div class="flex items-center justify-between gap-2 p-3 border-2 border-dashed border-primary-400 dark:border-primary-500 rounded-lg bg-primary-50/30 dark:bg-primary-900/10" transition:slide={{ duration: 200 }}>
+                        <div class="flex flex-col gap-2 p-3 border-2 border-dashed border-primary-400 dark:border-primary-500 rounded-lg bg-primary-50/30 dark:bg-primary-900/10" transition:slide={{ duration: 200 }}>
+                          <div class="flex items-center justify-between gap-2">
                             <div class="flex items-center gap-3 min-w-0">
                                 <div class="flex items-center shrink-0">
                                     {#each slot.users as member, i}
@@ -725,6 +795,24 @@
                             >
                                 <CloseIcon width="1.2rem" height="1.2rem" />
                             </button>
+                          </div>
+                          {#if getAvailableTags(category.id).length > 0}
+                            <label class="flex items-center gap-2 text-sm">
+                                <span class="text-surface-600 dark:text-surface-300 shrink-0">{$t('registration.tag_label')}</span>
+                                <select
+                                    class="select select-sm flex-1"
+                                    value={slot.claimedTag ?? ''}
+                                    onchange={(e) => setSlotTag(category.id, slot.slotId, e.currentTarget.value)}
+                                >
+                                    <option value="">{$t('registration.tag_none')}</option>
+                                    {#each getAvailableTags(category.id) as tagOption}
+                                        <option value={tagOption.tag}>
+                                            {$t('participant_tags.' + tagOption.tag)}{tagOption.priceOverride != null ? ` — ${tagOption.priceOverride}€` : ''}
+                                        </option>
+                                    {/each}
+                                </select>
+                            </label>
+                          {/if}
                         </div>
                     {:else}
                         <!-- In-progress team builder -->
@@ -966,7 +1054,7 @@
                             const catHeader = $t('registration.toast_category_header');
                             const entHeader = $t('registration.toast_entries_header');
                             const rows = s.perCategory.map(c =>
-                                `<tr><td class="py-0.5">${$t(getCategoryTypeName(c.type))}</td><td class="py-0.5 text-right font-medium">${c.count}</td></tr>`
+                                `<tr><td class="py-0.5">${$t(getCategoryTypeName(c.type as CategoryType))}</td><td class="py-0.5 text-right font-medium">${c.count}</td></tr>`
                             ).join('');
                             const totalRow = s.perCategory.length > 1
                                 ? `<tr class="border-t border-surface-300 dark:border-surface-600"><td class="pt-1 font-semibold">Total</td><td class="pt-1 text-right font-semibold">${s.totalEntries}</td></tr>`
@@ -1039,37 +1127,71 @@
                     <!-- Payment warning popover -->
                     {#if showPaymentPopover}
                         {@const breakdown = paymentFeeBreakdown()}
+                        {@const waitlistedPaid = waitlistedPaidCategories()}
+                        {@const hasPaymentItems = breakdown.items.length > 0}
                         <div
                             role="dialog"
                             aria-modal="true"
-                            class="absolute bottom-full left-0 right-0 mb-2 z-50 card bg-warning-50 dark:bg-warning-950 border-2 border-warning-300 dark:border-warning-700 shadow-xl overflow-hidden"
+                            class="absolute bottom-full left-0 right-0 mb-2 z-50 card {waitlistedPaid.length > 0 ? 'bg-error-50 dark:bg-error-950 border-2 border-error-300 dark:border-error-700' : 'bg-warning-50 dark:bg-warning-950 border-2 border-warning-300 dark:border-warning-700'} shadow-xl overflow-hidden"
                             transition:slide={{ duration: 200 }}
+                            data-testid="registration-warning-popover"
                         >
-                            <div class="h-1 w-full preset-filled-warning-500"></div>
+                            <div class="h-1 w-full {waitlistedPaid.length > 0 ? 'preset-filled-error-500' : 'preset-filled-warning-500'}"></div>
                             <div class="p-4 space-y-3">
-                                <div class="flex items-center gap-2">
-                                    <AlertCircleIcon width="1.3rem" height="1.3rem" class="text-warning-500" />
-                                    <p class="text-sm font-semibold">{$t('registration.payment_warning_title')}</p>
-                                </div>
-                                <p class="text-xs text-warning-600 dark:text-warning-400">
-                                    {$t('registration.pending_confirmation_not_guaranteed')}
-                                </p>
-                                <p class="text-xs text-surface-600 dark:text-surface-400">
-                                    {$t('registration.payment_warning_message')}
-                                </p>
-                                <!-- Itemized fees -->
-                                <div class="space-y-1 text-sm">
-                                    {#each breakdown.items as item}
-                                        <div class="flex justify-between items-center">
-                                            <span>{item.count}× {item.name}</span>
-                                            <span class="font-medium">{item.unitPrice * item.count}€</span>
-                                        </div>
-                                    {/each}
-                                    <div class="flex justify-between items-center border-t border-surface-300 dark:border-surface-600 pt-1 font-semibold">
-                                        <span>{$t('registration.payment_warning_total')}</span>
-                                        <span>{breakdown.total}€</span>
+                                <!-- Waitlist warning section -->
+                                {#if waitlistedPaid.length > 0}
+                                    <div class="flex items-center gap-2">
+                                        <AlertCircleIcon width="1.3rem" height="1.3rem" class="text-error-500" />
+                                        <p class="text-sm font-semibold">{$t('registration.waitlist_warning_title')}</p>
                                     </div>
-                                </div>
+                                    <p class="text-xs text-error-600 dark:text-error-400">
+                                        {$t('registration.waitlist_warning_message')}
+                                    </p>
+                                    <ul class="list-disc list-inside text-xs text-error-600 dark:text-error-400">
+                                        {#each waitlistedPaid as { name, waitlistedCount }}
+                                            <li>{name} — {$t('registration.waitlist_warning_entry_count', { count: waitlistedCount })}</li>
+                                        {/each}
+                                    </ul>
+                                    <p class="text-xs font-semibold text-error-700 dark:text-error-300">
+                                        {$t('registration.waitlist_warning_do_not_pay')}
+                                    </p>
+                                {/if}
+
+                                <!-- Payment warning section (only for non-full paid categories) -->
+                                {#if hasPaymentItems}
+                                    {#if waitlistedPaid.length > 0}
+                                        <hr class="border-surface-300 dark:border-surface-600" />
+                                    {/if}
+                                    <div class="flex items-center gap-2">
+                                        <AlertCircleIcon width="1.3rem" height="1.3rem" class="text-warning-500" />
+                                        <p class="text-sm font-semibold">{$t('registration.payment_warning_title')}</p>
+                                    </div>
+                                    <p class="text-xs text-warning-600 dark:text-warning-400">
+                                        {$t('registration.pending_confirmation_not_guaranteed')}
+                                    </p>
+                                    <p class="text-xs text-surface-600 dark:text-surface-400">
+                                        {$t('registration.payment_warning_message')}
+                                    </p>
+                                    <!-- Itemized fees -->
+                                    <div class="space-y-1 text-sm">
+                                        {#each breakdown.items as item}
+                                            <div class="flex justify-between items-center">
+                                                <span>{item.count}× {item.name}</span>
+                                                <span class="font-medium">{item.unitPrice * item.count}€</span>
+                                            </div>
+                                        {/each}
+                                        <div class="flex justify-between items-center border-t border-surface-300 dark:border-surface-600 pt-1 font-semibold">
+                                            <span>{$t('registration.payment_warning_total')}</span>
+                                            <span>{breakdown.total}€</span>
+                                        </div>
+                                    </div>
+                                    {#if hasClaimedPricedTag()}
+                                        <p class="text-xs text-warning-700 dark:text-warning-300">
+                                            {$t('registration.tag_price_reconcile_warning')}
+                                        </p>
+                                    {/if}
+                                {/if}
+
                                 <div class="flex justify-end gap-2 pt-1">
                                     <button
                                         type="button"
@@ -1081,12 +1203,14 @@
                                     </button>
                                     <button
                                         type="submit"
-                                        class="btn btn-sm preset-filled-warning-500"
+                                        class="btn btn-sm {waitlistedPaid.length > 0 && !hasPaymentItems ? 'preset-filled-error-500' : 'preset-filled-warning-500'}"
                                         onclick={() => { showPaymentPopover = false; }}
                                         data-testid="payment-warning-confirm"
                                     >
                                         <CheckIcon width="1rem" height="1rem" />
-                                        {$t('registration.payment_warning_confirm')}
+                                        {waitlistedPaid.length > 0 && !hasPaymentItems
+                                            ? $t('registration.waitlist_warning_confirm')
+                                            : $t('registration.payment_warning_confirm')}
                                     </button>
                                 </div>
                             </div>
@@ -1097,4 +1221,3 @@
         </div>
     {/if}
 </div>
-

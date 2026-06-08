@@ -1,5 +1,6 @@
 <script lang="ts">
     import Icon from '@iconify/svelte';
+    import { t } from '$lib/translations';
 
     let {
         puzzleIds = $bindable([]),
@@ -13,6 +14,7 @@
 
     let searchQuery = $state('');
     let searchResults = $state<any[]>([]);
+    // svelte-ignore state_referenced_locally
     let linkedPuzzles = $state<any[]>(initialPuzzles);
     let showSearch = $state(false);
     let searching = $state(false);
@@ -80,7 +82,7 @@
     <div class="flex items-center justify-between mb-2">
         <span class="text-sm font-medium flex items-center gap-1">
             <Icon icon="mdi:puzzle-outline" class="w-4 h-4 text-primary-500" />
-            Puzzles
+            {$t('competition.create.puzzles_title')}
         </span>
         <button
             type="button"
@@ -88,7 +90,7 @@
             onclick={() => showSearch = !showSearch}
         >
             <Icon icon="mdi:plus" width="1rem" height="1rem" />
-            Add Puzzle
+            {$t('competition.create.add_puzzle')}
         </button>
     </div>
 
@@ -104,7 +106,7 @@
                         type="button"
                         class="ml-0.5 hover:text-error-500 transition-colors"
                         onclick={() => removePuzzle(puzzle.id)}
-                        title="Remove puzzle"
+                        title={$t('competition.create.remove_puzzle')}
                     >
                         <Icon icon="mdi:close-circle" class="w-3.5 h-3.5" />
                     </button>
@@ -119,7 +121,7 @@
             <input
                 type="text"
                 class="input bg-primary-50-950 text-sm"
-                placeholder="Search by name, brand or barcode..."
+                placeholder={$t('competition.create.puzzle_search_placeholder')}
                 value={searchQuery}
                 oninput={(e) => handleSearch((e.target as HTMLInputElement).value)}
             />
@@ -147,10 +149,10 @@
                 </div>
             {:else if searchQuery.length > 0 && !searching}
                 <div class="absolute z-10 w-full mt-1 card bg-surface-50 dark:bg-surface-900 shadow-xl rounded-lg p-3 border border-surface-200 dark:border-surface-700">
-                    <p class="text-sm text-surface-500 text-center">No puzzles found</p>
+                    <p class="text-sm text-surface-500 text-center">{$t('competition.create.no_puzzles_found')}</p>
                     <a href="/puzzles/edit" target="_blank" class="btn btn-sm preset-tonal-primary rounded-lg w-full mt-2">
                         <Icon icon="mdi:plus" width="1rem" height="1rem" />
-                        Create new puzzle
+                        {$t('competition.create.create_puzzle')}
                     </a>
                 </div>
             {/if}

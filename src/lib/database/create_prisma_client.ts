@@ -4,6 +4,8 @@ import "dotenv/config";
 import { PrismaClient } from '../.prisma/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { withAccelerate } from '@prisma/extension-accelerate';
+import { prismaQueryInsights } from "@prisma/sqlcommenter-query-insights";
+
 /**
  * Creates a PrismaClient instance.
  *
@@ -15,11 +17,15 @@ export function createPrismaClient(databaseUrl?: string): PrismaClient {
     console.log(`Connecting to database with URL: ${url.startsWith('prisma+postgres://') ? 'prisma+postgres://***' : url}`);
     if (url.startsWith('prisma+postgres://')) {
         return new PrismaClient({
-            accelerateUrl: url
+            accelerateUrl: url,
+            comments: [prismaQueryInsights()]
         }).$extends(withAccelerate()) as unknown as PrismaClient;
     }
     const adapter = new PrismaPg({ connectionString: url });
-    return new PrismaClient({ adapter });
+    return new PrismaClient({
+        adapter,
+        comments: [prismaQueryInsights()]
+    });
 }
 
 /** Singleton instance for the running app — uses DATABASE_URL from env. */

@@ -1,8 +1,7 @@
-import type { PageServerLoad, Actions } from "./$types";
+import type { PageServerLoad } from "./$types";
 import { getCompetitionWithCategories, getCompetitionCategories} from "$lib/database/db_competition";
 import { getCategoryEntriesFromCompetition } from "$lib/database/db_entry";
-import { removeUserFromCategory } from "$lib/database/db_registration";
-import { getDuringCompetitionAccess } from "$lib/database/db_competition";
+import { getCompetitionAccess } from "$lib/services/competition-access";
 
 
 export const load: PageServerLoad = async ( event ) => {
@@ -21,8 +20,8 @@ export const load: PageServerLoad = async ( event ) => {
                 : Promise.resolve(undefined),
             categoriesWithCounts: getCompetitionCategories(competitionId),
             access: user
-                ? getDuringCompetitionAccess(competitionId, user.id)
-                : Promise.resolve({ isOrganizer: false, isJudge: false, judgedCategoryIds: [] }),
+                ? getCompetitionAccess(competitionId, user.id)
+                : Promise.resolve({ isCreator: false, isAdmin: false, isCoorganizer: false, isJudge: false, judgedCategoryIds: [], canManageCompetition: false }),
         }
     }
 }

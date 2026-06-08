@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CategoryType } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryType, CompetitionStatus, ParticipantTagType} from '$lib/.prisma/generated/prisma/enums';
 import { v2 as cloudinary } from 'cloudinary';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } from '$env/static/private';
 
@@ -24,11 +24,19 @@ export const CategorySchema = z.object({
 	type: z.nativeEnum(CategoryType, { error: 'Please select a category type' }),
 	startTime: z.string().min(1, 'Start time is required'),
 	endTime: z.string().min(1, 'End time is required'),
-	maxParties: z.number().int().min(1, 'Max parties must be at least 1').nullable().optional(),
+	maxParties: z.number().int().min(1, 'Max parties must be at least 1'),
 	maxPartySize: z.number().int().min(1, 'Party size must be at least 1').nullable().optional(),
 	price: z.number().int().min(0, 'Price must be 0 or greater'),
 	status: z.string().optional(),
-	puzzleIds: z.array(z.string()).optional()
+	puzzleIds: z.array(z.string()).optional(),
+	tagCategories: z
+		.array(
+			z.object({
+				tag: z.nativeEnum(ParticipantTagType),
+				priceOverride: z.number().int().min(0, 'Price override must be 0 or greater').nullable().optional()
+			})
+		)
+		.optional()
 });
 
 const CategoryUpdateSchema = z.object({
@@ -66,7 +74,7 @@ export const CompetitionEditSchema = z.object({
 	image_cld_id: z.string().nullable().optional(),
 	startDate: z.string().min(1, 'Start date is required'),
 	endDate: z.string().min(1, 'End date is required'),
-	status: z.string(),
+	status: z.nativeEnum(CompetitionStatus),
 	registrationOpen: z.boolean().optional(),
 	showPaymentWarning: z.boolean().optional(),
 	categories: z
@@ -183,6 +191,37 @@ export function transformPuzzleIds(categories: CompetitionEditData['categories']
 				};
 			}
 			return updateData;
+		});
+	}
+}
+
+/**
+ * Transform each category's `tagCategories` array into Prisma nested relation
+ * writes. New categories create the rows; updated categories replace them
+ * (deleteMany + create). Replacing availability intentionally does NOT touch
+ * existing EntryTag claims — there is no FK between them.
+ */
+export function transformTagCategories(categories: CompetitionEditData['categories']) {
+	if (!categories) return;
+
+	const toCreate = (tags: any[] | undefined) =>
+		(tags ?? []).map((tc: any) => ({ tag: tc.tag, priceOverride: tc.priceOverride ?? null }));
+
+	if (categories.create) {
+		categories.create = categories.create.map((cat: any) => {
+			const { tagCategories, ...catData } = cat;
+			const rows = toCreate(tagCategories);
+			if (rows.length > 0) {
+				catData.tagCategories = { create: rows };
+			}
+			return catData;
+		});
+	}
+	if (categories.update) {
+		categories.update = categories.update.map((item: any) => {
+			const { tagCategories, ...catData } = item.data;
+			catData.tagCategories = { deleteMany: {}, create: toCreate(tagCategories) };
+			return { where: item.where, data: catData };
 		});
 	}
 }

@@ -14,6 +14,12 @@
     @apply preset-filled-surface-200-800
 }
 
+/* Distinct numeric face for result times (leaderboard timer look). */
+.font-timer {
+    font-family: 'Oxanium', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+}
+
 #search-bar {
     @apply preset-filled-surface-200-800
 }

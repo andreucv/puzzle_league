@@ -16,11 +16,13 @@
 
     // --- Wizard state ---
     let currentStep = $state(0);
+    // svelte-ignore state_referenced_locally
     let steps = $state([...data.steps]);
     let totalSteps = $derived(steps.length);
     let currentStepId = $derived(steps[currentStep]);
     let isSubmitting = $state(false);
 
+    // svelte-ignore state_referenced_locally
     let unclaimedIntents: UnclaimedIntent[] = $state([...(data.unclaimedExternalParticipants || [])]);
 
     function goBack() {

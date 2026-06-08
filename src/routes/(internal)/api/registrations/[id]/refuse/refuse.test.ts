@@ -1,17 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// ── Hoisted mocks ──
 const mockRefuseRegistration = vi.fn();
-const mockNotifyRefused = vi.fn().mockResolvedValue(undefined);
-const mockNotifyPromotion = vi.fn().mockResolvedValue(undefined);
+const mockCapture = vi.fn();
 
-vi.mock('$lib/database/db_registration', () => ({
+vi.mock('$lib/services/registration-workflow', () => ({
 	refuseRegistration: (...args: unknown[]) => mockRefuseRegistration(...args),
+	isRegistrationWorkflowError: (error: unknown) => Boolean((error as { code?: string })?.code),
+	registrationWorkflowHttpStatus: (error: { code: string }) => error.code === 'ENTRY_NOT_FOUND' ? 404 : 400,
 }));
 
-vi.mock('$lib/notifications/registration_notifications', () => ({
-	notifyRegistrationRefused: (...args: unknown[]) => mockNotifyRefused(...args),
-	notifyWaitlistPromotion: (...args: unknown[]) => mockNotifyPromotion(...args),
+vi.mock('$lib/server/posthog', () => ({
+	getPostHogClient: () => ({ capture: mockCapture }),
 }));
 
 vi.mock('@sveltejs/kit', () => ({
@@ -22,10 +21,10 @@ vi.mock('@sveltejs/kit', () => ({
 
 import { POST } from './+server';
 
-function makeEvent(id: string, userName?: string) {
+function makeEvent(id: string, user?: { id: string; name?: string }) {
 	return {
 		params: { id },
-		locals: { user: userName ? { name: userName } : undefined },
+		locals: { user },
 	} as any;
 }
 
@@ -50,110 +49,74 @@ describe('POST /api/registrations/[id]/refuse', () => {
 		vi.clearAllMocks();
 	});
 
-	it('Given valid entry, when refuseRegistration succeeds, then returns success', async () => {
+	it('Given valid entry, when workflow succeeds, then returns success', async () => {
 		const entryData = makeEntryData();
 		mockRefuseRegistration.mockResolvedValue({
-			success: true,
-			data: entryData,
+			entry: entryData,
 			promotedEntry: null,
 		});
 
-		const response = await POST(makeEvent('entry-1', 'Organizer'));
+		const response = await POST(makeEvent('entry-1', { id: 'organizer-1', name: 'Organizer' }));
 
 		expect(response.status).toBe(200);
 		expect(response.body).toEqual({ success: true, data: entryData });
-		expect(mockNotifyRefused).toHaveBeenCalledOnce();
-		expect(mockNotifyRefused).toHaveBeenCalledWith(entryData, 'Organizer');
+		expect(mockRefuseRegistration).toHaveBeenCalledWith({
+			entryId: 'entry-1',
+			actor: { userId: 'organizer-1', name: 'Organizer', isOrganizer: false },
+		});
 	});
 
-	it('Given entry not found, when refuseRegistration fails, then returns 404', async () => {
-		mockRefuseRegistration.mockResolvedValue({
-			success: false,
-			error: 'Entry not found',
+	it('Given entry not found, when workflow throws, then returns 404', async () => {
+		mockRefuseRegistration.mockRejectedValue({
+			code: 'ENTRY_NOT_FOUND',
+			message: 'Entry not found',
 		});
 
-		const response = await POST(makeEvent('nonexistent'));
+		const response = await POST(makeEvent('nonexistent', { id: 'organizer-1' }));
 
 		expect(response.status).toBe(404);
 		expect(response.body).toEqual({ error: 'Entry not found' });
-		expect(mockNotifyRefused).not.toHaveBeenCalled();
 	});
 
-	it('Given invalid status, when refuseRegistration fails with validation, then returns 400', async () => {
-		mockRefuseRegistration.mockResolvedValue({
-			success: false,
-			error: 'Only pending, confirmed, or waitlisted registrations can be refused',
+	it('Given invalid status, when workflow throws validation error, then returns 400', async () => {
+		mockRefuseRegistration.mockRejectedValue({
+			code: 'INVALID_STATUS',
+			message: 'Only pending, confirmed, or waitlisted registrations can be refused',
 		});
 
-		const response = await POST(makeEvent('entry-1'));
+		const response = await POST(makeEvent('entry-1', { id: 'organizer-1' }));
 
 		expect(response.status).toBe(400);
-		expect(mockNotifyRefused).not.toHaveBeenCalled();
+		expect(response.body).toEqual({ error: 'Only pending, confirmed, or waitlisted registrations can be refused' });
 	});
 
-	it('Given successful refusal with promoted entry, when mutation completes, then both refusal and promotion notifications sent', async () => {
-		const entryData = makeEntryData();
-		const promotedEntry = { ...makeEntryData(), id: 'promoted-1', status: 'PENDING_CONFIRMATION' };
-		mockRefuseRegistration.mockResolvedValue({
-			success: true,
-			data: entryData,
-			promotedEntry,
-		});
-
-		const response = await POST(makeEvent('entry-1', 'Organizer'));
-
-		expect(response.status).toBe(200);
-		expect(mockNotifyRefused).toHaveBeenCalledOnce();
-		expect(mockNotifyPromotion).toHaveBeenCalledOnce();
-		expect(mockNotifyPromotion).toHaveBeenCalledWith(promotedEntry, 'Organizer');
-	});
-
-	it('Given successful mutation, when refusal notification throws, then still returns success', async () => {
-		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+	it('Given promoted entry, when workflow succeeds, then capture includes promotion flag', async () => {
 		const entryData = makeEntryData();
 		mockRefuseRegistration.mockResolvedValue({
-			success: true,
-			data: entryData,
-			promotedEntry: null,
+			entry: entryData,
+			promotedEntry: { id: 'promoted-1' },
 		});
-		mockNotifyRefused.mockRejectedValue(new Error('Email service down'));
 
-		const response = await POST(makeEvent('entry-1'));
+		await POST(makeEvent('entry-1', { id: 'organizer-1' }));
 
-		expect(response.status).toBe(200);
-		expect(response.body).toEqual({ success: true, data: entryData });
-		expect(consoleSpy).toHaveBeenCalledWith(
-			'[refuse] Failed to send refusal notifications:',
-			expect.any(Error),
-		);
-		consoleSpy.mockRestore();
-	});
-
-	it('Given successful mutation, when promotion notification throws, then still returns success', async () => {
-		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-		const entryData = makeEntryData();
-		const promotedEntry = { ...makeEntryData(), id: 'promoted-1' };
-		mockRefuseRegistration.mockResolvedValue({
-			success: true,
-			data: entryData,
-			promotedEntry,
-		});
-		mockNotifyPromotion.mockRejectedValue(new Error('Notification DB timeout'));
-
-		const response = await POST(makeEvent('entry-1'));
-
-		expect(response.status).toBe(200);
-		expect(consoleSpy).toHaveBeenCalledWith(
-			'[refuse] Failed to send waitlist-promotion notifications:',
-			expect.any(Error),
-		);
-		consoleSpy.mockRestore();
+		expect(mockCapture).toHaveBeenCalledWith(expect.objectContaining({
+			event: 'registration_refused',
+			properties: expect.objectContaining({ waitlist_promoted: true }),
+		}));
 	});
 
 	it('Given empty entry ID, when POST called, then returns 400', async () => {
-		const response = await POST(makeEvent(''));
+		const response = await POST(makeEvent('', { id: 'organizer-1' }));
 
 		expect(response.status).toBe(400);
 		expect(response.body).toEqual({ error: 'Invalid entry ID' });
+	});
+
+	it('Given no logged-in user, when POST called, then returns 401', async () => {
+		const response = await POST(makeEvent('entry-1'));
+
+		expect(response.status).toBe(401);
+		expect(response.body).toEqual({ error: 'You must be logged in' });
+		expect(mockRefuseRegistration).not.toHaveBeenCalled();
 	});
 });

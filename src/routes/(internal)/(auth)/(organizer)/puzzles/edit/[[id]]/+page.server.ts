@@ -41,7 +41,7 @@ export const load: PageServerLoad = async (event) => {
         puzzleData = puzzle;
     }
 
-    const form = await superValidate(puzzleData, zod4(PuzzleEditSchema as any));
+    const form = await superValidate(puzzleData, zod4(PuzzleEditSchema));
 
     return { form };
 };
@@ -52,8 +52,8 @@ export const actions: Actions = {
             return fail(401, { error_message: 'User not authenticated' });
         }
 
-        const form = await superValidate(request, zod4(PuzzleEditSchema as any));
-        const formData = form.data as PuzzleEditData;
+        const form = await superValidate(request, zod4(PuzzleEditSchema));
+        const formData = form.data;
 
         if (!form.valid) {
             return message(form, { success: false, message: 'Form is not valid' });

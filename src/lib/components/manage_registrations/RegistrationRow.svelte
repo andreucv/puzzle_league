@@ -7,12 +7,15 @@
     import CloseIcon from '@iconify-svelte/mdi/close';
     import BellRingOutlineIcon from '@iconify-svelte/mdi/bell-ring-outline';
     import ChevronRightIcon from '@iconify-svelte/mdi/chevron-right';
+    import TagOutlineIcon from '@iconify-svelte/mdi/tag-outline';
     import ConfirmActionButton from '$lib/components/common/buttons/ConfirmActionButton.svelte';
     import ConfirmPopover from '$lib/components/common/ConfirmPopover.svelte';
+    import EntryTagControls from './EntryTagControls.svelte';
     import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/registration';
 
-    let { entry, showConfirm = false, showRefuse = false, showRemind = false, processing = false, selected = false, onConfirm, onRefuse, onRemind, onSelect }: {
+    let { entry, availableTags = [], showConfirm = false, showRefuse = false, showRemind = false, processing = false, selected = false, onConfirm, onRefuse, onRemind, onSelect }: {
         entry: any;
+        availableTags?: string[];
         showConfirm?: boolean;
         showRefuse?: boolean;
         showRemind?: boolean;
@@ -26,6 +29,11 @@
 
     let hasActions = $derived(showConfirm || showRefuse || showRemind);
     let showReminderPopover = $state(false);
+
+    // Tag management modal (shared by the status chip and the action-menu assign button)
+    let tagModalOpen = $state(false);
+    // Untagged entries surface an "assign tag" button in the reveal action menu instead of inline.
+    let canAssignTag = $derived(!entry.entryTag && availableTags.length > 0);
 
     let isOnCooldown = $derived(() => {
         if (!entry.lastRemindedAt) return false;
@@ -92,6 +100,10 @@
                 {entry.creator.name ?? entry.creator.email}
             </a>
         {/if}
+
+        <!-- Sub-prize tag: tagged entries show a status chip here; the modal is shared with
+             the action-menu assign button for untagged entries. -->
+        <EntryTagControls {entry} {availableTags} bind:open={tagModalOpen} />
     </div>
 
     <!-- Right side: table number + date + actions -->
@@ -102,16 +114,16 @@
     >
         <!-- Table number badge (only for confirmed entries with an assigned table) -->
         {#if entry.tableNumber != null}
-            <span class="badge preset-tonal-primary text-xs mr-2" data-testid="table-number-{entry.id}">
-                {$t('manage_registrations.table_number', { number: entry.tableNumber })}
+            <span class="badge preset-tonal-primary text-xs mr-2 w-9 justify-center shrink-0" data-testid="table-number-{entry.id}">
+                {$t('manage_registrations.table_number_short', { number: entry.tableNumber })}
             </span>
         {/if}
 
         <!-- Date (always visible, sits behind buttons when selected) -->
         {#if registrationDate}
-            <div class="text-right whitespace-nowrap">
+            <div class="text-right whitespace-nowrap w-10 shrink-0">
                 <span class="text-[0.7rem] leading-tight text-surface-400 dark:text-surface-500">
-                    {registrationDate.date} · {registrationDate.time}
+                    <span class="block sm:inline">{registrationDate.date}</span><span class="hidden sm:inline"> · </span><span class="block sm:inline">{registrationDate.time}</span>
                 </span>
                 {#if showRemind && entry.lastRemindedAt}
                     <div class="text-[0.6rem] leading-tight {isOnCooldown() ? 'text-warning-500' : 'text-surface-400 dark:text-surface-500'}">
@@ -129,6 +141,20 @@
         <!-- Action buttons overlay when selected -->
         {#if selected}
             <div class="absolute inset-0 flex items-center justify-end gap-3 z-10 pointer-events-none">
+                {#if canAssignTag}
+                    <div class="pointer-events-auto" onclick={(e) => e.stopPropagation()}>
+                        <button
+                            type="button"
+                            class="btn-icon w-4 h-4 rounded-full ring-2 ring-inset ring-primary-500 bg-surface-50 dark:bg-surface-800 text-primary-500"
+                            disabled={processing}
+                            onclick={() => (tagModalOpen = true)}
+                            aria-label={$t('manage_registrations.tag_add')}
+                            data-testid="assign-tag-{entry.id}"
+                        >
+                            <TagOutlineIcon width="1rem" height="1rem" />
+                        </button>
+                    </div>
+                {/if}
                 {#if showRemind}
                     <div class="pointer-events-auto relative" onclick={(e) => e.stopPropagation()}>
                         <button

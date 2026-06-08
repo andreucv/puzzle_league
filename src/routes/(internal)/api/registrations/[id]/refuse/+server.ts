@@ -1,49 +1,40 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { refuseRegistration } from '$lib/database/db_registration';
-import { notifyRegistrationRefused, notifyWaitlistPromotion } from '$lib/notifications/registration_notifications';
+import { isRegistrationWorkflowError, refuseRegistration, registrationWorkflowHttpStatus } from '$lib/services/registration-workflow';
 import { getPostHogClient } from '$lib/server/posthog';
 
 export const POST = async (event: RequestEvent) => {
 	const entryId = event.params.id as string;
-	const actorName = event.locals.user?.name || undefined;
+	const user = event.locals.user;
 
 	if (!entryId) {
 		return json({ error: 'Invalid entry ID' }, { status: 400 });
 	}
-
-	const result = await refuseRegistration(entryId);
-
-	if (!result.success) {
-		// Distinguish "not found" (already removed) from validation errors
-		const status = result.error === 'Entry not found' ? 404 : 400;
-		return json({ error: result.error }, { status });
+	if (!user) {
+		return json({ error: 'You must be logged in' }, { status: 401 });
 	}
 
-	// Mutation succeeded — send notifications best-effort (never convert a
-	// successful delete/promotion into an HTTP error).
 	try {
-		await notifyRegistrationRefused(result.data, actorName);
-	} catch (err) {
-		console.error('[refuse] Failed to send refusal notifications:', err);
-	}
+		const result = await refuseRegistration({
+			entryId,
+			actor: { userId: user.id, name: user.name ?? undefined, isOrganizer: false },
+		});
 
-	if (result.promotedEntry) {
-		try {
-			await notifyWaitlistPromotion(result.promotedEntry, actorName);
-		} catch (err) {
-			console.error('[refuse] Failed to send waitlist-promotion notifications:', err);
+		const posthog = getPostHogClient();
+		posthog.capture({
+			distinctId: user.id,
+			event: 'registration_refused',
+			properties: {
+				entry_id: entryId,
+				waitlist_promoted: !!result.promotedEntry
+			}
+		});
+
+		return json({ success: true, data: result.entry });
+	} catch (error) {
+		if (isRegistrationWorkflowError(error)) {
+			return json({ error: error.message }, { status: registrationWorkflowHttpStatus(error) });
 		}
+		console.error('Error refusing registration:', error);
+		return json({ error: 'Failed to refuse registration' }, { status: 500 });
 	}
-
-	const posthog = getPostHogClient();
-	posthog.capture({
-		distinctId: event.locals.user?.id ?? 'server',
-		event: 'registration_refused',
-		properties: {
-			entry_id: entryId,
-			waitlist_promoted: !!result.promotedEntry
-		}
-	});
-
-	return json({ success: true, data: result.data });
 };

@@ -6,8 +6,11 @@
     import CollapsibleSection from './CollapsibleSection.svelte';
     import RegistrationRow from './RegistrationRow.svelte';
 
-    let { entries, processingEntryId = null, searchFilter = '', onConfirm, onRefuse, onRemind }: {
+    let { entries, availableTags = [], processingEntryId = null, searchFilter = '', onConfirm, onRefuse, onRemind }: {
         entries: any[];
+        // Enum tag values (e.g. LOCAL_MUNICIPALITY); the manage page passes
+        // category.tagCategories.map(tc => tc.tag) and RegistrationRow consumes a string[].
+        availableTags?: string[];
         processingEntryId?: string | null;
         searchFilter?: string;
         onConfirm: (id: string) => void;
@@ -53,6 +56,7 @@
         {#each recs as entry (entry.id)}
             <RegistrationRow
                 {entry}
+                {availableTags}
                 {showConfirm}
                 {showRefuse}
                 {showRemind}

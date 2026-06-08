@@ -6,10 +6,6 @@ describe('extractIntId', () => {
 		expect(extractIntId('/api/competitions/42')).toBe(42);
 	});
 
-	it('extracts ID from flat route with trailing action /api/competitions/42/manage', () => {
-		expect(extractIntId('/api/competitions/42/manage')).toBe(42);
-	});
-
 	it('extracts ID from nested route /api/events/competition/42', () => {
 		expect(extractIntId('/api/events/competition/42')).toBe(42);
 	});

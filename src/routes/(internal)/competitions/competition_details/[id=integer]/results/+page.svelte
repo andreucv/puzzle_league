@@ -3,8 +3,8 @@
     import Card from '$lib/components/common/card/Card.svelte';
     import { CldImage } from 'svelte-cloudinary';
     import { t } from '$lib/translations';
-    import { formatElapsedTime, formatTimeDelta, getCategoryTypeName, calculateDuration } from '$lib/utils/category_utils';
-    import { onMount, untrack } from 'svelte';
+    import { formatCountdown, formatDeltaCompact, getCategoryTypeName, calculateDuration } from '$lib/utils/category_utils';
+    import { onMount, untrack, tick } from 'svelte';
     import { useAblyInvalidation } from '$lib/events/client/use-ably-invalidation.svelte';
     import { page } from '$app/state';
 
@@ -22,6 +22,7 @@
     import TimerOutlineIcon from '@iconify-svelte/mdi/timer-outline';
     import AccountGroupIcon from '@iconify-svelte/mdi/account-group';
     import ArrowLeftIcon from '@iconify-svelte/mdi/arrow-left';
+    import TargetAccountIcon from '@iconify-svelte/mdi/target-account';
 
     let { data } = $props();
 
@@ -88,21 +89,79 @@
                 .sort((a, b) => (b.nPiecesCompleted ?? 0) - (a.nPiecesCompleted ?? 0))
             : []
     );
-    const dnsEntries = $derived(
+    const dnsEntriesAll = $derived(
         selectedCategory
             ? selectedCategory.entries.filter((r) => r.finishTime == null && r.nPiecesCompleted == null)
             : []
     );
 
-    // Combined ranked entries: finished + partial (for position numbering)
-    const rankedEntries = $derived([...finishedEntries, ...partialEntries]);
+    // Sub-prize tag filter: confirmed-tag badges show always, but the toggle
+    // narrows the ranking to entries carrying the selected tag (order preserved).
+    const tagOptions = $derived(selectedCategory?.availableTags ?? []);
+    let selectedTag = $state<string | null>(null);
+    function entryMatchesTag(r: App.ResultEntry): boolean {
+        return !selectedTag || r.confirmedTag === selectedTag;
+    }
 
-    const firstFinish = $derived(
-        finishedEntries.length > 0 && finishedEntries[0].finishTime
-            ? new Date(finishedEntries[0].finishTime)
-            : null
+    // Combined ranked entries: finished + partial (for position numbering),
+    // narrowed by the active tag filter.
+    const rankedEntries = $derived([...finishedEntries, ...partialEntries].filter(entryMatchesTag));
+    const dnsEntries = $derived(dnsEntriesAll.filter(entryMatchesTag));
+
+    // Gap to the entry ranked directly ahead (positions >= 2), aligned to rankedEntries indices.
+    // Only computed between two finished entries; partial/DNF rows show no gap.
+    const gaps = $derived(
+        rankedEntries.map((r, i) => {
+            if (i === 0) return null;
+            const prev = rankedEntries[i - 1];
+            if (r.finishTime && prev.finishTime) {
+                return formatDeltaCompact(
+                    new Date(r.finishTime).getTime() - new Date(prev.finishTime).getTime()
+                );
+            }
+            return null;
+        })
     );
+
     const puzzle: App.ResultPuzzleData | undefined = $derived(selectedCategory?.puzzles[0]);
+
+    // Viewer's own entries across all categories (tab order) — drives the YOU highlight and the
+    // rotating "Go to your result" find-next button. Self-highlight ignores publicResultsVisibility.
+    function isViewerEntry(entry: App.ResultEntry): boolean {
+        return !!currentUser && entry.users.some((u) => u.id === currentUser.id);
+    }
+    const viewerEntries = $derived.by(() => {
+        const list: { categoryId: number; entryId: string }[] = [];
+        if (!currentUser) return list;
+        const uid = currentUser.id;
+        for (const cat of sortedCategories) {
+            for (const entry of cat.entries) {
+                if (entry.users.some((u) => u.id === uid)) {
+                    list.push({ categoryId: cat.id, entryId: entry.id });
+                }
+            }
+        }
+        return list;
+    });
+
+    let findIndex = $state(-1);
+    let pulsingEntryId = $state<string | null>(null);
+
+    async function goToMyResult() {
+        if (viewerEntries.length === 0) return;
+        findIndex = (findIndex + 1) % viewerEntries.length;
+        const target = viewerEntries[findIndex];
+        if (target.categoryId !== selectedCategoryId) {
+            selectCategory(target.categoryId);
+        }
+        await tick();
+        const el = document.getElementById(`entry-${target.entryId}`);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        pulsingEntryId = target.entryId;
+        setTimeout(() => {
+            if (pulsingEntryId === target.entryId) pulsingEntryId = null;
+        }, 1200);
+    }
 
     // Stats
     const totalEntries = $derived(selectedCategory?._count.entries ?? 0);
@@ -122,25 +181,29 @@
         }
         return null;
     });
+    // Drop the noisy trailing "0s" (e.g. "120m 0s" -> "120m").
+    const categoryDurationLabel = $derived(
+        categoryDuration ? categoryDuration.replace(/\s0s$/, '') : null
+    );
 
-    function isDNF(record: App.ResultEntry, category: App.ResultCategory): boolean {
-        if (!record.finishTime || !category.realEndTime) return false;
+    function isDNF(entry: App.ResultEntry, category: App.ResultCategory): boolean {
+        if (!entry.finishTime || !category.realEndTime) return false;
         const p = category.puzzles[0];
         if (!p) return false;
-        const finishMs = new Date(record.finishTime).getTime();
+        const finishMs = new Date(entry.finishTime).getTime();
         const endMs = new Date(category.realEndTime).getTime();
         return Math.abs(finishMs - endMs) < 2000
-            && record.nPiecesCompleted != null
-            && record.nPiecesCompleted < p.pieces;
+            && entry.nPiecesCompleted != null
+            && entry.nPiecesCompleted < p.pieces;
     }
 
-    function isPartialRecord(record: App.ResultEntry): boolean {
-        return record.finishTime == null && record.nPiecesCompleted != null;
+    function isPartialEntry(entry: App.ResultEntry): boolean {
+        return entry.finishTime == null && entry.nPiecesCompleted != null;
     }
 
-    function getCompletionPercent(record: App.ResultEntry): number | null {
-        if (record.nPiecesCompleted == null || !puzzle) return null;
-        return Math.round((record.nPiecesCompleted / puzzle.pieces) * 100);
+    function getCompletionPercent(entry: App.ResultEntry): number | null {
+        if (entry.nPiecesCompleted == null || !puzzle) return null;
+        return Math.round((entry.nPiecesCompleted / puzzle.pieces) * 100);
     }
 
     function getPositionStyle(position: number) {
@@ -154,6 +217,7 @@
 
     function selectCategory(id: number) {
         selectedCategoryId = id;
+        selectedTag = null;
         history.replaceState(null, '', `#category-${id}`);
     }
 
@@ -219,6 +283,8 @@
             <p class="text-surface-500 text-lg">{$t('results.no_categories')}</p>
         </div>
     {:else}
+        <!-- Tabs + results panel grouped so the panel connects flush to the tabs (no gap) -->
+        <div>
         <!-- Category tabs -->
         <div class="overflow-x-auto -mx-4 px-4 scrollbar-none">
             <nav class="flex gap-1 min-w-max border-b border-surface-300/50 pb-0">
@@ -290,7 +356,8 @@
 
             <!-- ===== LIVE / STOPPED / COMPLETE ===== -->
             {:else if isActiveOrDone}
-                <Card>
+                <!-- Square top so the panel connects flush to the category tabs -->
+                <div class="card p-4 space-y-2 min-w-0 rounded-t-none">
                     <!-- Category status bar -->
                     <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
                         <div class="flex items-center gap-2">
@@ -319,10 +386,10 @@
                             {#if (isLive || isStopped) && finishedCount > 0}
                                 <span>{$t('results.entries_finished', { n: finishedCount, total: totalEntries })}</span>
                             {/if}
-                            {#if categoryDuration}
+                            {#if categoryDurationLabel}
                                 <span class="flex items-center gap-1">
                                     <TimerOutlineIcon width="0.8rem" height="0.8rem" />
-                                    {$t('results.duration', { time: categoryDuration })}
+                                    {$t('results.duration', { time: categoryDurationLabel })}
                                 </span>
                             {/if}
                         </div>
@@ -357,311 +424,155 @@
                         </div>
                     {/if}
 
-                    <!-- Results table -->
-                    {#if rankedEntries.length > 0 || (isComplete && dnsEntries.length > 0)}
-                        <div class="{puzzle ? 'mt-4' : ''} -mx-4 -mb-2">
-                            <!-- Desktop table -->
-                            <div class="hidden sm:block">
-                                <table class="w-full text-sm">
-                                    <thead>
-                                        <tr class="text-xs text-surface-500 uppercase tracking-wider">
-                                            <th class="w-11 py-2 text-center">{$t('results.position')}</th>
-                                            <th class="px-4 py-2 text-left">{$t('results.participants')}</th>
-                                            <th class="px-4 py-2 text-right">{$t('results.time')}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {#each rankedEntries as record, i (record.id)}
-                                            {@const pos = i + 1}
-                                            {@const style = getPositionStyle(pos)}
-                                            {@const dnf = isDNF(record, selectedCategory)}
-                                            {@const partial = isPartialRecord(record)}
-                                            {@const pct = getCompletionPercent(record)}
-                                            <tr class="{style.bg} {dnf ? 'opacity-70' : ''}">
-                                                <td class="w-11 py-3">
-                                                    <div class="flex items-center justify-center">
-                                                        {#if style.icon}
-                                                            {@const PositionIcon = style.icon}
-                                                            <PositionIcon width="1.1rem" height="1.1rem" class={style.color} />
-                                                        {:else}
-                                                            <span class="font-mono text-sm tabular-nums {style.color}">{pos}</span>
-                                                        {/if}
-                                                    </div>
-                                                </td>
-                                                <td class="px-4 py-3">
-                                                    <div class="space-y-1">
-                                                        {#each record.users as user}
-                                                            {@const visible = isUserVisible(user)}
-                                                            <div class="flex items-center gap-2">
-                                                                {#if visible}
-                                                                    {#if user.image}
-                                                                        <img src={user.image} alt={user.name} class="w-5 h-5 shrink-0 rounded-full object-cover ring-1 ring-surface-300/50" loading="lazy" />
-                                                                    {:else}
-                                                                        <div class="w-5 h-5 shrink-0 rounded-full bg-primary-500/20 flex items-center justify-center">
-                                                                            <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
-                                                                        </div>
-                                                                    {/if}
-                                                                    {#if currentUser}
-                                                                        <a href="/public_profile/{user.id}" class="font-medium text-sm hover:text-primary-500 hover:underline transition-colors" data-testid="profile-link-{user.id}">{user.name}</a>
-                                                                    {:else}
-                                                                        <span class="font-medium text-sm" data-testid="profile-name-{user.id}">{user.name}</span>
-                                                                    {/if}
-                                                                {:else}
-                                                                    <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
-                                                                        <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
-                                                                    </div>
-                                                                    <span class="font-medium text-sm text-surface-400 italic">{$t('results.anonymous_participant')}</span>
-                                                                {/if}
-                                                            </div>
-                                                        {/each}
-                                                        {#each record.externalParticipants as ui}
-                                                            <div class="flex items-center gap-2">
-                                                                <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
-                                                                    <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
-                                                                </div>
-                                                                <span class="text-sm italic text-surface-500">{ui.name}</span>
-                                                            </div>
-                                                        {/each}
-                                                    </div>
-                                                </td>
-                                                <td class="px-4 py-3 text-right">
-                                                    {#if partial}
-                                                        <!-- Partial record: pieces + progress bar -->
-                                                        <div class="flex flex-col items-end gap-1">
-                                                            <span class="font-mono text-sm text-surface-600 dark:text-surface-400">
-                                                                {record.nPiecesCompleted} {$t('results.pieces')}
-                                                                {#if pct != null}
-                                                                    <span class="text-xs text-surface-400 ml-1">({pct}%)</span>
-                                                                {/if}
-                                                            </span>
-                                                            {#if pct != null}
-                                                                <div class="w-20 h-1.5 bg-surface-200 dark:bg-surface-700 rounded-full overflow-hidden">
-                                                                    <div
-                                                                        class="h-full bg-warning-500 rounded-full transition-all"
-                                                                        style="width: {pct}%"
-                                                                    ></div>
-                                                                </div>
-                                                            {/if}
-                                                        </div>
-                                                    {:else if record.finishTime && selectedCategory.realStartTime}
-                                                        <div class="flex flex-wrap items-baseline justify-end gap-1.5">
-                                                            <span class="font-mono text-sm {pos === 1 && !dnf ? 'font-bold' : ''}">
-                                                                {formatElapsedTime(new Date(selectedCategory.realStartTime), new Date(record.finishTime))}
-                                                            </span>
-                                                            {#if dnf && puzzle}
-                                                                <span class="badge preset-tonal-error text-xs gap-1">
-                                                                    <PuzzleRemoveIcon width="0.75rem" height="0.75rem" />
-                                                                    {record.nPiecesCompleted}/{puzzle.pieces}
-                                                                    {#if pct != null}
-                                                                        <span>({pct}%)</span>
-                                                                    {/if}
-                                                                </span>
-                                                            {:else if firstFinish && pos > 1}
-                                                                <span class="font-mono text-xs text-surface-400">
-                                                                    {formatTimeDelta(firstFinish, new Date(record.finishTime))}
-                                                                </span>
-                                                            {/if}
-                                                        </div>
-                                                    {/if}
-                                                </td>
-                                            </tr>
-                                        {/each}
-                                        <!-- DNS records (only when category is complete) -->
-                                        {#if isComplete}
-                                            {#each dnsEntries as record (record.id)}
-                                                <tr class="opacity-50">
-                                                    <td class="w-11 py-3">
-                                                        <div class="flex items-center justify-center">
-                                                            <MinusIcon width="1rem" height="1rem" class="text-surface-400" />
-                                                        </div>
-                                                    </td>
-                                                    <td class="px-4 py-3">
-                                                        <div class="space-y-1">
-                                                            {#each record.users as user}
-                                                                {@const visible = isUserVisible(user)}
-                                                                <div class="flex items-center gap-2">
-                                                                    {#if visible}
-                                                                        {#if user.image}
-                                                                            <img src={user.image} alt={user.name} class="w-5 h-5 shrink-0 rounded-full object-cover ring-1 ring-surface-300/50" loading="lazy" />
-                                                                        {:else}
-                                                                            <div class="w-5 h-5 shrink-0 rounded-full bg-primary-500/20 flex items-center justify-center">
-                                                                                <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
-                                                                            </div>
-                                                                        {/if}
-                                                                        {#if currentUser}
-                                                                            <a href="/public_profile/{user.id}" class="font-medium text-sm hover:text-primary-500 hover:underline transition-colors" data-testid="profile-link-{user.id}">{user.name}</a>
-                                                                        {:else}
-                                                                            <span class="font-medium text-sm" data-testid="profile-name-{user.id}">{user.name}</span>
-                                                                        {/if}
-                                                                    {:else}
-                                                                        <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
-                                                                            <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
-                                                                        </div>
-                                                                        <span class="font-medium text-sm text-surface-400 italic">{$t('results.anonymous_participant')}</span>
-                                                                    {/if}
-                                                                </div>
-                                                            {/each}
-                                                            {#each record.externalParticipants as ui}
-                                                                <div class="flex items-center gap-2">
-                                                                    <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
-                                                                        <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
-                                                                    </div>
-                                                                    <span class="text-sm italic text-surface-500">{ui.name}</span>
-                                                                </div>
-                                                            {/each}
-                                                        </div>
-                                                    </td>
-                                                    <td class="px-4 py-3 text-right">
-                                                        <span class="badge preset-tonal-surface text-xs">{$t('results.dns')}</span>
-                                                    </td>
-                                                </tr>
-                                            {/each}
-                                        {/if}
-                                    </tbody>
-                                </table>
-                            </div>
+                    <!-- Sub-prize tag filter -->
+                    {#if tagOptions.length > 0}
+                        <div class="flex flex-wrap items-center gap-2 mt-3">
+                            <span class="text-xs text-surface-500">{$t('results.filter_by_tag')}</span>
+                            <button
+                                type="button"
+                                class="badge {selectedTag === null ? 'preset-filled-primary-500' : 'preset-tonal'}"
+                                onclick={() => (selectedTag = null)}
+                            >
+                                {$t('results.tag_filter_all')}
+                            </button>
+                            {#each tagOptions as tagOption}
+                                <button
+                                    type="button"
+                                    class="badge {selectedTag === tagOption ? 'preset-filled-primary-500' : 'preset-tonal'}"
+                                    onclick={() => (selectedTag = tagOption)}
+                                >
+                                    {$t('participant_tags.' + tagOption)}
+                                </button>
+                            {/each}
+                        </div>
+                    {/if}
 
-                            <!-- Mobile stacked layout -->
-                            <div class="sm:hidden space-y-0">
-                                {#each rankedEntries as record, i (record.id)}
-                                    {@const pos = i + 1}
-                                    {@const style = getPositionStyle(pos)}
-                                    {@const dnf = isDNF(record, selectedCategory)}
-                                    {@const partial = isPartialRecord(record)}
-                                    {@const pct = getCompletionPercent(record)}
-                                    <div class="px-4 py-3 border-b border-surface-200/30 last:border-0 {style.bg} {dnf ? 'opacity-70' : ''}">
-                                        <div class="flex items-start justify-between gap-3">
-                                            <div class="w-6 shrink-0 flex items-center justify-center">
-                                                {#if style.icon}
-                                                    {@const PositionIcon = style.icon}
-                                                    <PositionIcon width="1.1rem" height="1.1rem" class={style.color} />
-                                                {:else}
-                                                    <span class="font-mono text-sm tabular-nums {style.color}">{pos}</span>
-                                                {/if}
-                                            </div>
-                                            <div class="flex-1 min-w-0 space-y-1">
-                                                {#each record.users as user}
-                                                    {@const visible = isUserVisible(user)}
-                                                    <div class="flex items-center gap-2">
-                                                        {#if visible}
-                                                            {#if user.image}
-                                                                <img src={user.image} alt={user.name} class="w-5 h-5 shrink-0 rounded-full object-cover" loading="lazy" />
-                                                            {:else}
-                                                                <div class="w-5 h-5 shrink-0 rounded-full bg-primary-500/20 flex items-center justify-center">
-                                                                    <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
-                                                                </div>
-                                                            {/if}
-                                                            {#if currentUser}
-                                                                <a href="/public_profile/{user.id}" class="text-sm font-medium truncate hover:text-primary-500 hover:underline transition-colors" data-testid="profile-link-{user.id}">{user.name}</a>
-                                                            {:else}
-                                                                <span class="text-sm font-medium truncate" data-testid="profile-name-{user.id}">{user.name}</span>
-                                                            {/if}
-                                                        {:else}
-                                                            <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
-                                                                <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
-                                                            </div>
-                                                            <span class="text-sm font-medium truncate text-surface-400 italic">{$t('results.anonymous_participant')}</span>
-                                                        {/if}
-                                                    </div>
-                                                {/each}
-                                                {#each record.externalParticipants as ui}
-                                                    <div class="flex items-center gap-2">
-                                                        <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
-                                                            <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
-                                                        </div>
-                                                        <span class="text-sm italic text-surface-500 truncate">{ui.name}</span>
-                                                    </div>
-                                                {/each}
-                                            </div>
-                                            <div class="shrink-0 text-right">
-                                                {#if partial}
-                                                    <div class="flex flex-col items-end gap-0.5">
-                                                        <span class="font-mono text-sm text-surface-600 dark:text-surface-400">
-                                                            {record.nPiecesCompleted}
-                                                            {#if pct != null}
-                                                                <span class="text-[10px] text-surface-400 ml-0.5">({pct}%)</span>
-                                                            {/if}
-                                                        </span>
-                                                        {#if pct != null}
-                                                            <div class="w-14 h-1 bg-surface-200 dark:bg-surface-700 rounded-full overflow-hidden">
-                                                                <div
-                                                                    class="h-full bg-warning-500 rounded-full"
-                                                                    style="width: {pct}%"
-                                                                ></div>
-                                                            </div>
-                                                        {/if}
-                                                    </div>
-                                                {:else if record.finishTime && selectedCategory.realStartTime}
-                                                    <div class="flex flex-wrap items-baseline justify-end gap-1">
-                                                        <span class="font-mono text-sm {pos === 1 && !dnf ? 'font-bold' : ''}">
-                                                            {formatElapsedTime(new Date(selectedCategory.realStartTime), new Date(record.finishTime))}
-                                                        </span>
-                                                        {#if dnf && puzzle}
-                                                            <span class="badge preset-tonal-error text-[10px] gap-0.5">
-                                                                <PuzzleRemoveIcon width="0.65rem" height="0.65rem" />
-                                                                {record.nPiecesCompleted}/{puzzle.pieces}
-                                                            </span>
-                                                        {:else if firstFinish && pos > 1}
-                                                            <span class="font-mono text-[11px] text-surface-400">
-                                                                {formatTimeDelta(firstFinish, new Date(record.finishTime))}
-                                                            </span>
-                                                        {/if}
-                                                    </div>
-                                                {/if}
-                                            </div>
-                                        </div>
-                                    </div>
-                                {/each}
-                                <!-- DNS records mobile (only when complete) -->
-                                {#if isComplete}
-                                    {#each dnsEntries as record (record.id)}
-                                        <div class="px-4 py-3 border-b border-surface-200/30 last:border-b-0 opacity-50">
-                                            <div class="flex items-start justify-between gap-3">
-                                                <div class="w-6 shrink-0 flex items-center justify-center">
-                                                    <MinusIcon width="1rem" height="1rem" class="text-surface-400" />
-                                                </div>
-                                                <div class="flex-1 min-w-0 space-y-1">
-                                                    {#each record.users as user}
-                                                        {@const visible = isUserVisible(user)}
-                                                        <div class="flex items-center gap-2">
-                                                            {#if visible}
-                                                                {#if user.image}
-                                                                    <img src={user.image} alt={user.name} class="w-5 h-5 shrink-0 rounded-full object-cover" loading="lazy" />
-                                                                {:else}
-                                                                    <div class="w-5 h-5 shrink-0 rounded-full bg-primary-500/20 flex items-center justify-center">
-                                                                        <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
-                                                                    </div>
-                                                                {/if}
-                                                                {#if currentUser}
-                                                                    <a href="/public_profile/{user.id}" class="text-sm font-medium truncate hover:text-primary-500 hover:underline transition-colors" data-testid="profile-link-{user.id}">{user.name}</a>
-                                                                {:else}
-                                                                    <span class="text-sm font-medium truncate" data-testid="profile-name-{user.id}">{user.name}</span>
-                                                                {/if}
-                                                            {:else}
-                                                                <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
-                                                                    <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
-                                                                </div>
-                                                                <span class="text-sm font-medium truncate text-surface-400 italic">{$t('results.anonymous_participant')}</span>
-                                                            {/if}
-                                                        </div>
-                                                    {/each}
-                                                    {#each record.externalParticipants as ui}
-                                                        <div class="flex items-center gap-2">
-                                                            <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
-                                                                <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
-                                                            </div>
-                                                            <span class="text-sm italic text-surface-500 truncate">{ui.name}</span>
-                                                        </div>
-                                                    {/each}
-                                                </div>
-                                                <div class="shrink-0">
-                                                    <span class="badge preset-tonal-surface text-[10px]">{$t('results.dns')}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {/each}
+                    <!-- Unified responsive entry row (ranked + DNS, all breakpoints) -->
+                    {#snippet entryRow(entry: App.ResultEntry, pos: number | null, index: number | null, isDns: boolean)}
+                        {@const style = pos ? getPositionStyle(pos) : null}
+                        {@const dnf = isDNF(entry, selectedCategory)}
+                        {@const partial = isPartialEntry(entry)}
+                        {@const pct = getCompletionPercent(entry)}
+                        {@const me = isViewerEntry(entry)}
+                        {@const gap = index != null ? gaps[index] : null}
+                        {@const showTable = (isLive || isStopped) && entry.tableNumber != null}
+                        {@const pulsing = pulsingEntryId === entry.id}
+                        <div
+                            id="entry-{entry.id}"
+                            role="listitem"
+                            class="grid grid-cols-[1.75rem_1fr_auto] items-start gap-3 px-4 py-3 border-b border-surface-200/30 last:border-0 transition-colors duration-500
+                                {pulsing ? 'bg-success-500/30' : (me ? 'bg-primary-500/10' : (style?.bg ?? ''))}
+                                {dnf || isDns ? 'opacity-60' : ''}"
+                        >
+                            <!-- Rank -->
+                            <div class="flex items-center justify-center pt-0.5">
+                                {#if isDns}
+                                    <MinusIcon width="1rem" height="1rem" class="text-surface-400" />
+                                {:else if style?.icon}
+                                    {@const PositionIcon = style.icon}
+                                    <PositionIcon width="1.1rem" height="1.1rem" class={style.color} />
+                                {:else}
+                                    <span class="font-mono text-sm tabular-nums {style?.color ?? ''}">{pos}</span>
                                 {/if}
                             </div>
+
+                            <!-- Identity: one participant per line, never truncated -->
+                            <div class="min-w-0 space-y-1">
+                                {#each entry.users as user}
+                                    {@const visible = isUserVisible(user)}
+                                    <div class="flex items-center gap-2">
+                                        {#if visible}
+                                            {#if user.image}
+                                                <img src={user.image} alt={user.name} class="w-5 h-5 shrink-0 rounded-full object-cover ring-1 ring-surface-300/50" loading="lazy" />
+                                            {:else}
+                                                <div class="w-5 h-5 shrink-0 rounded-full bg-primary-500/20 flex items-center justify-center">
+                                                    <span class="text-[9px] font-bold text-primary-700">{user.name.charAt(0).toUpperCase()}</span>
+                                                </div>
+                                            {/if}
+                                            {#if currentUser}
+                                                <a href="/public_profile/{user.id}" class="text-sm break-words hover:text-primary-500 hover:underline transition-colors" data-testid="profile-link-{user.id}">{user.name}</a>
+                                            {:else}
+                                                <span class="text-sm break-words" data-testid="profile-name-{user.id}">{user.name}</span>
+                                            {/if}
+                                        {:else}
+                                            <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
+                                                <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
+                                            </div>
+                                            <span class="text-sm break-words text-surface-400 italic">{$t('results.anonymous_participant')}</span>
+                                        {/if}
+                                    </div>
+                                {/each}
+                                {#each entry.externalParticipants as ui}
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-5 h-5 shrink-0 rounded-full bg-surface-300/50 flex items-center justify-center">
+                                            <AccountQuestionIcon width="0.7rem" height="0.7rem" class="text-surface-500" />
+                                        </div>
+                                        <span class="text-sm break-words text-surface-500">{ui.name}</span>
+                                    </div>
+                                {/each}
+                                {#if entry.confirmedTag || showTable}
+                                    <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                        {#if entry.confirmedTag}
+                                            <span class="badge preset-tonal-primary text-xs">{$t('participant_tags.' + entry.confirmedTag)}</span>
+                                        {/if}
+                                        {#if showTable}
+                                            <span class="badge preset-tonal-surface text-xs">{$t('results.table', { n: entry.tableNumber })}</span>
+                                        {/if}
+                                    </div>
+                                {/if}
+                            </div>
+
+                            <!-- Time / progress -->
+                            <div class="shrink-0 text-right">
+                                {#if isDns}
+                                    <span class="badge preset-tonal-surface text-xs">{$t('results.dns')}</span>
+                                {:else if partial}
+                                    <div class="flex flex-col items-end gap-1">
+                                        <span class="font-mono text-sm text-surface-600 dark:text-surface-400">
+                                            {entry.nPiecesCompleted} {$t('results.pieces')}
+                                            {#if pct != null}
+                                                <span class="text-xs text-surface-400 ml-1">({pct}%)</span>
+                                            {/if}
+                                        </span>
+                                        {#if pct != null}
+                                            <div class="w-20 h-1.5 bg-surface-200 dark:bg-surface-700 rounded-full overflow-hidden">
+                                                <div class="h-full bg-warning-500 rounded-full transition-all" style="width: {pct}%"></div>
+                                            </div>
+                                        {/if}
+                                    </div>
+                                {:else if entry.finishTime && selectedCategory.realStartTime}
+                                    <div class="flex flex-col items-end gap-0.5">
+                                        <span class="font-timer text-base {pos === 1 && !dnf ? 'font-bold' : ''}">
+                                            {formatCountdown(new Date(entry.finishTime).getTime() - new Date(selectedCategory.realStartTime).getTime())}
+                                        </span>
+                                        {#if dnf && puzzle}
+                                            <span class="badge preset-tonal-error text-[10px] gap-0.5">
+                                                <PuzzleRemoveIcon width="0.65rem" height="0.65rem" />
+                                                {entry.nPiecesCompleted}/{puzzle.pieces}
+                                                {#if pct != null}
+                                                    <span>({pct}%)</span>
+                                                {/if}
+                                            </span>
+                                        {:else if gap}
+                                            <span class="font-timer text-xs text-surface-400">{gap}</span>
+                                        {/if}
+                                    </div>
+                                {/if}
+                            </div>
+                        </div>
+                    {/snippet}
+
+                    <!-- Results list -->
+                    {#if rankedEntries.length > 0 || (isComplete && dnsEntries.length > 0)}
+                        <div class="{puzzle ? 'mt-4' : ''} -mx-4 -mb-2" role="list">
+                            {#each rankedEntries as entry, i (entry.id)}
+                                {@render entryRow(entry, i + 1, i, false)}
+                            {/each}
+                            {#if isComplete}
+                                {#each dnsEntries as entry (entry.id)}
+                                    {@render entryRow(entry, null, null, true)}
+                                {/each}
+                            {/if}
                         </div>
                     {:else}
                         <div class="text-center py-6 text-surface-400 text-sm">
@@ -669,8 +580,26 @@
                             <p>{$t('results.no_completed_categories')}</p>
                         </div>
                     {/if}
-                </Card>
+                </div>
             {/if}
+        {/if}
+        </div>
+
+        <!-- Floating jump-to-your-result button; rotates across all categories -->
+        {#if currentUser && viewerEntries.length > 0}
+            <button
+                type="button"
+                onclick={goToMyResult}
+                class="btn preset-filled-primary-500 shadow-xl gap-2 fixed bottom-5 right-5 z-30"
+            >
+                <TargetAccountIcon width="1.25rem" height="1.25rem" />
+                {$t('results.go_to_your_result')}
+                {#if findIndex >= 0 && viewerEntries.length > 1}
+                    <span class="text-xs opacity-80">
+                        {$t('results.your_result_counter', { i: findIndex + 1, n: viewerEntries.length })}
+                    </span>
+                {/if}
+            </button>
         {/if}
     {/if}
 </div>

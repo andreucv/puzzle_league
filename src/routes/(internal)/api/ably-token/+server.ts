@@ -1,5 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { getDuringCompetitionAccess } from '$lib/database/db_competition';
+import { getCompetitionAccess } from '$lib/services/competition-access';
 import { createAblyJwt } from '$lib/events/server/ably-jwt';
 
 export const GET = async (event: RequestEvent) => {
@@ -19,11 +19,11 @@ export const GET = async (event: RequestEvent) => {
 	}
 
 	try {
-		const { isOrganizer, isJudge } = await getDuringCompetitionAccess(competitionId, user.id);
+		const access = await getCompetitionAccess(competitionId, user.id);
 
 		const channelName = `competition:${competitionId}`;
 		const capability =
-			isOrganizer || isJudge
+			access.canManageCompetition || access.isJudge
 				? { [channelName]: ['subscribe', 'publish'] }
 				: { [channelName]: ['subscribe'] };
 

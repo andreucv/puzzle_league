@@ -1,8 +1,11 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import type { Action, Actions, PageServerLoad } from '../$types';
+import type { Action, Actions, PageServerLoad } from './$types';
 import { updateCompetition, getCompetitionWithCategories } from '$lib/database/db_competition';
+import { PARTICIPANT_TAG_TYPES } from '$lib/database/db_participant_tags';
 import { CategoryType, CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
+import type { Prisma } from '$lib/.prisma/generated/prisma/client';
 import { getPostHogClient } from '$lib/server/posthog';
+import { getCompetitionAccess } from '$lib/services/competition-access';
 
 import { superValidate, message} from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
@@ -12,6 +15,7 @@ import {
     type CompetitionEditData,
     resolveImageUpload,
     transformPuzzleIds,
+    transformTagCategories,
     autoComputeDateBounds,
 } from '../services/competition-form';
 
@@ -44,7 +48,7 @@ export const load: PageServerLoad = async (event) => {
 
             if (competition.status !== CompetitionStatus.NOT_STARTED) {
                 const categoryTypes = Object.values(CategoryType);
-                const form = await superValidate(null, zod4(CompetitionEditSchema as any));
+                const form = await superValidate(null, zod4(CompetitionEditSchema));
                 return {
                     form,
                     props: { categoryTypes },
@@ -56,8 +60,9 @@ export const load: PageServerLoad = async (event) => {
                 };
             }
 
-            // Check if the user is the creator of the competition
-            if (competition.creatorId !== user.id) {
+            // Check if the user has organizer access (creator, admin, or scoped organizer)
+            const access = await getCompetitionAccess(competitionId, user.id);
+            if (!access.canManageCompetition) {
                 console.error("competition/edit/+page.server.ts creatorId:", competition.creatorId, "!= user.id:", user.id);
                 throw error(403, { message: 'You are not authorized to edit this competition.', code: 'FORBIDDEN' });
             }
@@ -72,17 +77,24 @@ export const load: PageServerLoad = async (event) => {
                     startTime: cat.startTime.toISOString(),
                     endTime: cat.endTime.toISOString(),
                     puzzleIds: (cat as any).puzzles?.map((p: any) => p.id) || [],
+                    tagCategories: (cat as any).tagCategories?.map((tc: any) => ({
+                        tag: tc.tag,
+                        priceOverride: tc.priceOverride,
+                    })) || [],
                 }))
             };
         }
 
         const categoryTypes = Object.values(CategoryType);
-        const form = await superValidate(competitionData, zod4(CompetitionEditSchema as any));
+        // Categories are seeded as a flat array (the shape the page reads on load); the page
+        // reshapes them into Prisma create/update/delete before submit, so cast the seed data.
+        const form = await superValidate(competitionData as any, zod4(CompetitionEditSchema));
 
         return {
             form,
             props: {
-                categoryTypes
+                categoryTypes,
+                participantTags: PARTICIPANT_TAG_TYPES
             }
         };
 
@@ -100,7 +112,7 @@ const create_update_competition: Action = async ({ locals, request, params }) =>
     }
 
     const competitionId = parseInt(params.id ?? '0');
-    const form = await superValidate(request, zod4(CompetitionEditSchema as any));
+    const form = await superValidate(request, zod4(CompetitionEditSchema));
     const formData = form.data as CompetitionEditData;
 
     if (!form.valid) {
@@ -121,11 +133,14 @@ const create_update_competition: Action = async ({ locals, request, params }) =>
     // Transform puzzleIds into Prisma connect operations for each category
     transformPuzzleIds(competitionData.categories);
 
+    // Transform per-category tag selections into nested TagCategory writes
+    transformTagCategories(competitionData.categories);
+
     // Auto-compute competition startDate/endDate from category datetimes
     autoComputeDateBounds(competitionData);
 
-    const result = await updateCompetition(competitionId, competitionData);
-    console.log('competition/edit/+page.server.ts: on action result', result);
+    // competitionData is reshaped into Prisma's nested-write form by the transforms above.
+    const result = await updateCompetition(competitionId, competitionData as unknown as Prisma.CompetitionUpdateInput);
 
     if (!result.success) {
         return message(form, {success: false, message: "Something went wrong"});

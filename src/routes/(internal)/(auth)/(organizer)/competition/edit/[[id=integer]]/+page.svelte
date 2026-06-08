@@ -4,9 +4,11 @@
     import { goto } from "$app/navigation";
     import { tick } from "svelte";
     import { superForm } from "sveltekit-superforms";
-    import { CalendarDate, today, getLocalTimeZone, Time, fromDate, parseAbsolute, toCalendarDateTime} from "@internationalized/date";
+    import { CalendarDate, today, getLocalTimeZone, fromDate } from "@internationalized/date";
     import { getCategoryTypeName, getPartySizeByCategoryType } from "$lib/utils/category_utils.js";
     import { validateCompetitionForm } from "$lib/utils/competition_form_validation";
+    import { collectFormErrorMessages } from "$lib/utils/form_errors";
+    import { buildCategoriesPayload, resolveCategoryDateTime, type CategoryDraft } from "../services/competition-categories";
     import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
     import { FileUpload, Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
     import { CldImage } from 'svelte-cloudinary';
@@ -16,10 +18,10 @@
     import CustomDatePicker from "$lib/components/bits_ui/CustomDatePicker.svelte";
     import LoadingOverlay from "$lib/components/common/LoadingOverlay.svelte";
     import PuzzleLinkSection from "../components/PuzzleLinkSection.svelte";
+    import CategoryTagSelector from "$lib/components/competition_edit/CategoryTagSelector.svelte";
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
 
     let { data } = $props();
-    console.log("competition/edit/+page.svelte: data", data);
 
     // Country combobox data
     const countryData = $derived(countries.map(c => ({
@@ -32,7 +34,9 @@
         value: c.code,
         emoji: getCountryFlag(c.code)
     })));
+    // svelte-ignore state_referenced_locally
     let countryValue = $state<string[]>(data.form?.data?.country ? [data.form.data.country as string] : []);
+    // svelte-ignore state_referenced_locally
     let countryInputValue = $state(
         data.form?.data?.country
             ? (getLocalizedCountryName(data.form.data.country as string, $locale) || '')
@@ -49,7 +53,7 @@
     let isSubmitting = $state(false);
     let loadingMessage = $state('');
     let submissionStartTime = 0;
-    const MIN_LOADING_TIME = 2000; // Minimum 2 seconds display
+    const MIN_LOADING_TIME = 400; // Brief minimum to avoid a spinner flash on fast saves
 
     // Helper to ensure minimum loading time
     async function hideLoading() {
@@ -64,6 +68,7 @@
     // Timeout error state (shown separately since $message is controlled by superForm)
     let timeoutError = $state<string | null>(null);
 
+    // svelte-ignore state_referenced_locally
     const { form, errors, constraints, message, enhance } = superForm(data.form, {
         dataType: "json",
         async onSubmit({ cancel }) {
@@ -82,6 +87,9 @@
                 cancel();
                 return;
             }
+
+            // Derive the Prisma { create, update, delete } payload once, here at submit.
+            $form.categories = buildCategoriesPayload(categories) as any;
 
             // Update message based on whether image needs uploading
             if ($form.image_cld_id && !$form.image_cld_id.includes('competitions')) {
@@ -114,19 +122,39 @@
         }
     });
 
-    // Comprehensive form validation before submit
+    // Comprehensive form validation before submit. Adapts the single CategoryDraft[]
+    // model to the existing (create/update) validator and distributes the per-row
+    // errors back onto each draft for display.
     function validateFormBeforeSubmit(): boolean {
+        const existing = activeCategories.filter((c) => c.origin === 'existing');
+        const created = activeCategories.filter((c) => c.origin === 'new');
+
+        const toCatData = (c: CategoryDraft) => ({
+            description: c.description,
+            type: c.type,
+            maxParties: c.maxParties,
+            maxPartySize: c.maxPartySize,
+            price: c.price
+        });
+        const toTimes = (c: CategoryDraft) => ({
+            startTime: c.startTime,
+            endTime: c.endTime,
+            date: c.startDate,
+            endDate: c.endDate
+        });
+
         const result = validateCompetitionForm(
             $form,
-            categories,
-            categories_times_obj_arr,
+            { create: created.map(toCatData), update: existing.map((c) => ({ data: toCatData(c) })) },
+            { create: created.map(toTimes), update: existing.map(toTimes) },
             isMultiDay,
             $t
         );
 
         formErrors = result.formErrors;
         dateError = result.dateError;
-        categoryErrors = result.categoryErrors;
+        created.forEach((c, i) => (c.errors = result.categoryErrors.create[i] ?? {}));
+        existing.forEach((c, i) => (c.errors = result.categoryErrors.update[i] ?? {}));
 
         return result.isValid;
     }
@@ -175,58 +203,21 @@
     }
     const isEdit = $form.id !== undefined;
 
-    let toUpdateCategories = [] as any[];
-    let toUpdateCategoriesTimes = [] as any[];
-    for (let i = 0; i < $form.categories?.length; i++) {
-        toUpdateCategories.push(
-            {
-                where: {
-                    id: $form.categories[i].id
-                },
-                data: {
-                    ...$form.categories[i],
-                }
-            }
-        );
-        delete toUpdateCategories[i].data.id;
-        delete toUpdateCategories[i].data.competitionId;
+    // Server-side validation errors, flattened into readable lines so the organizer
+    // sees exactly which field/category to fix instead of a generic "not valid".
+    const serverErrorMessages = $derived(collectFormErrorMessages($errors));
 
-        const start_time = new Date($form.categories[i].startTime);
-        const end_time = new Date($form.categories[i].endTime);
-        toUpdateCategoriesTimes[i] = {startTime: `${start_time.getHours().toString().padStart(2, '0')}:${start_time.getMinutes().toString().padStart(2, '0')}`,
-                                        endTime: `${end_time.getHours().toString().padStart(2, '0')}:${end_time.getMinutes().toString().padStart(2, '0')}`};
-    }
+    // Single source of truth for the categories editor. The Prisma
+    // { create, update, delete } payload is derived from this once at submit.
+    let categories = $state<CategoryDraft[]>([]);
 
     // Here inject the data from the current competition in form
-    let initialCompetitionStartDate: CalendarDate | null = null;
+    let initialCompetitionStartDate = $state<CalendarDate | null>(null);
     let selected_image_src = $state<string | undefined>(undefined);
-
-    let categories = $state<{
-        create: any[];
-        update: any[];
-        delete: any[];
-    }>({
-        create: [],
-        update: [],
-        delete: [],
-    });
-    let categories_times_obj_arr = $state<{
-        create: any[];
-        update: any[];
-    }>({
-        create: [],
-        update: [],
-    });
-
-    // Client-side validation errors for categories
-    let categoryErrors = $state({
-        create: [] as Array<{ description?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string; price?: string; date?: string; endDate?: string }>,
-        update: [] as Array<{ description?: string; type?: string; startTime?: string; endTime?: string; maxParties?: string; maxPartySize?: string; price?: string; date?: string; endDate?: string }>
-    });
 
     // Date validation error
     let dateError = $state<string | null>(null);
-    let datePickerRef: HTMLDivElement;
+    let datePickerRef = $state<HTMLDivElement>();
 
     // Multi-day state
     let isMultiDay = $state(false);
@@ -244,89 +235,120 @@
 
     // Confirmation dialog state
     let showRemoveConfirmation = $state(false);
-    let pendingRemoval = $state<{ source: string; index: number } | null>(null);
+    let pendingRemoval = $state<CategoryDraft | null>(null);
+
+    // Categories still on screen — existing rows flagged `removed` are hidden but
+    // kept in `categories` so the submit payload can list them for deletion.
+    const activeCategories = $derived(categories.filter((c) => !c.removed));
+    const existingCategories = $derived(activeCategories.filter((c) => c.origin === 'existing'));
+    const newCategories = $derived(activeCategories.filter((c) => c.origin === 'new'));
+
+    /** Build a CalendarDate (1-indexed month) from an ISO/date string. */
+    function calendarDateFrom(value: string): CalendarDate {
+        const d = new Date(value);
+        return new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate());
+    }
+
+    /** Format the local wall-clock "HH:MM" from an ISO/date string. */
+    function timeFrom(value: string): string {
+        const d = new Date(value);
+        return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    }
+
     if (isEdit) {
-        categories.create = [];
-        categories.update = toUpdateCategories;
-        categories.delete = [];
+        // Map the loaded competition categories (flat array) into rich drafts.
+        const loadedCategories = ($form.categories as any[]) || [];
+        const drafts: CategoryDraft[] = loadedCategories.map((cat): CategoryDraft => ({
+            origin: 'existing',
+            id: cat.id,
+            description: cat.description ?? '',
+            subname: cat.subname ?? '',
+            type: cat.type,
+            startTime: timeFrom(cat.startTime),
+            endTime: timeFrom(cat.endTime),
+            startDate: calendarDateFrom(cat.startTime),
+            endDate: calendarDateFrom(cat.endTime),
+            maxParties: cat.maxParties ?? null,
+            maxPartySize: cat.maxPartySize ?? null,
+            price: cat.price ?? null,
+            status: cat.status,
+            puzzleIds: cat.puzzleIds ?? [],
+            puzzles: cat.puzzles ?? [],
+            tagCategories: cat.tagCategories ?? [],
+            errors: {},
+        }));
+        categories = drafts;
 
-
-        categories_times_obj_arr.create = [];
-        categories_times_obj_arr.update = toUpdateCategoriesTimes;
-
-        initialCompetitionStartDate = new CalendarDate(new Date($form.startDate as string).getFullYear(), new Date($form.startDate as string).getMonth() + 1, new Date($form.startDate as string).getDate());
-        console.log("initialCompetitionStartDate", $form.startDate);
-        console.log("initialCompetitionStartDate", initialCompetitionStartDate);
+        initialCompetitionStartDate = calendarDateFrom($form.startDate as string);
         selected_image_src = ($form.image_cld_id as string) || undefined;
 
-        // Auto-detect multi-day: check if categories span multiple calendar days
-        const allDayKeys = new Set<string>();
-        for (const cat of ($form.categories as any[]) || []) {
-            const d = new Date(cat.startTime);
-            allDayKeys.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
-        }
+        // Auto-detect multi-day: categories span multiple calendar days.
+        const allDayKeys = new Set(
+            drafts.map((c) => (c.startDate ? `${c.startDate.year}-${c.startDate.month}-${c.startDate.day}` : ''))
+        );
         if (allDayKeys.size > 1) {
             isMultiDay = true;
-        }
-
-        // Populate per-category dates from their startTime and endTime
-        for (let i = 0; i < toUpdateCategoriesTimes.length; i++) {
-            const d = new Date(($form.categories as any[])[i].startTime);
-            toUpdateCategoriesTimes[i].date = new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate());
-            const ed = new Date(($form.categories as any[])[i].endTime);
-            toUpdateCategoriesTimes[i].endDate = new CalendarDate(ed.getFullYear(), ed.getMonth() + 1, ed.getDate());
         }
     }
 
 
     // Update form with creator ID when loaded
     $form.status = "NOT_STARTED";
-    $form.creator = { connect: { id: data.user.id } };
+    if (!isEdit) {
+        // On create, connect the creator to the current user.
+        // svelte-ignore state_referenced_locally
+        $form.creator = { connect: { id: data.user.id } };
+    } else {
+        // On edit, drop the loaded creator relation: the loader hydrates it as a full
+        // User object which does not match the { connect: { id } } schema shape and
+        // would fail validation. Leaving it undefined also guarantees we never reassign
+        // the creator when an admin or co-organizer edits someone else's competition.
+        $form.creator = undefined;
+    }
     $form.image_cld_id = undefined;
 
     $effect(() => {
-        $form.categories = categories;
         $form.image_cld_id = selected_image_src;
     });
 
     function addCategory() {
-        // Default date for new categories: in multi-day use competition start date, in single-day use the existing competition date
-        let defaultDate: CalendarDate | null = null;
-        if ($form.startDate) {
-            const d = new Date($form.startDate as string);
-            defaultDate = new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate());
-        }
+        // Default day for a new category: the competition's start day, if one is set.
+        const defaultDate = $form.startDate ? calendarDateFrom($form.startDate as string) : null;
 
-        categories.create = [...categories.create, {
+        categories.push({
+            origin: 'new',
             description: "",
             subname: "",
             type: "INDIVIDUAL",
             startTime: "",
             endTime: "",
+            startDate: defaultDate,
+            endDate: defaultDate,
             maxParties: null,
             maxPartySize: 1,
             price: 0,
             status: "NOT_STARTED",
             puzzleIds: [],
-        }];
-
-        categories_times_obj_arr.create = [...categories_times_obj_arr.create, {startTime: "", endTime: "", date: defaultDate, endDate: defaultDate}];
+            puzzles: [],
+            tagCategories: [],
+            errors: {},
+        });
     }
 
-    function requestRemoveCategory(source: 'create' | 'update', index: number) {
-        // For existing categories (update), show confirmation dialog
-        if (source === "update") {
-            pendingRemoval = { source, index };
+    function requestRemoveCategory(draft: CategoryDraft) {
+        // Existing categories may already have registrations — confirm first.
+        if (draft.origin === 'existing') {
+            pendingRemoval = draft;
             showRemoveConfirmation = true;
         } else {
-            // For new categories, remove immediately (no registrations possible)
-            removeCategory(source, index);
+            // New categories have no registrations — remove immediately.
+            removeCategory(draft);
         }
     }
 
     function confirmRemoveCategory() {
         if (pendingRemoval) {
-            removeCategory(pendingRemoval.source, pendingRemoval.index);
+            removeCategory(pendingRemoval);
             pendingRemoval = null;
             showRemoveConfirmation = false;
         }
@@ -337,115 +359,49 @@
         showRemoveConfirmation = false;
     }
 
-    function removeCategory(source: 'create' | 'update', index: number) {
-        if(source === "create") {
-            categories.create = categories.create.filter((_: any, i: number) => i !== index);
-            categories_times_obj_arr.create = categories_times_obj_arr.create.filter((_: any, i: number) => i !== index);
-            categoryErrors.create = categoryErrors.create.filter((_: any, i: number) => i !== index);
-        } else if (source === "update") {
-            const categoryToDelete = categories.update[index].where.id;
-            console.log("categoryToDelete", categoryToDelete);
-            categories.delete = [...categories.delete, {id: categoryToDelete}];
-            categories.update = categories.update.filter((_: any, i: number) => i !== index);
-            categories_times_obj_arr.update = categories_times_obj_arr.update.filter((_: any, i: number) => i !== index);
-            categoryErrors.update = categoryErrors.update.filter((_: any, i: number) => i !== index);
+    function removeCategory(draft: CategoryDraft) {
+        if (draft.origin === 'existing') {
+            // Keep it in the array, flagged so the submit payload lists it for deletion.
+            draft.removed = true;
+        } else {
+            categories = categories.filter((c) => c !== draft);
         }
         // Recompute competition dates after removing a category
         autoComputeCompetitionDates();
     }
 
-    // Client-side validation for category fields
-    function validateCategoryField(source: 'create' | 'update', index: number, field: string, value: any) {
-        if (!categoryErrors[source][index]) {
-            categoryErrors[source][index] = {};
-        }
-
+    // Client-side per-field validation; writes onto the draft's transient errors.
+    function validateCategoryField(draft: CategoryDraft, field: string, value: any) {
+        const errors = draft.errors;
         switch (field) {
             case 'description':
-                if (value && value.length > 60) {
-                    categoryErrors[source][index].description = $t('competition.form_error.max_length.category_description');
-                } else {
-                    delete categoryErrors[source][index].description;
-                }
+                if (value && value.length > 60) errors.description = $t('competition.form_error.max_length.category_description');
+                else delete errors.description;
                 break;
             case 'type':
-                if (!value) {
-                    categoryErrors[source][index].type = $t('competition.form_error.required.category_type');
-                } else {
-                    delete categoryErrors[source][index].type;
-                }
+                if (!value) errors.type = $t('competition.form_error.required.category_type');
+                else delete errors.type;
                 break;
             case 'startTime':
-                if (!value) {
-                    categoryErrors[source][index].startTime = $t('competition.form_error.required.start_time');
-                } else {
-                    delete categoryErrors[source][index].startTime;
-                }
+                if (!value) errors.startTime = $t('competition.form_error.required.start_time');
+                else delete errors.startTime;
                 break;
             case 'endTime':
-                if (!value) {
-                    categoryErrors[source][index].endTime = $t('competition.form_error.required.end_time');
-                } else {
-                    delete categoryErrors[source][index].endTime;
-                }
+                if (!value) errors.endTime = $t('competition.form_error.required.end_time');
+                else delete errors.endTime;
                 break;
             case 'maxParties':
-                if (value !== null && value < 1) {
-                    categoryErrors[source][index].maxParties = $t('competition.form_error.min_value.max_parties');
-                } else {
-                    delete categoryErrors[source][index].maxParties;
-                }
+                if (value !== null && value < 1) errors.maxParties = $t('competition.form_error.min_value.max_parties');
+                else delete errors.maxParties;
                 break;
             case 'maxPartySize':
-                if (value !== null && value < 1) {
-                    categoryErrors[source][index].maxPartySize = $t('competition.form_error.min_value.max_party_size');
-                } else {
-                    delete categoryErrors[source][index].maxPartySize;
-                }
+                if (value !== null && value < 1) errors.maxPartySize = $t('competition.form_error.min_value.max_party_size');
+                else delete errors.maxPartySize;
                 break;
             case 'price':
-                if (value === null || value === undefined || isNaN(value) || value < 0) {
-                    categoryErrors[source][index].price = $t('competition.form_error.min_value.price');
-                } else {
-                    delete categoryErrors[source][index].price;
-                }
+                if (value === null || value === undefined || isNaN(value) || value < 0) errors.price = $t('competition.form_error.min_value.price');
+                else delete errors.price;
                 break;
-        }
-    }
-
-    function buildCategoryDateTime(field: string, source: 'create' | 'update', index: number, time_value: string) {
-        // Always update the time display value first
-        if (time_value) {
-            if (source === "create") {
-                categories_times_obj_arr.create[index][field] = time_value;
-            } else if (source === "update") {
-                categories_times_obj_arr.update[index][field] = time_value;
-            }
-        }
-
-        // Determine the date source: in multi-day mode use the category's own date (endDate for endTime), otherwise the competition date
-        let dateSource: string | null = null;
-        if (isMultiDay) {
-            const catDate = (field === 'endTime'
-                ? categories_times_obj_arr[source][index]?.endDate
-                : categories_times_obj_arr[source][index]?.date) as CalendarDate | null;
-            if (!catDate || !time_value) return "";
-            const jsDate = catDate.toDate(getLocalTimeZone());
-            dateSource = fromDate(jsDate, getLocalTimeZone()).toAbsoluteString();
-        } else {
-            if (!$form.startDate || $form.startDate === "" || !time_value) return "";
-            dateSource = (new Date($form.startDate as string)).toISOString();
-        }
-
-        const localTimeZone = getLocalTimeZone();
-        const date = parseAbsolute(dateSource, localTimeZone);
-        const js_date = toCalendarDateTime(date, new Time(parseInt(time_value.split(':')[0]), parseInt(time_value.split(':')[1]))).toDate(localTimeZone);
-        const updated_date = fromDate(js_date, localTimeZone).toAbsoluteString();
-
-        if(source === "create") {
-            categories.create[index][field] = updated_date;
-        } else if (source === "update") {
-            categories.update[index].data[field] = updated_date;
         }
     }
 
@@ -460,68 +416,47 @@
         $form.startDate = fromDate(date, localTimeZone).toAbsoluteString();
         $form.endDate   = fromDate(date, localTimeZone).toAbsoluteString();
 
-        // In single-day mode, update all category datetimes with the new date
-        // Also set the default category date for all categories
-        if (categories.create) {
-            for (let i = 0; i < categories.create.length; i++) {
-                categories_times_obj_arr.create[i].date = date_value;
-                buildCategoryDateTime('startTime', 'create', i, categories_times_obj_arr.create[i].startTime);
-                buildCategoryDateTime('endTime',   'create', i, categories_times_obj_arr.create[i].endTime);
-            }
-        }
-
-        if (categories.update) {
-            for (let i = 0; i < categories.update.length; i++) {
-                categories_times_obj_arr.update[i].date = date_value;
-                buildCategoryDateTime('startTime', 'update', i, categories_times_obj_arr.update[i].startTime);
-                buildCategoryDateTime('endTime',   'update', i, categories_times_obj_arr.update[i].endTime);
-            }
+        // Single-day mode: every category shares the single competition day.
+        for (const c of categories) {
+            c.startDate = date_value;
+            c.endDate = date_value;
         }
 
         // Update competition dates with earliest/latest category times
         autoComputeCompetitionDates();
     }
 
-    function onCategoryDateChange(source: 'create' | 'update', index: number, date_value: CalendarDate | null | undefined) {
+    function onCategoryDateChange(draft: CategoryDraft, date_value: CalendarDate | null | undefined) {
         if (!date_value) return;
-        categories_times_obj_arr[source][index].date = date_value;
-        // If endDate hasn't been explicitly set or is before the new start date, sync it
-        const curEnd = categories_times_obj_arr[source][index].endDate as CalendarDate | null;
-        if (!curEnd || curEnd.compare(date_value) < 0) {
-            categories_times_obj_arr[source][index].endDate = date_value;
+        draft.startDate = date_value;
+        // Keep the end day on/after the start day.
+        if (!draft.endDate || draft.endDate.compare(date_value) < 0) {
+            draft.endDate = date_value;
         }
-        buildCategoryDateTime('startTime', source, index, categories_times_obj_arr[source][index].startTime);
-        buildCategoryDateTime('endTime',   source, index, categories_times_obj_arr[source][index].endTime);
         // Trigger auto-compute of competition dates
         autoComputeCompetitionDates();
     }
 
-    function onCategoryEndDateChange(source: 'create' | 'update', index: number, date_value: CalendarDate | null | undefined) {
+    function onCategoryEndDateChange(draft: CategoryDraft, date_value: CalendarDate | null | undefined) {
         if (!date_value) return;
-        categories_times_obj_arr[source][index].endDate = date_value;
-        buildCategoryDateTime('endTime', source, index, categories_times_obj_arr[source][index].endTime);
+        draft.endDate = date_value;
         autoComputeCompetitionDates();
     }
 
     function autoComputeCompetitionDates() {
+        const allStarts: Date[] = [];
+        const allEnds: Date[] = [];
 
-        const allDatetimes: Date[] = [];
-        const allEndDatetimes: Date[] = [];
-
-        for (let i = 0; i < categories.create.length; i++) {
-            if (categories.create[i].startTime) allDatetimes.push(new Date(categories.create[i].startTime));
-            if (categories.create[i].endTime) allEndDatetimes.push(new Date(categories.create[i].endTime));
-        }
-        for (let i = 0; i < categories.update.length; i++) {
-            if (categories.update[i].data.startTime) allDatetimes.push(new Date(categories.update[i].data.startTime));
-            if (categories.update[i].data.endTime) allEndDatetimes.push(new Date(categories.update[i].data.endTime));
+        for (const c of activeCategories) {
+            if (c.startDate && c.startTime) allStarts.push(new Date(resolveCategoryDateTime(c.startDate, c.startTime)));
+            if (c.endDate && c.endTime) allEnds.push(new Date(resolveCategoryDateTime(c.endDate, c.endTime)));
         }
 
-        if (allDatetimes.length === 0) return;
+        if (allStarts.length === 0) return;
 
         const localTimeZone = getLocalTimeZone();
-        const earliest = new Date(Math.min(...allDatetimes.map(d => d.getTime())));
-        const latest = new Date(Math.max(...allEndDatetimes.map(d => d.getTime())));
+        const earliest = new Date(Math.min(...allStarts.map((d) => d.getTime())));
+        const latest = new Date(Math.max(...allEnds.map((d) => d.getTime())));
 
         $form.startDate = fromDate(earliest, localTimeZone).toAbsoluteString();
         $form.endDate   = fromDate(latest, localTimeZone).toAbsoluteString();
@@ -531,30 +466,19 @@
         isMultiDay = !isMultiDay;
 
         if (isMultiDay) {
-            // Switching to multi-day: give each category the current competition date
-            const compDate = $form.startDate
-                ? (() => { const d = new Date($form.startDate as string); return new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate()); })()
-                : null;
-            for (let i = 0; i < categories_times_obj_arr.create.length; i++) {
-                categories_times_obj_arr.create[i].date = compDate;
-                categories_times_obj_arr.create[i].endDate = compDate;
-            }
-            for (let i = 0; i < categories_times_obj_arr.update.length; i++) {
-                if (!categories_times_obj_arr.update[i].date) {
-                    categories_times_obj_arr.update[i].date = compDate;
-                }
-                if (!categories_times_obj_arr.update[i].endDate) {
-                    categories_times_obj_arr.update[i].endDate = compDate;
-                }
+            // Off → on: seed each category's day from the single competition date.
+            const compDate = $form.startDate ? calendarDateFrom($form.startDate as string) : null;
+            for (const c of categories) {
+                if (!c.startDate) c.startDate = compDate;
+                if (!c.endDate) c.endDate = compDate;
             }
             autoComputeCompetitionDates();
         } else {
-            // Switching to single-day: use the earliest category date as the single competition date
+            // On → off: collapse to the earliest category day as the single date.
             let earliest: CalendarDate | null = null;
-            const allEntries = [...categories_times_obj_arr.create, ...categories_times_obj_arr.update];
-            for (const entry of allEntries) {
-                if (entry.date && (!earliest || entry.date.compare(earliest) < 0)) {
-                    earliest = entry.date;
+            for (const c of activeCategories) {
+                if (c.startDate && (!earliest || c.startDate.compare(earliest) < 0)) {
+                    earliest = c.startDate;
                 }
             }
             if (earliest) {
@@ -564,8 +488,8 @@
         }
     }
 
-    function autofillCategoryMaxPartySize(index: number, source: 'create' | 'update', value: string) {
-        categories[source][index].maxPartySize = getPartySizeByCategoryType(value as CategoryType);
+    function autofillCategoryMaxPartySize(draft: CategoryDraft, value: string) {
+        draft.maxPartySize = getPartySizeByCategoryType(value as CategoryType);
     }
 
     // Max base64 payload size we allow (~3MB image → ~4MB base64, under Vercel's 4.5MB limit)
@@ -863,6 +787,30 @@
                     </div>
                 </div>
 
+                <!-- Open registration toggle -->
+                <div class="label lg:col-span-2">
+                    <div class="flex items-center gap-3">
+                        <button
+                            type="button"
+                            role="switch"
+                            aria-checked={$form.registrationOpen}
+                            aria-label={$t('competition.create.registration_open')}
+                            class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 {$form.registrationOpen ? 'bg-primary-500' : 'bg-surface-300 dark:bg-surface-600'}"
+                            onclick={() => { $form.registrationOpen = !$form.registrationOpen; }}
+                            data-testid="registration-open-toggle"
+                        >
+                            <span
+                                aria-hidden="true"
+                                class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {$form.registrationOpen ? 'translate-x-5' : 'translate-x-0'}"
+                            ></span>
+                        </button>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium">{$t('competition.create.registration_open')}</span>
+                            <span class="text-xs text-surface-500">{$t('competition.create.registration_open_help')}</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="label">
                     <span>{$t('competition.create.image')}</span>
                     {#if selected_image_src === undefined}
@@ -976,7 +924,7 @@
 
         <!-- Categories Section -->
         <div class="card preset-outlined-surface-200-800 p-4 rounded-lg">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between gap-2 mb-4">
                 <h2 class="h4 font-semibold flex items-center gap-2">
                     <Icon
                         icon="mdi:format-list-bulleted"
@@ -989,21 +937,22 @@
 
                 <button
                     type="button"
-                    class="btn preset-filled-primary-500 rounded-lg"
+                    class="btn-icon sm:btn preset-filled-primary-500 rounded-lg shrink-0"
                     onclick={addCategory}
                     disabled={!isMultiDay && !$form.startDate}
+                    aria-label={$t('competition.create.add_category')}
                 >
                     <Icon icon="mdi:plus" width="1.2rem" height="1.2rem" />
-                    {$t('competition.create.add_category')}
+                    <span class="hidden sm:inline">{$t('competition.create.add_category')}</span>
                 </button>
             </div>
 
             <div class="space-y-4">
-                {#if categories?.update && (categories?.update as []).length > 0}
+                {#if existingCategories.length > 0}
                     <div>
                         <p>{$t('competition.create.current_categories')}</p>
                     </div>
-                    {#each categories.update as _, i}
+                    {#each existingCategories as cat, i (cat)}
                         <div class="p-2 rounded-lg bg-warning-50-950" data-testid="category-update-{i}">
                             <!-- Category Header -->
                             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1013,11 +962,11 @@
                                     <select
                                         id="category-type-update-{i}"
                                         class="select bg-primary-50-950"
-                                        class:input-error={categoryErrors.update[i]?.type}
-                                        bind:value={categories.update[i].data.type}
+                                        class:input-error={cat.errors?.type}
+                                        bind:value={cat.type}
                                         onchange={(e) => {
-                                            autofillCategoryMaxPartySize(i, 'update', (e.target as HTMLInputElement).value);
-                                            validateCategoryField('update', i, 'type', (e.target as HTMLInputElement).value);
+                                            autofillCategoryMaxPartySize(cat, (e.target as HTMLInputElement).value);
+                                            validateCategoryField(cat, 'type', (e.target as HTMLInputElement).value);
                                         }}
                                     >
                                         <option value="">{$t('competition.create.select_category_type')}</option>
@@ -1027,14 +976,14 @@
                                             </option>
                                         {/each}
                                     </select>
-                                    {#if categoryErrors.update[i]?.type}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].type}</span>
+                                    {#if cat.errors?.type}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.type}</span>
                                     {/if}
                                 </div>
                             </div>
 
                             <!-- Category Details (only show when type is selected) -->
-                            {#if categories.update[i].data.type}
+                            {#if cat.type}
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <!-- Category Subname -->
                                 <div class="label">
@@ -1042,7 +991,7 @@
                                     <input
                                         type="text"
                                         class="input bg-primary-50-950"
-                                        bind:value={categories.update[i].data.subname}
+                                        bind:value={cat.subname}
                                         placeholder={$t('competition.create.category_subname_placeholder')}
                                         maxlength="60"
                                     />
@@ -1052,36 +1001,35 @@
                                 <div class="label" data-testid="category-start-date-update-{i}">
                                     <CustomDatePicker
                                         labelText={$t('competition.create.category_date')}
-                                        value={categories_times_obj_arr.update[i]?.date ?? undefined}
+                                        value={cat.startDate ?? undefined}
                                         locale={data.i18n.locale}
                                         minValue={today(getLocalTimeZone())}
                                         weekStartsOn={1}
                                         pagedNavigation={true}
                                         disableDaysOutsideMonth={true}
-                                        onValueChange={(e) => onCategoryDateChange('update', i, e)}
+                                        onValueChange={(e) => onCategoryDateChange(cat, e)}
                                     />
-                                    {#if categoryErrors.update[i]?.date}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].date}</span>
+                                    {#if cat.errors?.date}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.date}</span>
                                     {/if}
                                 </div>
                                 {/if}
                                 <!-- Start Time -->
                                 <div class="label">
                                     <span class="text-sm font-medium">{$t('competition.create.start_time')}</span>
-                                    <label for="start-time-{i}" class="sr-only">{$t('competition.create.start_time')}</label>
                                     <input
                                         type="time"
                                         class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.update[i]?.startTime}
+                                        class:input-error={cat.errors?.startTime}
                                         data-testid="start-time-update-{i}"
-                                        value={categories_times_obj_arr.update[i].startTime}
-                                        onchange={(e) => {
-                                            buildCategoryDateTime('startTime', 'update', i, (e.target as HTMLInputElement).value); autoComputeCompetitionDates();
-                                            validateCategoryField('update', i, 'startTime', (e.target as HTMLInputElement).value);
+                                        bind:value={cat.startTime}
+                                        onchange={() => {
+                                            autoComputeCompetitionDates();
+                                            validateCategoryField(cat, 'startTime', cat.startTime);
                                         }}
                                     />
-                                    {#if categoryErrors.update[i]?.startTime}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].startTime}</span>
+                                    {#if cat.errors?.startTime}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.startTime}</span>
                                     {/if}
                                 </div>
                                 <!-- Category End Date (multi-day only) -->
@@ -1089,16 +1037,16 @@
                                 <div class="label" data-testid="category-end-date-update-{i}">
                                     <CustomDatePicker
                                         labelText={$t('competition.create.category_end_date')}
-                                        value={categories_times_obj_arr.update[i]?.endDate ?? undefined}
+                                        value={cat.endDate ?? undefined}
                                         locale={data.i18n.locale}
-                                        minValue={categories_times_obj_arr.update[i]?.date ?? today(getLocalTimeZone())}
+                                        minValue={cat.startDate ?? today(getLocalTimeZone())}
                                         weekStartsOn={1}
                                         pagedNavigation={true}
                                         disableDaysOutsideMonth={true}
-                                        onValueChange={(e) => onCategoryEndDateChange('update', i, e)}
+                                        onValueChange={(e) => onCategoryEndDateChange(cat, e)}
                                     />
-                                    {#if categoryErrors.update[i]?.endDate}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].endDate}</span>
+                                    {#if cat.errors?.endDate}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.endDate}</span>
                                     {/if}
                                 </div>
                                 {/if}
@@ -1107,16 +1055,16 @@
                                     <input
                                         type="time"
                                         class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.update[i]?.endTime}
+                                        class:input-error={cat.errors?.endTime}
                                         data-testid="end-time-update-{i}"
-                                        value={categories_times_obj_arr.update[i].endTime}
-                                        onchange={(e) => {
-                                            buildCategoryDateTime('endTime', 'update', i, (e.target as HTMLInputElement).value); autoComputeCompetitionDates();
-                                            validateCategoryField('update', i, 'endTime', (e.target as HTMLInputElement).value);
+                                        bind:value={cat.endTime}
+                                        onchange={() => {
+                                            autoComputeCompetitionDates();
+                                            validateCategoryField(cat, 'endTime', cat.endTime);
                                         }}
                                     />
-                                    {#if categoryErrors.update[i]?.endTime}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].endTime}</span>
+                                    {#if cat.errors?.endTime}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.endTime}</span>
                                     {/if}
                                 </div>
 
@@ -1126,16 +1074,16 @@
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.update[i]?.maxParties}
+                                        class:input-error={cat.errors?.maxParties}
                                         data-testid="max-parties-update-{i}"
-                                        bind:value={categories.update[i].data.maxParties}
+                                        bind:value={cat.maxParties}
                                         min="1"
                                         step="1"
                                         placeholder={$t('competition.create.max_parties_placeholder')}
-                                        oninput={(e) => validateCategoryField('update', i, 'maxParties', parseInt((e.target as HTMLInputElement).value))}
+                                        oninput={(e) => validateCategoryField(cat, 'maxParties', parseInt((e.target as HTMLInputElement).value))}
                                     />
-                                    {#if categoryErrors.update[i]?.maxParties}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].maxParties}</span>
+                                    {#if cat.errors?.maxParties}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.maxParties}</span>
                                     {/if}
                                 </div>
                                 <!-- Participants per Party -->
@@ -1144,14 +1092,14 @@
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.update[i]?.maxPartySize}
+                                        class:input-error={cat.errors?.maxPartySize}
                                         data-testid="max-party-size-update-{i}"
-                                        bind:value={categories.update[i].data.maxPartySize}
+                                        bind:value={cat.maxPartySize}
                                         min="1"
-                                        oninput={(e) => validateCategoryField('update', i, 'maxPartySize', parseInt((e.target as HTMLInputElement).value))}
+                                        oninput={(e) => validateCategoryField(cat, 'maxPartySize', parseInt((e.target as HTMLInputElement).value))}
                                     />
-                                    {#if categoryErrors.update[i]?.maxPartySize}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].maxPartySize}</span>
+                                    {#if cat.errors?.maxPartySize}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.maxPartySize}</span>
                                     {/if}
                                 </div>
                                 <!-- Price -->
@@ -1160,16 +1108,16 @@
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.update[i]?.price}
+                                        class:input-error={cat.errors?.price}
                                         data-testid="price-update-{i}"
-                                        bind:value={categories.update[i].data.price}
+                                        bind:value={cat.price}
                                         min="0"
                                         step="1"
                                         placeholder={$t('competition.create.price_placeholder')}
-                                        oninput={(e) => validateCategoryField('update', i, 'price', parseInt((e.target as HTMLInputElement).value))}
+                                        oninput={(e) => validateCategoryField(cat, 'price', parseInt((e.target as HTMLInputElement).value))}
                                     />
-                                    {#if categoryErrors.update[i]?.price}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].price}</span>
+                                    {#if cat.errors?.price}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.price}</span>
                                     {/if}
                                 </div>
                                 <!-- Category Description -->
@@ -1178,32 +1126,39 @@
                                     <input
                                         type="text"
                                         class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.update[i]?.description}
+                                        class:input-error={cat.errors?.description}
                                         data-testid="description-update-{i}"
-                                        bind:value={categories.update[i].data.description}
+                                        bind:value={cat.description}
                                         placeholder={$t('competition.create.category_description_placeholder')}
                                         minlength="3"
                                         maxlength="60"
-                                        oninput={(e) => validateCategoryField('update', i, 'description', (e.target as HTMLInputElement).value)}
+                                        oninput={(e) => validateCategoryField(cat, 'description', (e.target as HTMLInputElement).value)}
                                     />
-                                    {#if categoryErrors.update[i]?.description}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.update[i].description}</span>
+                                    {#if cat.errors?.description}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.description}</span>
                                     {/if}
                                 </div>
                             </div>
 
+                            <!-- Sub-prize tags -->
+                            <div class="mt-4 border-t border-surface-200 dark:border-surface-700 pt-3">
+                                <CategoryTagSelector
+                                    tags={data.props?.participantTags ?? []}
+                                    bind:tagCategories={cat.tagCategories}
+                                />
+                            </div>
                             {/if}
                             <!-- Puzzles Section -->
                             <PuzzleLinkSection
-                                puzzleIds={categories.update[i].data.puzzleIds || []}
-                                initialPuzzles={categories.update[i].data.puzzles || []}
-                                onUpdate={(ids) => categories.update[i].data.puzzleIds = ids}
+                                puzzleIds={cat.puzzleIds || []}
+                                initialPuzzles={cat.puzzles || []}
+                                onUpdate={(ids) => cat.puzzleIds = ids}
                             />
                             <div class="flex justify-end gap-4 mt-4">
                                 <button
                                     type="button"
                                     class="btn preset-tonal rounded-lg"
-                                    onclick={() => requestRemoveCategory('update', i)}
+                                    onclick={() => requestRemoveCategory(cat)}
                                 >
                                     <Icon icon="mdi:delete" width="1.2rem" height="1.2rem" />
                                     {$t('competition.create.remove_category')}
@@ -1212,11 +1167,11 @@
                         </div>
                     {/each}
                 {/if}
-                {#if categories?.create && (categories?.create as []).length > 0}
+                {#if newCategories.length > 0}
                     <div>
                         <p>{$t('competition.create.new_categories')}</p>
                     </div>
-                    {#each categories.create as _, i}
+                    {#each newCategories as cat, i (cat)}
                         <div class="p-2 rounded-lg bg-success-50-950" data-testid="category-create-{i}">
                             <!-- Category Header -->
                             <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1226,11 +1181,11 @@
                                     <select
                                         id="category-type-create-{i}"
                                         class="select bg-primary-50-950"
-                                        class:input-error={categoryErrors.create[i]?.type}
-                                        bind:value={categories.create[i].type}
+                                        class:input-error={cat.errors?.type}
+                                        bind:value={cat.type}
                                         onchange={(e) => {
-                                            autofillCategoryMaxPartySize(i, 'create', (e.target as HTMLInputElement).value);
-                                            validateCategoryField('create', i, 'type', (e.target as HTMLInputElement).value);
+                                            autofillCategoryMaxPartySize(cat, (e.target as HTMLInputElement).value);
+                                            validateCategoryField(cat, 'type', (e.target as HTMLInputElement).value);
                                         }}
                                     >
                                         <option value="">{$t('competition.create.select_category_type')}</option>
@@ -1240,30 +1195,30 @@
                                             </option>
                                         {/each}
                                     </select>
-                                    {#if categoryErrors.create[i]?.type}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].type}</span>
+                                    {#if cat.errors?.type}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.type}</span>
                                     {/if}
                                 </div>
                             </div>
 
                             <!-- Category Details (only show when type is selected) -->
-                            {#if categories.create[i].type}
+                            {#if cat.type}
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <!-- Category Dates (multi-day only) -->
                                 {#if isMultiDay}
                                 <div class="label" data-testid="category-start-date-create-{i}">
                                     <CustomDatePicker
                                         labelText={$t('competition.create.category_date')}
-                                        value={categories_times_obj_arr.create[i]?.date ?? undefined}
+                                        value={cat.startDate ?? undefined}
                                         locale={data.i18n.locale}
                                         minValue={today(getLocalTimeZone())}
                                         weekStartsOn={1}
                                         pagedNavigation={true}
                                         disableDaysOutsideMonth={true}
-                                        onValueChange={(e) => onCategoryDateChange('create', i, e)}
+                                        onValueChange={(e) => onCategoryDateChange(cat, e)}
                                     />
-                                    {#if categoryErrors.create[i]?.date}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].date}</span>
+                                    {#if cat.errors?.date}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.date}</span>
                                     {/if}
                                 </div>
                                 {/if}
@@ -1272,16 +1227,16 @@
                                     <input
                                         type="time"
                                         class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.create[i]?.startTime}
+                                        class:input-error={cat.errors?.startTime}
                                         data-testid="start-time-create-{i}"
-                                        value={categories_times_obj_arr.create[i].startTime}
-                                        onchange={(e) => {
-                                            buildCategoryDateTime('startTime', 'create', i, (e.target as HTMLInputElement).value); autoComputeCompetitionDates();
-                                            validateCategoryField('create', i, 'startTime', (e.target as HTMLInputElement).value);
+                                        bind:value={cat.startTime}
+                                        onchange={() => {
+                                            autoComputeCompetitionDates();
+                                            validateCategoryField(cat, 'startTime', cat.startTime);
                                         }}
                                     />
-                                    {#if categoryErrors.create[i]?.startTime}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].startTime}</span>
+                                    {#if cat.errors?.startTime}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.startTime}</span>
                                     {/if}
                                 </div>
                                 <!-- Category End Date (multi-day only) -->
@@ -1289,16 +1244,16 @@
                                 <div class="label" data-testid="category-end-date-create-{i}">
                                     <CustomDatePicker
                                         labelText={$t('competition.create.category_end_date')}
-                                        value={categories_times_obj_arr.create[i]?.endDate ?? undefined}
+                                        value={cat.endDate ?? undefined}
                                         locale={data.i18n.locale}
-                                        minValue={categories_times_obj_arr.create[i]?.date ?? today(getLocalTimeZone())}
+                                        minValue={cat.startDate ?? today(getLocalTimeZone())}
                                         weekStartsOn={1}
                                         pagedNavigation={true}
                                         disableDaysOutsideMonth={true}
-                                        onValueChange={(e) => onCategoryEndDateChange('create', i, e)}
+                                        onValueChange={(e) => onCategoryEndDateChange(cat, e)}
                                     />
-                                    {#if categoryErrors.create[i]?.endDate}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].endDate}</span>
+                                    {#if cat.errors?.endDate}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.endDate}</span>
                                     {/if}
                                 </div>
                                 {/if}
@@ -1307,17 +1262,17 @@
                                     <input
                                         type="time"
                                         class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.create[i]?.endTime}
+                                        class:input-error={cat.errors?.endTime}
                                         data-testid="end-time-create-{i}"
-                                        value={categories_times_obj_arr.create[i].endTime}
-                                        onchange={(e) => {
-                                            buildCategoryDateTime('endTime', 'create', i, (e.target as HTMLInputElement).value); autoComputeCompetitionDates();
-                                            validateCategoryField('create', i, 'endTime', (e.target as HTMLInputElement).value);
+                                        bind:value={cat.endTime}
+                                        onchange={() => {
+                                            autoComputeCompetitionDates();
+                                            validateCategoryField(cat, 'endTime', cat.endTime);
                                         }}
-                                        min={categories_times_obj_arr.create[i].startTime}
+                                        min={cat.startTime}
                                     />
-                                    {#if categoryErrors.create[i]?.endTime}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].endTime}</span>
+                                    {#if cat.errors?.endTime}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.endTime}</span>
                                     {/if}
                                 </div>
 
@@ -1327,16 +1282,16 @@
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.create[i]?.maxParties}
+                                        class:input-error={cat.errors?.maxParties}
                                         data-testid="max-parties-create-{i}"
-                                        bind:value={categories.create[i].maxParties}
+                                        bind:value={cat.maxParties}
                                         min="1"
                                         step="1"
                                         placeholder={$t('competition.create.max_parties_placeholder')}
-                                        oninput={(e) => validateCategoryField('create', i, 'maxParties', parseInt((e.target as HTMLInputElement).value))}
+                                        oninput={(e) => validateCategoryField(cat, 'maxParties', parseInt((e.target as HTMLInputElement).value))}
                                     />
-                                    {#if categoryErrors.create[i]?.maxParties}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].maxParties}</span>
+                                    {#if cat.errors?.maxParties}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.maxParties}</span>
                                     {/if}
                                 </div>
                                 <!-- Participants per Party -->
@@ -1345,14 +1300,14 @@
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.create[i]?.maxPartySize}
+                                        class:input-error={cat.errors?.maxPartySize}
                                         data-testid="max-party-size-create-{i}"
-                                        bind:value={categories.create[i].maxPartySize}
+                                        bind:value={cat.maxPartySize}
                                         min="1"
-                                        oninput={(e) => validateCategoryField('create', i, 'maxPartySize', parseInt((e.target as HTMLInputElement).value))}
+                                        oninput={(e) => validateCategoryField(cat, 'maxPartySize', parseInt((e.target as HTMLInputElement).value))}
                                     />
-                                    {#if categoryErrors.create[i]?.maxPartySize}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].maxPartySize}</span>
+                                    {#if cat.errors?.maxPartySize}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.maxPartySize}</span>
                                     {/if}
                                 </div>
                                 <!-- Price -->
@@ -1361,16 +1316,16 @@
                                     <input
                                         type="number"
                                         class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.create[i]?.price}
+                                        class:input-error={cat.errors?.price}
                                         data-testid="price-create-{i}"
-                                        bind:value={categories.create[i].price}
+                                        bind:value={cat.price}
                                         min="0"
                                         step="1"
                                         placeholder={$t('competition.create.price_placeholder')}
-                                        oninput={(e) => validateCategoryField('create', i, 'price', parseInt((e.target as HTMLInputElement).value))}
+                                        oninput={(e) => validateCategoryField(cat, 'price', parseInt((e.target as HTMLInputElement).value))}
                                     />
-                                    {#if categoryErrors.create[i]?.price}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].price}</span>
+                                    {#if cat.errors?.price}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.price}</span>
                                     {/if}
                                 </div>
                                 <!-- Category Description -->
@@ -1379,16 +1334,16 @@
                                     <input
                                         type="text"
                                         class="input bg-primary-50-950"
-                                        class:input-error={categoryErrors.create[i]?.description}
+                                        class:input-error={cat.errors?.description}
                                         data-testid="description-create-{i}"
-                                        bind:value={categories.create[i].description}
+                                        bind:value={cat.description}
                                         placeholder={$t('competition.create.category_description_placeholder')}
                                         minlength="3"
                                         maxlength="60"
-                                        oninput={(e) => validateCategoryField('create', i, 'description', (e.target as HTMLInputElement).value)}
+                                        oninput={(e) => validateCategoryField(cat, 'description', (e.target as HTMLInputElement).value)}
                                     />
-                                    {#if categoryErrors.create[i]?.description}
-                                        <span class="invalid text-error-500 text-sm">{categoryErrors.create[i].description}</span>
+                                    {#if cat.errors?.description}
+                                        <span class="invalid text-error-500 text-sm">{cat.errors.description}</span>
                                     {/if}
                                 </div>
                                 <!-- Category Subname -->
@@ -1397,23 +1352,31 @@
                                     <input
                                         type="text"
                                         class="input bg-primary-50-950"
-                                        bind:value={categories.create[i].subname}
+                                        bind:value={cat.subname}
                                         placeholder={$t('competition.create.category_subname_placeholder')}
                                         maxlength="60"
                                     />
                                 </div>
                             </div>
+
+                            <!-- Sub-prize tags -->
+                            <div class="mt-4 border-t border-surface-200 dark:border-surface-700 pt-3">
+                                <CategoryTagSelector
+                                    tags={data.props?.participantTags ?? []}
+                                    bind:tagCategories={cat.tagCategories}
+                                />
+                            </div>
                             {/if}
                             <!-- Puzzles Section -->
                             <PuzzleLinkSection
-                                puzzleIds={categories.create[i].puzzleIds || []}
-                                onUpdate={(ids) => categories.create[i].puzzleIds = ids}
+                                puzzleIds={cat.puzzleIds || []}
+                                onUpdate={(ids) => cat.puzzleIds = ids}
                             />
                             <div class="flex justify-end gap-4 mt-4">
                                 <button
                                     type="button"
                                     class="btn preset-tonal rounded-lg"
-                                    onclick={() => requestRemoveCategory('create', i)}
+                                    onclick={() => requestRemoveCategory(cat)}
                                 >
                                     <Icon icon="mdi:delete" width="1.2rem" height="1.2rem" />
                                     {$t('competition.create.remove_category')}
@@ -1422,7 +1385,7 @@
                         </div>
                     {/each}
                 {/if}
-                {#if categories.create && (categories.create as []).length === 0}
+                {#if newCategories.length === 0}
                     <div
                         class="text-center py-2 border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg"
                     >
@@ -1499,10 +1462,21 @@
                 </div>
             </div>
         {:else if $message && $message.success === false }
-            <div class="alert preset-filled-error-500 rounded-lg mt-4 p-2 flex items-center gap-2">
-                <Icon icon="mdi:alert-circle" width="1.5rem" height="1.5rem" />
-                <h4 class="font-semibold">{$t('competition.error')}</h4>
-                <p>{$message.message}</p>
+            <div class="alert preset-filled-error-500 rounded-lg mt-4 p-2 flex items-start gap-2">
+                <Icon icon="mdi:alert-circle" width="1.5rem" height="1.5rem" class="mt-0.5 shrink-0" />
+                <div>
+                    <h4 class="font-semibold">{$t('competition.error')}</h4>
+                    {#if serverErrorMessages.length > 0}
+                        <p class="mt-1">{$t('competition.fix_errors')}</p>
+                        <ul class="list-disc list-inside mt-1 space-y-0.5">
+                            {#each serverErrorMessages as errorLine}
+                                <li>{errorLine}</li>
+                            {/each}
+                        </ul>
+                    {:else}
+                        <p>{$message.message}</p>
+                    {/if}
+                </div>
             </div>
         {/if}
 
@@ -1533,7 +1507,7 @@
                 type="submit"
                 class="btn preset-filled-primary-500 rounded-lg"
                 data-testid="submit-competition"
-                disabled={$form.isValid === false || isSubmitting}
+                disabled={isSubmitting}
             >
                 {#if isSubmitting}
                     <Icon icon="mdi:loading" width="1.2rem" height="1.2rem" class="animate-spin" />

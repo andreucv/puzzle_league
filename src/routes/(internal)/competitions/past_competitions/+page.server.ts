@@ -1,4 +1,5 @@
 import type { PageServerLoad } from "./$types";
+import type { Competition } from "$lib/.prisma/generated/prisma/browser";
 import { error } from "@sveltejs/kit";
 import { getUpcomingCompetitions, getPastCompetitions } from "$lib/database/db_competition";
 

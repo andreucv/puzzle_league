@@ -29,6 +29,9 @@ importers:
       '@prisma/extension-accelerate':
         specifier: ^3.0.1
         version: 3.0.1(@prisma/client@7.8.0(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(typescript@5.9.3))(typescript@5.9.3))
+      '@prisma/sqlcommenter-query-insights':
+        specifier: ^7.8.0
+        version: 7.8.0
       '@upstash/qstash':
         specifier: ^2.10.1
         version: 2.11.0
@@ -1214,6 +1217,9 @@ packages:
 
   '@prisma/query-plan-executor@7.2.0':
     resolution: {integrity: sha512-EOZmNzcV8uJ0mae3DhTsiHgoNCuu1J9mULQpGCh62zN3PxPTd+qI9tJvk5jOst8WHKQNwJWR3b39t0XvfBB0WQ==}
+
+  '@prisma/sqlcommenter-query-insights@7.8.0':
+    resolution: {integrity: sha512-MXQ4FprRVPKjBq5KhQNTta4dlf6a9eF+7hoVLwTrCaxMKeRd5ThSujIDoNNnpJUFVaKnwi5vk2qoBnXM/P3+9Q==}
 
   '@prisma/streams-local@0.1.2':
     resolution: {integrity: sha512-l49yTxKKF2odFxaAXTmwmkBKL3+bVQ1tFOooGifu4xkdb9NMNLxHj27XAhTylWZod8I+ISGM5erU1xcl/oBCtg==}
@@ -4491,6 +4497,8 @@ snapshots:
       '@prisma/debug': 7.8.0
 
   '@prisma/query-plan-executor@7.2.0': {}
+
+  '@prisma/sqlcommenter-query-insights@7.8.0': {}
 
   '@prisma/streams-local@0.1.2':
     dependencies:

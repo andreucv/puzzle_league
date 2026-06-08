@@ -17,16 +17,12 @@ export const POST: RequestHandler = async (event) => {
 	}
 
 	// Verify source category belongs to competition and get its judges
-	const sourceCategory = await prisma.category.findFirst({
-		where: { id: sourceCategoryId, competitionId },
-		include: { judges: { select: { id: true } } }
+	const sourceAssignments = await prisma.categoryJudgeAssignment.findMany({
+		where: { categoryId: sourceCategoryId, category: { competitionId } },
+		select: { userId: true }
 	});
 
-	if (!sourceCategory) {
-		return json({ error: 'Source category not found in this competition' }, { status: 404 });
-	}
-
-	if (sourceCategory.judges.length === 0) {
+	if (sourceAssignments.length === 0) {
 		return json({ error: 'Source category has no judges to copy' }, { status: 400 });
 	}
 
@@ -36,17 +32,18 @@ export const POST: RequestHandler = async (event) => {
 		select: { id: true }
 	});
 
-	// Connect judges to all other categories
-	const judgeIds = sourceCategory.judges.map((j) => ({ id: j.id }));
-
-	await Promise.all(
-		otherCategories.map((cat) =>
-			prisma.category.update({
-				where: { id: cat.id },
-				data: { judges: { connect: judgeIds } }
-			})
-		)
+	// Create judge assignments for all other categories (skip duplicates)
+	const assignments = otherCategories.flatMap((cat) =>
+		sourceAssignments.map((a) => ({
+			userId: a.userId,
+			categoryId: cat.id,
+		}))
 	);
+
+	await prisma.categoryJudgeAssignment.createMany({
+		data: assignments,
+		skipDuplicates: true,
+	});
 
 	return json({ success: true });
 	} catch (error) {

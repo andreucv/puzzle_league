@@ -5,8 +5,8 @@
     import type { Category, Puzzle } from '$lib/.prisma/generated/prisma/browser';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
-    type CategoryWithCounts = Category & { totalEntries: number; finishedEntries: number };
-    type UserEntry = { categoryId: number; status?: string; users?: { id: string; name: string; email: string; image: string | null }[]; externalParticipants?: { id: string; name: string; claimedById: string | null }[] };
+    type CategoryWithCounts = Category & { totalEntries: number; finishedEntries: number; reservedSlots?: number };
+    type UserEntry = { categoryId: number; status?: string; tableNumber?: number | null; users?: { id: string; name: string; email: string; image: string | null }[]; externalParticipants?: { id: string; name: string; claimedById: string | null }[] };
 
     let {
         categories,
@@ -24,8 +24,14 @@
 
     function getSeatsAvailable(category: CategoryWithPuzzles): number | undefined {
         if (category.maxParties == null) return undefined;
-        const registered = categoriesWithCounts?.find(c => c.id === category.id)?.totalEntries ?? 0;
+        const counts = categoriesWithCounts?.find(c => c.id === category.id);
+        const registered = counts?.reservedSlots ?? counts?.totalEntries ?? 0;
         return category.maxParties - registered;
+    }
+
+    function getTotalEntries(category: CategoryWithPuzzles): number | undefined {
+        const counts = categoriesWithCounts?.find(c => c.id === category.id);
+        return counts?.totalEntries;
     }
 
     function getUserRecords(categoryId: number) {
@@ -44,6 +50,7 @@
                 showRegistration={true}
                 {records}
                 seatsAvailable={getSeatsAvailable(category)}
+                totalEntries={getTotalEntries(category)}
             />
         {/each}
     </div>

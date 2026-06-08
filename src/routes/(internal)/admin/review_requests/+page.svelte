@@ -149,15 +149,3 @@
         </div>
     {/if}
 </div>
-
-<style>
-    .input-full-width {
-        width: 100%;
-        border: none;
-        background-color: transparent;
-    }
-
-    .input-full-width:focus {
-        outline: none;
-    }
-</style>

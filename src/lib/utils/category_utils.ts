@@ -1,4 +1,4 @@
-import type { CategoryType } from "@prisma/client";
+import type { CategoryType } from "$lib/.prisma/generated/prisma/browser";
 
 import AccountIcon from '@iconify-svelte/mdi/account';
 import AccountMultipleIcon from '@iconify-svelte/mdi/account-multiple';
@@ -6,6 +6,39 @@ import AccountGroupIcon from '@iconify-svelte/mdi/account-group';
 import AccountChildIcon from '@iconify-svelte/mdi/account-child';
 import ChessKnightIcon from '@iconify-svelte/mdi/chess-knight';
 import ShapeIcon from '@iconify-svelte/mdi/shape';
+
+import TimerSandIcon from '@iconify-svelte/mdi/timer-sand';
+import PlayCircleOutlineIcon from '@iconify-svelte/mdi/play-circle-outline';
+import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
+import CancelIcon from '@iconify-svelte/mdi/cancel';
+import PauseCircleOutlineIcon from '@iconify-svelte/mdi/pause-circle-outline';
+
+type CategoryStatusColor = 'warning' | 'success' | 'error' | 'surface';
+
+export type CategoryStatusVisual = {
+    labelKey: string;
+    icon: typeof CheckCircleIcon;
+    color: CategoryStatusColor;
+};
+
+/**
+ * Single source of truth for how a CategoryStatus is presented (icon, color, label key).
+ * Each consumer maps `color` to its own styling (badge preset vs. text color).
+ */
+export function getCategoryStatusVisual(status: string): CategoryStatusVisual {
+    switch (status) {
+        case 'LIVE':
+            return { labelKey: 'category_status.in_progress', icon: PlayCircleOutlineIcon, color: 'warning' };
+        case 'STOPPED':
+            return { labelKey: 'category_status.stopped', icon: PauseCircleOutlineIcon, color: 'warning' };
+        case 'COMPLETE':
+            return { labelKey: 'category_status.completed', icon: CheckCircleIcon, color: 'success' };
+        case 'CANCELED':
+            return { labelKey: 'category_status.canceled', icon: CancelIcon, color: 'error' };
+        default:
+            return { labelKey: 'category_status.not_started', icon: TimerSandIcon, color: 'surface' };
+    }
+}
 
 export function getCategoryTypeName(type: CategoryType) {
     const typeNames: Record<CategoryType, string> = {
@@ -100,6 +133,21 @@ export function formatElapsedTime(startTime: Date, finishTime: Date): string {
     const seconds = Math.floor((ms % 60000) / 1000);
     if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
     return `${minutes}m ${seconds}s`;
+}
+
+/**
+ * Compact gap (e.g. "+4:05" / "+1:02:06") between two elapsed times, used to show
+ * how far an entry trails the one ranked directly ahead of it.
+ */
+export function formatDeltaCompact(ms: number): string {
+    if (ms <= 0) return '+0:00';
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const ss = String(seconds).padStart(2, '0');
+    if (hours > 0) return `+${hours}:${String(minutes).padStart(2, '0')}:${ss}`;
+    return `+${minutes}:${ss}`;
 }
 
 export function formatTimeDelta(firstFinish: Date, otherFinish: Date): string {

@@ -1,26 +1,18 @@
 <script lang="ts">
-    import TimerSandIcon from '@iconify-svelte/mdi/timer-sand';
-    import PlayCircleOutlineIcon from '@iconify-svelte/mdi/play-circle-outline';
-    import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
-    import CancelIcon from '@iconify-svelte/mdi/cancel';
-    import PauseCircleOutlineIcon from '@iconify-svelte/mdi/pause-circle-outline';
-
+    import { getCategoryStatusVisual } from '$lib/utils/category_utils';
     import { t } from '$lib/translations';
 
     let {category_status}: {category_status: string} = $props();
 
-    function getCategoryStatusBadge(status: string): { label: string; classes: string; icon: typeof CheckCircleIcon } {
-        if (status === 'LIVE') return { label: $t('category_status.in_progress'), classes: 'preset-filled-warning-500', icon: PlayCircleOutlineIcon };
-        if (status === 'STOPPED') return { label: $t('category_status.stopped'), classes: 'preset-filled-warning-500', icon: PauseCircleOutlineIcon };
-        if (status === 'COMPLETE') return { label: $t('category_status.completed'), classes: 'preset-filled-success-500', icon: CheckCircleIcon };
-        if (status === 'CANCELED') return { label: $t('category_status.canceled'), classes: 'preset-filled-error-500', icon: CancelIcon };
-        return { label: $t('category_status.not_started'), classes: 'preset-filled-surface-400-600', icon: TimerSandIcon };
-    }
-
-    const categoryStatusBadge = $derived(getCategoryStatusBadge(category_status));
+    const visual = $derived(getCategoryStatusVisual(category_status));
+    const chipClasses = $derived(
+        visual.color === 'surface'
+            ? 'preset-filled-surface-400-600'
+            : `preset-filled-${visual.color}-500`
+    );
 </script>
 
-<span class="badge text-xs flex items-center gap-1 shrink-0 {categoryStatusBadge.classes}">
-    <categoryStatusBadge.icon width="0.85rem" height="0.85rem" />
-    {categoryStatusBadge.label}
+<span class="badge text-xs flex items-center gap-1 shrink-0 {chipClasses}">
+    <visual.icon width="0.85rem" height="0.85rem" />
+    {$t(visual.labelKey)}
 </span>

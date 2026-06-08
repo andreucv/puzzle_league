@@ -135,6 +135,21 @@ export function formatElapsedTime(startTime: Date, finishTime: Date): string {
     return `${minutes}m ${seconds}s`;
 }
 
+/**
+ * Compact gap (e.g. "+4:05" / "+1:02:06") between two elapsed times, used to show
+ * how far an entry trails the one ranked directly ahead of it.
+ */
+export function formatDeltaCompact(ms: number): string {
+    if (ms <= 0) return '+0:00';
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const ss = String(seconds).padStart(2, '0');
+    if (hours > 0) return `+${hours}:${String(minutes).padStart(2, '0')}:${ss}`;
+    return `+${minutes}:${ss}`;
+}
+
 export function formatTimeDelta(firstFinish: Date, otherFinish: Date): string {
     const ms = new Date(otherFinish).getTime() - new Date(firstFinish).getTime();
     if (ms <= 0) return '+0s';

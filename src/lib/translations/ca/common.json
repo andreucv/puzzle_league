@@ -995,7 +995,11 @@
     "profile_hidden": "Aquest perfil és privat",
     "live_badge": "En Directe",
     "total_participants": "{{n}} inscripcions",
-    "duration": "Duració",
+    "duration": "Duració {{time}}",
+    "go_to_your_result": "Ves al teu resultat",
+    "your_result_counter": "{{i}} / {{n}}",
+    "you_badge": "Tu",
+    "table": "Taula {{n}}",
     "live_updates": "En directe",
     "live_updates_connecting": "Connectant..."
   },

@@ -253,6 +253,7 @@
         useHistoryBack={true}
     >
         {#snippet trailing()}
+            <div class="flex items-center gap-2">
             {#if ablyConnection}
                 {#if ablyConnection.status === 'connected'}
                     <span class="badge preset-tonal-success gap-1 text-xs">
@@ -274,6 +275,23 @@
                     </span>
                 {/if}
             {/if}
+            <!-- Desktop only: "Go to your result" sits next to the title (mobile uses the FAB) -->
+            {#if currentUser && viewerEntries.length > 0}
+                <button
+                    type="button"
+                    onclick={goToMyResult}
+                    class="btn btn-sm preset-filled-primary-500 gap-1.5 hidden sm:inline-flex"
+                >
+                    <TargetAccountIcon width="1rem" height="1rem" />
+                    {$t('results.go_to_your_result')}
+                    {#if findIndex >= 0 && viewerEntries.length > 1}
+                        <span class="text-xs opacity-80">
+                            {$t('results.your_result_counter', { i: findIndex + 1, n: viewerEntries.length })}
+                        </span>
+                    {/if}
+                </button>
+            {/if}
+            </div>
         {/snippet}
     </TitleBackButton>
 
@@ -590,7 +608,7 @@
             <button
                 type="button"
                 onclick={goToMyResult}
-                class="btn preset-filled-primary-500 shadow-xl gap-2 fixed bottom-5 right-5 z-30"
+                class="btn preset-filled-primary-500 shadow-xl gap-2 fixed bottom-5 right-5 z-30 sm:hidden"
             >
                 <TargetAccountIcon width="1.25rem" height="1.25rem" />
                 {$t('results.go_to_your_result')}

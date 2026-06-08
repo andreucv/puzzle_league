@@ -7,6 +7,15 @@ import { withAccelerate } from '@prisma/extension-accelerate';
 import { prismaQueryInsights } from "@prisma/sqlcommenter-query-insights";
 
 /**
+ * True when the singleton talks to Accelerate (a `prisma+postgres://` URL). Only
+ * then is `cacheStrategy` a real, accepted query argument; sending it to the plain
+ * adapter client (e.g. local dev / tests) throws `Unknown argument cacheStrategy`,
+ * so guard cached queries with this flag.
+ */
+export const accelerateEnabled =
+    (process.env.DATABASE_ACCELERATE_URL ?? '').startsWith('prisma+postgres://');
+
+/**
  * Creates a PrismaClient instance.
  *
  * @param databaseUrl - Connection string. Falls back to `process.env.DATABASE_URL`

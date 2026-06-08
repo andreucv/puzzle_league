@@ -1,7 +1,7 @@
 import { CategoryStatus, CompetitionStatus, EntryTagStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
 import type { Prisma } from '$lib/.prisma/generated/prisma/client';
 import type { Competition, Category } from '$lib/.prisma/generated/prisma/browser';
-import { prisma } from '$lib/database/create_prisma_client';
+import { prisma, accelerateEnabled } from '$lib/database/create_prisma_client';
 
 // ---------------------------------------------------------------------------
 // Single competition queries
@@ -82,10 +82,41 @@ export async function getCompetitionWithCategoriesAndEntries(competitionId: numb
     }
 }
 
+// Picks the Accelerate cache tier for the results query. A competition is set to
+// FINISHED only once its last category completes (see category-lifecycle), so once
+// frozen no category can go live again and results only change via rare organizer
+// edits — cache hard. While still running, keep a short TTL so fresh page loads stay
+// close to the live Ably stream. Driven by a tiny cached status lookup so it doesn't
+// cost a full uncached round trip. Accelerate-only (callers gate on accelerateEnabled);
+// the base client types `cacheStrategy` as `never`, hence the cast.
+async function resolveResultsCacheStrategy(competitionId: number) {
+    const meta = await prisma.competition.findUnique({
+        where: { id: competitionId },
+        select: { status: true },
+        cacheStrategy: { ttl: 10, swr: 10 } as unknown as never
+    });
+    const frozen =
+        meta?.status === CompetitionStatus.FINISHED || meta?.status === CompetitionStatus.CANCELLED;
+    // The 12h tier assumes a FINISHED competition's results never change: there is no
+    // time-correction path and tags are assigned before the competition starts. If a
+    // post-results editing path is ever added, this becomes a stale-data trap — lower
+    // the TTL or invalidate via `$accelerate.invalidate` on that new mutation.
+    return frozen
+        ? { ttl: 43_200, swr: 300 } // finished: 12h fresh, 5min stale-while-revalidate
+        : { ttl: 10, swr: 10 }; // still running: short, lets fresh loads track the live stream
+}
+
 export async function getCompetitionResults(competitionId: number) {
     try {
+        // No-op (and skipped) off Accelerate — the plain adapter client (local/test)
+        // rejects `cacheStrategy` at runtime, so don't send it there.
+        const cacheStrategy = accelerateEnabled
+            ? await resolveResultsCacheStrategy(competitionId)
+            : null;
+
         const competition = await prisma.competition.findUnique({
             where: { id: competitionId },
+            ...(cacheStrategy ? { cacheStrategy: cacheStrategy as unknown as never } : {}),
             select: {
                 id: true,
                 name: true,

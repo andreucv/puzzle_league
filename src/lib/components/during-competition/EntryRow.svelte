@@ -125,7 +125,7 @@
     <!-- Table number badge -->
     {#if record.tableNumber != null}
         <span class="badge preset-outlined-primary-500 font-mono text-xs shrink-0">
-            #{record.tableNumber}
+            T{record.tableNumber}
         </span>
     {/if}
 

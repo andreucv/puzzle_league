@@ -540,12 +540,12 @@ describe('CategoryCard', () => {
 			await waitFor(() => {
 				const banner = screen.getByTestId('last-finished-banner-rec-1');
 				expect(banner).toBeInTheDocument();
-				expect(banner).toHaveTextContent('#12');
+				expect(banner).toHaveTextContent('T12');
 				expect(banner).toHaveTextContent('Alice');
 			});
 		});
 
-		it('auto-dismisses the banner after 5 seconds', async () => {
+		it('auto-dismisses the banner after 10 seconds', async () => {
 			vi.useFakeTimers();
 			try {
 				fetchMock = mockFetchRecords([], [pendingA]);
@@ -561,8 +561,8 @@ describe('CategoryCard', () => {
 
 				expect(screen.getByTestId('last-finished-banner-rec-1')).toBeInTheDocument();
 
-				// Advance past the 5s lifetime (+ outro transition)
-				await vi.advanceTimersByTimeAsync(5000 + 400);
+				// Advance past the 10s lifetime (+ outro transition)
+				await vi.advanceTimersByTimeAsync(10000 + 400);
 
 				expect(screen.queryByTestId('last-finished-banner-rec-1')).not.toBeInTheDocument();
 			} finally {

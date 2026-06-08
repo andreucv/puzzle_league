@@ -131,7 +131,8 @@
   },
   "list_competitions": {
     "look_for_competition": "Busca una competició"
-  },  "for_organizers": {
+  },
+  "for_organizers": {
     "page_title": "Per a organitzadors - PuzzLigas",
     "title": "Per a organitzadors",
     "subtitle": "Crea i gestiona les teves pròpies competicions de puzzles de velocitat",
@@ -176,7 +177,8 @@
     "feature3_desc": "Registra temps de finalització i publica rànquings a l'instant",
     "cta": "Comença ara",
     "cta_hint": "Es requereix un compte graüit per crear competicions"
-  },  "profile": {
+  },
+  "profile": {
     "my_profile": "El meu perfil",
     "roles": "Permisos",
     "request_organizer_role": "Sol·licitar rol d'organitzador",
@@ -996,9 +998,8 @@
     "live_badge": "En Directe",
     "total_participants": "{{n}} inscripcions",
     "duration": "Duració {{time}}",
-    "go_to_your_result": "Ves al teu resultat",
+    "go_to_your_result": "Els meus resultats",
     "your_result_counter": "{{i}} / {{n}}",
-    "you_badge": "Tu",
     "table": "Taula {{n}}",
     "live_updates": "En directe",
     "live_updates_connecting": "Connectant..."

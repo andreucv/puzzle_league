@@ -131,7 +131,8 @@
   },
   "list_competitions": {
     "look_for_competition": "Busca una competición"
-  },  "for_organizers": {
+  },
+  "for_organizers": {
     "page_title": "Para organizadores - PuzzLigas",
     "title": "Para organizadores",
     "subtitle": "Crea y gestiona tus propias competiciones de puzzles de velocidad",
@@ -176,7 +177,8 @@
     "feature3_desc": "Registra tiempos de finalización y publica rankings al instante",
     "cta": "Empieza ya",
     "cta_hint": "Se requiere una cuenta gratuita para crear competiciones"
-  },  "profile": {
+  },
+  "profile": {
     "my_profile": "Mi perfil",
     "roles": "Permisos",
     "request_organizer_role": "Solicitar rol de organizador",
@@ -1000,9 +1002,8 @@
     "entries_finished": "{{n}} de {{total}} finalizados",
     "total_participants": "{{n}} participaciones",
     "duration": "Duración {{time}}",
-    "go_to_your_result": "Ir a tu resultado",
+    "go_to_your_result": "Mis resultados",
     "your_result_counter": "{{i}} / {{n}}",
-    "you_badge": "Tú",
     "table": "Mesa {{n}}",
     "live_updates": "En vivo",
     "live_updates_connecting": "Conectando",

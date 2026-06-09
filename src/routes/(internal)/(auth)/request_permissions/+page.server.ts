@@ -7,7 +7,7 @@ import { getPostHogClient } from '$lib/server/posthog';
 
 export const load: PageServerLoad = async ({ locals }) => {
     const rolesAvailable = Object.values(Role);
-    const filteredRoles = rolesAvailable.filter(role => role !== Role.ADMIN && role !== Role.PARTICIPANT);
+    const filteredRoles = rolesAvailable.filter(role => role !== Role.ADMIN && role !== Role.PARTICIPANT && role !== Role.JUDGE);
 
     if (!locals.user) {
         throw error(401, { message: 'You need to be signed in to request permissions.', code: 'AUTH_REQUIRED' });

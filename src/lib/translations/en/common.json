@@ -178,6 +178,99 @@
     "cta": "Get started",
     "cta_hint": "A free account is required to create competitions"
   },
+  "how_it_works_guides": {
+    "account_cta": {
+      "text": "You'll need an account to take part.",
+      "text_organizer": "You'll need an account to take part.",
+      "sign_in": "Sign in",
+      "create_account": "Create an account"
+    },
+    "cross_link": {
+      "to_organizer_text": "Organizing a competition?",
+      "to_organizer_link": "See the organizer guide",
+      "to_participant_text": "Taking part as a competitor?",
+      "to_participant_link": "See the participant guide"
+    },
+    "faq_title": "FAQ",
+    "end_cta": {
+      "participant": "Browse competitions",
+      "organizer": "Request the organizer role"
+    },
+    "participant": {
+      "page_title": "How it works for participants - PuzzLigas",
+      "title": "How it works — for participants",
+      "subtitle": "From finding a competition to reading your results, here's the whole journey.",
+      "step1_title": "Browse competitions",
+      "step1_body": "Open the calendar to find competitions. Each one shows its status — upcoming, live, or finished — and the categories you can enter.",
+      "demo_browse_caption": "Competition statuses as they appear in the calendar",
+      "demo_browse_category_caption": "Category labels you can enter",
+      "step1_link": "Explore competitions",
+      "step2_title": "Register for a category",
+      "step2_body": "Pick one or more categories in a competition and sign up. Categories come in different formats — individual, pairs, teams, and junior.",
+      "demo_register_caption": "Category types you can register for",
+      "step3_title": "Understand your entry status",
+      "step3_body": "After you register, your entry shows one of three statuses. Here's what each one means.",
+      "demo_status_caption": "The three entry statuses",
+      "status_confirmed_desc": "Confirmed — your spot is secured and you're on the start list.",
+      "status_pending_desc": "Pending confirmation — the organizer still needs to confirm your entry, usually once you've completed an off-platform payment. Follow the payment instructions shown on the competition page.",
+      "status_waitlisted_desc": "Waitlisted — the category is full. If a confirmed spot frees up, the oldest waitlisted entry is promoted automatically.",
+      "step4_title": "Manage or cancel your entry",
+      "step4_body": "You can unregister from a category at any time before the competition, from the registration page. Freeing your spot may promote someone from the waitlist.",
+      "step5_title": "Read the results",
+      "step5_body": "Once a category is complete, results rank competitors by finish time, with piece count as the tiebreaker for unfinished puzzles.",
+      "faq": {
+        "q1": "What does WAITLISTED mean?",
+        "a1": "The category had reached its capacity when you registered. You keep your place in line and are promoted automatically — oldest first — if a confirmed competitor cancels or is refused.",
+        "q2": "Why does my entry say payment pending?",
+        "a2": "Some competitions collect payment off-platform. Your entry stays in pending confirmation until the organizer confirms your payment. Check the competition page for instructions.",
+        "q3": "How is the ranking decided?",
+        "a3": "Competitors who finish are ranked by their finish time. Those who don't finish are ranked behind finishers by the number of pieces placed.",
+        "q4": "Do I need an account to register?",
+        "a4": "Yes. Browsing competitions is open to everyone, but you need an account to register for a category.",
+        "q5": "Can I hide my name from the results?",
+        "a5": "Yes. In your profile, the Results visibility setting controls this. When it's on, your name and avatar appear in competition results for everyone; when it's off, other participants see you as 'Anonymous Participant' while you can still see your own name."
+      }
+    },
+    "organizer": {
+      "page_title": "How it works for organizers - PuzzLigas",
+      "title": "How it works — for organizers",
+      "subtitle": "Everything from requesting access to publishing the final rankings.",
+      "step1_title": "Request the organizer role",
+      "step1_body": "Before you can create a competition, submit an organizer role request and wait for an admin to approve it. You'll find the request button on your profile.",
+      "step1_link": "Request organizer role",
+      "step2_title": "Build your competition",
+      "step2_body": "Create the competition with its name, location, dates, and cover image. You can keep editing it any time before it starts.",
+      "step3_title": "Configure categories and pricing",
+      "step3_body": "Add the categories you'll run — individual, pairs, team, junior — set each one's capacity and price, and add off-platform payment instructions if you charge.",
+      "step4_title": "Open registration",
+      "step4_body": "When you're ready, open registration from your competition page. Participants can then sign up; close it again whenever you like.",
+      "step5_title": "Manage entries",
+      "step5_body": "Review each sign-up and confirm, refuse, or waitlist it. Send payment reminders to entries with pending payments, and publish table assignments so competitors know where to sit.",
+      "demo_entries_caption": "Entry statuses you manage",
+      "step6_title": "Run competition day",
+      "step6_body": "On the day, control each category live: start it, record finish times as competitors complete, log piece counts for those who don't, then complete it.",
+      "lifecycle": "Each category moves through: Not started → In progress → Stopped → Completed.",
+      "demo_day_caption": "Category status as it changes through the day",
+      "step7_title": "Access results",
+      "step7_body": "Completing a category publishes its rankings instantly — by finish time, with piece count as the tiebreaker — respecting each competitor's privacy settings.",
+      "faq": {
+        "q1": "Why can't I create a competition yet?",
+        "a1": "Creating competitions requires the organizer role. Submit a role request from your profile and wait for admin approval.",
+        "q2": "How do payment reminders work?",
+        "a2": "For entries with a pending payment, you can send reminders in bulk from the registration management page.",
+        "q3": "How do I add a judge?",
+        "a3": "Open your competition's manage judges page and assign a judge per category. You can also copy assignments from a previous competition."
+      }
+    },
+    "judges": {
+      "section_title": "Working with judges",
+      "intro": "Judges help you run categories on competition day. Here's how to bring them in and what they do.",
+      "assign_title": "Assign judges to categories",
+      "assign_body": "From your competition's manage judges page, assign a judge to each category. You can copy judge assignments from another competition to save time.",
+      "dayof_title": "What a judge does on the day",
+      "dayof_body": "On competition day, an assigned judge records finish times and piece counts for the categories they're responsible for, working alongside you."
+    }
+  },
   "profile": {
     "my_profile": "My profile",
     "roles": "Roles",
@@ -586,7 +679,20 @@
     "terms_checkbox": "I understand that my request will be reviewed and I will be notified of the decision",
     "cancel": "Cancel",
     "submit": "Submit Request",
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "subtitle": "Request access to organize competitions or judge submissions. An admin will review your request and you'll be notified of the decision.",
+    "new_request_title": "New request",
+    "your_requests_title": "Your requests",
+    "requested_on": "Requested on {{date}}",
+    "status_pending": "Pending review",
+    "status_approved": "Approved",
+    "status_rejected": "Rejected",
+    "role_organizer": "Organizer",
+    "role_organizer_description": "Create and manage your own competitions.",
+    "role_judge": "Judge",
+    "role_judge_description": "Review and score participants' submissions.",
+    "all_requested_title": "Nothing left to request",
+    "all_requested_message": "You already have a request for every available role. Check the status above."
   },
   "error_pages": {
     "access_denied": "Access Denied",

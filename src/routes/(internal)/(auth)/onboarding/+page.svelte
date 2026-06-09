@@ -86,6 +86,9 @@
         <div class="text-center space-y-2">
             <h3 class="h3">{$t('onboarding.welcome', { name: data.userName })}</h3>
             <p class="text-surface-600-400">{$t('onboarding.welcome_subtitle')}</p>
+            <a href="/how-it-works/participant" class="anchor text-sm">
+                {$t('how_it_works_guides.cross_link.to_participant_link')} →
+            </a>
         </div>
     {/if}
 

@@ -178,6 +178,99 @@
     "cta": "Comença ara",
     "cta_hint": "Es requereix un compte graüit per crear competicions"
   },
+  "how_it_works_guides": {
+    "account_cta": {
+      "text": "Necessites un compte per participar.",
+      "text_organizer": "Necessites un compte per participar.",
+      "sign_in": "Inicia la sessió",
+      "create_account": "Crea un compte"
+    },
+    "cross_link": {
+      "to_organizer_text": "Organitzes una competició?",
+      "to_organizer_link": "Consulta la guia per a organitzadors",
+      "to_participant_text": "Participes com a competidor?",
+      "to_participant_link": "Consulta la guia per a participants"
+    },
+    "faq_title": "Preguntes freqüents",
+    "end_cta": {
+      "participant": "Explora competicions",
+      "organizer": "Sol·licita el rol d'organitzador"
+    },
+    "participant": {
+      "page_title": "Com funciona per a participants - PuzzLigas",
+      "title": "Com funciona — per a participants",
+      "subtitle": "Des de trobar una competició fins a llegir els teus resultats, tot el recorregut.",
+      "step1_title": "Explora les competicions",
+      "step1_body": "Obre el calendari per trobar competicions. Cadascuna mostra el seu estat — propera, en directe o finalitzada — i les categories en què et pots inscriure.",
+      "demo_browse_caption": "Estats de competició tal com apareixen al calendari",
+      "demo_browse_category_caption": "Etiquetes de categoria en què et pots inscriure",
+      "step1_link": "Explora competicions",
+      "step2_title": "Inscriu-te en una categoria",
+      "step2_body": "Tria una o diverses categories d'una competició i inscriu-t'hi. Les categories tenen formats diferents: individual, parelles, equips i júnior.",
+      "demo_register_caption": "Tipus de categoria en què et pots inscriure",
+      "step3_title": "Entén l'estat de la teva inscripció",
+      "step3_body": "Després d'inscriure't, la teva inscripció mostra un de tres estats. Això és el que significa cadascun.",
+      "demo_status_caption": "Els tres estats d'inscripció",
+      "status_confirmed_desc": "Confirmada — la teva plaça està assegurada i ets a la llista de sortida.",
+      "status_pending_desc": "Pendent de confirmació — l'organitzador encara ha de confirmar la teva inscripció, normalment un cop has completat un pagament fora de la plataforma. Segueix les instruccions de pagament que apareixen a la pàgina de la competició.",
+      "status_waitlisted_desc": "En llista d'espera — la categoria està plena. Si s'allibera una plaça confirmada, es promociona automàticament la inscripció en espera més antiga.",
+      "step4_title": "Gestiona o cancel·la la teva inscripció",
+      "step4_body": "Pots donar-te de baixa d'una categoria en qualsevol moment abans de la competició, des de la pàgina d'inscripció. Alliberar la teva plaça pot promocionar algú de la llista d'espera.",
+      "step5_title": "Llegeix els resultats",
+      "step5_body": "Quan una categoria es completa, els resultats classifiquen els competidors per temps de finalització, amb el nombre de peces com a desempat per als trencaclosques sense acabar.",
+      "faq": {
+        "q1": "Què vol dir EN LLISTA D'ESPERA?",
+        "a1": "La categoria havia arribat a la seva capacitat quan et vas inscriure. Mantens el teu lloc a la cua i se't promociona automàticament — primer el més antic — si un competidor confirmat cancel·la o és rebutjat.",
+        "q2": "Per què la meva inscripció indica pagament pendent?",
+        "a2": "Algunes competicions cobren fora de la plataforma. La teva inscripció es manté pendent de confirmació fins que l'organitzador confirma el teu pagament. Consulta les instruccions a la pàgina de la competició.",
+        "q3": "Com es decideix la classificació?",
+        "a3": "Els competidors que acaben es classifiquen pel seu temps de finalització. Els qui no acaben es classifiquen per darrere segons el nombre de peces col·locades.",
+        "q4": "Necessito un compte per inscriure'm?",
+        "a4": "Sí. Explorar competicions està obert a tothom, però necessites un compte per inscriure't en una categoria.",
+        "q5": "Puc amagar el meu nom dels resultats?",
+        "a5": "Sí. Al teu perfil, l'opció de Visibilitat als resultats ho controla. Si està activada, el teu nom i avatar apareixen als resultats de les competicions per a tothom; si està desactivada, els altres participants et veuen com a 'Participant Anònim' mentre tu sempre pots veure el teu propi nom."
+      }
+    },
+    "organizer": {
+      "page_title": "Com funciona per a organitzadors - PuzzLigas",
+      "title": "Com funciona — per a organitzadors",
+      "subtitle": "Tot, des de sol·licitar l'accés fins a publicar la classificació final.",
+      "step1_title": "Sol·licita el rol d'organitzador",
+      "step1_body": "Abans de poder crear una competició, envia una sol·licitud del rol d'organitzador i espera que un administrador l'aprovi. Trobaràs el botó de sol·licitud al teu perfil.",
+      "step1_link": "Sol·licitar rol d'organitzador",
+      "step2_title": "Crea la teva competició",
+      "step2_body": "Crea la competició amb el seu nom, ubicació, dates i imatge de portada. Pots continuar editant-la en qualsevol moment abans que comenci.",
+      "step3_title": "Configura categories i preus",
+      "step3_body": "Afegeix les categories que organitzaràs — individual, parelles, equips, júnior — defineix la capacitat i el preu de cadascuna, i afegeix instruccions de pagament fora de la plataforma si cobres.",
+      "step4_title": "Obre la inscripció",
+      "step4_body": "Quan estiguis a punt, obre la inscripció des de la pàgina de la teva competició. Els participants podran inscriure-s'hi; torna a tancar-la quan vulguis.",
+      "step5_title": "Gestiona les inscripcions",
+      "step5_body": "Revisa cada inscripció i confirma-la, rebutja-la o posa-la en llista d'espera. Envia recordatoris de pagament a les inscripcions amb pagaments pendents i publica les assignacions de taula perquè els competidors sàpiguen on seure.",
+      "demo_entries_caption": "Estats d'inscripció que gestiones",
+      "step6_title": "Dirigeix el dia de competició",
+      "step6_body": "El dia de la competició, controla cada categoria en directe: inicia-la, registra els temps de finalització a mesura que els competidors acaben, anota el nombre de peces dels qui no acaben i després completa-la.",
+      "lifecycle": "Cada categoria passa per: No iniciada → En curs → Aturada → Completada.",
+      "demo_day_caption": "L'estat de la categoria a mesura que canvia durant el dia",
+      "step7_title": "Accedeix als resultats",
+      "step7_body": "Completar una categoria publica la seva classificació a l'instant — per temps de finalització, amb el nombre de peces com a desempat — respectant la configuració de privadesa de cada competidor.",
+      "faq": {
+        "q1": "Per què encara no puc crear una competició?",
+        "a1": "Crear competicions requereix el rol d'organitzador. Envia una sol·licitud de rol des del teu perfil i espera l'aprovació de l'administrador.",
+        "q2": "Com funcionen els recordatoris de pagament?",
+        "a2": "Per a les inscripcions amb un pagament pendent, pots enviar recordatoris de manera massiva des de la pàgina de gestió d'inscripcions.",
+        "q3": "Com afegeixo un jutge?",
+        "a3": "Obre la pàgina de gestió de jutges de la teva competició i assigna un jutge per categoria. També pots copiar les assignacions d'una competició anterior."
+      }
+    },
+    "judges": {
+      "section_title": "Treballar amb jutges",
+      "intro": "Els jutges t'ajuden a dirigir les categories el dia de la competició. Així els incorpores i això és el que fan.",
+      "assign_title": "Assigna jutges a les categories",
+      "assign_body": "Des de la pàgina de gestió de jutges de la teva competició, assigna un jutge a cada categoria. Pots copiar les assignacions de jutges d'una altra competició per estalviar temps.",
+      "dayof_title": "Què fa un jutge el dia de la competició",
+      "dayof_body": "El dia de la competició, un jutge assignat registra els temps de finalització i el nombre de peces de les categories de les quals és responsable, treballant al teu costat."
+    }
+  },
   "profile": {
     "my_profile": "El meu perfil",
     "roles": "Permisos",
@@ -489,7 +582,20 @@
     "terms_checkbox": "Entenc que la meva sol·licitud serà revisada i se'm notificarà la decisió",
     "cancel": "Cancel·lar",
     "submit": "Enviar sol·licitud",
-    "submitting": "Enviant..."
+    "submitting": "Enviant...",
+    "subtitle": "Sol·licita accés per organitzar competicions o jutjar lliuraments. Un administrador revisarà la teva sol·licitud i se't notificarà la decisió.",
+    "new_request_title": "Nova sol·licitud",
+    "your_requests_title": "Les teves sol·licituds",
+    "requested_on": "Sol·licitat el {{date}}",
+    "status_pending": "Pendent de revisió",
+    "status_approved": "Aprovada",
+    "status_rejected": "Rebutjada",
+    "role_organizer": "Organitzador",
+    "role_organizer_description": "Crea i gestiona les teves pròpies competicions.",
+    "role_judge": "Jutge",
+    "role_judge_description": "Revisa i puntua els lliuraments dels participants.",
+    "all_requested_title": "No queda res per sol·licitar",
+    "all_requested_message": "Ja tens una sol·licitud per a cada rol disponible. Consulta l'estat a dalt."
   },
   "error_pages": {
     "access_denied": "Accés Denegat",

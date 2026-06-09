@@ -49,5 +49,10 @@
                 </div>
             {/each}
         </div>
+        <div class="text-center">
+            <a href="/how-it-works/participant" class="anchor text-sm">
+                {$t('how_it_works_guides.cross_link.to_participant_link')} →
+            </a>
+        </div>
     </div>
 </section>

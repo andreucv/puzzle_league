@@ -178,6 +178,99 @@
     "cta": "Empieza ya",
     "cta_hint": "Se requiere una cuenta gratuita para crear competiciones"
   },
+  "how_it_works_guides": {
+    "account_cta": {
+      "text": "Necesitas una cuenta para participar.",
+      "text_organizer": "Necesitas una cuenta para participar.",
+      "sign_in": "Iniciar sesión",
+      "create_account": "Crear una cuenta"
+    },
+    "cross_link": {
+      "to_organizer_text": "¿Organizas una competición?",
+      "to_organizer_link": "Consulta la guía para organizadores",
+      "to_participant_text": "¿Participas como competidor?",
+      "to_participant_link": "Consulta la guía para participantes"
+    },
+    "faq_title": "Preguntas frecuentes",
+    "end_cta": {
+      "participant": "Explora competiciones",
+      "organizer": "Solicita el rol de organizador"
+    },
+    "participant": {
+      "page_title": "Cómo funciona para participantes - PuzzLigas",
+      "title": "Cómo funciona — para participantes",
+      "subtitle": "Desde encontrar una competición hasta leer tus resultados, todo el recorrido.",
+      "step1_title": "Explora las competiciones",
+      "step1_body": "Abre el calendario para encontrar competiciones. Cada una muestra su estado — próxima, en directo o finalizada — y las categorías en las que puedes inscribirte.",
+      "demo_browse_caption": "Estados de competición tal como aparecen en el calendario",
+      "demo_browse_category_caption": "Etiquetas de categoría en las que puedes inscribirte",
+      "step1_link": "Explora competiciones",
+      "step2_title": "Inscríbete en una categoría",
+      "step2_body": "Elige una o varias categorías de una competición e inscríbete. Las categorías tienen distintos formatos: individual, parejas, equipos y junior.",
+      "demo_register_caption": "Tipos de categoría en los que puedes inscribirte",
+      "step3_title": "Entiende el estado de tu inscripción",
+      "step3_body": "Tras inscribirte, tu inscripción muestra uno de tres estados. Esto es lo que significa cada uno.",
+      "demo_status_caption": "Los tres estados de inscripción",
+      "status_confirmed_desc": "Confirmada — tu plaza está asegurada y estás en la lista de salida.",
+      "status_pending_desc": "Pendiente de confirmación — el organizador aún debe confirmar tu inscripción, normalmente una vez que has completado un pago fuera de la plataforma. Sigue las instrucciones de pago que aparecen en la página de la competición.",
+      "status_waitlisted_desc": "En lista de espera — la categoría está llena. Si se libera una plaza confirmada, se promociona automáticamente la inscripción en espera más antigua.",
+      "step4_title": "Gestiona o cancela tu inscripción",
+      "step4_body": "Puedes darte de baja de una categoría en cualquier momento antes de la competición, desde la página de inscripción. Liberar tu plaza puede promocionar a alguien de la lista de espera.",
+      "step5_title": "Lee los resultados",
+      "step5_body": "Cuando una categoría se completa, los resultados clasifican a los competidores por tiempo de finalización, con el número de piezas como desempate para los puzzles sin terminar.",
+      "faq": {
+        "q1": "¿Qué significa EN LISTA DE ESPERA?",
+        "a1": "La categoría había alcanzado su capacidad cuando te inscribiste. Mantienes tu puesto en la cola y se te promociona automáticamente — primero el más antiguo — si un competidor confirmado cancela o es rechazado.",
+        "q2": "¿Por qué mi inscripción indica pago pendiente?",
+        "a2": "Algunas competiciones cobran fuera de la plataforma. Tu inscripción permanece pendiente de confirmación hasta que el organizador confirma tu pago. Consulta las instrucciones en la página de la competición.",
+        "q3": "¿Cómo se decide la clasificación?",
+        "a3": "Los competidores que terminan se clasifican por su tiempo de finalización. Los que no terminan se clasifican por detrás según el número de piezas colocadas.",
+        "q4": "¿Necesito una cuenta para inscribirme?",
+        "a4": "Sí. Explorar competiciones está abierto a todos, pero necesitas una cuenta para inscribirte en una categoría.",
+        "q5": "¿Puedo ocultar mi nombre en los resultados?",
+        "a5": "Sí. En tu perfil, el ajuste de Visibilidad en resultados lo controla. Si está activado, tu nombre y avatar aparecen en los resultados de las competiciones para todos; si está desactivado, los demás participantes te ven como 'Participante Anónimo' mientras tú sigues viendo tu propio nombre."
+      }
+    },
+    "organizer": {
+      "page_title": "Cómo funciona para organizadores - PuzzLigas",
+      "title": "Cómo funciona — para organizadores",
+      "subtitle": "Todo, desde solicitar el acceso hasta publicar la clasificación final.",
+      "step1_title": "Solicita el rol de organizador",
+      "step1_body": "Antes de poder crear una competición, envía una solicitud del rol de organizador y espera a que un administrador la apruebe. Encontrarás el botón de solicitud en tu perfil.",
+      "step1_link": "Solicitar rol de organizador",
+      "step2_title": "Crea tu competición",
+      "step2_body": "Crea la competición con su nombre, ubicación, fechas e imagen de portada. Puedes seguir editándola en cualquier momento antes de que empiece.",
+      "step3_title": "Configura categorías y precios",
+      "step3_body": "Añade las categorías que vas a organizar — individual, parejas, equipos, junior — define la capacidad y el precio de cada una, y añade instrucciones de pago fuera de la plataforma si cobras.",
+      "step4_title": "Abre la inscripción",
+      "step4_body": "Cuando estés listo, abre la inscripción desde la página de tu competición. Los participantes podrán inscribirse; vuelve a cerrarla cuando quieras.",
+      "step5_title": "Gestiona las inscripciones",
+      "step5_body": "Revisa cada inscripción y confírmala, recházala o ponla en lista de espera. Envía recordatorios de pago a las inscripciones con pagos pendientes y publica las asignaciones de mesa para que los competidores sepan dónde sentarse.",
+      "demo_entries_caption": "Estados de inscripción que gestionas",
+      "step6_title": "Dirige el día de competición",
+      "step6_body": "El día de la competición, controla cada categoría en directo: iníciala, registra los tiempos de finalización a medida que los competidores terminan, anota el número de piezas de quienes no terminan y luego complétala.",
+      "lifecycle": "Cada categoría pasa por: No iniciada → En curso → Detenida → Completada.",
+      "demo_day_caption": "El estado de la categoría a medida que cambia durante el día",
+      "step7_title": "Accede a los resultados",
+      "step7_body": "Completar una categoría publica su clasificación al instante — por tiempo de finalización, con el número de piezas como desempate — respetando la configuración de privacidad de cada competidor.",
+      "faq": {
+        "q1": "¿Por qué todavía no puedo crear una competición?",
+        "a1": "Crear competiciones requiere el rol de organizador. Envía una solicitud de rol desde tu perfil y espera la aprobación del administrador.",
+        "q2": "¿Cómo funcionan los recordatorios de pago?",
+        "a2": "Para las inscripciones con un pago pendiente, puedes enviar recordatorios de forma masiva desde la página de gestión de inscripciones.",
+        "q3": "¿Cómo añado un juez?",
+        "a3": "Abre la página de gestión de jueces de tu competición y asigna un juez por categoría. También puedes copiar las asignaciones de una competición anterior."
+      }
+    },
+    "judges": {
+      "section_title": "Trabajar con jueces",
+      "intro": "Los jueces te ayudan a dirigir las categorías el día de la competición. Así los incorporas y esto es lo que hacen.",
+      "assign_title": "Asigna jueces a las categorías",
+      "assign_body": "Desde la página de gestión de jueces de tu competición, asigna un juez a cada categoría. Puedes copiar las asignaciones de jueces de otra competición para ahorrar tiempo.",
+      "dayof_title": "Qué hace un juez el día de la competición",
+      "dayof_body": "El día de la competición, un juez asignado registra los tiempos de finalización y el número de piezas de las categorías de las que es responsable, trabajando a tu lado."
+    }
+  },
   "profile": {
     "my_profile": "Mi perfil",
     "roles": "Permisos",
@@ -489,7 +582,20 @@
     "terms_checkbox": "Entiendo que mi solicitud será revisada y se me notificará la decisión",
     "cancel": "Cancelar",
     "submit": "Enviar solicitud",
-    "submitting": "Enviando..."
+    "submitting": "Enviando...",
+    "subtitle": "Solicita acceso para organizar competiciones o juzgar entregas. Un administrador revisará tu solicitud y se te notificará la decisión.",
+    "new_request_title": "Nueva solicitud",
+    "your_requests_title": "Tus solicitudes",
+    "requested_on": "Solicitado el {{date}}",
+    "status_pending": "Pendiente de revisión",
+    "status_approved": "Aprobada",
+    "status_rejected": "Rechazada",
+    "role_organizer": "Organizador",
+    "role_organizer_description": "Crea y gestiona tus propias competiciones.",
+    "role_judge": "Juez",
+    "role_judge_description": "Revisa y puntúa las entregas de los participantes.",
+    "all_requested_title": "No queda nada por solicitar",
+    "all_requested_message": "Ya tienes una solicitud para cada rol disponible. Consulta el estado arriba."
   },
   "error_pages": {
     "access_denied": "Acceso Denegado",

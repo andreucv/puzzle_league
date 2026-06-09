@@ -139,6 +139,11 @@
             {$t('for_organizers.cta')}
         </a>
         <p class="text-xs text-surface-500 mt-3">{$t('for_organizers.cta_hint')}</p>
+        <p class="mt-4">
+            <a href="/how-it-works/organizer" class="anchor text-sm">
+                {$t('how_it_works_guides.cross_link.to_organizer_link')} →
+            </a>
+        </p>
     </div>
 
 </div>

@@ -5,6 +5,10 @@
 <footer class="mt-10">
     <div class="footer-content">
         <div class="footer-section">
+            <a href="/how-it-works/participant">{$t('how_it_works_guides.cross_link.to_participant_link')}</a>
+            <a href="/how-it-works/organizer">{$t('how_it_works_guides.cross_link.to_organizer_link')}</a>
+        </div>
+        <div class="footer-section">
             <a href="/footer/privacy_policy">{$t('legal.privacy_policy')}</a>
             <a href="/footer/terms_of_service">{$t('legal.terms_of_service')}</a>
         </div>

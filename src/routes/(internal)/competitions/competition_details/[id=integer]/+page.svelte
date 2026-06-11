@@ -203,7 +203,7 @@
 
 
             <!-- Categories & Actions Section -->
-            {#await Promise.all([data.props.records, data.props.categoriesWithCounts, data.props.access])}
+            {#await Promise.all([data.props.records, data.props.waitlistPositions, data.props.categoriesWithCounts, data.props.access])}
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {#each { length: 3 } as _}
                         <div class="card preset-outlined-surface-200-800 p-4 space-y-3 animate-pulse">
@@ -221,11 +221,11 @@
                         <div class="h-10 w-40 rounded-lg bg-surface-100-700 animate-pulse"></div>
                     {/each}
                 </div>
-            {:then [userRecords, categoriesWithCounts, access]}
+            {:then [userRecords, waitlistPositions, categoriesWithCounts, access]}
                 {@const isOrganizer = access.canManageCompetition}
 
                 <div>
-                    <CategoriesOverview {categories} isCreator={isOrganizer} {isMultiDay} {categoriesWithCounts} userRecords={userRecords ?? []} />
+                    <CategoriesOverview {categories} isCreator={isOrganizer} {isMultiDay} {categoriesWithCounts} userRecords={userRecords ?? []} {waitlistPositions} />
                 </div>
 
                 <!-- Primary CTA: Registration -->

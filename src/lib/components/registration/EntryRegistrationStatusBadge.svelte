@@ -3,11 +3,15 @@
     import { t } from '$lib/translations';
     import { getRegistrationStatusIcon, getRegistrationStatusLabel, getRegistrationStatusIconColor, getRegistrationStatusTonalClass } from '$lib/utils/registration_utils';
 
-    let { status }: { status: string } = $props();
+    let { status, waitlistPosition }: { status: string; waitlistPosition?: number } = $props();
 
     const StatusIcon = $derived(getRegistrationStatusIcon(status));
     const status_key = $derived(getRegistrationStatusLabel(status));
-    const label = $derived($t(status_key));
+    const label = $derived(
+        status === 'WAITLISTED' && waitlistPosition !== undefined
+            ? $t('registration.status_waitlisted_position', { position: waitlistPosition })
+            : $t(status_key)
+    );
     const iconColor = $derived(getRegistrationStatusIconColor(status));
     const borderClass = $derived(getRegistrationStatusTonalClass(status));
 </script>

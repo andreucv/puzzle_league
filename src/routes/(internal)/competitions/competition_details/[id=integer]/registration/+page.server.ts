@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from "./$types";
 import { getCompetitionWithCategories, getCompetitionCategories } from "$lib/database/db_competition";
-import { getCategoryEntriesFromCompetition, getRegisteredUserIdsByCategory } from "$lib/database/db_entry";
+import { getCategoryEntriesFromCompetition, getRegisteredUserIdsByCategory, getWaitlistPositions } from "$lib/database/db_entry";
 import { isRegistrationWorkflowError, submitRegistration, unregisterRegistration } from "$lib/services/registration-workflow";
 import { redirect } from "@sveltejs/kit";
 import { getCompetitionAccess } from "$lib/services/competition-access";
@@ -31,6 +31,11 @@ export const load: PageServerLoad = async (event) => {
         getAvailableTagsByCategory(competitionId)
     ]);
 
+    const waitlistedEntryIds = (existingEntries || [])
+        .filter((e) => e.status === 'WAITLISTED')
+        .map((e) => e.id);
+    const waitlistPositions = await getWaitlistPositions(competitionId, waitlistedEntryIds);
+
     return {
         competition,
         existingEntries: existingEntries || [],
@@ -38,6 +43,7 @@ export const load: PageServerLoad = async (event) => {
         categoriesWithCounts,
         isOrganizer: competitionAccess.canManageCompetition,
         availableTagsByCategory,
+        waitlistPositions,
     };
 };
 

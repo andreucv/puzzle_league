@@ -34,7 +34,8 @@
         party = null,
         externalParticipants = null,
         seatsAvailable = undefined,
-        totalEntries = undefined
+        totalEntries = undefined,
+        waitlistPositions = {}
     }: {
         category: CategoryWithPuzzles;
         isCreator?: boolean;
@@ -46,6 +47,7 @@
         externalParticipants?: ExternalParticipantInfo[] | null;
         seatsAvailable?: number;
         totalEntries?: number;
+        waitlistPositions?: Record<string, number>;
     } = $props();
 
     const normalizedEntries = $derived(
@@ -168,7 +170,7 @@
                                         {$t('competition_details.table_short', { number: entry.tableNumber })}
                                     </span>
                                 {/if}
-                                <EntryRegistrationStatusBadge status={entry.status ?? ''} />
+                                <EntryRegistrationStatusBadge status={entry.status ?? ''} waitlistPosition={waitlistPositions[entry.id ?? '']} />
                             </div>
                         {/if}
                     {/each}
@@ -220,7 +222,7 @@
                                         {$t('competition_details.table_short', { number: entry.tableNumber })}
                                     </span>
                                 {/if}
-                                <EntryRegistrationStatusBadge status={entry.status ?? ''} />
+                                <EntryRegistrationStatusBadge status={entry.status ?? ''} waitlistPosition={waitlistPositions[entry.id ?? '']} />
                             </div>
                         {/if}
                     {/each}

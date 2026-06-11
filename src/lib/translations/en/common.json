@@ -524,6 +524,7 @@
     "status_pending_confirmation": "Pending Confirmation",
     "status_confirmed": "Confirmed",
     "status_waitlisted": "Waitlisted",
+    "status_waitlisted_position": "Waitlisted (#{{position}})",
     "add_non_registered": "Add as non-registered participant",
     "already_registered": "Already registered in this category",
     "not_registered": "not registered",

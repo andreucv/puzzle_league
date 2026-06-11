@@ -398,6 +398,7 @@
     "status_confirmed": "Confirmat",
     "status_pending_confirmation": "Pendent de confirmació",
     "status_waitlisted": "En llista d'espera",
+    "status_waitlisted_position": "En llista d'espera (#{{position}})",
     "sign_up_again": "Registra't de nou",
     "add_non_registered": "Afegeix com a participant no registrat",
     "already_registered": "Ja inscrit en aquesta categoria",

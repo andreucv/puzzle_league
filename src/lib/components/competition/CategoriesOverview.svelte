@@ -13,13 +13,15 @@
         isCreator = false,
         isMultiDay = false,
         categoriesWithCounts = undefined,
-        userRecords = []
+        userRecords = [],
+        waitlistPositions = {}
     }: {
         categories: CategoryWithPuzzles[],
         isCreator: boolean,
         isMultiDay?: boolean,
         categoriesWithCounts?: CategoryWithCounts[],
-        userRecords?: UserEntry[]
+        userRecords?: UserEntry[],
+        waitlistPositions?: Record<string, number>
     } = $props();
 
     function getSeatsAvailable(category: CategoryWithPuzzles): number | undefined {
@@ -49,6 +51,7 @@
                 {isMultiDay}
                 showRegistration={true}
                 {records}
+                {waitlistPositions}
                 seatsAvailable={getSeatsAvailable(category)}
                 totalEntries={getTotalEntries(category)}
             />

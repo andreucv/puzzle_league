@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { CategoryStatus } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
 
 // ---------------------------------------------------------------------------
 // Entry queries — read-only functions for fetching entries and
@@ -116,6 +116,37 @@ export async function getRegistrationsForCompetition(competitionId: number) {
         console.error('Error getting registrations for competition:', error);
         throw error;
     }
+}
+
+export async function getWaitlistPositions(
+    competitionId: number,
+    entryIds: string[]
+): Promise<Record<string, number>> {
+    if (entryIds.length === 0) return {};
+
+    const waitlistedEntries = await prisma.entry.findMany({
+        where: {
+            category: { competitionId },
+            status: RegistrationStatus.WAITLISTED,
+        },
+        select: { id: true, categoryId: true },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+    });
+
+    const byCategoryId: Record<number, string[]> = {};
+    for (const entry of waitlistedEntries) {
+        if (!byCategoryId[entry.categoryId]) byCategoryId[entry.categoryId] = [];
+        byCategoryId[entry.categoryId].push(entry.id);
+    }
+
+    const positions: Record<string, number> = {};
+    for (const categoryEntries of Object.values(byCategoryId)) {
+        categoryEntries.forEach((id, index) => {
+            if (entryIds.includes(id)) positions[id] = index + 1;
+        });
+    }
+
+    return positions;
 }
 
 export async function getRegisteredUserIdsByCategory(competitionId: number): Promise<Record<number, string[]>> {

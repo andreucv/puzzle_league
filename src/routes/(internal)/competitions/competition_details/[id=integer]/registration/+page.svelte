@@ -50,6 +50,7 @@
     let availableTagsByCategory = $derived(
         (data.availableTagsByCategory as Record<number, { tag: string; priceOverride: number | null }[]>) || {}
     );
+    let waitlistPositions = $derived((data.waitlistPositions || {}) as Record<string, number>);
 
     function getAvailableTags(categoryId: number) {
         return availableTagsByCategory[categoryId] || [];
@@ -652,7 +653,7 @@
                                 <!-- Row 1: Status + created by you + unregister -->
                                 <div class="flex items-center justify-between gap-2">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <RegistrationStatusBadge status={entry.status} />
+                                        <RegistrationStatusBadge status={entry.status} waitlistPosition={waitlistPositions[entry.id]} />
                                         {#if entry.creatorId === currentUser?.id && !isUserInEntry(entry)}
                                             <span class="text-xs text-surface-500 italic">{$t('registration.created_by_you')}</span>
                                         {/if}

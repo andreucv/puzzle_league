@@ -523,6 +523,7 @@
     "status_confirmed": "Confirmado",
     "status_pending_confirmation": "Pendiente de confirmación",
     "status_waitlisted": "En lista de espera",
+    "status_waitlisted_position": "En lista de espera (#{{position}})",
     "sign_up_again": "Regístrese nuevamente",
     "add_non_registered": "Añadir como participante no registrado",
     "already_registered": "Ya inscrito en esta categoría",

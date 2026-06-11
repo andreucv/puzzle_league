@@ -1,6 +1,6 @@
 import type { PageServerLoad } from "./$types";
 import { getCompetitionWithCategories, getCompetitionCategories} from "$lib/database/db_competition";
-import { getCategoryEntriesFromCompetition } from "$lib/database/db_entry";
+import { getCategoryEntriesFromCompetition, getWaitlistPositions } from "$lib/database/db_entry";
 import { getCompetitionAccess } from "$lib/services/competition-access";
 
 
@@ -10,14 +10,23 @@ export const load: PageServerLoad = async ( event ) => {
     // Use session from hooks (event.locals) instead of calling auth.api.getSession() again
     const user = event.locals.user;
 
+    const recordsPromise = user
+        ? getCategoryEntriesFromCompetition(competitionId, user.id)
+        : Promise.resolve(undefined);
+
+    const waitlistPositionsPromise = recordsPromise.then(async (entries) => {
+        if (!entries) return {};
+        const waitlistedIds = entries.filter(e => e.status === 'WAITLISTED').map(e => e.id);
+        return getWaitlistPositions(competitionId, waitlistedIds);
+    });
+
     // Return all data as unwrapped promises for streaming — server responds instantly
     return {
         props:
         {
             competition_and_categories: getCompetitionWithCategories(competitionId),
-            records: user
-                ? getCategoryEntriesFromCompetition(competitionId, user.id)
-                : Promise.resolve(undefined),
+            records: recordsPromise,
+            waitlistPositions: waitlistPositionsPromise,
             categoriesWithCounts: getCompetitionCategories(competitionId),
             access: user
                 ? getCompetitionAccess(competitionId, user.id)

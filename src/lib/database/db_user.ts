@@ -1,5 +1,34 @@
-import { prisma } from '$lib/database/create_prisma_client';
+import { prisma, accelerateEnabled } from '$lib/database/create_prisma_client';
 import { Role } from '$lib/.prisma/generated/prisma/enums';
+
+// ---------------------------------------------------------------------------
+// getUserWithRoles cache (Prisma Accelerate)
+// ---------------------------------------------------------------------------
+// getUserWithRoles runs in the root layout on every navigation, so it is cached
+// per user via a tag. Every mutation that writes one of its selected fields
+// (roles, locale, phone, location, prompt timestamps, visibility flags) must
+// call invalidateUserWithRolesCache so the change is visible on the next
+// navigation instead of after the TTL.
+
+// Accelerate tags allow only alphanumerics and underscores; sanitize defensively.
+function userWithRolesCacheTag(userId: string) {
+    return `user_with_roles_${userId.replace(/[^a-zA-Z0-9_]/g, '_')}`;
+}
+
+export async function invalidateUserWithRolesCache(userId: string) {
+    if (!accelerateEnabled) return;
+    try {
+        // $accelerate only exists on the extended client; the shared client is
+        // typed as the base PrismaClient, hence the cast (same pattern as cacheStrategy).
+        const accelerate = (prisma as unknown as {
+            $accelerate: { invalidate: (input: { tags: string[] }) => Promise<unknown> };
+        }).$accelerate;
+        await accelerate.invalidate({ tags: [userWithRolesCacheTag(userId)] });
+    } catch (error) {
+        // Non-fatal: the stale entry still expires after ttl+swr (≤2 min).
+        console.error('Error invalidating user-with-roles cache:', error);
+    }
+}
 
 export async function getRoleAssignments(userId: string) {
     try {
@@ -20,6 +49,15 @@ export async function getUserWithRoles(authUser: { id: string }) {
     try {
         const user = await prisma.user.findUnique({
             where: { id: authUser.id },
+            ...(accelerateEnabled
+                ? {
+                    cacheStrategy: {
+                        ttl: 60,
+                        swr: 60,
+                        tags: [userWithRolesCacheTag(authUser.id)]
+                    } as unknown as never
+                }
+                : {}),
             select: {
                 country: true,
                 postalCode: true,
@@ -162,10 +200,12 @@ export async function getUserAccountProvider(userId: string) {
 }
 
 export async function updateUserLocation(userId: string, country: string | null, postalCode: string | null) {
-    return prisma.user.update({
+    const user = await prisma.user.update({
         where: { id: userId },
         data: { country, postalCode, updatedAt: new Date() }
     });
+    await invalidateUserWithRolesCache(userId);
+    return user;
 }
 
 export async function updateUserName(userId: string, name: string) {
@@ -176,17 +216,21 @@ export async function updateUserName(userId: string, name: string) {
 }
 
 export async function updateUserVisibility(userId: string, field: 'publicProfileVisibility' | 'publicResultsVisibility', value: boolean) {
-    return prisma.user.update({
+    const user = await prisma.user.update({
         where: { id: userId },
         data: { [field]: value, updatedAt: new Date() }
     });
+    await invalidateUserWithRolesCache(userId);
+    return user;
 }
 
 export async function updateUserLocale(userId: string, locale: string | null) {
-    return prisma.user.update({
+    const user = await prisma.user.update({
         where: { id: userId },
         data: { locale, updatedAt: new Date() }
     });
+    await invalidateUserWithRolesCache(userId);
+    return user;
 }
 
 // ---------------------------------------------------------------------------
@@ -259,7 +303,7 @@ export async function markEmailVerificationSkipped(userId: string) {
 }
 
 export async function saveLocationForUser(userId: string, country: string | null, postalCode: string | null) {
-    return prisma.user.update({
+    const user = await prisma.user.update({
         where: { id: userId },
         data: {
             country: country || null,
@@ -268,13 +312,17 @@ export async function saveLocationForUser(userId: string, country: string | null
             updatedAt: new Date(),
         },
     });
+    await invalidateUserWithRolesCache(userId);
+    return user;
 }
 
 export async function skipLocationPrompt(userId: string) {
-    return prisma.user.update({
+    const user = await prisma.user.update({
         where: { id: userId },
         data: { locationPromptLastChecked: new Date() },
     });
+    await invalidateUserWithRolesCache(userId);
+    return user;
 }
 
 export async function claimExternalParticipants(userId: string, externalParticipantIds: string[]) {

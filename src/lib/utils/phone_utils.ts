@@ -1,4 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
+import { invalidateUserWithRolesCache } from '$lib/database/db_user';
 export { validatePhone } from './contact_validation';
 export type { PhoneValidationResult } from './contact_validation';
 
@@ -20,6 +21,7 @@ export async function savePhoneForUser(
             updatedAt: new Date()
         }
     });
+    await invalidateUserWithRolesCache(userId);
 }
 
 /**
@@ -36,4 +38,5 @@ export async function deletePhoneForUser(userId: string) {
             updatedAt: new Date()
         }
     });
+    await invalidateUserWithRolesCache(userId);
 }

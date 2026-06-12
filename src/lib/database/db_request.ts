@@ -1,4 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
+import { invalidateUserWithRolesCache } from '$lib/database/db_user';
 
 export async function createRequest(userId: string, role: string, reason: string, additionalInfo: string) {
     try {
@@ -102,6 +103,9 @@ export async function acceptRequest(requestId: string, adminId: string) {
 
             return { updatedRequest, roleAssignment };
         });
+
+        // After commit: the granted role must show up on the user's next navigation.
+        await invalidateUserWithRolesCache(result.roleAssignment.userId);
 
         return result;
     } catch (error) {

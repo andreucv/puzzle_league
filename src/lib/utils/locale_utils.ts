@@ -1,4 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
+import { invalidateUserWithRolesCache } from '$lib/database/db_user';
 
 export const SUPPORTED_LOCALES = ['en', 'es', 'ca'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
@@ -15,6 +16,7 @@ export async function saveLocaleForUser(userId: string, locale: string | null): 
 			localePromptLastChecked: new Date(),
 		},
 	});
+	await invalidateUserWithRolesCache(userId);
 }
 
 export async function skipLocalePrompt(userId: string): Promise<void> {
@@ -24,4 +26,5 @@ export async function skipLocalePrompt(userId: string): Promise<void> {
 			localePromptLastChecked: new Date(),
 		},
 	});
+	await invalidateUserWithRolesCache(userId);
 }

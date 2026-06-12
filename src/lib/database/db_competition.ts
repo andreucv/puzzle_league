@@ -355,7 +355,16 @@ export async function getOrganisedCompetitions(creatorId: string) {
 }
 
 export async function getUpcomingCompetitions(n_objects: number, offset: number) {
+    // Public feed, identical for all visitors (cache key includes take/skip).
+    // Reserved-slot counts may lag up to ttl+swr.
+    // The date is rounded down to the hour — Accelerate keys the cache on query args,
+    // so a per-request `new Date()` would make every request a cache miss.
+    const startOfHour = new Date();
+    startOfHour.setMinutes(0, 0, 0);
     return prisma.competition.findMany({
+        ...(accelerateEnabled
+            ? { cacheStrategy: { ttl: 300, swr: 60 } as unknown as never }
+            : {}),
         take: n_objects,
         skip: offset,
         where: {
@@ -363,7 +372,7 @@ export async function getUpcomingCompetitions(n_objects: number, offset: number)
                 in: [CompetitionStatus.NOT_STARTED, CompetitionStatus.STARTED]
             },
             startDate: {
-                gte: new Date()
+                gte: startOfHour
             }
         },
         include: {
@@ -508,7 +517,7 @@ export async function getOtherUpcomingCompetitions(userId: string, limit: number
 // ---------------------------------------------------------------------------
 
 // Helper function to get competitions where user is registered
-async function getUserRegisteredCompetitions(userId: string, statusFilter?: CompetitionStatus) {
+async function getUserRegisteredCompetitions(userId: string, statusFilter?: CompetitionStatus | CompetitionStatus[]) {
     const whereClause: any = {
         categories: {
             some: {
@@ -526,7 +535,7 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
     };
 
     if (statusFilter) {
-        whereClause.status = statusFilter;
+        whereClause.status = Array.isArray(statusFilter) ? { in: statusFilter } : statusFilter;
     }
 
     return await prisma.competition.findMany({
@@ -604,8 +613,12 @@ export async function getParticipatedCompetitions(userId: string) {
  * into a single query and splits by status, then runs the remaining queries in parallel.
  */
 export async function getHomeDashboardData(userId: string) {
-    // Single query for all user-registered competitions (instead of 3 separate status queries)
-    const allRegisteredPromise = getUserRegisteredCompetitions(userId);
+    // Single query for the user-registered competitions the dashboard renders
+    // (NOT_STARTED + STARTED); FINISHED results come from getLastUserResults instead.
+    const allRegisteredPromise = getUserRegisteredCompetitions(userId, [
+        CompetitionStatus.NOT_STARTED,
+        CompetitionStatus.STARTED
+    ]);
 
     // Run remaining independent queries in parallel alongside the combined one
     const [allRegistered, otherUpcoming, lastResults] = await Promise.all([
@@ -834,7 +847,13 @@ export async function updateCompetitionStatus(competitionId: number, status: 'NO
 // ---------------------------------------------------------------------------
 
 export async function getLandingStats() {
-    return prisma.landingStats.findUnique({ where: { id: 1 } });
+    // Pre-computed by a cron upsert and identical for everyone — cache aggressively.
+    return prisma.landingStats.findUnique({
+        where: { id: 1 },
+        ...(accelerateEnabled
+            ? { cacheStrategy: { ttl: 3600, swr: 600 } as unknown as never }
+            : {}),
+    });
 }
 
 export async function upsertLandingStats(data: {
@@ -854,23 +873,24 @@ export async function upsertLandingStats(data: {
 // ---------------------------------------------------------------------------
 
 export async function getExploreCompetitionsData(userId?: string) {
-    const [competitions, registeredCategoryIds] = await Promise.all([
+    type ViewerEntry = {
+        categoryId: number;
+        status: RegistrationStatus;
+        tableNumber: number | null;
+        users: { id: string; name: string; image: string | null }[];
+    };
+
+    const [competitions, viewerEntries] = await Promise.all([
+        // Identical for every visitor (no per-user data), so it can be cached on
+        // Accelerate. Reserved-slot counts may be up to ~1 min stale.
         prisma.competition.findMany({
+            ...(accelerateEnabled
+                ? { cacheStrategy: { ttl: 60, swr: 60 } as unknown as never }
+                : {}),
             include: {
                 categories: {
                     orderBy: { startTime: 'asc' },
                     include: {
-                        entries: {
-                            include: {
-                                users: {
-                                    select: {
-                                        id: true,
-                                        name: true,
-                                        image: true,
-                                    },
-                                },
-                            },
-                        },
                         // Reserved slots: confirmed + pending entries in the category
                         _count: {
                             select: { entries: { where: { status: { in: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_CONFIRMATION] } } } }
@@ -882,15 +902,38 @@ export async function getExploreCompetitionsData(userId?: string) {
                 startDate: 'asc'
             },
         }),
+        // The viewer's own entries, merged into the categories below so consumers
+        // (CompetitionCard) keep reading category.entries for registration status.
         userId
             ? prisma.entry.findMany({
                 where: { users: { some: { id: userId } } },
-                select: { categoryId: true },
-            }).then(entries => entries.map(r => r.categoryId))
-            : Promise.resolve([] as number[]),
+                select: {
+                    categoryId: true,
+                    status: true,
+                    tableNumber: true,
+                    users: { select: { id: true, name: true, image: true } },
+                },
+            })
+            : Promise.resolve([] as ViewerEntry[]),
     ]);
 
-    return { competitions, registeredCategoryIds };
+    const entriesByCategory = new Map<number, ViewerEntry[]>();
+    for (const entry of viewerEntries) {
+        const list = entriesByCategory.get(entry.categoryId) ?? [];
+        list.push(entry);
+        entriesByCategory.set(entry.categoryId, list);
+    }
+
+    return {
+        competitions: competitions.map((competition) => ({
+            ...competition,
+            categories: competition.categories.map((category) => ({
+                ...category,
+                entries: entriesByCategory.get(category.id) ?? [],
+            })),
+        })),
+        registeredCategoryIds: viewerEntries.map((entry) => entry.categoryId),
+    };
 }
 
 // ---------------------------------------------------------------------------

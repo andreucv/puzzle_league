@@ -2,7 +2,7 @@
     import type { Competition, Category } from '$lib/.prisma/generated/prisma/browser';
     import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
     import { Carousel } from '@skeletonlabs/skeleton-svelte';
-    import { CldImage } from 'svelte-cloudinary';
+    import { cldUrl } from '$lib/utils/cld_url';
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import { getCategoryTypeIcon } from '$lib/utils/category_utils';
     import CalendarIcon from '@iconify-svelte/mdi/calendar';
@@ -63,13 +63,13 @@
                             <div class="relative rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 h-72 sm:h-80">
                                 <!-- Competition Image -->
                                 {#if competition.image_cld_id}
-                                    <CldImage
-                                        src={competition.image_cld_id}
+                                    <img
+                                        src={cldUrl(competition.image_cld_id, { width: 600, height: 400, crop: 'fill', gravity: 'auto' })}
                                         width="600"
                                         height="400"
                                         alt={competition.name}
-                                        crop="fill"
-                                        gravity="auto"
+                                        fetchpriority={i === 0 ? 'high' : 'auto'}
+                                        loading={i === 0 ? 'eager' : 'lazy'}
                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                                     />
                                 {:else}

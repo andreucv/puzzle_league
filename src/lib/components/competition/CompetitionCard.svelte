@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Competition } from "$lib/.prisma/generated/prisma/browser";
-    import { CldImage } from 'svelte-cloudinary';
+    import { cldUrl } from '$lib/utils/cld_url';
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import MapMarkerRadiusIcon from '@iconify-svelte/mdi/map-marker-radius';
     import DoorOpenIcon from '@iconify-svelte/mdi/door-open';
@@ -121,13 +121,12 @@
             <!-- Competition Image (left) -->
             <div class="w-20 sm:w-32 md:w-36 flex-shrink-0 overflow-hidden">
                 {#if competition.image_cld_id}
-                    <CldImage
-                        src={competition.image_cld_id}
+                    <img
+                        src={cldUrl(competition.image_cld_id, { width: 144, height: 180, crop: 'fill', gravity: 'auto' })}
                         width="144"
                         height="180"
                         alt={competition.name}
-                        crop="fill"
-                        gravity="auto"
+                        loading="lazy"
                         class="w-full h-full object-cover"
                     />
                 {:else}

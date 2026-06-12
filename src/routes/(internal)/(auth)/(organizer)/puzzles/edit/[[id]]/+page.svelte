@@ -4,7 +4,7 @@
     import { tick } from 'svelte';
     import { superForm } from 'sveltekit-superforms';
     import { FileUpload } from '@skeletonlabs/skeleton-svelte';
-    import { CldImage } from 'svelte-cloudinary';
+    import { cldUrl } from '$lib/utils/cld_url';
     import LoadingOverlay from '$lib/components/common/LoadingOverlay.svelte';
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
     import { t } from '$lib/translations';
@@ -249,7 +249,7 @@
                     {:else}
                         <div class="flex flex-col items-center gap-2">
                             {#if selected_image_src?.includes('puzzles')}
-                                <CldImage src={selected_image_src} width="400" height="400" alt="Puzzle" class="rounded-lg max-h-48 object-contain" />
+                                <img src={cldUrl(selected_image_src, { width: 400, height: 400, crop: 'limit' })} alt="Puzzle" class="rounded-lg max-h-48 object-contain" />
                             {:else}
                                 <img src={selected_image_src} alt="Puzzle" class="rounded-lg max-h-48 object-contain" />
                             {/if}

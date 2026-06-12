@@ -5,7 +5,7 @@
     import Footer from '$lib/components/common/layout/Footer.svelte';
     import CloseIcon from '@iconify-svelte/mdi/close';
     import { toaster } from '$lib/stores/toaster';
-    import posthog from 'posthog-js';
+    import { getPosthog } from '$lib/analytics/posthog';
     import { browser } from '$app/environment';
 
     let {children, data} = $props();
@@ -15,7 +15,8 @@
     // as soon as you're able to — every time your app loads").
     $effect(() => {
         if (browser && data.user) {
-            posthog.identify(data.user.id, { email: data.user.email, name: data.user.name });
+            const { id, email, name } = data.user;
+            void getPosthog().then((posthog) => posthog.identify(id, { email, name }));
         }
     });
     import { drawerState } from '$lib/stores/drawer.svelte';

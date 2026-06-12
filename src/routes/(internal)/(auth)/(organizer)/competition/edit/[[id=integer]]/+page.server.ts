@@ -13,11 +13,11 @@ import { zod4 } from 'sveltekit-superforms/adapters';
 import {
     CompetitionEditSchema,
     type CompetitionEditData,
-    resolveImageUpload,
     transformPuzzleIds,
     transformTagCategories,
     autoComputeDateBounds,
 } from '../services/competition-form';
+import { resolveImageUpload } from '../services/image-upload.server';
 
 // Vercel serverless function config — allow enough time for image uploads
 export const config = {

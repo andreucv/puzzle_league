@@ -35,6 +35,12 @@ importers:
       '@upstash/qstash':
         specifier: ^2.10.1
         version: 2.11.0
+      '@upstash/ratelimit':
+        specifier: ^2.0.8
+        version: 2.0.8(@upstash/redis@1.38.0)
+      '@upstash/redis':
+        specifier: ^1.38.0
+        version: 1.38.0
       '@vercel/analytics':
         specifier: ^1.6.1
         version: 1.6.1(@sveltejs/kit@2.61.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.9)(vite@7.3.3(@types/node@22.19.19)(jiti@2.7.0)(lightningcss@1.32.0)))(svelte@5.55.9)(typescript@5.9.3)(vite@7.3.3(@types/node@22.19.19)(jiti@2.7.0)(lightningcss@1.32.0)))(react@19.2.6)(svelte@5.55.9)
@@ -147,9 +153,6 @@ importers:
       svelte-check:
         specifier: ^4.4.3
         version: 4.4.8(picomatch@4.0.4)(svelte@5.55.9)(typescript@5.9.3)
-      svelte-cloudinary:
-        specifier: ^2.3.1
-        version: 2.3.1(svelte@5.55.9)
       sveltekit-i18n:
         specifier: ^2.4.2
         version: 2.4.2(svelte@5.55.9)
@@ -292,27 +295,6 @@ packages:
   '@bramus/specificity@2.4.2':
     resolution: {integrity: sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==}
     hasBin: true
-
-  '@cloudinary-util/types@1.5.11':
-    resolution: {integrity: sha512-b3slV/oFV/3SZO1aiw9+UgYEmK3Ft/Ts03euek5v217Y39mhj6zXWGGJ/OVxQFBzp/zK3RE5+5mzZf/rXY4/Lw==}
-
-  '@cloudinary-util/types@1.6.0':
-    resolution: {integrity: sha512-YLpAkvrlQO9nmwA5poiOYYSXP0pMGIBX9IjHOqfU1kGf1ZBR5EwnHlY3b0er7H7uw/f+WlOlko5gE22JCma+TA==}
-
-  '@cloudinary-util/url-loader@5.10.6':
-    resolution: {integrity: sha512-xd7lG5eOlRx/MPWZTGB8xvIWxpruXMJlDyJHL+WSBqjq7sk87e9le2cOLxzXhDmUwaSewnbh8QOJ/r/CvGQOZQ==}
-
-  '@cloudinary-util/util@4.0.0':
-    resolution: {integrity: sha512-S4xcou/3A7l5o+bcKlw2VHBNgwups7/0lbVDT/cO5YmtrcEYXgj6LGmwnjvpTm/x571VPVN8x5jWdT3rLZiKJQ==}
-
-  '@cloudinary-util/util@4.2.0':
-    resolution: {integrity: sha512-3qD0+crtnrP1HUjtDoA3JqOesDndzBMqdD6vUSxpyQX6JO2g73DVNUdvK/YFcvT/vnWVTnLM67Im3dQlk4BtlA==}
-
-  '@cloudinary/transformation-builder-sdk@1.21.2':
-    resolution: {integrity: sha512-ehOgKUaP+Nvuf7B0TosmB8iilL0kdiVjzjl8tIK06cjvsNnwSJI3xP9nEJmKkvqNxwwFwvYXT+mxUTqnSv9JOA==}
-
-  '@cloudinary/url-gen@1.15.0':
-    resolution: {integrity: sha512-bjU67eZxLUgoRy/Plli4TQio7q6P31OYqnEgXxeN9TKXrzr6h0DeEdIUhKI9gy3HkEBWXWWJIPh7j7gkOJPnyA==}
 
   '@csstools/color-helpers@6.0.2':
     resolution: {integrity: sha512-LMGQLS9EuADloEFkcTBR3BwV/CGHV7zyDxVRtVDTwdI2Ca4it0CCVTT9wCkxSgokjE5Ho41hEPgb8OEUwoXr6Q==}
@@ -1773,16 +1755,20 @@ packages:
       '@types/json-schema':
         optional: true
 
-  '@unpic/core@0.0.49':
-    resolution: {integrity: sha512-tAqeJRMPF2TrZbSQe74OZ9O5DzKDDUoFwFbZUpjvLcgwGQ/8aleDCb2Iy3bHFJfzzYZ9iHN0hN1VpTlAGQd+ZA==}
-
-  '@unpic/svelte@0.0.53':
-    resolution: {integrity: sha512-v6pT8igLvV94vanvVLUTkaphyPsT/rKq8KcJYGLebirp3PwbMBUDKehgtrSONa8eYwvbe3q3sACFI8f4Eit54w==}
-    peerDependencies:
-      svelte: '*'
+  '@upstash/core-analytics@0.0.10':
+    resolution: {integrity: sha512-7qJHGxpQgQr9/vmeS1PktEwvNAF7TI4iJDi8Pu2CFZ9YUGHZH4fOP5TfYlZ4aVxfopnELiE4BS4FBjyK7V1/xQ==}
+    engines: {node: '>=16.0.0'}
 
   '@upstash/qstash@2.11.0':
     resolution: {integrity: sha512-AfPPxsUeOJCrxMQ9dkh1RZL40wgxCsUNFkxrbBSomC3U4j4qKFRawU8sDK+dqqH+sZFUS1biVM4GK46d5Tg2Vg==}
+
+  '@upstash/ratelimit@2.0.8':
+    resolution: {integrity: sha512-YSTMBJ1YIxsoPkUMX/P4DDks/xV5YYCswWMamU8ZIfK9ly6ppjRnVOyBhMDXBmzjODm4UQKcxsJPvaeFAijp5w==}
+    peerDependencies:
+      '@upstash/redis': ^1.34.3
+
+  '@upstash/redis@1.38.0':
+    resolution: {integrity: sha512-wu+dZBptlLy0+MCUEoHmzrY/TnmgDey3+c7EbIGwrLqAvkP8yi5MWZHYGIFtAygmL4Bkz2TdFu+eU0vFPncIcg==}
 
   '@valibot/to-json-schema@1.7.0':
     resolution: {integrity: sha512-Y3pPVibbIOHzohrlxSINvO7w/bvXkoYS3BQHoImV9ynE+bXKf171bdMucPurV2zp7gdmt0L1HCcNAsbo7cFRQw==}
@@ -3278,9 +3264,6 @@ packages:
     resolution: {integrity: sha512-laJTa3Jb+VQpaC6DseHhF7dXVqHTfJPCRDaEbid/drOhgitgYku/letMUqOXFoWV0zIIUbjpdH2t+tYj4bQMRQ==}
     engines: {node: '>=8'}
 
-  style-object-to-css-string@1.1.3:
-    resolution: {integrity: sha512-bISQoUsir/qGfo7vY8rw00ia9nnyE1jvYt3zZ2jhdkcXZ6dAEi74inMzQ6On57vFI+I4Fck6wOv5UI9BEwJDgw==}
-
   style-to-object@1.0.14:
     resolution: {integrity: sha512-LIN7rULI0jBscWQYaSswptyderlarFkjQ+t79nzty8tcIAceVomEVlLzH5VP4Cmsv6MtKhs7qaAiwlcp+Mgaxw==}
 
@@ -3295,11 +3278,6 @@ packages:
     peerDependencies:
       svelte: ^4.0.0 || ^5.0.0-next.0
       typescript: '>=5.0.0'
-
-  svelte-cloudinary@2.3.1:
-    resolution: {integrity: sha512-Y2gSnq4YuWqP6xbnck7P6nhcql4ya2WjDWcxA1WLygXq/Y9ZenxBTcwQ5PzsH8S+BMkedAESh1tP5Qy2YTmuMw==}
-    peerDependencies:
-      svelte: ^3.0.0 || ^4.0.0 || ^5.0.0
 
   svelte-parse-markup@0.1.5:
     resolution: {integrity: sha512-T6mqZrySltPCDwfKXWQ6zehipVLk4GWfH1zCMGgRtLlOIFPuw58ZxVYxVvotMJgJaurKi1i14viB2GIRKXeJTQ==}
@@ -3437,15 +3415,15 @@ packages:
     resolution: {integrity: sha512-fIRiVTJNcSRmXKPZtGzFQv9WRrZ3M9eoptl/teFJvjOzmpU+/K/JH6HZ8deBfb5vMEpicJcLn7JmvdknlMq7Zg==}
     hasBin: true
 
+  uncrypto@0.1.3:
+    resolution: {integrity: sha512-Ql87qFHB3s/De2ClA9e0gsnS6zXG27SkTiSJwjCc9MebbfapQfuPzumMIUMi38ezPZVNFcHI9sUIepeQfw8J8Q==}
+
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
   undici@7.25.0:
     resolution: {integrity: sha512-xXnp4kTyor2Zq+J1FfPI6Eq3ew5h6Vl0F/8d9XU5zZQf1tX9s2Su1/3PiMmUANFULpmksxkClamIZcaUqryHsQ==}
     engines: {node: '>=20.18.1'}
-
-  unpic@3.22.0:
-    resolution: {integrity: sha512-NFhB8HgHHWkNzTxwWg6KHx8+3RZnhWFm4Axdqp9iI176iY3wskzfP16NRSJ2SSTfXzyK4W6GsBqs8iOOdvOB3g==}
 
   update-browserslist-db@1.2.3:
     resolution: {integrity: sha512-Js0m9cx+qOgDxo0eMiFGEueWztz+d4+M3rGlmKPT+T4IS/jP4ylw3Nwpu6cpTTP8R1MAC1kF4VbdLt3ARf209w==}
@@ -3656,9 +3634,6 @@ packages:
     peerDependencies:
       zod: ^3.25 || ^4.0.14
 
-  zod@3.25.76:
-    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
-
   zod@4.4.3:
     resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
@@ -3767,29 +3742,6 @@ snapshots:
   '@bramus/specificity@2.4.2':
     dependencies:
       css-tree: 3.2.1
-
-  '@cloudinary-util/types@1.5.11': {}
-
-  '@cloudinary-util/types@1.6.0': {}
-
-  '@cloudinary-util/url-loader@5.10.6':
-    dependencies:
-      '@cloudinary-util/types': 1.5.11
-      '@cloudinary-util/util': 4.0.0
-      '@cloudinary/url-gen': 1.15.0
-      zod: 3.25.76
-
-  '@cloudinary-util/util@4.0.0': {}
-
-  '@cloudinary-util/util@4.2.0': {}
-
-  '@cloudinary/transformation-builder-sdk@1.21.2':
-    dependencies:
-      '@cloudinary/url-gen': 1.15.0
-
-  '@cloudinary/url-gen@1.15.0':
-    dependencies:
-      '@cloudinary/transformation-builder-sdk': 1.21.2
 
   '@csstools/color-helpers@6.0.2': {}
 
@@ -4985,22 +4937,24 @@ snapshots:
   '@typeschema/core@0.14.0':
     optional: true
 
-  '@unpic/core@0.0.49':
+  '@upstash/core-analytics@0.0.10':
     dependencies:
-      unpic: 3.22.0
-
-  '@unpic/svelte@0.0.53(svelte@5.55.9)':
-    dependencies:
-      '@unpic/core': 0.0.49
-      style-object-to-css-string: 1.1.3
-      svelte: 5.55.9
-      unpic: 3.22.0
+      '@upstash/redis': 1.38.0
 
   '@upstash/qstash@2.11.0':
     dependencies:
       crypto-js: 4.2.0
       jose: 5.10.0
       neverthrow: 7.2.0
+
+  '@upstash/ratelimit@2.0.8(@upstash/redis@1.38.0)':
+    dependencies:
+      '@upstash/core-analytics': 0.0.10
+      '@upstash/redis': 1.38.0
+
+  '@upstash/redis@1.38.0':
+    dependencies:
+      uncrypto: 0.1.3
 
   '@valibot/to-json-schema@1.7.0(valibot@1.4.0(typescript@5.9.3))':
     dependencies:
@@ -6631,8 +6585,6 @@ snapshots:
     dependencies:
       min-indent: 1.0.1
 
-  style-object-to-css-string@1.1.3: {}
-
   style-to-object@1.0.14:
     dependencies:
       inline-style-parser: 0.2.7
@@ -6651,15 +6603,6 @@ snapshots:
       typescript: 5.9.3
     transitivePeerDependencies:
       - picomatch
-
-  svelte-cloudinary@2.3.1(svelte@5.55.9):
-    dependencies:
-      '@cloudinary-util/types': 1.6.0
-      '@cloudinary-util/url-loader': 5.10.6
-      '@cloudinary-util/util': 4.2.0
-      '@unpic/svelte': 0.0.53(svelte@5.55.9)
-      defu: 6.1.7
-      svelte: 5.55.9
 
   svelte-parse-markup@0.1.5(svelte@5.55.9):
     dependencies:
@@ -6819,11 +6762,11 @@ snapshots:
 
   ulid@2.4.0: {}
 
+  uncrypto@0.1.3: {}
+
   undici-types@6.21.0: {}
 
   undici@7.25.0: {}
-
-  unpic@3.22.0: {}
 
   update-browserslist-db@1.2.3(browserslist@4.28.2):
     dependencies:
@@ -6979,7 +6922,5 @@ snapshots:
     dependencies:
       zod: 4.4.3
     optional: true
-
-  zod@3.25.76: {}
 
   zod@4.4.3: {}

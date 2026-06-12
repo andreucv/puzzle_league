@@ -12,6 +12,14 @@ export const auth = betterAuth({
     database: prismaAdapter(prisma, {
         provider: "postgresql", // or "mysql", "postgresql", ...etc
     }),
+    session: {
+        // Serve the session from a short-lived signed cookie instead of hitting the
+        // DB on every request. Trade-off: session revocation can lag up to maxAge.
+        cookieCache: {
+            enabled: true,
+            maxAge: 300, // 5 minutes
+        },
+    },
     emailAndPassword: {
         enabled: true,
         sendResetPassword: async ({ user, url }) => {

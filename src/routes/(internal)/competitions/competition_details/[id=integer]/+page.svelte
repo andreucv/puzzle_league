@@ -4,7 +4,7 @@
     import CategoriesOverview from '$lib/components/competition/CategoriesOverview.svelte';
     import { Avatar, Dialog, Portal } from '@skeletonlabs/skeleton-svelte';
 
-    import { CldImage } from 'svelte-cloudinary';
+    import { cldUrl } from '$lib/utils/cld_url';
     import { t } from '$lib/translations';
     import RegistrationActionButton from '$lib/components/registration/RegistrationActionButton.svelte';
     import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
@@ -188,13 +188,11 @@
                     onclick={() => showImageDialog = true}
                     aria-label={`Open image for ${competitionName}`}
                 >
-                    <CldImage
-                        src={competition.image_cld_id}
+                    <img
+                        src={cldUrl(competition.image_cld_id, { width: 800, height: 400, crop: 'fill', gravity: 'auto' })}
                         width="800"
                         height="400"
                         alt={competitionName}
-                        crop="fill"
-                        gravity="auto"
                         loading="lazy"
                         class="rounded-lg shadow-lg w-full object-cover max-h-96"
                     />
@@ -267,13 +265,9 @@
                                 <CloseIcon width="1.2rem" height="1.2rem" />
                             </Dialog.CloseTrigger>
 
-                            <CldImage
-                                src={competition.image_cld_id}
-                                width="auto"
-                                height="auto"
+                            <img
+                                src={cldUrl(competition.image_cld_id, { width: 1600, height: 1600, crop: 'limit' })}
                                 alt={competitionName}
-                                crop="limit"
-                                gravity="auto"
                                 loading="eager"
                                 class="max-w-[98vw] max-h-[95vh] w-auto h-auto object-contain rounded-md"
                             />

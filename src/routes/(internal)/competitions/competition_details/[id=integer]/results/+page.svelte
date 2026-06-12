@@ -1,7 +1,7 @@
 <script lang="ts">
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
     import Card from '$lib/components/common/card/Card.svelte';
-    import { CldImage } from 'svelte-cloudinary';
+    import { cldUrl } from '$lib/utils/cld_url';
     import { t } from '$lib/translations';
     import { formatCountdown, formatDeltaCompact, getCategoryTypeName, calculateDuration } from '$lib/utils/category_utils';
     import { onMount, untrack, tick } from 'svelte';
@@ -419,13 +419,12 @@
                             <div class="shrink-0">
                                 {#if puzzle.image_cld_id}
                                     <div class="w-10 h-10 rounded-md overflow-hidden ring-1 ring-surface-300/50">
-                                        <CldImage
-                                            src={puzzle.image_cld_id}
+                                        <img
+                                            src={cldUrl(puzzle.image_cld_id, { width: 40, height: 40, crop: 'fill', gravity: 'auto' })}
                                             width="40"
                                             height="40"
                                             alt={puzzle.name || puzzle.brand}
-                                            crop="fill"
-                                            gravity="auto"
+                                            loading="lazy"
                                             class="w-full h-full object-cover"
                                         />
                                     </div>

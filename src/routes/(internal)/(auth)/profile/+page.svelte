@@ -3,7 +3,7 @@
     import { authClient } from "$lib/auth_client";
     import { goto } from "$app/navigation";
     import UserCard from "./components/UserCard.svelte";
-    import posthog from 'posthog-js';
+    import { getPosthog } from '$lib/analytics/posthog';
 
     import {t} from '$lib/translations';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
@@ -18,7 +18,7 @@
         await authClient.signOut({
             fetchOptions: {
                 onSuccess: () => {
-                    posthog.reset();
+                    void getPosthog().then((posthog) => posthog.reset());
                     goto("/login");
                 },
             },

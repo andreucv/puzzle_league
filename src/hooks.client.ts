@@ -1,18 +1,13 @@
-import posthog from 'posthog-js';
-import { PUBLIC_POSTHOG_PROJECT_TOKEN, PUBLIC_POSTHOG_HOST } from '$env/static/public';
 import type { HandleClientError } from '@sveltejs/kit';
+import { getPosthog, schedulePosthogInit } from '$lib/analytics/posthog';
 
 export async function init() {
-	posthog.init(PUBLIC_POSTHOG_PROJECT_TOKEN, {
-		api_host: '/ingest',
-		ui_host: PUBLIC_POSTHOG_HOST.replace('.i.posthog.com', '.posthog.com'),
-		defaults: '2026-01-30',
-		capture_exceptions: true
-	});
+	// Deferred: posthog-js loads on idle instead of blocking the app entry bundle.
+	schedulePosthogInit();
 }
 
 export const handleError: HandleClientError = async ({ error, status, message }) => {
-	posthog.captureException(error);
+	void getPosthog().then((posthog) => posthog.captureException(error));
 
 	return {
 		message,

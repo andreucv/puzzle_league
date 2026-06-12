@@ -29,7 +29,7 @@ Puzzle League is a SvelteKit application for speed puzzling competitions. It run
 
 1. reject cross-origin mutating requests with CSRF origin validation;
 2. require an authenticated session unless the API route is whitelisted;
-3. apply in-memory rate limiting, with stricter limits for search endpoints;
+3. apply rate limiting (Upstash Redis-backed when `UPSTASH_REDIS_REST_*` or `KV_REST_API_*` is configured, per-instance in-memory otherwise), with stricter limits for search endpoints;
 4. enforce route-specific authorization through `api_route_guards.ts`;
 5. delegate auth routes to Better Auth's SvelteKit handler.
 

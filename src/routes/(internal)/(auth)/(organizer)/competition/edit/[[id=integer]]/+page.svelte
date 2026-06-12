@@ -11,7 +11,7 @@
     import { buildCategoriesPayload, resolveCategoryDateTime, type CategoryDraft } from "../services/competition-categories";
     import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
     import { FileUpload, Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
-    import { CldImage } from 'svelte-cloudinary';
+    import { cldUrl } from '$lib/utils/cld_url';
     import { countries, getCountryFlag, getLocalizedCountryName } from '$lib/utils/country_utils';
 
     // Components
@@ -826,7 +826,7 @@
                     {:else}
                         <div class="flex flex-col items-center gap-2">
                             {#if selected_image_src?.includes('competitions')}
-                                <CldImage src={selected_image_src} width="800" height="400" alt="Competition" class="rounded-lg" />
+                                <img src={cldUrl(selected_image_src, { width: 800, height: 400, crop: 'limit' })} alt="Competition" class="rounded-lg" />
                             {:else}
                                 <img src={selected_image_src} alt="Competition" class="rounded-lg" />
                                 <input type="hidden" name="competition_image" value={selected_image_src} />

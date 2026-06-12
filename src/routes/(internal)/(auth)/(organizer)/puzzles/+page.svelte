@@ -1,7 +1,7 @@
 <script lang="ts">
     import Icon from '@iconify/svelte';
     import SearchInput from '$lib/components/common/SearchInput.svelte';
-    import { CldImage } from 'svelte-cloudinary';
+    import { cldUrl } from '$lib/utils/cld_url';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import { t } from '$lib/translations';
 
@@ -45,7 +45,7 @@
                     <div class="flex gap-3">
                         <div class="w-20 h-20 rounded-lg overflow-hidden bg-surface-200 dark:bg-surface-800 flex-shrink-0 flex items-center justify-center">
                             {#if puzzle.image_cld_id}
-                                <CldImage src={puzzle.image_cld_id} width="80" height="80" alt={puzzle.name || puzzle.brand} crop="fill" gravity="auto" class="w-full h-full object-cover" />
+                                <img src={cldUrl(puzzle.image_cld_id, { width: 80, height: 80, crop: 'fill', gravity: 'auto' })} width="80" height="80" alt={puzzle.name || puzzle.brand} loading="lazy" class="w-full h-full object-cover" />
                             {:else}
                                 <Icon icon="mdi:puzzle" class="w-8 h-8 text-surface-400" />
                             {/if}

@@ -1,4 +1,5 @@
 import type { RequestEvent } from '@sveltejs/kit';
+import { createUpstashRateLimiter, isUpstashConfigured } from './rate-limit-redis';
 
 // ---------------------------------------------------------------------------
 // Store interface (pluggable: in-memory, Redis, etc.)
@@ -107,23 +108,28 @@ export function createRateLimiter(config: RateLimiterConfig) {
 
 // ---------------------------------------------------------------------------
 // Pre-configured limiters for use in hooks.server.ts
+//
+// Upstash-backed (global, serverless-safe) when UPSTASH_REDIS_REST_* env vars
+// are set; otherwise in-memory (per-instance — local dev only).
 // ---------------------------------------------------------------------------
 
-const sharedStore = new InMemoryRateLimitStore();
+function createConfiguredLimiter(maxRequests: number, prefix: string) {
+  if (isUpstashConfigured()) {
+    return createUpstashRateLimiter({
+      windowMs: 60_000,
+      maxRequests,
+      prefix,
+      keyExtractor: defaultKeyExtractor,
+    });
+  }
+  return createRateLimiter({ windowMs: 60_000, maxRequests });
+}
 
 /** General API rate limiter: 60 requests per minute */
-export const apiRateLimiter = createRateLimiter({
-  windowMs: 60_000,
-  maxRequests: 60,
-  store: sharedStore,
-});
+export const apiRateLimiter = createConfiguredLimiter(60, 'rl:api');
 
 /** Stricter limiter for search endpoints: 10 requests per minute */
-export const searchRateLimiter = createRateLimiter({
-  windowMs: 60_000,
-  maxRequests: 10,
-  store: sharedStore,
-});
+export const searchRateLimiter = createConfiguredLimiter(10, 'rl:search');
 
 const SEARCH_PATHS = ['/api/users/search', '/api/puzzles/search'];
 

@@ -4,7 +4,14 @@
     import { authClient } from "$lib/auth_client";
     import { t } from '$lib/translations';
     import FormInput from '$lib/components/common/FormInput.svelte';
-    import posthog from 'posthog-js';
+    import { getPosthog } from '$lib/analytics/posthog';
+
+    function trackAuthSuccess(user: { id: string; email: string; name: string }, event: string, method: string) {
+        void getPosthog().then((posthog) => {
+            posthog.identify(user.id, { email: user.email, name: user.name });
+            posthog.capture(event, { method });
+        });
+    }
 
     let action = $state("login");
     let email = $state("");
@@ -40,8 +47,7 @@
         try {
             const { data, error } = await authClient.signIn.email({ email, password });
             if (!error && data && 'user' in data && data.user) {
-                posthog.identify(data.user.id, { email: data.user.email, name: data.user.name });
-                posthog.capture('user_logged_in', { method: 'email' });
+                trackAuthSuccess(data.user, 'user_logged_in', 'email');
             }
             await afterLogin(data, error);
         } finally {
@@ -62,8 +68,7 @@
                 email, password, name, callbackURL: '/verify-email',
             });
             if (!error && data && 'user' in data && data.user) {
-                posthog.identify(data.user.id, { email: data.user.email, name: data.user.name });
-                posthog.capture('user_registered', { method: 'email' });
+                trackAuthSuccess(data.user, 'user_registered', 'email');
             }
             await afterLogin(data, error);
         } finally {
@@ -81,8 +86,7 @@
                 callbackURL: getSafeRedirect(),
             });
             if (!error && data && 'user' in data && data.user) {
-                posthog.identify(data.user.id, { email: data.user.email, name: data.user.name });
-                posthog.capture('user_logged_in', { method: 'google' });
+                trackAuthSuccess(data.user, 'user_logged_in', 'google');
             }
             await afterLogin(data, error);
         } finally {

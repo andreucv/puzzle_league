@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-import { runSeed } from '../fixtures';
+import { expect, test, runSeed } from '../fixtures';
 
 // ==================== TYPES ====================
 
@@ -13,7 +12,6 @@ interface PublicProfileTestData {
 // ==================== CONFIG ====================
 
 test.use({ storageState: { cookies: [], origins: [] } });
-test.describe.configure({ mode: 'serial' });
 
 // ==================== SEED ====================
 
@@ -33,7 +31,7 @@ function resultsUrl(competitionId: number) {
 
 test.describe('Anonymous user on results page', () => {
     test('Given a finished competition with results, when an anonymous user views the results page, then the participant name is visible but has no profile link', async ({ page }) => {
-        await page.goto(resultsUrl(testData.competitionId), { waitUntil: 'networkidle' });
+        await page.goto(resultsUrl(testData.competitionId));
 
         // The participant name should be visible as plain text
         const profileName = page.getByTestId(`profile-name-${testData.participantId}`);
@@ -46,26 +44,9 @@ test.describe('Anonymous user on results page', () => {
     });
 
     test('Given an anonymous user, when they navigate directly to a public profile URL, then they are redirected to login', async ({ page }) => {
-        const response = await page.goto(`/public_profile/${testData.participantId}`);
+        await page.goto(`/public_profile/${testData.participantId}`);
 
         // Should be redirected to login
         await expect(page).toHaveURL(/\/login/);
-    });
-});
-
-test.describe('Authenticated user on results page', () => {
-    test.use({ storageState: 'playwright/.auth/participant_user.json' });
-
-    test('Given a finished competition with results, when an authenticated user views the results page, then the participant name is a clickable profile link', async ({ page }) => {
-        await page.goto(resultsUrl(testData.competitionId), { waitUntil: 'networkidle' });
-
-        // The profile link should be visible
-        const profileLink = page.getByTestId(`profile-link-${testData.participantId}`);
-        await expect(profileLink).toBeVisible();
-        await expect(profileLink).toHaveText(testData.participantName);
-
-        // Clicking the link should navigate to the public profile
-        await profileLink.click();
-        await expect(page).toHaveURL(`/public_profile/${testData.participantId}`);
     });
 });

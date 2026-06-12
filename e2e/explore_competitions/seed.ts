@@ -10,7 +10,6 @@
 import "dotenv/config";
 import {
     createSeedContext,
-    writeSeedOutput,
     createCompetition,
 } from '../seed_utils';
 
@@ -21,7 +20,7 @@ function daysFromNow(days: number): Date {
     return date;
 }
 
-async function main() {
+export default async function seed() {
     const databaseUrl = process.env.DATABASE_URL;
     if (!databaseUrl) throw new Error('DATABASE_URL is not set');
 
@@ -79,17 +78,13 @@ async function main() {
         data: { status: 'FINISHED' },
     });
 
-    writeSeedOutput(import.meta.url, {
+    const result = {
         in2Days: { id: in2Days.id, name: in2Days.name },
         in9Days: { id: in9Days.id, name: in9Days.name },
         in40Days: { id: in40Days.id, name: in40Days.name },
         ago10Days: { id: ago10Days.id, name: ago10Days.name },
-    });
+    };
 
     await ctx.prisma.$disconnect();
+    return result;
 }
-
-main().catch(err => {
-    console.error(err);
-    process.exit(1);
-});

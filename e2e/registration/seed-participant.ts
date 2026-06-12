@@ -10,16 +10,10 @@
  * - Free With Warning: showPaymentWarning=true but price=0 → tests auto-confirm edge case
  */
 import "dotenv/config";
-import { writeFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 import { createSeedContext, createCompetition } from '../seed_utils';
-import {
-    getTimeSlots, individual, pairs, competition,
-    PARTICIPANT_COMPETITION_NAMES,
-} from './seed-helpers';
+import { getTimeSlots, individual, pairs, competition } from './seed-helpers';
 
-async function main() {
+export default async function seed() {
     const databaseUrl = process.env.DATABASE_URL;
     if (!databaseUrl) throw new Error('DATABASE_URL is not set');
 
@@ -30,34 +24,34 @@ async function main() {
     const PAID = { showPaymentWarning: true } as const;
 
     const externalParticipant = await createCompetition(ctx,
-        competition(organizer.id, PARTICIPANT_COMPETITION_NAMES[0],
+        competition(organizer.id, 'External Participant Individual Competition',
             'Tests registering a non-platform participant',
             [individual('500 pcs solo', morning, { price: 500 })],
             PAID),
     );
 
     const groupTeam = await createCompetition(ctx,
-        competition(organizer.id, PARTICIPANT_COMPETITION_NAMES[1],
+        competition(organizer.id, 'Pairs Team Build Competition',
             'Tests building a team for pairs category',
             [pairs('500 pcs pairs', morning, { price: 500 })],
             PAID),
     );
 
     const unregister = await createCompetition(ctx,
-        competition(organizer.id, PARTICIPANT_COMPETITION_NAMES[2],
+        competition(organizer.id, 'Unregister Test Competition',
             'Tests unregistering from a category',
             [individual('500 pcs unreg', morning, { price: 500 })],
             PAID),
     );
 
     const removeQueued = await createCompetition(ctx,
-        competition(organizer.id, PARTICIPANT_COMPETITION_NAMES[3],
+        competition(organizer.id, 'Remove Queued Competition',
             'Tests removing a queued signup',
             [individual('500 pcs remove', morning)]),
     );
 
     const multiCategory = await createCompetition(ctx,
-        competition(organizer.id, PARTICIPANT_COMPETITION_NAMES[4],
+        competition(organizer.id, 'Multi-Cat Batch Competition',
             'Tests registering for multiple categories at once',
             [
                 individual('500 pcs individual', morning, { price: 500 }),
@@ -67,14 +61,13 @@ async function main() {
     );
 
     const freeWithWarning = await createCompetition(ctx,
-        competition(organizer.id, PARTICIPANT_COMPETITION_NAMES[5],
+        competition(organizer.id, 'Free With Warning Competition',
             'Tests auto-confirm when showPaymentWarning=true but price=0',
             [individual('500 pcs free-warning', morning)],
             { showPaymentWarning: true }),
     );
 
-    const dir = dirname(fileURLToPath(import.meta.url));
-    writeFileSync(join(dir, 'test-data-participant.json'), JSON.stringify({
+    const result = {
         externalParticipant: { competitionId: externalParticipant.id },
         groupTeam: { competitionId: groupTeam.id },
         unregister: { competitionId: unregister.id },
@@ -85,13 +78,9 @@ async function main() {
             pairsCategoryId: multiCategory.categories[1].id,
         },
         freeWithWarning: { competitionId: freeWithWarning.id },
-    }, null, 2), 'utf-8');
+    };
 
     console.log('✅ Participant registration seed complete');
     await ctx.prisma.$disconnect();
+    return result;
 }
-
-main().catch(err => {
-    console.error(err);
-    process.exit(1);
-});

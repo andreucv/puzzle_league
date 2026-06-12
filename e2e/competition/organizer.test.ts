@@ -1,15 +1,11 @@
-import { expect, test, type Page, type Locator } from '@playwright/test';
-import { runSeed } from '../fixtures';
+import { expect, test, AUTH_FILES } from '../fixtures';
+import type { Page, Locator } from '@playwright/test';
+import { gotoHydrated } from '../utils/navigation';
 import type { CompetitionData, CategoryData, MultiDayCategoryData } from '../types';
 
-// ── Config: sequential execution ──
-test.describe.configure({ mode: 'serial' });
-test.use({ storageState: 'playwright/.auth/organizer_user.json' });
-
-// ── Restore all organizer competitions after the entire file ──
-test.afterAll(async () => {
-    await runSeed(import.meta.url, { seedFile: 'restore.ts' });
-});
+// Every test creates its own competition through the UI, so the suite needs
+// no seed and the tests are independent.
+test.use({ storageState: AUTH_FILES.organizer });
 
 // ==================== TEST DATA ====================
 
@@ -138,7 +134,7 @@ function formatDateToCalendarLabel(date: Date = new Date()): string {
 
 /** Navigates to the create competition page and asserts the heading is visible. */
 async function navigateToCreateForm(page: Page) {
-    await page.goto('/competition/edit', { waitUntil: 'networkidle' });
+    await gotoHydrated(page, '/competition/edit');
     await expect(page.getByRole('heading', { name: 'Create new competition' }).first()).toBeVisible();
 }
 
@@ -263,8 +259,6 @@ async function assertCompetitionCreated(page: Page, competition: CompetitionData
 // ==================== SINGLE-DAY COMPETITION TESTS ====================
 
 test.describe('Single-day competition', () => {
-    test.describe.configure({ mode: 'serial' });
-
     test('GivenCreateCompetitionPage_WhenOrganizerCreatesCompetition_ThenCompetitionIsCreated', async ({ page }) => {
         await navigateToCreateForm(page);
         await fillCompetitionDetails(page, competition_data.competition);
@@ -306,8 +300,6 @@ test.describe('Single-day competition', () => {
 // ==================== MULTI-DAY COMPETITION TESTS ====================
 
 test.describe('Multi-day competition', () => {
-    test.describe.configure({ mode: 'serial' });
-
     test('GivenCreateCompetitionPage_WhenOrganizerCreatesMultiDayCompetition_ThenCompetitionIsCreated', async ({ page }) => {
         await navigateToCreateForm(page);
         await fillCompetitionDetails(page, multiday_competition_data.competition);

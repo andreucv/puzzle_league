@@ -226,7 +226,8 @@
 
     <!-- Result message -->
     {#if resultMessage}
-        <div class="rounded-lg overflow-hidden {resultMessage.success ? 'preset-filled-success-500' : 'preset-filled-error-500'}">
+        <div class="rounded-lg overflow-hidden {resultMessage.success ? 'preset-filled-success-500' : 'preset-filled-error-500'}"
+            data-testid={resultMessage.success ? 'action-result-success' : 'action-result-error'}>
             <div class="p-4 flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
                     {#if resultMessage.success}

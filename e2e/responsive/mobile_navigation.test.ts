@@ -1,4 +1,5 @@
-import { expect, test, devices } from '@playwright/test';
+import { expect, test, AUTH_FILES } from '../fixtures';
+import { gotoHydrated } from '../utils/navigation';
 
 test.describe('Anonymous user mobile navigation', () => {
     test.use({ storageState: { cookies: [], origins: [] } });
@@ -9,23 +10,22 @@ test.describe('Anonymous user mobile navigation', () => {
     });
 
     test('GivenMobileLandingPage_WhenClickingHamburgerMenu_ThenDrawerOpens', async ({ page }) => {
-        await page.goto('/');
+        await gotoHydrated(page, '/');
         await page.locator('#states-button').click();
         await expect(page.getByTestId('nav-drawer-home')).toBeVisible();
     });
 
     test('GivenMobileDrawerOpen_WhenClickingCloseButton_ThenDrawerCloses', async ({ page }) => {
-        await page.goto('/');
+        await gotoHydrated(page, '/');
         await page.locator('#states-button').click();
         await expect(page.getByTestId('nav-drawer-home')).toBeVisible();
 
-        // Click the close button (icon-park:close)
-        await page.getByRole('navigation').locator('div').filter({ hasText: 'PuzzLigas' }).getByRole('button').first().click();
+        await page.getByTestId('nav-drawer-close-button').click();
         await expect(page.getByTestId('nav-drawer-home')).not.toBeVisible();
     });
 
     test('GivenMobileDrawerOpen_WhenClickingHomeLink_ThenNavigatesToHomeAndClosesDrawer', async ({ page }) => {
-        await page.goto('/login');
+        await gotoHydrated(page, '/login');
         await page.locator('#states-button').click();
         await page.getByTestId('nav-drawer-home').click();
 
@@ -35,10 +35,10 @@ test.describe('Anonymous user mobile navigation', () => {
 });
 
 test.describe('Organizer user mobile navigation', () => {
-    test.use({ storageState: 'playwright/.auth/organizer_user.json' });
+    test.use({ storageState: AUTH_FILES.organizer });
 
     test('GivenOrganizerMobile_WhenClickingCreateCompetition_ThenNavigatesToEditPage', async ({ page }) => {
-        await page.goto('/');
+        await gotoHydrated(page, '/');
         await page.locator('#states-button').click();
         await page.getByTestId('nav-drawer-create-competition').click();
 
@@ -48,10 +48,10 @@ test.describe('Organizer user mobile navigation', () => {
 });
 
 test.describe('Admin user mobile navigation', () => {
-    test.use({ storageState: 'playwright/.auth/admin_user.json' });
+    test.use({ storageState: AUTH_FILES.admin });
 
     test('GivenAdminMobile_WhenClickingReviewRequests_ThenNavigatesToAdminPage', async ({ page }) => {
-        await page.goto('/');
+        await gotoHydrated(page, '/');
         await page.locator('#states-button').click();
         await page.getByRole('link', { name: 'Review Permissions Requests', exact: true }).click();
 
@@ -63,19 +63,18 @@ test.describe('Mobile touch interactions', () => {
     test.use({ storageState: { cookies: [], origins: [] } });
 
     test('GivenMobileViewport_WhenTappingOutsideDrawer_ThenDrawerCloses', async ({ page }) => {
-        await page.goto('/');
+        await gotoHydrated(page, '/');
         await page.locator('#states-button').click();
         await expect(page.getByTestId('nav-drawer-home')).toBeVisible();
 
-        // Click outside the drawer (on the backdrop)
         await page.getByTestId('nav-drawer-close-button').click();
 
         // Drawer should close
-        await expect(page.getByTestId('nav-drawer-home')).not.toBeVisible({ timeout: 5000 });
+        await expect(page.getByTestId('nav-drawer-home')).not.toBeVisible();
     });
 
     test('GivenMobileViewport_WhenNavigatingViaDrawer_ThenPageScrollsToTop', async ({ page }) => {
-        await page.goto('/');
+        await gotoHydrated(page, '/');
 
         // Scroll down first
         await page.evaluate(() => window.scrollTo(0, 500));

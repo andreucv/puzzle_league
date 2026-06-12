@@ -23,13 +23,14 @@
 	async function toggleRegistration() {
 		loading = true;
 		feedbackMessage = '';
+		const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 500));
 
 		try {
 			const response = await fetch(`/api/competitions/${competition_id}/toggle_registration`, {
 				method: 'POST'
 			});
 
-			await new Promise((resolve) => setTimeout(resolve, 2000));
+			await minLoadingTime;
 
 			if (response.ok) {
 				const result = await response.json();

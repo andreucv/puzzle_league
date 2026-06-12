@@ -11,7 +11,9 @@ export async function createCompetition(
 ): Promise<SeededCompetition> {
     const competition = await ctx.prisma.competition.create({
         data: {
-            name: input.name,
+            // runId suffix keeps parallel suites/workers/runs from colliding;
+            // tests must assert on the returned name, never the input name.
+            name: ctx.unique(input.name),
             description: input.description,
             location: input.location,
             country: input.country,

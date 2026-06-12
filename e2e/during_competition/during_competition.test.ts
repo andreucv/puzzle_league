@@ -1,5 +1,6 @@
 import { expect, test, runSeed } from '../fixtures';
-import type { Page, BrowserContext } from '@playwright/test';
+import { gotoHydrated } from '../utils/navigation';
+import type { Page } from '@playwright/test';
 
 // ==================== TYPES ====================
 
@@ -13,11 +14,7 @@ interface TestData {
 // ==================== HELPER FUNCTIONS ====================
 
 async function navigateToDuringCompetition(page: Page, competitionId: number): Promise<void> {
-    await page.goto(`/competition/${competitionId}/during_competition`);
-}
-
-async function navigateToManageJudges(page: Page, competitionId: number): Promise<void> {
-    await page.goto(`/competition/${competitionId}/manage_judges`);
+    await gotoHydrated(page, `/competition/${competitionId}/during_competition`);
 }
 
 async function assignJudge(page: Page, categoryId: number, searchQuery: string): Promise<void> {
@@ -26,7 +23,7 @@ async function assignJudge(page: Page, categoryId: number, searchQuery: string):
 
     // Wait for search results to appear
     const firstResult = page.locator('[data-testid^="judge-search-result-"]').first();
-    await expect(firstResult).toBeVisible({ timeout: 5000 });
+    await expect(firstResult).toBeVisible();
     await firstResult.click();
 }
 
@@ -35,102 +32,70 @@ async function clickConfirmPopover(page: Page): Promise<void> {
     await page.getByTestId('confirm-popover-action').click();
 }
 
-// ==================== TESTS ====================
+// ==================== TEST ====================
 
-test.describe('During Competition Workflow', () => {
-    let organizerContext: BrowserContext;
-    let participantContext: BrowserContext;
-    let organizerPage: Page;
-    let participantPage: Page;
-    let testData: TestData;
+// One journey: the category lifecycle (assign judge → start → finish entries →
+// stop → resolve DNFs → complete) is a single workflow whose steps build on
+// each other, exercised from both the organizer's and the judge's perspective.
+test('GivenSeededCategory_WhenOrganizerRunsLifecycleWithJudge_ThenBothSeeLiveUpdates', async ({ organizerPage, participantPage }) => {
+    const testData = await runSeed<TestData>(import.meta.url);
 
-    test.beforeAll(async ({ browser }) => {
-        // Seed test data using co-located seed.ts (auto-resolved from import.meta.url)
-        testData = await runSeed<TestData>(import.meta.url);
-
-        // Create browser contexts with saved auth states
-        organizerContext = await browser.newContext({
-            storageState: 'playwright/.auth/organizer_user.json',
-        });
-        participantContext = await browser.newContext({
-            storageState: 'playwright/.auth/participant_user.json',
-        });
-        organizerPage = await organizerContext.newPage();
-        participantPage = await participantContext.newPage();
-    });
-
-    test.afterAll(async () => {
-        await organizerPage.close();
-        await participantPage.close();
-        await organizerContext.close();
-        await participantContext.close();
-    });
-
-    test('Given an organizer, When navigating to during_competition page, Then it loads with category controls visible', async () => {
+    await test.step('organizer sees category controls on the during_competition page', async () => {
         await navigateToDuringCompetition(organizerPage, testData.competitionId);
-
-        // Category card is visible in the Upcoming section
         await expect(organizerPage.getByTestId(`start-category-${testData.categoryId}`)).toBeVisible();
     });
 
-    test('Given a participant, When navigating to during_competition page, Then access is denied', async () => {
+    await test.step('participant (not yet judge) is denied access', async () => {
         await navigateToDuringCompetition(participantPage, testData.competitionId);
-
         // SvelteKit error(403) renders an error page
-        await expect(participantPage.locator('text=403')).toBeVisible({ timeout: 5000 });
+        await expect(participantPage.locator('text=403')).toBeVisible();
     });
 
-    test('Given an organizer, When assigning participant as judge, Then the participant appears in the judge list', async () => {
-        await navigateToManageJudges(organizerPage, testData.competitionId);
-
-        await assignJudge(organizerPage, testData.categoryId, 'Test Participant');
+    await test.step('organizer assigns the participant as judge', async () => {
+        await gotoHydrated(organizerPage, `/competition/${testData.competitionId}/manage_judges`);
+        await assignJudge(organizerPage, testData.categoryId, 'Participant');
 
         // Verify judge entry appears (we check for any judge-entry for this category)
         const judgeEntry = organizerPage.locator(`[data-testid^="judge-entry-${testData.categoryId}-"]`).first();
-        await expect(judgeEntry).toBeVisible({ timeout: 5000 });
+        await expect(judgeEntry).toBeVisible();
     });
 
-    test('Given a participant assigned as judge, When navigating to during_competition page, Then it loads but lifecycle buttons are not visible', async () => {
+    await test.step('judge can load the page but sees no lifecycle buttons', async () => {
         await navigateToDuringCompetition(participantPage, testData.competitionId);
-
-        // Page loads — wait for an entry row or the category card content
         await expect(participantPage.getByTestId(`start-category-${testData.categoryId}`)).not.toBeVisible();
     });
 
-    test('Given an organizer, When starting a category, Then it transitions to LIVE with stop button visible', async () => {
+    await test.step('organizer starts the category — transitions to LIVE', async () => {
         await navigateToDuringCompetition(organizerPage, testData.competitionId);
 
-        // Click start
         await organizerPage.getByTestId(`start-category-${testData.categoryId}`).click();
         await clickConfirmPopover(organizerPage);
 
         // Category should now be LIVE — stop button appears
-        await expect(organizerPage.getByTestId(`stop-category-${testData.categoryId}`)).toBeVisible({ timeout: 10000 });
+        await expect(organizerPage.getByTestId(`stop-category-${testData.categoryId}`)).toBeVisible();
 
         // Entry rows should be visible (pending entries)
         const entryRow = organizerPage.locator('[data-testid^="record-row-"]').first();
-        await expect(entryRow).toBeVisible({ timeout: 5000 });
+        await expect(entryRow).toBeVisible();
     });
 
-    test('Given a judge, When viewing a LIVE category, Then lifecycle buttons are hidden but finish-entry actions are available', async () => {
+    await test.step('judge sees finish-entry actions but no lifecycle buttons', async () => {
         // Reload the page to see the updated LIVE state
         await navigateToDuringCompetition(participantPage, testData.competitionId);
 
-        // Lifecycle buttons should NOT be visible for judge
         await expect(participantPage.getByTestId(`stop-category-${testData.categoryId}`)).not.toBeVisible();
         await expect(participantPage.getByTestId(`start-category-${testData.categoryId}`)).not.toBeVisible();
 
-        // Entry rows should be visible
         const entryRow = participantPage.getByTestId(`record-row-${testData.entryIds[0]}`);
-        await expect(entryRow).toBeVisible({ timeout: 5000 });
+        await expect(entryRow).toBeVisible();
 
         // Click the entry row to reveal finish action
         await entryRow.click();
         await expect(participantPage.getByTestId(`finish-record-${testData.entryIds[0]}`)).toBeVisible();
     });
 
-    test('Given a judge, When finishing an entry, Then the entry moves to the finished list', async () => {
-        // Entry row should already be selected from previous test; if not, click it
+    await test.step('judge finishes an entry', async () => {
+        // Entry row should already be selected from the previous step; if not, click it
         const finishButton = participantPage.getByTestId(`finish-record-${testData.entryIds[0]}`);
         if (!await finishButton.isVisible()) {
             await participantPage.getByTestId(`record-row-${testData.entryIds[0]}`).click();
@@ -140,17 +105,15 @@ test.describe('During Competition Workflow', () => {
         await finishButton.click();
 
         // Entry should now show a finish time (check icon with time)
-        const entryRow = participantPage.getByTestId(`record-row-${testData.entryIds[0]}`);
-        await expect(entryRow).toBeVisible({ timeout: 5000 });
+        await expect(participantPage.getByTestId(`record-row-${testData.entryIds[0]}`)).toBeVisible();
     });
 
-    test('Given an organizer finishing an entry, When the judge is on the page, Then the judge sees the update via real-time sync', async () => {
+    await test.step('organizer finishes an entry — judge sees it via real-time sync', async () => {
         // Organizer reloads to see current state
         await navigateToDuringCompetition(organizerPage, testData.competitionId);
 
-        // Wait for records to load
         const entryRow = organizerPage.getByTestId(`record-row-${testData.entryIds[1]}`);
-        await expect(entryRow).toBeVisible({ timeout: 5000 });
+        await expect(entryRow).toBeVisible();
 
         // Organizer clicks the record and finishes it
         await entryRow.click();
@@ -158,54 +121,48 @@ test.describe('During Competition Workflow', () => {
         await expect(finishButton).toBeVisible();
         await finishButton.click();
 
-        // Verify on organizer page
-        await expect(organizerPage.getByTestId(`record-row-${testData.entryIds[1]}`)).toBeVisible({ timeout: 5000 });
+        await expect(organizerPage.getByTestId(`record-row-${testData.entryIds[1]}`)).toBeVisible();
 
-        // Verify on judge page (WITHOUT reloading) — Ably real-time sync
-        // The record should appear/update in the judge's view
+        // Verify on judge page (WITHOUT reloading) — Ably real-time sync can take a while
         await expect(participantPage.getByTestId(`record-row-${testData.entryIds[1]}`)).toBeVisible({ timeout: 15000 });
     });
 
-    test('Given an organizer, When stopping the category, Then it transitions to STOPPED with complete button visible', async () => {
-        // Organizer stops the category
+    await test.step('organizer stops the category — transitions to STOPPED', async () => {
         await organizerPage.getByTestId(`stop-category-${testData.categoryId}`).click();
         await clickConfirmPopover(organizerPage);
 
-        // Complete button should appear
-        await expect(organizerPage.getByTestId(`complete-category-${testData.categoryId}`)).toBeVisible({ timeout: 10000 });
+        await expect(organizerPage.getByTestId(`complete-category-${testData.categoryId}`)).toBeVisible();
     });
 
-    test('Given a STOPPED category, When organizer and judge insert pieces for DNF records, Then records move to resolved', async () => {
+    await test.step('organizer and judge insert pieces for DNF records', async () => {
         // Organizer: insert pieces for record[2]
         const orgRecordRow = organizerPage.getByTestId(`record-row-${testData.entryIds[2]}`);
-        await expect(orgRecordRow).toBeVisible({ timeout: 5000 });
+        await expect(orgRecordRow).toBeVisible();
         await orgRecordRow.click();
 
         const orgPiecesInput = organizerPage.getByTestId(`pieces-input-${testData.entryIds[2]}`);
-        await expect(orgPiecesInput).toBeVisible({ timeout: 3000 });
+        await expect(orgPiecesInput).toBeVisible();
         await orgPiecesInput.fill('100');
         await organizerPage.getByTestId(`pieces-submit-${testData.entryIds[2]}`).click();
 
-        // Verify the record now shows pieces
-        await expect(organizerPage.getByTestId(`record-row-${testData.entryIds[2]}`)).toBeVisible({ timeout: 5000 });
+        await expect(organizerPage.getByTestId(`record-row-${testData.entryIds[2]}`)).toBeVisible();
 
         // Judge: reload page and insert pieces for record[3]
         await navigateToDuringCompetition(participantPage, testData.competitionId);
 
         const judgRecordRow = participantPage.getByTestId(`record-row-${testData.entryIds[3]}`);
-        await expect(judgRecordRow).toBeVisible({ timeout: 5000 });
+        await expect(judgRecordRow).toBeVisible();
         await judgRecordRow.click();
 
         const judgPiecesInput = participantPage.getByTestId(`pieces-input-${testData.entryIds[3]}`);
-        await expect(judgPiecesInput).toBeVisible({ timeout: 3000 });
+        await expect(judgPiecesInput).toBeVisible();
         await judgPiecesInput.fill('200');
         await participantPage.getByTestId(`pieces-submit-${testData.entryIds[3]}`).click();
 
-        // Verify the record now shows pieces
-        await expect(participantPage.getByTestId(`record-row-${testData.entryIds[3]}`)).toBeVisible({ timeout: 5000 });
+        await expect(participantPage.getByTestId(`record-row-${testData.entryIds[3]}`)).toBeVisible();
     });
 
-    test('Given a STOPPED category, When only the organizer has the complete button, Then the organizer can complete the category', async () => {
+    await test.step('only the organizer can complete the category', async () => {
         // Judge should NOT see the complete button
         await expect(participantPage.getByTestId(`complete-category-${testData.categoryId}`)).not.toBeVisible();
 
@@ -214,6 +171,6 @@ test.describe('During Competition Workflow', () => {
         await clickConfirmPopover(organizerPage);
 
         // Category should show as completed — restart button appears for organizer
-        await expect(organizerPage.getByTestId(`restart-category-${testData.categoryId}`)).toBeVisible({ timeout: 10000 });
+        await expect(organizerPage.getByTestId(`restart-category-${testData.categoryId}`)).toBeVisible();
     });
 });

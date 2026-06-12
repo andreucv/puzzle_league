@@ -31,6 +31,15 @@ When changing competition-day state, keep Prisma state, Ably events, notificatio
 
 Edit `prisma/schema.prisma` and add migrations for data model changes. Do not edit generated Prisma files directly.
 
-Add focused Vitest coverage for services, utilities, API guards, and reusable components. Add Playwright coverage for participant, organizer, admin, onboarding, registration, or competition-day workflows. E2E tests should use the existing seed helpers and local test database reset flow.
+Add focused Vitest coverage for services, utilities, API guards, and reusable components. Add Playwright coverage for participant, organizer, admin, onboarding, registration, or competition-day workflows.
+
+E2E conventions (`e2e/`):
+
+- **Roles come from fixtures, not file names.** Import `test` from `e2e/fixtures.ts` and request `participantPage`, `organizerPage`, `adminPage`, or `actor` (UI login as a seed-created user). Never inline `playwright/.auth/...` paths; use the `AUTH_FILES` map for `test.use({ storageState })`.
+- **Seeds are co-located and unique per invocation.** Put a `seed.ts` next to the test, call `runSeed<T>(import.meta.url)`, and assert on the returned IDs/names. `createCompetition` and `createAuthUser` suffix names/emails with a `runId`, so suites are isolated, run fully in parallel, and need no restore/cleanup scripts. Suites that mutate user state must seed their own user with `createAuthUser` — never mutate the shared bootstrap users.
+- **Multi-step workflows are journey tests.** Model a flow that builds on previous actions as one `test()` with `test.step()` blocks, not a serial `describe` chain.
+- **Navigation waits for hydration.** Use `gotoHydrated` (`e2e/utils/navigation.ts`) before interacting with a page; never `waitUntil: 'networkidle'`.
+- **Selectors target `data-testid` or roles**, never CSS utility classes. Timeouts are centralized in `playwright.config.ts`; only add an inline timeout for a documented constraint (e.g. real-time sync).
+- **Server lifecycle:** `scripts/e2e-server.ts` prepares the test DB, builds (hash-cached), and serves; Playwright launches it via `webServer`. Run it manually in a terminal to keep a warm server across local runs.
 
 Before opening a PR, run the smallest relevant tests plus `pnpm check`; run `pnpm test` for broad workflow or schema changes. Keep PRs scoped, mention migrations/env changes, and include the commands you ran.

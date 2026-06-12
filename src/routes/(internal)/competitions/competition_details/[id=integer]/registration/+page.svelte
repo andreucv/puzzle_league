@@ -793,6 +793,7 @@
                                 type="button"
                                 class="btn-icon btn-icon-sm preset-filled-error-500 rounded-full shrink-0"
                                 onclick={() => removeSlot(category.id, slot.slotId)}
+                                data-testid="remove-queued-slot"
                             >
                                 <CloseIcon width="1.2rem" height="1.2rem" />
                             </button>
@@ -923,6 +924,7 @@
                                         oninput={(e) => handleSearchInput(slot.slotId, category.id, (e.target as HTMLInputElement).value)}
                                         placeholder={$t('registration.search_placeholder')}
                                         class="input w-full text-sm"
+                                        data-testid="participant-search-input"
                                     />
 
                                     {#if results.length > 0 || intentResults.length > 0 || (query.length >= 2)}

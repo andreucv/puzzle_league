@@ -10,6 +10,14 @@
 
     let {children, data} = $props();
 
+    // E2E hydration signal: tests wait for body[data-hydrated] before
+    // interacting, since clicks/submits before hydration are lost or fall
+    // back to native form submission. Effects only run client-side, after
+    // the component tree has mounted.
+    $effect(() => {
+        document.body.dataset.hydrated = 'true';
+    });
+
     // Identify returning authenticated users on app load so PostHog links
     // their anonymous session to the person profile (docs: "call identify
     // as soon as you're able to — every time your app loads").

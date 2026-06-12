@@ -1,10 +1,8 @@
 /**
  * Shared helpers for registration test seed scripts.
- * Provides DRY category & competition builders, time slot helpers,
- * competition name constants, and a restore helper.
+ * Provides DRY category & competition builders and time slot helpers.
  */
 import type { CategorySeedInput, CompetitionSeedInput } from '../seed_utils/types';
-import { createSeedContext } from '../seed_utils';
 
 // ── Time helpers ──
 
@@ -90,47 +88,4 @@ export function competition(
         showPaymentWarning: overrides?.showPaymentWarning,
         categories,
     };
-}
-
-// ── Competition name constants ──
-
-export const ORGANIZER_COMPETITION_NAMES = [
-    'Happy Path Competition',
-    'Refuse Test Competition',
-    'Waitlist Test Competition',
-    'Auto-Confirm Competition',
-] as const;
-
-export const PARTICIPANT_COMPETITION_NAMES = [
-    'External Participant Individual Competition',
-    'Pairs Team Build Competition',
-    'Unregister Test Competition',
-    'Remove Queued Competition',
-    'Multi-Cat Batch Competition',
-    'Free With Warning Competition',
-] as const;
-
-export const ALL_COMPETITION_NAMES = [
-    ...ORGANIZER_COMPETITION_NAMES,
-    ...PARTICIPANT_COMPETITION_NAMES,
-] as const;
-
-// ── Restore helper ──
-
-export async function restoreCompetitions(names: readonly string[]): Promise<void> {
-    const databaseUrl = process.env.DATABASE_URL;
-    if (!databaseUrl) throw new Error('DATABASE_URL is not set');
-
-    const ctx = await createSeedContext(databaseUrl);
-    const { organizer } = ctx.baseUsers;
-
-    await ctx.prisma.competition.deleteMany({
-        where: {
-            creatorId: organizer.id,
-            name: { in: [...names] },
-        },
-    });
-
-    console.log('✅ Restore complete');
-    await ctx.prisma.$disconnect();
 }

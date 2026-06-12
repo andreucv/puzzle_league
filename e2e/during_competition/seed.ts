@@ -5,12 +5,11 @@
  * 1. Upsert 5 dummy participant users
  * 2. Create a competition with one INDIVIDUAL category
  * 3. Create 5 CONFIRMED entries (one per dummy user)
- * 4. Write test-data.json for the test file to consume
+ * 4. Return the seeded ids for the test file to consume
  */
 import "dotenv/config";
 import {
     createSeedContext,
-    writeSeedOutput,
     upsertUsers,
     createCompetition,
     createEntries,
@@ -21,7 +20,7 @@ const DUMMY_USERS = Array.from({ length: 5 }, (_, i) => ({
     email: `dc-user-${i + 1}@test.local`,
 }));
 
-async function main() {
+export default async function seed() {
     const databaseUrl = process.env.DATABASE_URL;
     if (!databaseUrl) throw new Error('DATABASE_URL is not set');
 
@@ -70,18 +69,14 @@ async function main() {
         })),
     );
 
-    // 4. Write standardized output
-    writeSeedOutput(import.meta.url, {
+    // 4. Standardized output
+    const result = {
         competitionId: competition.id,
         categoryId: category.id,
         entryIds: entries.map(e => e.id),
         userNames: users.map(u => u.name),
-    });
+    };
 
     await ctx.prisma.$disconnect();
+    return result;
 }
-
-main().catch(err => {
-    console.error(err);
-    process.exit(1);
-});

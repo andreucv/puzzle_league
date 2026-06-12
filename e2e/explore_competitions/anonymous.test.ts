@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-import { runSeed } from '../fixtures';
+import { expect, test, runSeed } from '../fixtures';
+import { gotoHydrated } from '../utils/navigation';
 
 // ==================== TYPES ====================
 
@@ -18,7 +18,6 @@ interface ExploreCompetitionsTestData {
 // ==================== CONFIG ====================
 
 test.use({ storageState: { cookies: [], origins: [] } });
-test.describe.configure({ mode: 'serial' });
 
 // ==================== SEED ====================
 
@@ -39,7 +38,7 @@ function competitionCard(page: import('@playwright/test').Page, id: number) {
 
 /** Navigates to the explore page and waits for Svelte hydration to complete. */
 async function gotoExplore(page: import('@playwright/test').Page) {
-    await page.goto(urlUnderTest, { waitUntil: 'networkidle' });
+    await gotoHydrated(page, urlUnderTest);
 }
 
 /** Opens the preset filter panel if it is not already visible. */

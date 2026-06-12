@@ -11,19 +11,9 @@
  * denied access to edit the competition.
  */
 import "dotenv/config";
-import { writeFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
-import { createSeedContext, createCompetition } from '../seed_utils';
-import { betterAuth } from "better-auth";
-import { prismaAdapter } from "better-auth/adapters/prisma";
-import { createPrismaClient } from '../seed_utils';
+import { createSeedContext, createCompetition, createAuthUser } from '../seed_utils';
 
-const SECOND_ORGANIZER_EMAIL = 'second_organizer_e2e@test.com';
-const SECOND_ORGANIZER_PASSWORD = 'second-org-pass!';
-const SECOND_ORGANIZER_NAME = 'Second Organizer';
-
-async function main() {
+export default async function seed() {
     const databaseUrl = process.env.DATABASE_URL;
     if (!databaseUrl) throw new Error('DATABASE_URL is not set');
 
@@ -54,73 +44,24 @@ async function main() {
         ],
     });
 
-    // 2. Create a second organizer user via Better Auth (handles password hashing)
-    const rawPrisma = createPrismaClient(databaseUrl);
-
-    const auth = betterAuth({
-        baseURL: 'http://localhost',
-        secret: process.env.BETTER_AUTH_SECRET!,
-        database: prismaAdapter(rawPrisma, { provider: "postgresql" }),
-        emailAndPassword: { enabled: true },
+    // 2. Create a second organizer who does not own the competition
+    const secondOrganizer = await createAuthUser(ctx, {
+        name: 'Second Organizer',
+        email: 'second_organizer_e2e@test.com',
+        password: 'second-org-pass!',
+        role: 'ORGANIZER',
     });
 
-    const existing = await rawPrisma.user.findUnique({ where: { email: SECOND_ORGANIZER_EMAIL } });
-    if (!existing) {
-        await auth.api.signUpEmail({
-            body: { email: SECOND_ORGANIZER_EMAIL, password: SECOND_ORGANIZER_PASSWORD, name: SECOND_ORGANIZER_NAME },
-        });
-        console.log(`   ✅ Created second organizer: ${SECOND_ORGANIZER_EMAIL}`);
-    } else {
-        console.log(`   ⏭️  Second organizer already exists — skipping creation.`);
-    }
-
-    // Assign the global ORGANIZER role + mark onboarding as complete
-    const secondUser = await rawPrisma.user.findUniqueOrThrow({ where: { email: SECOND_ORGANIZER_EMAIL } });
-    await rawPrisma.roleAssignment.upsert({
-        where: { userId_role: { userId: secondUser.id, role: 'ORGANIZER' } },
-        update: {},
-        create: { userId: secondUser.id, role: 'ORGANIZER' },
-    });
-    await rawPrisma.user.update({
-        where: { id: secondUser.id },
-        data: {
-            emailVerified: true,
-            phonePrefix: '+99',
-            phoneNumber: '99999',
-            phonePromptLastChecked: new Date(),
-            locale: 'en',
-            localePromptLastChecked: new Date(),
-            externalParticipantsLastChecked: new Date(),
-            emailVerificationPromptLastChecked: new Date(),
-            country: 'ES',
-            postalCode: '99999',
-            locationPromptLastChecked: new Date(),
-        },
-    });
-    console.log(`   👤 ORGANIZER role assigned to ${SECOND_ORGANIZER_EMAIL}`);
-
-    // Write test data
-    const dir = dirname(fileURLToPath(import.meta.url));
-    writeFileSync(join(dir, 'test-data.json'), JSON.stringify({
+    const result = {
         competition: { id: competition.id, name: competition.name },
-        secondOrganizer: {
-            id: secondUser.id,
-            email: SECOND_ORGANIZER_EMAIL,
-            password: SECOND_ORGANIZER_PASSWORD,
-            name: SECOND_ORGANIZER_NAME,
-        },
+        secondOrganizer,
         defaultOrganizer: {
             id: organizer.id,
             email: organizer.email,
         },
-    }, null, 2), 'utf-8');
+    };
 
     console.log('✅ Not-creator-organizer seed complete');
-    await rawPrisma.$disconnect();
     await ctx.prisma.$disconnect();
+    return result;
 }
-
-main().catch((err) => {
-    console.error('❌ Seed failed:', err);
-    process.exit(1);
-});

@@ -1,48 +1,33 @@
 /**
  * Suite seed for onboarding tests.
  *
- * Resets the participant user's onboarding-related fields so the
- * onboarding wizard is triggered on next page load.
+ * Creates a fresh, dedicated user with no onboarding fields set, so the
+ * wizard is triggered on next page load. Each invocation creates a new
+ * runId-unique user, so re-seeding (one per journey) needs no reset and
+ * parallel suites are unaffected.
  */
 import "dotenv/config";
-import { createSeedContext, writeSeedOutput } from '../seed_utils';
+import { createSeedContext, createAuthUser } from '../seed_utils';
 
-async function main() {
+export default async function seed() {
     const databaseUrl = process.env.DATABASE_URL;
     if (!databaseUrl) throw new Error('DATABASE_URL is not set');
 
     const ctx = await createSeedContext(databaseUrl);
-    const { participant } = ctx.baseUsers;
 
-    // Reset all onboarding fields so the wizard shows language + location + phone + verify-email steps
-    await ctx.prisma.user.update({
-        where: { id: participant.id },
-        data: {
-            locale: null,
-            localePromptLastChecked: null,
-            country: null,
-            postalCode: null,
-            locationPromptLastChecked: null,
-            phonePrefix: null,
-            phoneNumber: null,
-            phonePromptLastChecked: null,
-            externalParticipantsLastChecked: null,
-            emailVerified: false,
-            emailVerificationPromptLastChecked: null,
-        },
+    const user = await createAuthUser(ctx, {
+        name: 'Onboarding Test User',
+        email: 'onboarding_e2e@test.com',
+        password: 'onboarding-pass!',
+        onboarded: false,
     });
 
-    const output = {
-        participantId: participant.id,
-        participantName: participant.name,
-        participantEmail: participant.email,
+    const result = {
+        participantId: user.id,
+        participantName: user.name,
+        participantEmail: user.email,
+        participantPassword: user.password,
     };
-
-    writeSeedOutput(import.meta.url, output);
     await ctx.prisma.$disconnect();
+    return result;
 }
-
-main().catch((err) => {
-    console.error('❌ Seed failed:', err);
-    process.exit(1);
-});

@@ -17,6 +17,7 @@ import type { SeedContext } from './types';
  */
 export async function createSeedContext(databaseUrl: string): Promise<SeedContext> {
     const prisma = createPrismaClient(databaseUrl);
+    const runId = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
     const organizerEmail = process.env.TEST_ORGANIZER_USER_EMAIL;
     const participantEmail = process.env.TEST_PARTICIPANT_USER_EMAIL;
@@ -48,6 +49,8 @@ export async function createSeedContext(databaseUrl: string): Promise<SeedContex
 
     return {
         prisma,
+        runId,
+        unique: (base: string) => `${base} ${runId}`,
         baseUsers: {
             organizer: { id: organizer.id, name: organizer.name, email: organizer.email },
             participant: { id: participant.id, name: participant.name, email: participant.email },

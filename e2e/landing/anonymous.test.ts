@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { gotoHydrated } from '../utils/navigation';
+import type { Page } from '@playwright/test';
 
-function openDrawer(page: any) {
+function openDrawer(page: Page) {
     return test.step('Open the drawer', async () => {
         await page.locator('#states-button').click();
     });
@@ -9,7 +11,7 @@ function openDrawer(page: any) {
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test('LandingPage_VerifyMinimumViableContent', async ({ page }) => {
-    await page.goto('/');
+    await gotoHydrated(page, '/');
     await expect(page.getByRole('link', { name: 'PuzzLigas' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
     await expect(page.getByTestId('explore-competitions-button')).toBeVisible();
@@ -21,21 +23,21 @@ test('LandingPage_VerifyMinimumViableContent', async ({ page }) => {
 });
 
 test('LandingPage_ExploreCompetitionsButtonWorks', async ({ page }) => {
-    await page.goto('/');
+    await gotoHydrated(page, '/');
     await expect(page.getByTestId('explore-competitions-button')).toBeVisible();
     await page.getByTestId('explore-competitions-button').click();
     await page.waitForURL(/\/explore_competitions.*/);
 });
 
 test('LandingPage_JoinNowButtonWorks', async ({ page }) => {
-    await page.goto('/');
+    await gotoHydrated(page, '/');
     await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL(/\/login/);
 });
 
 test('LandingPage_Menu_CompetitionButton_Works', async ({ page }) => {
-    await page.goto('/');
+    await gotoHydrated(page, '/');
     await openDrawer(page);
     await expect(page.getByTestId('nav-drawer-competitions')).toBeVisible();
     await page.getByTestId('nav-drawer-competitions').click();
@@ -43,7 +45,7 @@ test('LandingPage_Menu_CompetitionButton_Works', async ({ page }) => {
 });
 
 test('LandingPage_Menu_HomeButton_Works', async ({ page }) => {
-    await page.goto('/competitions/explore_competitions');
+    await gotoHydrated(page, '/competitions/explore_competitions');
     await openDrawer(page);
     await expect(page.getByTestId('nav-drawer-home')).toBeVisible();
     await page.getByTestId('nav-drawer-home').click();

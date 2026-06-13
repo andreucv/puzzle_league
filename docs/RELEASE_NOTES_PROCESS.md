@@ -306,29 +306,31 @@ Decision: user-facing notes live as **localized translation entries** and render
 (`src/lib/translations/`, locales en/es/ca) and ships through the normal Vercel deploy — no new
 infrastructure.
 
-### Storage
+### Storage  *(as implemented)*
 
-Add a `whats-new.json` per locale, loaded under its own namespace key. Mirror the existing
-loader pattern in `src/lib/translations/index.js` (each `common.json` is loaded with `key: ''`):
+The localized content lives in `src/lib/translations/<locale>/whats-new.json` (en/es/ca) and is
+**imported directly** by the modal — **not** loaded through the sveltekit-i18n loader.
 
-```js
-// in config.loaders, add three more entries:
-{ locale: 'en', key: 'whatsNew', loader: async () => (await import('./en/whats-new.json')).default },
-{ locale: 'es', key: 'whatsNew', loader: async () => (await import('./es/whats-new.json')).default },
-{ locale: 'ca', key: 'whatsNew', loader: async () => (await import('./ca/whats-new.json')).default },
-```
+> ⚠️ **Why not the i18n loader:** sveltekit-i18n flattens translations into dot-keyed *strings*
+> (`whatsNew.releases.0.title` …), so `$t('whatsNew.releases')` can't return a usable **array**.
+> Direct import keeps the structured array intact and is still fully localized. The modal's own
+> UI strings (`heading`, `draftBadge`, `dismiss`) live in the same per-locale file, so it's
+> self-contained.
 
-> ⚠️ **sveltekit-i18n splits keys on `.`** — so a raw version string like `"0.5.0"` as a JSON
-> key would be parsed as nested `0 → 5 → 0`. Sanitize version keys (e.g. `v0_5_0`) **or** store
-> entries as an array and look up by a `version` field. The array form is recommended because it
-> also preserves order for "show me everything since my last visit".
+Each file is one object: a few UI strings plus a `releases` array, newest first. Entries with
+`"status": "draft"` are shown **only on preview** (see Rendering); released entries carry a real
+semver `version`.
 
-`src/lib/translations/en/whats-new.json` (array form)
+`src/lib/translations/en/whats-new.json`
 ```json
 {
+  "heading": "What's new",
+  "draftBadge": "Coming soon",
+  "dismiss": "Got it",
   "releases": [
     {
       "version": "0.5.0",
+      "status": "released",
       "date": "2026-06-20",
       "title": "Faster results and clearer waitlists",
       "summary": "Results now load instantly, and the waitlist shows your exact position.",
@@ -340,16 +342,21 @@ loader pattern in `src/lib/translations/index.js` (each `common.json` is loaded 
   ]
 }
 ```
-`es/whats-new.json` and `ca/whats-new.json` mirror the same `version`/`date` with translated copy.
+`es/whats-new.json` and `ca/whats-new.json` mirror the same `version`/`status`/`date` with
+translated copy. A single `"status": "draft"`, `"version": "next"` entry seeds the upcoming
+release and is visible only on preview until promoted.
 
-### Rendering
+### Rendering  *(`WhatsNewModal.svelte`, mounted in `+layout.svelte`)*
 
-- Read `$t('whatsNew.releases')`, find entries newer than the version the user last saw
-  (persist "last seen version" per user — localStorage or a user setting), and show them in a
-  modal/page. Mark as seen on dismiss.
-- **Preview shows the upcoming entry:** when `isPreview` (or for a draft/`unreleased` entry),
-  render the in-progress "What's New" so QA/preview users see what's coming, paired with the
-  `v0.5.0-bN` build. Production renders only released entries.
+- The modal selects the current locale's file via `$locale`, decides **once on mount**
+  (client-side) what to surface, and uses Skeleton's `Dialog` + `Portal`.
+- **Seen tracking:** `localStorage["whatsNewLastSeen"]` holds the newest released version the user
+  has seen. On first-ever visit it baselines silently to the latest release (so history isn't
+  replayed); afterwards, released entries newer than the baseline auto-open the modal, and dismiss
+  advances the baseline.
+- **Preview shows drafts:** when `page.data.isPreview`, `status: "draft"` entries are included so
+  QA/preview users see what's coming, paired with the `v0.5.0-bN` build. Production renders only
+  released entries, and drafts never advance the seen-baseline.
 - Keep it scoped to what users feel; the technical detail stays in `CHANGELOG.md`.
 
 ---

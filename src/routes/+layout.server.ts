@@ -35,13 +35,18 @@ export const load: LayoutServerLoad = async ({ url, locals, request }) => {
     await loadTranslations(locale, pathname);
 
     const appVersion = __APP_VERSION__;
+    const buildNumber = __BUILD_NUMBER__;
     const commitSha = env.VERCEL_GIT_COMMIT_SHA?.substring(0, 7) ?? null;
     const isPreview = env.VERCEL_ENV === 'preview';
+    // Preview shows the last-shipped semver + per-commit build counter (e.g. 0.5.0-b7);
+    // production shows the clean release semver owned by release-please.
+    const displayVersion = isPreview ? `${appVersion}-b${buildNumber}` : appVersion;
 
     let layoutData = {
         translations: translations.get(),
         i18n: { locale, route: pathname },
         appVersion,
+        displayVersion,
         commitSha,
         isPreview
     };

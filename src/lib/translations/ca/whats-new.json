@@ -1,0 +1,18 @@
+{
+  "heading": "Novetats",
+  "draftBadge": "Properament",
+  "dismiss": "Entesos",
+  "releases": [
+    {
+      "version": "next",
+      "status": "draft",
+      "date": null,
+      "title": "Esborrany: títol de la propera versió",
+      "summary": "Un resum breu i clar del que arriba. Aquesta entrada en esborrany només es mostra al desplegament de vista prèvia (test) fins que es publiqui.",
+      "highlights": [
+        "Primer canvi visible per a la persona usuària",
+        "Segon canvi visible per a la persona usuària"
+      ]
+    }
+  ]
+}

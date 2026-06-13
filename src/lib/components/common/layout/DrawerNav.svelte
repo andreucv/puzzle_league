@@ -17,7 +17,7 @@
     let { user = null }: { user: any } = $props();
 
     let currentPath = $derived(page.url.pathname);
-    let appVersion: string | null = $derived(page.data.appVersion ?? null);
+    let displayVersion: string | null = $derived(page.data.displayVersion ?? null);
     let commitSha: string | null = $derived(page.data.commitSha ?? null);
 
     let autoCancelRunning = $state(false);
@@ -144,7 +144,7 @@
 
 <div class="px-5 py-3 mt-auto">
     <span class="text-xs font-mono opacity-50">
-        {#if appVersion}v{appVersion}{/if}
+        {#if displayVersion}v{displayVersion}{/if}
         {#if commitSha}<span class="ml-1">({commitSha})</span>{/if}
     </span>
 </div>

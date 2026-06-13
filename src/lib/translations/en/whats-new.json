@@ -1,0 +1,18 @@
+{
+  "heading": "What's new",
+  "draftBadge": "Coming soon",
+  "dismiss": "Got it",
+  "releases": [
+    {
+      "version": "next",
+      "status": "draft",
+      "date": null,
+      "title": "Draft: title of the next release",
+      "summary": "A short, user-friendly summary of what's coming. This draft entry is shown only on the preview (test) deploy until it ships.",
+      "highlights": [
+        "First user-facing change",
+        "Second user-facing change"
+      ]
+    }
+  ]
+}

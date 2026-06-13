@@ -19,8 +19,31 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-      # Stage 3 hook (placeholder) — runs ONLY when a release is actually cut.
-      # Kept in this same job on purpose: events from GITHUB_TOKEN don't trigger
-      # separate workflows, so chaining here avoids needing a PAT.
-      - if: ${{ steps.release.outputs.release_created }}
-        run: echo "Released ${{ steps.release.outputs.tag_name }} — seed What's New draft here"
+      # Stage 3 — when a release is cut, open a reminder to finalize the "What's New"
+      # copy. Runs ONLY on a real release. Kept in this same job on purpose: events
+      # from GITHUB_TOKEN don't trigger separate workflows, so chaining here avoids a PAT.
+      # Optional convenience — delete if you author the copy inline.
+      - name: Open "What's New" copywriting reminder
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/github-script@v7
+        env:
+          TAG: ${{ steps.release.outputs.tag_name }}
+          NOTES: ${{ steps.release.outputs.body }}
+        with:
+          script: |
+            const { TAG, NOTES } = process.env;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Write "What's New" copy for ${TAG}`,
+              body: [
+                `Release **${TAG}** is out. Promote the draft entry in`,
+                '`src/lib/translations/<locale>/whats-new.json` (en / es / ca) to a released entry.',
+                '',
+                'Follow `docs/release_notes_guidelines.md` — summary-first, conversational, short.',
+                'Seed copy from the changelog below:',
+                '',
+                '---',
+                NOTES || '(no notes)'
+              ].join('\n')
+            });

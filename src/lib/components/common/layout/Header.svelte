@@ -7,7 +7,7 @@
     let user = $derived(page.data.user);
     let currentPath = $derived(page.url.pathname);
     let isPreview: boolean = $derived(page.data.isPreview ?? false);
-    let appVersion: string | null = $derived(page.data.appVersion ?? null);
+    let displayVersion: string | null = $derived(page.data.displayVersion ?? null);
     import { t } from '$lib/translations';
 
     import { drawerState } from '$lib/stores/drawer.svelte';
@@ -32,8 +32,8 @@
         <AppBar.Headline>
             <div class="flex items-center">
                 <h1 class="h4 font-sans" style="font-weight: 800; font-stretch: 125%;"><a href='/'>PuzzLigas</a></h1>
-                {#if isPreview && appVersion}
-                    <span class="ml-2 text-xs font-mono text-surface-500" title="App version">v{appVersion}</span>
+                {#if isPreview && displayVersion}
+                    <span class="ml-2 text-xs font-mono text-surface-500" title="App version">v{displayVersion}</span>
                 {/if}
             </div>
         </AppBar.Headline>

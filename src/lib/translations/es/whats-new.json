@@ -1,0 +1,18 @@
+{
+  "heading": "Novedades",
+  "draftBadge": "Próximamente",
+  "dismiss": "Entendido",
+  "releases": [
+    {
+      "version": "next",
+      "status": "draft",
+      "date": null,
+      "title": "Borrador: título de la próxima versión",
+      "summary": "Un resumen breve y claro de lo que llega. Esta entrada en borrador solo se muestra en el despliegue de vista previa (test) hasta que se publique.",
+      "highlights": [
+        "Primer cambio visible para la persona usuaria",
+        "Segundo cambio visible para la persona usuaria"
+      ]
+    }
+  ]
+}

@@ -3,6 +3,7 @@
     import { Dialog, Portal, Toast } from '@skeletonlabs/skeleton-svelte';
     import Header from '$lib/components/common/layout/Header.svelte';
     import Footer from '$lib/components/common/layout/Footer.svelte';
+    import WhatsNewModal from '$lib/components/common/layout/WhatsNewModal.svelte';
     import CloseIcon from '@iconify-svelte/mdi/close';
     import { toaster } from '$lib/stores/toaster';
     import { getPosthog } from '$lib/analytics/posthog';
@@ -68,6 +69,7 @@
     </Portal>
 </Dialog>
 <Header/>
+<WhatsNewModal />
 <div id="layout-start">
 {@render children()}
 </div>

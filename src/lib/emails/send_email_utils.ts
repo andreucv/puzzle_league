@@ -31,7 +31,7 @@ export async function sendEmail(
 
 		const baseEmail = RESEND_FROM_EMAIL.match(/<(.+)>/)?.[1] ?? RESEND_FROM_EMAIL;
 		const fromAddress = actorName
-			? `${actorName} <${baseEmail}>`
+			? `${actorName} from PuzzLigas <${baseEmail}>`
 			: RESEND_FROM_EMAIL;
 
 		// Pre-resolve multi-language translations once (shared by all no-locale users)

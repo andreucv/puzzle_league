@@ -49,8 +49,12 @@ export const auth = betterAuth({
         sendOnSignUp: false, // We'll send it manually during onboarding
         autoSignInAfterVerification: true,
         sendVerificationEmail: async ({ user, url }) => {
-            // Fire-and-forget to avoid timing attacks
-            void sendVerificationEmail(user.email, url);
+            // Await the send so the serverless function is not frozen/killed by
+            // Vercel before the email actually goes out (see issue #79). The
+            // timing-attack concern that justifies fire-and-forget on the public
+            // password-reset endpoint does not apply here: the user is already
+            // authenticated and verifying their own address.
+            await sendVerificationEmail(user.email, url);
         },
     },
     socialProviders: {

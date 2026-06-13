@@ -77,6 +77,5 @@ export default async function seed() {
         userNames: users.map(u => u.name),
     };
 
-    await ctx.prisma.$disconnect();
     return result;
 }

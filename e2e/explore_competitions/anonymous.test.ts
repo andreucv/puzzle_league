@@ -139,7 +139,7 @@ test('GivenList_WhenFillingFilter_FilterShowsOnlyMatchingName', async ({ page })
     await page.getByTestId('filter-tab-ALL').click();
 
     // Type a search term that matches only one competition
-    await page.getByPlaceholder(/look for/i).fill('In 2 days');
+    await page.getByTestId('competition-search-input').fill('In 2 days');
 
     // Only the matching competition should be visible
     await expect(competitionCard(page, testData.in2Days.id)).toBeVisible();
@@ -152,11 +152,11 @@ test('GivenList_WhenNoFindCompetition_ClearFilterButtonWorks', async ({ page }) 
     await gotoExplore(page);
 
     // Apply a search that returns 0 results
-    await page.getByPlaceholder(/look for/i).fill('nonexistent-competition-xyz');
+    await page.getByTestId('competition-search-input').fill('nonexistent-competition-xyz');
 
     // Verify no results and the clear button is visible
     await expect(page.getByTestId('competition-list').locator('[data-testid^="competition-card-"]')).toHaveCount(0);
-    const clearButton = page.getByRole('button', { name: /clear/i });
+    const clearButton = page.getByTestId('clear-filters');
     await expect(clearButton).toBeVisible();
 
     // Click clear all filters

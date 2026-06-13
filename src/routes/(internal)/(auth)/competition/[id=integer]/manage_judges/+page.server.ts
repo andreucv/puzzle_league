@@ -1,5 +1,5 @@
 import type { PageServerLoad } from "./$types";
-import { redirect } from "@sveltejs/kit";
+import { error, redirect } from "@sveltejs/kit";
 import { getCompetitionWithJudges } from "$lib/database/db_competition";
 
 export const load: PageServerLoad = async (event) => {
@@ -9,7 +9,7 @@ export const load: PageServerLoad = async (event) => {
     event.depends('data:manage-judges');
 
     if (!access.canManageCompetition) {
-        throw redirect(302, '/error/no_permission/');
+        throw error(403, { message: '', code: 'FORBIDDEN' });
     }
 
     const result = await getCompetitionWithJudges(competitionId);

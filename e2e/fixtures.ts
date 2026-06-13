@@ -7,6 +7,9 @@ import {
 import { dirname, join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { loginViaUi } from './utils/auth';
+import { disconnectSeedClients } from './seed_utils/database_seed_context';
+
+type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
 
 /**
  * Storage-state files written by setup/auth.setup.ts for the three bootstrap
@@ -42,6 +45,24 @@ async function withRolePage(browser: Browser, role: Role, use: (page: Page) => P
 }
 
 /**
+ * Worker-scoped cache of storage state per actor email. The first `actor(creds)`
+ * call for an email logs in through the UI once and captures its cookies; later
+ * calls for the same email (same seed reused across tests in a worker) skip the
+ * full-UI login and seed a fresh context from the saved state instead.
+ */
+const actorStateCache = new Map<string, StorageState>();
+
+interface WorkerFixtures {
+    /**
+     * Auto worker fixture: disconnects the per-worker pooled Prisma/Better Auth
+     * clients (see seed_utils/database_seed_context.ts) once, when the worker
+     * tears down. globalTeardown can't do this — seeds run in the worker
+     * process, not the main one.
+     */
+    seedClientCleanup: void;
+}
+
+/**
  * Project `test` with role-based page fixtures. Multi-actor workflows request
  * the pages they need instead of hand-building contexts:
  *
@@ -49,18 +70,30 @@ async function withRolePage(browser: Browser, role: Role, use: (page: Page) => P
  * test('participant registers, organizer confirms', async ({ participantPage, organizerPage }) => { … });
  * ```
  */
-export const test = base.extend<RoleFixtures>({
+export const test = base.extend<RoleFixtures, WorkerFixtures>({
+    seedClientCleanup: [async ({}, use) => {
+        await use();
+        await disconnectSeedClients();
+    }, { scope: 'worker', auto: true }],
+
     participantPage: async ({ browser }, use) => withRolePage(browser, 'participant', use),
     organizerPage: async ({ browser }, use) => withRolePage(browser, 'organizer', use),
     adminPage: async ({ browser }, use) => withRolePage(browser, 'admin', use),
     actor: async ({ browser }, use) => {
         const contexts: BrowserContext[] = [];
         await use(async ({ email, password }) => {
-            const context = await browser.newContext();
+            let state = actorStateCache.get(email);
+            if (!state) {
+                const loginContext = await browser.newContext();
+                const loginPage = await loginContext.newPage();
+                await loginViaUi(loginPage, email, password);
+                state = await loginContext.storageState();
+                actorStateCache.set(email, state);
+                await loginContext.close();
+            }
+            const context = await browser.newContext({ storageState: state });
             contexts.push(context);
-            const page = await context.newPage();
-            await loginViaUi(page, email, password);
-            return page;
+            return await context.newPage();
         });
         await Promise.all(contexts.map((context) => context.close()));
     },

@@ -19,7 +19,7 @@ test.describe('Non-creator organizer access', () => {
         const page = await actor(data.secondOrganizer);
 
         // Navigate to the edit route for the competition owned by the default organizer
-        const response = await page.goto(`/competition/edit/${data.competition.id}`);
+        const response = await gotoHydrated(page, `/competition/edit/${data.competition.id}`);
 
         // The page should show a 403 error — the second organizer is not the creator,
         // not a scoped competition organizer, and not an admin
@@ -30,6 +30,6 @@ test.describe('Non-creator organizer access', () => {
         await gotoHydrated(organizerPage, `/competition/edit/${data.competition.id}`);
 
         // The creator should see the edit form
-        await expect(organizerPage.getByRole('heading', { name: 'Edit competition' }).first()).toBeVisible();
+        await expect(organizerPage.getByTestId('edit-competition-heading')).toBeVisible();
     });
 });

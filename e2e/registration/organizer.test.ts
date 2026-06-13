@@ -28,14 +28,13 @@ test('GivenClosedRegistration_WhenOrganizerOpensAndParticipantRegisters_ThenOrga
     const { competitionId, name } = testData.happyPath;
 
     await test.step('organizer sees the competition details', async () => {
-        await organizerPage.goto(`/competitions/competition_details/${competitionId}`);
+        await gotoHydrated(organizerPage, `/competitions/competition_details/${competitionId}`);
         await expect(organizerPage.getByText(name).first()).toBeVisible();
     });
 
     await test.step('participant sees the closed-registration warning', async () => {
-        await participantPage.goto(`/competitions/competition_details/${competitionId}/registration`);
+        await gotoHydrated(participantPage, `/competitions/competition_details/${competitionId}/registration`);
         await expect(participantPage.getByTestId('registration-closed-warning')).toBeVisible();
-        await expect(participantPage.getByText('Registration is currently closed')).toBeVisible();
     });
 
     await test.step('organizer opens registration', async () => {
@@ -46,7 +45,7 @@ test('GivenClosedRegistration_WhenOrganizerOpensAndParticipantRegisters_ThenOrga
         await gotoHydrated(participantPage, `/competitions/competition_details/${competitionId}/registration`);
 
         // Queue a signup
-        await participantPage.getByRole('button', { name: 'Sign Up' }).first().click();
+        await participantPage.locator('[data-testid^="signup-category-"]').first().click();
 
         // Click submit — should open payment warning popover (showPaymentWarning=true + price>0)
         await participantPage.getByTestId('submit-all-registrations').click();
@@ -58,7 +57,7 @@ test('GivenClosedRegistration_WhenOrganizerOpensAndParticipantRegisters_ThenOrga
         // Confirm payment — actually submits the form
         await participantPage.getByTestId('payment-warning-confirm').click();
 
-        await expect(participantPage.getByTestId('registration-status-badge')).toHaveText('Pending Confirmation');
+        await expect(participantPage.getByTestId('registration-status-badge')).toHaveAttribute('data-status', 'PENDING_CONFIRMATION');
     });
 
     await test.step('organizer confirms the pending registration', async () => {
@@ -66,15 +65,15 @@ test('GivenClosedRegistration_WhenOrganizerOpensAndParticipantRegisters_ThenOrga
     });
 
     await test.step('participant sees Confirmed on the registration page', async () => {
-        await participantPage.goto(`/competitions/competition_details/${competitionId}/registration`);
+        await gotoHydrated(participantPage, `/competitions/competition_details/${competitionId}/registration`);
         await expect(participantPage.getByTestId('registration-status-badge')).toBeVisible();
-        await expect(participantPage.getByTestId('registration-status-badge')).toHaveText('Confirmed');
+        await expect(participantPage.getByTestId('registration-status-badge')).toHaveAttribute('data-status', 'CONFIRMED');
     });
 
     await test.step('participant sees Confirmed on the details page', async () => {
-        await participantPage.goto(`/competitions/competition_details/${competitionId}`);
+        await gotoHydrated(participantPage, `/competitions/competition_details/${competitionId}`);
         await expect(participantPage.getByTestId('registration-status-badge')).toBeVisible();
-        await expect(participantPage.getByTestId('registration-status-badge')).toHaveText(/Confirmed/);
+        await expect(participantPage.getByTestId('registration-status-badge')).toHaveAttribute('data-status', 'CONFIRMED');
     });
 });
 
@@ -83,7 +82,7 @@ test('GivenPendingRegistration_WhenOrganizerRefuses_ThenParticipantIsNotifiedAnd
 
     await test.step('participant registers', async () => {
         await signUpIndividualAndSubmit(participantPage, competitionId);
-        await expect(participantPage.getByTestId('registration-status-badge')).toHaveText('Pending Confirmation');
+        await expect(participantPage.getByTestId('registration-status-badge')).toHaveAttribute('data-status', 'PENDING_CONFIRMATION');
     });
 
     await test.step('organizer refuses the registration', async () => {
@@ -101,12 +100,12 @@ test('GivenPendingRegistration_WhenOrganizerRefuses_ThenParticipantIsNotifiedAnd
     });
 
     await test.step('participant sees the refusal notification', async () => {
-        await participantPage.goto('/notifications');
-        await expect(participantPage.getByText('Registration refused').first()).toBeVisible();
+        await gotoHydrated(participantPage, '/notifications');
+        await expect(participantPage.locator('[data-testid="notification-item"][data-notification-type="REGISTRATION_REFUSED"]').first()).toBeVisible();
     });
 
     await test.step('participant sees no registration on the registration page', async () => {
-        await participantPage.goto(`/competitions/competition_details/${competitionId}/registration`);
+        await gotoHydrated(participantPage, `/competitions/competition_details/${competitionId}/registration`);
         await expect(participantPage.getByTestId('registration-status-badge')).toHaveCount(0);
     });
 });
@@ -121,21 +120,21 @@ test('GivenFullCategory_WhenEntriesAreRefused_ThenWaitlistedEntriesArePromotedIn
         await signUpIndividualWithExternalAndSubmit(participantPage, competitionId, 'External Participant A');
         const badges = participantPage.getByTestId('registration-status-badge');
         await expect(badges).toHaveCount(2);
-        await expect(badges.first()).toHaveText('Pending Confirmation');
-        await expect(badges.last()).toHaveText('Pending Confirmation');
+        await expect(badges.first()).toHaveAttribute('data-status', 'PENDING_CONFIRMATION');
+        await expect(badges.last()).toHaveAttribute('data-status', 'PENDING_CONFIRMATION');
     });
 
     await test.step('organizer registers self + external — both auto-waitlisted', async () => {
         await signUpIndividualWithExternalAndSubmit(organizerPage, competitionId, 'External Organizer B');
         const badges = organizerPage.getByTestId('registration-status-badge');
         await expect(badges).toHaveCount(2);
-        await expect(badges.first()).toHaveText('Waitlisted');
-        await expect(badges.last()).toHaveText('Waitlisted');
+        await expect(badges.first()).toHaveAttribute('data-status', 'WAITLISTED');
+        await expect(badges.last()).toHaveAttribute('data-status', 'WAITLISTED');
     });
 
     await test.step('organizer sees the waitlist notification', async () => {
-        await organizerPage.goto('/notifications');
-        await expect(organizerPage.getByText('Registration waitlisted').first()).toBeVisible();
+        await gotoHydrated(organizerPage, '/notifications');
+        await expect(organizerPage.locator('[data-testid="notification-item"][data-notification-type="REGISTRATION_WAITLISTED"]').first()).toBeVisible();
     });
 
     await test.step('organizer confirms both pending entries — waitlisted stay waitlisted', async () => {
@@ -158,7 +157,7 @@ test('GivenFullCategory_WhenEntriesAreRefused_ThenWaitlistedEntriesArePromotedIn
         await expect(organizerPage.locator('[data-testid="section-waitlisted"] [data-testid^="registration-row-entry-"]')).toHaveCount(2);
 
         // No pending entries should be visible (pending section is empty / not rendered)
-        await expect(organizerPage.getByText('Pending Confirmation')).toHaveCount(0);
+        await expect(organizerPage.getByTestId('section-pending')).toHaveCount(0);
     });
 
     await test.step('refusing a confirmed entry promotes the first waitlisted entry to pending', async () => {
@@ -260,14 +259,14 @@ test('GivenFreeCategory_WhenParticipantRegisters_ThenEntryIsAutoConfirmed', asyn
         await gotoHydrated(participantPage, `/competitions/competition_details/${competitionId}/registration`);
 
         // Queue a signup
-        await participantPage.getByRole('button', { name: 'Sign Up' }).first().click();
+        await participantPage.locator('[data-testid^="signup-category-"]').first().click();
 
         // Click submit — should NOT show payment warning popover (free category)
         await participantPage.getByTestId('submit-all-registrations').click();
         await expect(participantPage.getByTestId('payment-warning-confirm')).toHaveCount(0);
 
         // Status should be auto-confirmed immediately
-        await expect(participantPage.getByTestId('registration-status-badge')).toHaveText('Confirmed');
+        await expect(participantPage.getByTestId('registration-status-badge')).toHaveAttribute('data-status', 'CONFIRMED');
     });
 
     await test.step('organizer finds the entry in the confirmed section', async () => {

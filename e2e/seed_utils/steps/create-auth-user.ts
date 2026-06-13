@@ -1,6 +1,38 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
+import type { PrismaClient } from '../../../src/lib/.prisma/generated/prisma/client';
 import type { SeedContext, AuthUserSeedInput, SeededAuthUser } from '../types';
+
+/**
+ * One Better Auth instance per Prisma client (which is itself per-worker — see
+ * database_seed_context.ts). Building it is heavy crypto/adapter setup, so we
+ * memoise it instead of constructing one per createAuthUser call.
+ *
+ * `betterAuth` is generic over the exact options shape, so the concrete instance
+ * type is inferred from this factory rather than the wider `ReturnType<typeof
+ * betterAuth>`.
+ */
+function createAuthInstance(prisma: PrismaClient) {
+    return betterAuth({
+        baseURL: 'http://localhost',
+        secret: process.env.BETTER_AUTH_SECRET!,
+        database: prismaAdapter(prisma, { provider: 'postgresql' }),
+        emailAndPassword: { enabled: true },
+    });
+}
+
+type AuthInstance = ReturnType<typeof createAuthInstance>;
+
+const authCache = new WeakMap<PrismaClient, AuthInstance>();
+
+function getAuth(prisma: PrismaClient): AuthInstance {
+    let auth = authCache.get(prisma);
+    if (!auth) {
+        auth = createAuthInstance(prisma);
+        authCache.set(prisma, auth);
+    }
+    return auth;
+}
 
 /** User fields that mark every onboarding prompt as completed. */
 const ONBOARDED_FIELDS = {
@@ -33,12 +65,7 @@ export async function createAuthUser(
     const [local, domain] = input.email.split('@');
     const email = `${local}-${ctx.runId}@${domain}`;
 
-    const auth = betterAuth({
-        baseURL: 'http://localhost',
-        secret: process.env.BETTER_AUTH_SECRET!,
-        database: prismaAdapter(ctx.prisma, { provider: 'postgresql' }),
-        emailAndPassword: { enabled: true },
-    });
+    const auth = getAuth(ctx.prisma);
 
     const res = await auth.api.signUpEmail({
         body: { email, password: input.password, name: input.name },

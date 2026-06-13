@@ -574,7 +574,7 @@
     </div>
 {:else}
 
-<TitleBackButton href={isEdit ? `/competitions/competition_details/${$form.id}` : '/competitions/explore_competitions'} text={isEdit? $t('competition.edit.title') : $t('competition.create.title')} subtitle={isEdit ? $form.name : undefined} />
+<TitleBackButton href={isEdit ? `/competitions/competition_details/${$form.id}` : '/competitions/explore_competitions'} text={isEdit? $t('competition.edit.title') : $t('competition.create.title')} subtitle={isEdit ? $form.name : undefined} testId={isEdit ? 'edit-competition-heading' : 'create-competition-heading'} />
 <div class="container mx-auto relative">
     <!-- Header Section -->
     <div class="space-y-3 mb-2">
@@ -671,8 +671,8 @@
                             placeholder={$t('competition.create.select_country')}
                         >
                             <Combobox.Control>
-                                <Combobox.Input class="input text-sm px-3 py-2 bg-transparent border-none w-full" />
-                                <Combobox.Trigger />
+                                <Combobox.Input class="input text-sm px-3 py-2 bg-transparent border-none w-full" data-testid="country-input" />
+                                <Combobox.Trigger data-testid="country-trigger" />
                             </Combobox.Control>
                             <Portal>
                                 <Combobox.Positioner>
@@ -707,6 +707,7 @@
                         name="postalCode"
                         bind:value={$form.postalCode}
                         maxlength="20"
+                        data-testid="postal-code"
                         placeholder={$t('competition.create.postal_code_placeholder')}
                         class="input rounded-lg bg-primary-50-950"
                         class:input-error={formErrors.postalCode || $errors.postalCode}
@@ -864,6 +865,7 @@
                     role="switch"
                     aria-checked={isMultiDay}
                     aria-label={$t('competition.create.multi_day_toggle')}
+                    data-testid="multi-day-toggle"
                     class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 {isMultiDay ? 'bg-primary-500' : 'bg-surface-300 dark:bg-surface-600'}"
                     onclick={onToggleMultiDay}
                 >
@@ -897,7 +899,7 @@
                 {:else}
                     <!-- Multi-day mode: dates are auto-computed from categories -->
                     <div class="md:col-span-2">
-                        <div class="flex items-center gap-2 text-sm text-surface-500 dark:text-surface-400 py-2">
+                        <div class="flex items-center gap-2 text-sm text-surface-500 dark:text-surface-400 py-2" data-testid="auto-computed-dates-notice">
                             <Icon icon="mdi:information-outline" width="1.1rem" height="1.1rem" />
                             <span>{$t('competition.create.auto_computed_dates')}</span>
                         </div>
@@ -941,6 +943,7 @@
                     onclick={addCategory}
                     disabled={!isMultiDay && !$form.startDate}
                     aria-label={$t('competition.create.add_category')}
+                    data-testid="add-category"
                 >
                     <Icon icon="mdi:plus" width="1.2rem" height="1.2rem" />
                     <span class="hidden sm:inline">{$t('competition.create.add_category')}</span>

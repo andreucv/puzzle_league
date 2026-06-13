@@ -20,15 +20,15 @@ export async function submitAndConfirmPaymentIfNeeded(page: Page): Promise<void>
 /** Opens registration for a competition from the manage registrations page. */
 export async function openRegistration(page: Page, competitionId: number): Promise<void> {
     await gotoHydrated(page, `/competition/${competitionId}/manage_registrations`);
-    await expect(page.getByText('closed')).toBeVisible();
+    await expect(page.getByTestId('registration-status')).toHaveAttribute('data-open', 'false');
     await page.getByTestId('toggle-registration').click();
-    await expect(page.getByTestId('registration-status')).toHaveText('open');
+    await expect(page.getByTestId('registration-status')).toHaveAttribute('data-open', 'true');
 }
 
 /** Signs up the current user for the first individual category and submits (handles payment popover). */
 export async function signUpIndividualAndSubmit(page: Page, competitionId: number): Promise<void> {
     await gotoHydrated(page, `/competitions/competition_details/${competitionId}/registration`);
-    await page.getByRole('button', { name: 'Sign Up' }).first().click();
+    await page.locator('[data-testid^="signup-category-"]').first().click();
     await submitAndConfirmPaymentIfNeeded(page);
 }
 
@@ -38,8 +38,8 @@ export async function addExternalParticipant(page: Page, externalName: string): 
     await expect(searchInput).toBeVisible();
     await searchInput.fill(externalName);
 
-    await expect(page.getByText('Add as non-registered participant')).toBeVisible();
-    await page.getByText('Add as non-registered participant').click();
+    await expect(page.getByTestId('add-external-participant')).toBeVisible();
+    await page.getByTestId('add-external-participant').click();
 
     await expect(page.getByText(externalName, { exact: true })).toBeVisible();
 }
@@ -49,10 +49,10 @@ export async function signUpIndividualWithExternalAndSubmit(page: Page, competit
     await gotoHydrated(page, `/competitions/competition_details/${competitionId}/registration`);
 
     // Self-register
-    await page.getByRole('button', { name: 'Sign Up' }).first().click();
+    await page.locator('[data-testid^="signup-category-"]').first().click();
 
     // Add another registration for an external participant
-    await page.getByRole('button', { name: 'Add another registration' }).first().click();
+    await page.locator('[data-testid^="signup-category-"]').first().click();
     await addExternalParticipant(page, externalName);
 
     // Submit both registrations (handles payment popover if needed)

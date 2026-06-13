@@ -119,7 +119,7 @@
     <!-- Search + filter toggle -->
     <div class="flex items-stretch gap-2">
         <div class="flex-1">
-            <SearchInput placeholder={$t('list_competitions.look_for_competition')} bind:filter />
+            <SearchInput placeholder={$t('list_competitions.look_for_competition')} bind:filter testId="competition-search-input" />
         </div>
         <button
             type="button"
@@ -197,6 +197,7 @@
                         type="button"
                         class="btn btn-sm preset-outlined-primary-500 mt-4"
                         onclick={() => { filter = ''; activePresets = []; activeTab = 'ALL'; }}
+                        data-testid="clear-filters"
                     >
                         {$t('explore_competitions.clear_all_filters')}
                     </button>

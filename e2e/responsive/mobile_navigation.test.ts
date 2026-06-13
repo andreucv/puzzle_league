@@ -5,7 +5,7 @@ test.describe('Anonymous user mobile navigation', () => {
     test.use({ storageState: { cookies: [], origins: [] } });
 
     test('GivenMobileLandingPage_WhenPageLoads_ThenHamburgerMenuIsVisible', async ({ page }) => {
-        await page.goto('/');
+        await gotoHydrated(page, '/');
         await expect(page.locator('#states-button')).toBeVisible();
     });
 
@@ -43,7 +43,7 @@ test.describe('Organizer user mobile navigation', () => {
         await page.getByTestId('nav-drawer-create-competition').click();
 
         await page.waitForURL('/competition/edit');
-        await expect(page.getByRole('heading', { name: 'Create new competition' })).toBeVisible();
+        await expect(page.getByTestId('create-competition-heading')).toBeVisible();
     });
 });
 
@@ -53,7 +53,7 @@ test.describe('Admin user mobile navigation', () => {
     test('GivenAdminMobile_WhenClickingReviewRequests_ThenNavigatesToAdminPage', async ({ page }) => {
         await gotoHydrated(page, '/');
         await page.locator('#states-button').click();
-        await page.getByRole('link', { name: 'Review Permissions Requests', exact: true }).click();
+        await page.getByTestId('nav-drawer-review-permissions-requests').click();
 
         await page.waitForURL('/admin/review_requests');
     });

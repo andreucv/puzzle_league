@@ -39,7 +39,7 @@
         </AppBar.Headline>
         <AppBar.Trail>
             {#if user === undefined}
-                <button id="login-button" type="button" class="btn btn-sm preset-filled" style:visibility="{currentPath === '/login' ? 'hidden' : 'visible'}">
+                <button id="login-button" type="button" class="btn btn-sm preset-filled" style:visibility="{currentPath === '/login' ? 'hidden' : 'visible'}" data-testid="sign-in-button">
                     <a href="/login">{$t('landing_page.sign_in')}</a>
                 </button>
             {:else}

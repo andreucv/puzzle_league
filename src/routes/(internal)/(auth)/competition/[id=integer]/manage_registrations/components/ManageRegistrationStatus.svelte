@@ -62,7 +62,7 @@
 			{/if}
 			<p class="text-sm">
 				{$t('manage_registrations.registration_label')}
-				<span class="font-semibold" class:text-success-500={competition_registration_status} class:text-error-500={!competition_registration_status} data-testid="registration-status">
+				<span class="font-semibold" class:text-success-500={competition_registration_status} class:text-error-500={!competition_registration_status} data-testid="registration-status" data-open={competition_registration_status}>
 					{competition_registration_status ? $t('manage_registrations.status_open') : $t('manage_registrations.status_closed')}
 				</span>
 			</p>

@@ -819,7 +819,7 @@
                     {:else}
                         <!-- In-progress team builder -->
                         {@const totalPartySize = getSlotPartySize(slot)}
-                        <div class="p-3 bg-warning-50 dark:bg-warning-900/20 border border-warning-300 dark:border-warning-700 rounded-lg relative" transition:slide={{ duration: 200 }}>
+                        <div class="p-3 bg-warning-50 dark:bg-warning-900/20 border border-warning-300 dark:border-warning-700 rounded-lg relative" transition:slide={{ duration: 200 }} data-testid="team-builder">
                             <!-- Cancel button -->
                             <button
                                 type="button"
@@ -983,6 +983,7 @@
                                                     type="button"
                                                     onclick={() => addExternalParticipant(category.id, slot.slotId, query)}
                                                     class="w-full p-2 text-left hover:bg-warning-50 dark:hover:bg-warning-900/30 flex items-center gap-2 border-t border-surface-300 dark:border-surface-600"
+                                                    data-testid="add-external-participant"
                                                 >
                                                     <div class="w-6 h-6 rounded-full bg-warning-200 dark:bg-warning-800 flex items-center justify-center shrink-0">
                                                         <AccountPlusOutlineIcon width="0.9rem" height="0.9rem" class="text-warning-700 dark:text-warning-300" />
@@ -1010,6 +1011,7 @@
                                 type="button"
                                 class="btn {hasExisting ? 'preset-tonal-success' : 'preset-filled-success-500'} w-full sm:w-auto"
                                 onclick={() => isUserInCategory(category.id) ? addIndividualSlotForOther(category.id) : addIndividualSignup(category.id)}
+                                data-testid="signup-category-{category.id}"
                             >
                                 <AccountPlusIcon width="1.2rem" height="1.2rem" />
                                 {hasExisting ? $t('registration.add_another') : $t('registration.sign_up')}
@@ -1021,6 +1023,7 @@
                                 type="button"
                                 class="btn {hasExisting ? 'preset-tonal-success' : 'preset-filled-success-500'} w-full sm:w-auto"
                                 onclick={() => addGroupSlot(category.id)}
+                                data-testid="signup-category-{category.id}"
                             >
                                 {#if isPairs}<AccountMultipleIcon width="1.2rem" height="1.2rem" />{:else}<AccountGroupIcon width="1.2rem" height="1.2rem" />{/if}
                                 {hasExisting
@@ -1081,7 +1084,7 @@
                     <div class="text-sm">
                         <div class="flex items-center gap-2 mb-2">
                             <ClipboardCheckOutlineIcon width="1.1rem" height="1.1rem" class="text-primary-500" />
-                            <span class="font-medium">{totalNewSignups()} {$t('registration.new_registrations_summary')}</span>
+                            <span class="font-medium" data-testid="new-registrations-summary">{totalNewSignups()} {$t('registration.new_registrations_summary')}</span>
                         </div>
                         <table class="w-full text-left text-xs">
                             <thead>

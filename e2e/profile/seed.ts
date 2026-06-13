@@ -26,6 +26,5 @@ export default async function seed() {
         userEmail: user.email,
         userPassword: user.password,
     };
-    await ctx.prisma.$disconnect();
     return result;
 }

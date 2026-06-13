@@ -1,7 +1,7 @@
 <script lang="ts">
     import ArrowLeftIcon from '@iconify-svelte/mdi/arrow-left';
     import type { Snippet } from 'svelte';
-    let { href, text, subtitle, trailing, useHistoryBack = false }: { href: string; text: string; subtitle?: string; trailing?: Snippet; useHistoryBack?: boolean } = $props();
+    let { href, text, subtitle, trailing, useHistoryBack = false, testId }: { href: string; text: string; subtitle?: string; trailing?: Snippet; useHistoryBack?: boolean; testId?: string } = $props();
 </script>
 
 <div class="flex items-center gap-2">
@@ -13,7 +13,7 @@
         <ArrowLeftIcon width="1.2rem" height="1.2rem" />
     </a>
     <div class="flex-1 min-w-0">
-        <h4 class="h4 font-sans font-medium truncate">{text}</h4>
+        <h4 class="h4 font-sans font-medium truncate" data-testid={testId}>{text}</h4>
         {#if subtitle}
             <p class="text-sm text-surface-500 truncate">{subtitle}</p>
         {/if}

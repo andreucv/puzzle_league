@@ -85,6 +85,5 @@ export default async function seed() {
         ago10Days: { id: ago10Days.id, name: ago10Days.name },
     };
 
-    await ctx.prisma.$disconnect();
     return result;
 }

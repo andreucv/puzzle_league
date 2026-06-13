@@ -6,7 +6,8 @@ issue: null
 status: approved
 created: 2026-06-12
 updated: 2026-06-12
-related: []
+related:
+  - docs/features/e2e-testid-stabilization/04-plan.md
 ---
 
 # Implementation Plan: E2E testing infrastructure overhaul

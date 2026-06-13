@@ -31,6 +31,10 @@ export default defineConfig({
     globalSetup: './e2e/global-setup.ts',
     /* Run tests in files in parallel */
     fullyParallel: true,
+    /* The `process.env.CI` branches below are aspirational: there is not yet a
+     * GitHub Actions workflow running this suite. They are kept (not deleted) so
+     * the config is ready to wire up the moment the suite is stable enough to
+     * gate merges on CI. */
     /* Fail the build on CI if you accidentally left test.only in the source code. */
     forbidOnly: !!process.env.CI,
     /* Retry on CI only */
@@ -39,7 +43,11 @@ export default defineConfig({
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
     reporter: 'html',
     timeout: 30_000,
-    expect: { timeout: 2_000 },
+    /* Default assertion timeout. Kept generous so a loaded machine (or future
+     * CI) doesn't flake on assertions that wait on a server action / popover;
+     * fast static checks still resolve well under this. Slow realtime waits
+     * (e.g. Ably sync) override per-assertion with an explicit timeout. */
+    expect: { timeout: 5_000 },
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
         /* Base URL to use in actions like `await page.goto('/')`. */
@@ -51,10 +59,10 @@ export default defineConfig({
     },
 
     /* Prepares the test DB, builds the app (hash-cached), and serves it.
-     * Run `npx tsx scripts/e2e-server.ts` manually to keep a warm server
-     * across local runs. */
+     * Run `npx tsx e2e/e2e-server.ts` manually to keep a warm server
+     * across local runs. global-setup.ts guards against a stale warm server. */
     webServer: {
-        command: 'npx tsx scripts/e2e-server.ts',
+        command: 'npx tsx e2e/e2e-server.ts',
         port: PREVIEW_PORT,
         reuseExistingServer: !process.env.CI,
         timeout: 30_000,

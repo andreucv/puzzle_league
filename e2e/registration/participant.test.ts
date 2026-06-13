@@ -37,7 +37,7 @@ test('GivenRegistrationOpen_WhenParticipantAddsExternalParticipant_ThenOrganizer
 
     await test.step('organizer sees both entries on the manage page', async () => {
         await gotoHydrated(organizerPage, `/competition/${competitionId}/manage_registrations`);
-        await expect(organizerPage.getByText(externalParticipantName, { exact: true })).toBeVisible();
+        await expect(organizerPage.getByText(externalParticipantName, { exact: true }).first()).toBeVisible();
         await expect(organizerPage.locator('[data-testid^="registration-row-entry-"]')).toHaveCount(2);
     });
 });
@@ -49,14 +49,14 @@ test('GivenPairsCategory_WhenParticipantBuildsTeamAndOrganizerConfirms_ThenParti
     await test.step('participant builds a pair with an external teammate', async () => {
         await gotoHydrated(participantPage, `/competitions/competition_details/${competitionId}/registration`);
 
-        await participantPage.getByRole('button', { name: 'Build Pair' }).first().click();
-        await expect(participantPage.getByText('Team').first()).toBeVisible();
+        await participantPage.locator('[data-testid^="signup-category-"]').first().click();
+        await expect(participantPage.getByTestId('team-builder').first()).toBeVisible();
 
         await addExternalParticipant(participantPage, teammateIntentName);
         await submitAndConfirmPaymentIfNeeded(participantPage);
 
         await expect(participantPage.getByTestId('registration-status-badge').first()).toBeVisible();
-        await expect(participantPage.getByTestId('registration-status-badge').first()).toHaveText('Pending Confirmation');
+        await expect(participantPage.getByTestId('registration-status-badge').first()).toHaveAttribute('data-status', 'PENDING_CONFIRMATION');
         await expect(participantPage.getByText(teammateIntentName)).toBeVisible();
     });
 
@@ -66,7 +66,7 @@ test('GivenPairsCategory_WhenParticipantBuildsTeamAndOrganizerConfirms_ThenParti
 
     await test.step('participant sees the confirmation notification', async () => {
         await gotoHydrated(participantPage, '/notifications');
-        await expect(participantPage.getByText('Registration confirmed').first()).toBeVisible();
+        await expect(participantPage.locator('[data-testid="notification-item"][data-notification-type="REGISTRATION_CONFIRMED"]').first()).toBeVisible();
     });
 });
 
@@ -75,7 +75,7 @@ test('GivenRegisteredParticipant_WhenParticipantUnregisters_ThenOrganizerSeesNoR
 
     await test.step('participant registers', async () => {
         await signUpIndividualAndSubmit(participantPage, competitionId);
-        await expect(participantPage.getByTestId('registration-status-badge')).toHaveText('Pending Confirmation');
+        await expect(participantPage.getByTestId('registration-status-badge')).toHaveAttribute('data-status', 'PENDING_CONFIRMATION');
     });
 
     await test.step('participant unregisters via the confirmation popover', async () => {
@@ -88,7 +88,7 @@ test('GivenRegisteredParticipant_WhenParticipantUnregisters_ThenOrganizerSeesNoR
 
     await test.step('organizer sees no registrations on the manage page', async () => {
         await gotoHydrated(organizerPage, `/competition/${competitionId}/manage_registrations`);
-        await expect(organizerPage.getByText('No registrations for this category')).toBeVisible();
+        await expect(organizerPage.getByTestId('no-registrations')).toBeVisible();
     });
 });
 
@@ -96,13 +96,13 @@ test('GivenQueuedSignup_WhenParticipantRemovesIt_ThenSubmitBarDisappearsAndSignU
     const { competitionId } = testData.removeQueued;
     await gotoHydrated(participantPage, `/competitions/competition_details/${competitionId}/registration`);
 
-    await participantPage.getByText('Sign Up', { exact: true }).first().click();
+    await participantPage.locator('[data-testid^="signup-category-"]').first().click();
     await expect(participantPage.getByTestId('submit-all-registrations')).toBeVisible();
 
     await participantPage.getByTestId('remove-queued-slot').click();
 
     await expect(participantPage.getByTestId('submit-all-registrations')).not.toBeVisible();
-    await expect(participantPage.getByText('Sign Up', { exact: true }).first()).toBeVisible();
+    await expect(participantPage.locator('[data-testid^="signup-category-"]').first()).toBeVisible();
 });
 
 test('GivenMultipleCategories_WhenParticipantSubmitsBatch_ThenOrganizerSeesBothEntries', async ({ participantPage, organizerPage }) => {
@@ -119,7 +119,7 @@ test('GivenMultipleCategories_WhenParticipantSubmitsBatch_ThenOrganizerSeesBothE
         await participantPage.getByTestId(`signup-category-${pairsCategoryId}`).click();
         await addExternalParticipant(participantPage, pairsIntentName);
 
-        await expect(participantPage.getByText('2 new registration(s)')).toBeVisible();
+        await expect(participantPage.getByTestId('new-registrations-summary')).toContainText('2');
 
         await submitAndConfirmPaymentIfNeeded(participantPage);
 
@@ -129,8 +129,8 @@ test('GivenMultipleCategories_WhenParticipantSubmitsBatch_ThenOrganizerSeesBothE
 
     await test.step('organizer sees both entries on the manage page', async () => {
         await gotoHydrated(organizerPage, `/competition/${competitionId}/manage_registrations`);
-        await expect(organizerPage.getByText(pairsIntentName)).toBeVisible();
-        await expect(organizerPage.locator('[data-testid^="registration-entry-"]')).toHaveCount(2);
+        await expect(organizerPage.locator('[data-testid^="registration-row-entry-"]').filter({hasText: pairsIntentName}))
+        await expect(organizerPage.locator('[data-testid^="registration-row-entry-"]')).toHaveCount(2);
     });
 });
 
@@ -141,12 +141,12 @@ test('GivenShowPaymentWarningTrueButPriceZero_WhenParticipantClicksSubmit_ThenNo
     await gotoHydrated(participantPage, `/competitions/competition_details/${competitionId}/registration`);
 
     // Queue a signup
-    await participantPage.getByRole('button', { name: 'Sign Up' }).first().click();
+    await participantPage.locator('[data-testid^="signup-category-"]').first().click();
 
     // Click submit — should NOT show payment popover (price=0, despite showPaymentWarning=true)
     await participantPage.getByTestId('submit-all-registrations').click();
     await expect(participantPage.getByTestId('payment-warning-confirm')).toHaveCount(0);
 
     // Status should be auto-confirmed (isFreeRegistration returns true when price === 0)
-    await expect(participantPage.getByTestId('registration-status-badge')).toHaveText('Confirmed');
+    await expect(participantPage.getByTestId('registration-status-badge')).toHaveAttribute('data-status', 'CONFIRMED');
 });

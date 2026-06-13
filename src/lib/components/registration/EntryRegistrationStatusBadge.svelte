@@ -16,7 +16,7 @@
     const borderClass = $derived(getRegistrationStatusTonalClass(status));
 </script>
 
-<span class="badge flex items-center text-xs gap-1 shrink-0 {borderClass}" data-testid="registration-status-badge">
+<span class="badge flex items-center text-xs gap-1 shrink-0 {borderClass}" data-testid="registration-status-badge" data-status={status}>
     <StatusIcon width="0.8rem" height="0.8rem" class={iconColor} />
     {label}
 </span>

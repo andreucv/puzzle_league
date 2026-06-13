@@ -98,7 +98,7 @@
 
     {#if user?.roleAssignments?.some((role: any) => role.role === "ORGANIZER")}
     <li class="pt-3">
-        <span class="section-label">{$t('drawer_menu.organizer')}</span>
+        <span class="section-label" data-testid="drawer-organizer-section">{$t('drawer_menu.organizer')}</span>
     </li>
     <li>
         <a data-testid="nav-drawer-create-competition" href="/competition/edit/" onclick={navigate} class="nav-item" class:nav-item-active={isActive('/competition/edit')}>

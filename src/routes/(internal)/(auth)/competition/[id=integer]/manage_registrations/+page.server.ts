@@ -1,7 +1,7 @@
 import type { PageServerLoad } from "./$types";
 import { getCompetition } from "$lib/database/db_competition";
 import { getRegistrationsForCompetition } from "$lib/database/db_entry";
-import { redirect } from "@sveltejs/kit";
+import { error, redirect } from "@sveltejs/kit";
 
 export const load: PageServerLoad = async (event) => {
     const { competitionId, access } = await event.parent();
@@ -10,7 +10,7 @@ export const load: PageServerLoad = async (event) => {
     event.depends('data:manage-registrations');
 
     if (!access.canManageCompetition) {
-        throw redirect(302, '/error/no_permission/');
+        throw error(403, { message: '', code: 'FORBIDDEN' });
     }
 
     const competition = await getCompetition(competitionId);

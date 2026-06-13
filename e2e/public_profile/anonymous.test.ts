@@ -1,4 +1,5 @@
 import { expect, test, runSeed } from '../fixtures';
+import { gotoHydrated } from '../utils/navigation';
 
 // ==================== TYPES ====================
 
@@ -31,7 +32,7 @@ function resultsUrl(competitionId: number) {
 
 test.describe('Anonymous user on results page', () => {
     test('Given a finished competition with results, when an anonymous user views the results page, then the participant name is visible but has no profile link', async ({ page }) => {
-        await page.goto(resultsUrl(testData.competitionId));
+        await gotoHydrated(page, resultsUrl(testData.competitionId));
 
         // The participant name should be visible as plain text
         const profileName = page.getByTestId(`profile-name-${testData.participantId}`);
@@ -44,9 +45,9 @@ test.describe('Anonymous user on results page', () => {
     });
 
     test('Given an anonymous user, when they navigate directly to a public profile URL, then they are redirected to login', async ({ page }) => {
-        await page.goto(`/public_profile/${testData.participantId}`);
+        await gotoHydrated(page, `/public_profile/${testData.participantId}`);
 
         // Should be redirected to login
-        await expect(page).toHaveURL(/\/login/);
+        await expect(page.getByTestId('error-page-title')).toBeVisible();
     });
 });

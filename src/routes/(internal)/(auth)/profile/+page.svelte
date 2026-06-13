@@ -26,7 +26,7 @@
     }
 </script>
 
-<GenericTitle text={$t('profile.my_profile')} />
+<GenericTitle text={$t('profile.my_profile')} testId="profile-heading" />
 <div class="container">
     <div class="space-y-6">
         <UserCard {user} {account}/>
@@ -36,6 +36,7 @@
                 type="button"
                 class="btn preset-filled-error-500"
                 onclick={signOut}
+                data-testid="sign-out-button"
             >
                 Sign out
             </button>

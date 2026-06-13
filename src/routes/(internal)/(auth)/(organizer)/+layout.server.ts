@@ -1,5 +1,5 @@
 import type { LayoutServerLoad } from "./$types";
-import { redirect } from "@sveltejs/kit";
+import { error, redirect } from "@sveltejs/kit";
 import { Role } from '$lib/.prisma/generated/prisma/enums';
 
 /**
@@ -18,7 +18,7 @@ export const load: LayoutServerLoad = async ({ parent }) => {
 
   const roleAssignments = user.roleAssignments;
   if (!roleAssignments) {
-      throw redirect(302, "/error/no_permission/");
+      throw error(403, { message: '', code: 'FORBIDDEN' });
   }
 
   // Allow global ORGANIZER or global ADMIN to access organizer routes
@@ -26,7 +26,7 @@ export const load: LayoutServerLoad = async ({ parent }) => {
     assignment => assignment.role === Role.ORGANIZER || assignment.role === Role.ADMIN
   );
   if (!hasAccess) {
-      throw redirect(302, "/error/no_permission/");
+      throw error(403, { message: '', code: 'FORBIDDEN' });
   }
 
   return {

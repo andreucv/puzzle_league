@@ -13,7 +13,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 test('LandingPage_VerifyMinimumViableContent', async ({ page }) => {
     await gotoHydrated(page, '/');
     await expect(page.getByRole('link', { name: 'PuzzLigas' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
+    await expect(page.getByTestId('sign-in-button')).toBeVisible();
     await expect(page.getByTestId('explore-competitions-button')).toBeVisible();
 
     // Now open the left menu and check for the home button
@@ -31,8 +31,8 @@ test('LandingPage_ExploreCompetitionsButtonWorks', async ({ page }) => {
 
 test('LandingPage_JoinNowButtonWorks', async ({ page }) => {
     await gotoHydrated(page, '/');
-    await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
-    await page.getByRole('button', { name: 'Sign in' }).click();
+    await expect(page.getByTestId('sign-in-button')).toBeVisible();
+    await page.getByTestId('sign-in-button').click();
     await page.waitForURL(/\/login/);
 });
 

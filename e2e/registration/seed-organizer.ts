@@ -57,6 +57,5 @@ export default async function seed() {
     };
 
     console.log('✅ Organizer registration seed complete');
-    await ctx.prisma.$disconnect();
     return result;
 }

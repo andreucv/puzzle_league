@@ -178,6 +178,8 @@
                         type="button"
                         class="w-full text-left transition-all duration-150
                             {notification.read ? 'opacity-70' : ''}"
+                        data-testid="notification-item"
+                        data-notification-type={notification.type}
                         onclick={() => {
                             if (!notification.read) markOneAsRead(notification.id);
                             if (notification.link) window.location.href = notification.link;

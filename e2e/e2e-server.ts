@@ -6,15 +6,14 @@
  * process lifecycle. Run it manually in a terminal to keep a warm server
  * across local test runs (`reuseExistingServer` picks it up):
  *
- *     npx tsx scripts/e2e-server.ts
+ *     npx tsx e2e/e2e-server.ts
  */
 import dotenv from 'dotenv';
 import path from 'path';
-import fs from 'fs';
-import crypto from 'crypto';
 import pg from 'pg';
 import { execSync, spawn } from 'child_process';
 import { fileURLToPath } from 'url';
+import { computeBuildHash, readStoredHash, writeStoredHash } from '../scripts/e2e-build-hash';
 
 const __filename = fileURLToPath(import.meta.url);
 const ROOT = path.resolve(path.dirname(__filename), '..');
@@ -22,34 +21,6 @@ const ROOT = path.resolve(path.dirname(__filename), '..');
 dotenv.config({ path: path.resolve(ROOT, '.env') });
 
 const PREVIEW_PORT = 4173;
-const BUILD_HASH_FILE = path.resolve(ROOT, 'playwright-out/.e2e-build-hash');
-
-/**
- * Computes a hash of src/ + config files to detect source changes.
- *
- * `git ls-files -s` alone only reflects the index, so unstaged edits would
- * keep the hash stable and the suite would run against a stale build. Combine
- * the index with unstaged diffs and untracked file contents instead.
- */
-function computeBuildHash(): string {
-    const paths = 'src/ svelte.config.js vite.config.ts package.json tsconfig.json';
-    const git = (cmd: string, input?: string) =>
-        execSync(cmd, { cwd: ROOT, encoding: 'utf-8', ...(input !== undefined && { input }) });
-
-    const index = git(`git ls-files -s ${paths}`);
-    const unstagedDiff = git(`git diff -- ${paths}`);
-    const untrackedList = git(`git ls-files -o --exclude-standard ${paths}`).trim();
-    const untrackedHashes = untrackedList
-        ? git('git hash-object --stdin-paths', `${untrackedList}\n`)
-        : '';
-
-    return crypto.createHash('sha1')
-        .update(index)
-        .update(unstagedDiff)
-        .update(untrackedList)
-        .update(untrackedHashes)
-        .digest('hex');
-}
 
 async function prepareDatabase(testDbUrl: string, env: NodeJS.ProcessEnv) {
     console.log(`🧪 E2E test database: ${testDbUrl}`);
@@ -85,9 +56,7 @@ async function prepareDatabase(testDbUrl: string, env: NodeJS.ProcessEnv) {
 
 function buildIfChanged(env: NodeJS.ProcessEnv) {
     const currentHash = computeBuildHash();
-    const previousHash = fs.existsSync(BUILD_HASH_FILE)
-        ? fs.readFileSync(BUILD_HASH_FILE, 'utf-8').trim()
-        : null;
+    const previousHash = readStoredHash();
 
     if (previousHash === currentHash) {
         console.log(`⚡ Build cache hit — skipping build (hash: ${currentHash.slice(0, 8)}…).`);
@@ -96,8 +65,7 @@ function buildIfChanged(env: NodeJS.ProcessEnv) {
 
     console.log(`🏗️  Source changed (hash: ${currentHash.slice(0, 8)}…) — building app...`);
     execSync('npm run build', { cwd: ROOT, env, stdio: 'inherit' });
-    fs.mkdirSync(path.dirname(BUILD_HASH_FILE), { recursive: true });
-    fs.writeFileSync(BUILD_HASH_FILE, currentHash);
+    writeStoredHash(currentHash);
 }
 
 async function main() {

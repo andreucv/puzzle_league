@@ -12,11 +12,11 @@ test('GivenHomePage_WhenAccessingLandingPage_ThenUserSeeUpcomingAndRegisteredCom
     await gotoHydrated(participantPage, '/home');
     await expect(participantPage.getByTestId('explore-competitions-button')).not.toBeVisible();
     await openDrawer(participantPage);
-    await expect(participantPage.getByText('Organizer', { exact: true })).not.toBeVisible();
+    await expect(participantPage.getByTestId('drawer-organizer-section')).not.toBeVisible();
 });
 
 test('GivenHomePageOrganizer_WhenClickingOnHambugerMenu_ThenOrganizerActionsAreVisible', async ({ organizerPage }) => {
     await gotoHydrated(organizerPage, '/home');
     await openDrawer(organizerPage);
-    await expect(organizerPage.getByText('Organizer', { exact: true })).toBeVisible();
+    await expect(organizerPage.getByTestId('drawer-organizer-section')).toBeVisible();
 });

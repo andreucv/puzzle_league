@@ -59,6 +59,7 @@ export async function getUserWithRoles(authUser: { id: string }) {
                 }
                 : {}),
             select: {
+                name: true,
                 country: true,
                 postalCode: true,
                 locationPromptLastChecked: true,
@@ -77,6 +78,7 @@ export async function getUserWithRoles(authUser: { id: string }) {
         if (user) {
             return {
                 ...authUser,
+                name: user.name,
                 country: user.country,
                 postalCode: user.postalCode,
                 locationPromptLastChecked: user.locationPromptLastChecked,
@@ -209,10 +211,12 @@ export async function updateUserLocation(userId: string, country: string | null,
 }
 
 export async function updateUserName(userId: string, name: string) {
-    return prisma.user.update({
+    const user = await prisma.user.update({
         where: { id: userId },
         data: { name, updatedAt: new Date() }
     });
+    await invalidateUserWithRolesCache(userId);
+    return user;
 }
 
 export async function updateUserVisibility(userId: string, field: 'publicProfileVisibility' | 'publicResultsVisibility', value: boolean) {

@@ -102,6 +102,5 @@ export default async function seed() {
         participantName: participant.name,
     };
 
-    await ctx.prisma.$disconnect();
     return result;
 }

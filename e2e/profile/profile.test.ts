@@ -26,26 +26,26 @@ async function profilePage(actor: (creds: { email: string; password: string }) =
 
 test('GivenHomePage_WhenAccessingUserProfile_ThenUserProfileIsVisible', async ({ actor }) => {
     const page = await profilePage(actor);
-    await expect(page.getByRole('heading', { name: 'Profile' }).first()).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Sign out' }).first()).toBeVisible();
+    await expect(page.getByTestId('profile-heading')).toBeVisible();
+    await expect(page.getByTestId('sign-out-button')).toBeVisible();
 });
 
 test('GivenProfilePage_WhenSigningOut_ThenRedirectsToLoginPage', async ({ actor }) => {
     const page = await profilePage(actor);
-    await page.getByRole('button', { name: 'Sign out' }).click();
+    await page.getByTestId('sign-out-button').click();
     await page.waitForURL(/\/login.*/);
 });
 
 test('GivenProfilePage_WhenClickingOnHambugerMenu_ThenCreateCompetitionIsNotVisible', async ({ actor }) => {
     const page = await profilePage(actor);
     await page.locator('#states-button').click();
-    await expect(page.getByRole('link', { name: 'Create Competition' }).first()).not.toBeVisible();
+    await expect(page.getByTestId('nav-drawer-create-competition')).not.toBeVisible();
 });
 
 test('GivenProfilePageOrganizer_WhenClickingOnHambugerMenu_ThenCreateCompetitionIsVisible', async ({ organizerPage }) => {
     await gotoHydrated(organizerPage, '/profile');
     await organizerPage.locator('#states-button').click();
-    await expect(organizerPage.getByRole('link', { name: 'Create Competition' }).first()).toBeVisible();
+    await expect(organizerPage.getByTestId('nav-drawer-create-competition')).toBeVisible();
 });
 
 test('GivenProfilePage_WhenEditingPhone_ThenPhoneIsSaved', async ({ actor }) => {

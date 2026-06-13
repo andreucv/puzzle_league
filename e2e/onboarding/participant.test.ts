@@ -149,7 +149,7 @@ test('GivenIncompleteOnboarding_WhenSkippingEveryStep_ThenOnboardingCompletes', 
     });
 
     await test.step('home no longer redirects to onboarding', async () => {
-        await page.goto('/home');
+        await gotoHydrated(page, '/home');
         await expect(page).toHaveURL('/home');
     });
 });

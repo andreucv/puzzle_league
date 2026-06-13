@@ -40,7 +40,7 @@
 
         <p class="text-4xl font-mono font-semibold text-surface-400 dark:text-surface-600 tracking-widest">{$page.status}</p>
 
-        <h1 class="h2 font-sans font-bold" style="font-stretch: 125%;">{$t(config.titleKey)}</h1>
+        <h1 class="h2 font-sans font-bold" style="font-stretch: 125%;" data-testid="error-page-title" data-status={$page.status}>{$t(config.titleKey)}</h1>
 
         <p class="text-surface-600 dark:text-surface-400 text-lg font-light leading-relaxed">{displayMessage}</p>
 

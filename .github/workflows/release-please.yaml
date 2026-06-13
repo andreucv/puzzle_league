@@ -1,0 +1,26 @@
+name: release-please
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      # Stage 3 hook (placeholder) — runs ONLY when a release is actually cut.
+      # Kept in this same job on purpose: events from GITHUB_TOKEN don't trigger
+      # separate workflows, so chaining here avoids needing a PAT.
+      - if: ${{ steps.release.outputs.release_created }}
+        run: echo "Released ${{ steps.release.outputs.tag_name }} — seed What's New draft here"

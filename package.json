@@ -19,6 +19,8 @@
 		"postinstall": "svelte-kit sync && prisma generate"
 	},
 	"devDependencies": {
+		"@commitlint/cli": "^21.0.2",
+		"@commitlint/config-conventional": "^21.0.2",
 		"@inquirer/prompts": "^8.4.3",
 		"@internationalized/date": "^3.11.0",
 		"@playwright/test": "^1.58.2",

@@ -50,6 +50,25 @@ describe('getOtherUpcomingCompetitions', () => {
 		);
 	});
 
+	it('filters out competitions whose start date has already passed', async () => {
+		const now = new Date('2026-06-13T10:00:00.000Z');
+		vi.useFakeTimers();
+		vi.setSystemTime(now);
+		mockFindMany.mockResolvedValue([]);
+
+		await getOtherUpcomingCompetitions('user-1', 10, 0);
+
+		expect(mockFindMany).toHaveBeenCalledWith(
+			expect.objectContaining({
+				where: expect.objectContaining({
+					startDate: { gte: now },
+				}),
+			})
+		);
+
+		vi.useRealTimers();
+	});
+
 	it('excludes competitions where the user has an Entry via NOT clause', async () => {
 		mockFindMany.mockResolvedValue([]);
 

@@ -482,6 +482,11 @@ export async function getOtherUpcomingCompetitions(userId: string, limit: number
             status: {
                 in: [CompetitionStatus.NOT_STARTED, CompetitionStatus.STARTED]
             },
+            // Only genuinely upcoming/live competitions — a NOT_STARTED competition
+            // whose start date has already passed must not be advertised as upcoming.
+            startDate: {
+                gte: new Date()
+            },
             // Exclude competitions where the user appears on any Entry
             NOT: {
                 categories: {

@@ -13,6 +13,16 @@
         "Primer canvi visible per a la persona usuària",
         "Segon canvi visible per a la persona usuària"
       ]
+    },
+    {
+      "version": "0.5.0",
+      "status": "released",
+      "date": "2026-06-13",
+      "title": "Què hi ha de nou?",
+      "summary": "A partir d'ara es mostraran les noves funcionalitats aqui",
+      "highlights": [
+        "Aquest missatge apareixerà cada cop que hi hagi una nova funcionalitat"
+      ]
     }
   ]
 }

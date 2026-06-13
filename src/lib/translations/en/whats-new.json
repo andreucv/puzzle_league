@@ -13,6 +13,16 @@
         "First user-facing change",
         "Second user-facing change"
       ]
+    },
+    {
+      "version": "0.5.0",
+      "status": "released",
+      "date": "2026-06-13",
+      "title": "What's new?",
+      "summary": "From now on, new features will appear here",
+      "highlights": [
+        "This message will appear each time there is a new feature"
+      ]
     }
   ]
 }

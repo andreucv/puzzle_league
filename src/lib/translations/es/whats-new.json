@@ -13,6 +13,16 @@
         "Primer cambio visible para la persona usuaria",
         "Segundo cambio visible para la persona usuaria"
       ]
+    },
+    {
+      "version": "0.5.0",
+      "status": "released",
+      "date": "2026-06-13",
+      "title": "Qué hay nuevo?",
+      "summary": "A partir de ahora se mostrarán aquí las nuevas funcionalidades",
+      "highlights": [
+        "Este mensaje aparecerá cada vez que haya nuevas funcionalidades"
+      ]
     }
   ]
 }

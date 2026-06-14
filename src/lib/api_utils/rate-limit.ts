@@ -76,7 +76,11 @@ function pathnameGroup(pathname: string): string {
 }
 
 function defaultKeyExtractor(event: RequestEvent): string {
-  return event.getClientAddress() + ':' + pathnameGroup(event.url.pathname);
+  // Prefer the authenticated user's id so the limit follows the identity, not the
+  // network address — this prevents IP rotation from bypassing the limit and avoids
+  // penalising users who share a NAT/proxy. Public routes (no session) fall back to IP.
+  const identity = event.locals.user?.id ?? event.getClientAddress();
+  return identity + ':' + pathnameGroup(event.url.pathname);
 }
 
 /**

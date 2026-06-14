@@ -15,6 +15,17 @@
       ]
     },
     {
+      "version": "0.6.0",
+      "status": "released",
+      "date": "2026-06-14",
+      "title": "Auto-stop on the fly and a working unread badge",
+      "summary": "Organizers can now switch a category's auto-stop on or off even while it's running, and the bell finally lights up when you have unread notifications.",
+      "highlights": [
+        "Toggle a category's auto-stop before it starts or while it's live — it ends on its own when the countdown reaches zero",
+        "The notifications bell now shows a red dot when you have something unread, and clears once you've read it"
+      ]
+    },
+    {
       "version": "0.5.0",
       "status": "released",
       "date": "2026-06-13",

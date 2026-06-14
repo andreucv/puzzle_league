@@ -15,6 +15,17 @@
       ]
     },
     {
+      "version": "0.6.0",
+      "status": "released",
+      "date": "2026-06-14",
+      "title": "Auto-aturada sobre la marxa i avís de notificacions",
+      "summary": "Ara les persones organitzadores poden activar o desactivar l'auto-aturada d'una categoria fins i tot mentre està en marxa, i la campana de notificacions avisa quan tens notificacions sense llegir.",
+      "highlights": [
+        "Activa o desactiva l'auto-aturada d'una categoria mentre està en directe: s'atura sola quan el compte enrere arriba a zero",
+        "La campana de notificacions mostra un punt vermell quan tens alguna cosa sense llegir"
+      ]
+    },
+    {
       "version": "0.5.0",
       "status": "released",
       "date": "2026-06-13",

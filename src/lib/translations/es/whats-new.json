@@ -15,6 +15,17 @@
       ]
     },
     {
+      "version": "0.6.0",
+      "status": "released",
+      "date": "2026-06-14",
+      "title": "Auto-parada al vuelo y aviso de notificaciones",
+      "summary": "Ahora las personas organizadoras pueden activar o desactivar la auto-parada de una categoría mientras está en marcha, y la campana de notificaciones avisa cuando tienes notificaciones sin leer.",
+      "highlights": [
+        "Activa o desactiva la auto-parada de una categoría mientras está en directo: se detiene sola cuando la cuenta atrás llega a cero",
+        "La campana de notificaciones muestra un punto rojo cuando tienes algo sin leer"
+      ]
+    },
+    {
       "version": "0.5.0",
       "status": "released",
       "date": "2026-06-13",

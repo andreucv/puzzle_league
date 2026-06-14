@@ -611,7 +611,7 @@
     "table_number_short": "T{{number}}",
     "publish_tables": "Publish Table Assignments",
     "publish_tables_confirm_title": "Publish table assignments",
-    "publish_tables_confirm_message": "This will reassign table numbers sequentially and notify all confirmed participants. Continue?",
+    "publish_tables_confirm_message": "This will reassign table numbers sequentially and send an in-app notification to all confirmed participants. Continue?",
     "publish_tables_success": "Table assignments published to {{count}} entries.",
     "publish_tables_error": "Failed to publish table assignments.",
     "confirm_button": "Confirm",

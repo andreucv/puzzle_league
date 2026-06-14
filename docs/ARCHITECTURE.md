@@ -8,7 +8,7 @@ Puzzle League is a SvelteKit application for speed puzzling competitions. It run
 - **Backend:** SvelteKit `+page.server.ts`, form actions, and `+server.ts` API routes.
 - **Database:** PostgreSQL with Prisma. The Prisma client and Zod types are generated into `src/lib/.prisma/generated`.
 - **Auth:** Better Auth with email/password, Google OAuth, session storage in Prisma, email verification, password reset, and JWT support.
-- **Deployment:** Vercel adapter for Node 20. `vercel.json` schedules the daily `/api/cron/auto-cancel` job.
+- **Deployment:** Vercel adapter for Node 20. Scheduled jobs (`/api/cron/auto-cancel`, `/api/cron/landing-stats`) are driven by Upstash QStash recurring schedules rather than Vercel native crons, so they run against both production and preview environments; each cron endpoint verifies the QStash request signature (or an admin session for manual runs).
 - **External services:** Cloudinary for competition/puzzle images, Ably for realtime competition events, Resend for emails, PostHog and Vercel Analytics/Speed Insights for telemetry, and optional Upstash QStash for category auto-stop webhooks.
 
 ## Code Layout
@@ -53,7 +53,7 @@ The registration workflow service owns entry creation, unregistering, organizer 
 
 Category lifecycle services start, stop, resume, restart, cancel, and complete categories, update competition status when appropriate, and publish realtime Ably events. Finish-time and piece-count mutations are validated in `db_entry.ts`: finish actions require a `LIVE` category, and piece counts require a `STOPPED` category with no finish time.
 
-Automation includes daily auto-cancel of expired not-started competitions and optional QStash-based auto-stop for live categories.
+Automation includes daily auto-cancel of expired not-started competitions and weekly landing-stats refresh (both triggered by QStash recurring schedules), plus optional QStash-based auto-stop for live categories.
 
 ## Realtime And Notifications
 

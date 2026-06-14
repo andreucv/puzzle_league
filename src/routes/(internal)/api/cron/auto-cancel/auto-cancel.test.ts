@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockAutoCancelExpiredCompetitions = vi.fn();
 const mockFindFirst = vi.fn();
+const mockVerify = vi.fn();
 
 vi.mock('$lib/services/auto-cancel', () => ({
 	autoCancelExpiredCompetitions: (...args: unknown[]) => mockAutoCancelExpiredCompetitions(...args),
@@ -17,8 +18,16 @@ vi.mock('$lib/database/create_prisma_client', () => ({
 	},
 }));
 
+vi.mock('@upstash/qstash', () => ({
+	Receiver: class {
+		verify(...args: unknown[]) {
+			return mockVerify(...args);
+		}
+	},
+}));
+
 vi.mock('$env/dynamic/private', () => ({
-	env: { CRON_SECRET: 'test-secret-123' },
+	env: { QSTASH_CURRENT_SIGNING_KEY: 'current-key', QSTASH_NEXT_SIGNING_KEY: 'next-key' },
 }));
 
 vi.mock('@sveltejs/kit', () => ({
@@ -32,7 +41,8 @@ import { GET } from './+server';
 // ── Helpers ──
 
 function makeEvent(options: {
-	authorization?: string;
+	signature?: string;
+	body?: string;
 	dryRun?: string;
 	competitionId?: string;
 	user?: { id: string } | null;
@@ -42,14 +52,15 @@ function makeEvent(options: {
 	if (options.competitionId != null) url.searchParams.set('competitionId', options.competitionId);
 
 	const headers = new Headers();
-	if (options.authorization != null) {
-		headers.set('authorization', options.authorization);
+	if (options.signature != null) {
+		headers.set('upstash-signature', options.signature);
 	}
 
 	return {
 		request: {
 			url: url.toString(),
 			headers,
+			text: async () => options.body ?? '',
 		},
 		locals: {
 			user: options.user ?? null,
@@ -75,12 +86,13 @@ describe('GET /api/cron/auto-cancel', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockFindFirst.mockResolvedValue(null);
+		mockVerify.mockResolvedValue(true);
 	});
 
 	// ── Authorization ──
 
 	describe('authorization', () => {
-		it('returns 401 when no Authorization header and no session', async () => {
+		it('returns 401 when no signature and no session', async () => {
 			const response = await GET(makeEvent());
 
 			expect(response.status).toBe(401);
@@ -88,24 +100,28 @@ describe('GET /api/cron/auto-cancel', () => {
 			expect(mockAutoCancelExpiredCompetitions).not.toHaveBeenCalled();
 		});
 
-		it('returns 401 when Bearer token is wrong and no admin session', async () => {
-			const response = await GET(makeEvent({ authorization: 'Bearer wrong-token' }));
+		it('returns 401 when QStash signature is invalid', async () => {
+			mockVerify.mockResolvedValue(false);
+
+			const response = await GET(makeEvent({ signature: 'bad-sig' }));
 
 			expect(response.status).toBe(401);
+			expect(response.body).toEqual({ error: 'Invalid signature' });
 			expect(mockAutoCancelExpiredCompetitions).not.toHaveBeenCalled();
 		});
 
-		it('returns 200 when Bearer token matches CRON_SECRET', async () => {
+		it('returns 200 when QStash signature is valid', async () => {
 			const result = makeSuccessResult();
+			mockVerify.mockResolvedValue(true);
 			mockAutoCancelExpiredCompetitions.mockResolvedValue(result);
 
-			const response = await GET(makeEvent({ authorization: 'Bearer test-secret-123' }));
+			const response = await GET(makeEvent({ signature: 'good-sig' }));
 
 			expect(response.status).toBe(200);
 			expect(response.body).toEqual(result);
 		});
 
-		it('returns 200 when user has admin role (no CRON_SECRET needed)', async () => {
+		it('returns 200 when user has admin role (no signature needed)', async () => {
 			const result = makeSuccessResult();
 			mockAutoCancelExpiredCompetitions.mockResolvedValue(result);
 			mockFindFirst.mockResolvedValue({ id: 'role-1', role: 'ADMIN', userId: 'admin-1' });
@@ -133,7 +149,7 @@ describe('GET /api/cron/auto-cancel', () => {
 			mockAutoCancelExpiredCompetitions.mockResolvedValue(makeSuccessResult());
 
 			await GET(makeEvent({
-				authorization: 'Bearer test-secret-123',
+				signature: 'good-sig',
 				dryRun: 'true',
 			}));
 
@@ -147,7 +163,7 @@ describe('GET /api/cron/auto-cancel', () => {
 			mockAutoCancelExpiredCompetitions.mockResolvedValue(makeSuccessResult());
 
 			await GET(makeEvent({
-				authorization: 'Bearer test-secret-123',
+				signature: 'good-sig',
 				competitionId: '42',
 			}));
 
@@ -159,7 +175,7 @@ describe('GET /api/cron/auto-cancel', () => {
 
 		it('returns 400 for non-numeric competitionId', async () => {
 			const response = await GET(makeEvent({
-				authorization: 'Bearer test-secret-123',
+				signature: 'good-sig',
 				competitionId: 'abc',
 			}));
 
@@ -185,7 +201,7 @@ describe('GET /api/cron/auto-cancel', () => {
 			});
 			mockAutoCancelExpiredCompetitions.mockResolvedValue(result);
 
-			const response = await GET(makeEvent({ authorization: 'Bearer test-secret-123' }));
+			const response = await GET(makeEvent({ signature: 'good-sig' }));
 
 			expect(response.status).toBe(200);
 			expect(response.body).toEqual(result);
@@ -195,7 +211,7 @@ describe('GET /api/cron/auto-cancel', () => {
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 			mockAutoCancelExpiredCompetitions.mockRejectedValue(new Error('Unexpected failure'));
 
-			const response = await GET(makeEvent({ authorization: 'Bearer test-secret-123' }));
+			const response = await GET(makeEvent({ signature: 'good-sig' }));
 
 			expect(response.status).toBe(500);
 			expect(response.body).toEqual({ error: 'Internal server error' });
@@ -209,7 +225,7 @@ describe('GET /api/cron/auto-cancel', () => {
 		it('calls the service with default options when no query params are given', async () => {
 			mockAutoCancelExpiredCompetitions.mockResolvedValue(makeSuccessResult());
 
-			await GET(makeEvent({ authorization: 'Bearer test-secret-123' }));
+			await GET(makeEvent({ signature: 'good-sig' }));
 
 			expect(mockAutoCancelExpiredCompetitions).toHaveBeenCalledWith({
 				dryRun: false,

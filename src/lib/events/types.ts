@@ -20,13 +20,6 @@ export interface CompetitionEventState {
 	}>;
 }
 
-/** Notification event state — just unread status */
-export interface NotificationEventState {
-	version: string;
-	hasUnread: boolean;
-	latestId: string | null;
-}
-
 // ---------------------------------------------------------------------------
 // Ably Pub/Sub event types for competition channels
 // ---------------------------------------------------------------------------

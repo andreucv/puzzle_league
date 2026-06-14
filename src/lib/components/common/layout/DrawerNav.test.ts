@@ -9,6 +9,7 @@ vi.mock('$lib/stores/drawer.svelte', () => ({
 }));
 
 import DrawerNav from './DrawerNav.svelte';
+import { notificationState } from '$lib/stores/notifications.svelte';
 
 const baseMockUser = { id: '1', name: 'Test User', email: 'test@example.com', image: null };
 
@@ -77,6 +78,21 @@ describe('DrawerNav - Participant user', () => {
 		render(DrawerNav, { props: { user: { ...baseMockUser, roleAssignments: [] } } });
 
 		expect(screen.queryByTestId('nav-drawer-review-permissions-requests')).not.toBeInTheDocument();
+	});
+
+	it('shows the unread dot on the notifications entry when there are unread notifications', () => {
+		notificationState.hasUnread = true;
+		render(DrawerNav, { props: { user: { ...baseMockUser, roleAssignments: [] } } });
+
+		expect(screen.getByTestId('nav-drawer-notifications-dot')).toBeInTheDocument();
+		notificationState.hasUnread = false;
+	});
+
+	it('hides the unread dot when there are no unread notifications', () => {
+		notificationState.hasUnread = false;
+		render(DrawerNav, { props: { user: { ...baseMockUser, roleAssignments: [] } } });
+
+		expect(screen.queryByTestId('nav-drawer-notifications-dot')).not.toBeInTheDocument();
 	});
 });
 

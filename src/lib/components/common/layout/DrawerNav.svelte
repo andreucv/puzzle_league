@@ -11,6 +11,7 @@
     import CalendarRemoveOutlineIcon from '@iconify-svelte/mdi/calendar-remove-outline';
 
     import { drawerState } from '$lib/stores/drawer.svelte';
+    import { notificationState } from '$lib/stores/notifications.svelte';
     import { t } from '$lib/translations';
     import { page } from '$app/state';
 
@@ -92,6 +93,9 @@
         <a data-testid="nav-drawer-notifications" href="/notifications" onclick={navigate} class="nav-item" class:nav-item-active={isActive('/notifications')}>
             <BellOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('notifications.title')}</span>
+            {#if notificationState.hasUnread}
+                <span data-testid="nav-drawer-notifications-dot" class="ml-auto w-2 h-2 rounded-full" style="background-color: #DD2200;"></span>
+            {/if}
         </a>
     </li>
     {/if}

@@ -871,7 +871,7 @@
     "table_number_short": "M{{number}}",
     "publish_tables": "Publicar Asignación de Mesas",
     "publish_tables_confirm_title": "Publicar asignación de mesas",
-    "publish_tables_confirm_message": "Esto reasignará los números de mesa secuencialmente y notificará a todos los participantes confirmados. ¿Continuar?",
+    "publish_tables_confirm_message": "Esto reasignará los números de mesa secuencialmente y enviará una notificación dentro de la aplicación a todos los participantes confirmados. ¿Continuar?",
     "publish_tables_success": "Asignación de mesas publicada para {{count}} registros.",
     "publish_tables_error": "Error al publicar la asignación de mesas.",
     "confirm_button": "Confirmar",
@@ -1081,7 +1081,11 @@
     "add_time_error": "Error al añadir tiempo",
     "add_time_label": "Añadir tiempo extra",
     "auto_stop_label": "Auto-parar en la fecha límite",
-    "auto_stop": "Auto-parar"
+    "auto_stop": "Auto-parar",
+    "auto_stop_enabled": "Auto-parada activada",
+    "auto_stop_disabled": "Auto-parada desactivada",
+    "auto_stop_error": "Error al cambiar la auto-parada",
+    "auto_stop_unavailable": "La auto-parada no está disponible"
   },
   "results": {
     "title": "Resultados",

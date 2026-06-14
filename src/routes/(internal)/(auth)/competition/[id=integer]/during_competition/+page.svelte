@@ -12,7 +12,7 @@
     import { t } from '$lib/translations';
     import { untrack } from 'svelte';
     import type { CategoryData } from '$lib/types/category';
-    import type { CategoryStatusChangedEvent } from '$lib/events/types';
+    import type { CategoryStatusChangedEvent, CategoryAutoStopChangedEvent } from '$lib/events/types';
     import type { CategoryAction, CategoryActionResult } from '$lib/components/during-competition/category-actions';
     import { showSuccessToast } from '$lib/utils/toast';
 
@@ -24,6 +24,7 @@
     const competition = $derived(data.props.competition);
     const isOrganizer = $derived(data.props.userRole === 'organizer');
     const judgedCategoryIds = $derived(data.props.judgedCategoryIds as number[]);
+    const autoStopAvailable = $derived(data.props.autoStopAvailable as boolean);
 
     // Static category data from server (description, type, puzzles, etc.)
     // Cast: SvelteKit serializes Prisma Date fields to strings at the wire boundary
@@ -64,7 +65,8 @@
                 finishedEntries: liveCat.finishedEntries,
                 realStartTime: liveCat.realStartTime ?? cat.realStartTime,
                 realEndTime: liveCat.realEndTime ?? cat.realEndTime,
-                extraMinutes: liveCat.extraMinutes
+                extraMinutes: liveCat.extraMinutes,
+                autoStop: liveCat.autoStop
             };
         });
     });
@@ -96,6 +98,16 @@
             realStartTime: result.category.realStartTime,
             realEndTime: result.category.realEndTime
         } satisfies CategoryStatusChangedEvent);
+    }
+
+    // Called by CategoryCard after toggling auto-stop while LIVE, for an optimistic update
+    function handleAutoStopToggled(categoryId: number, armed: boolean) {
+        ablyStream.applyLocalEvent({
+            type: 'category.auto_stop_changed',
+            categoryId,
+            competitionId,
+            armed
+        } satisfies CategoryAutoStopChangedEvent);
     }
 
     // Per-category version: only changes when a specific category's data changes.
@@ -205,8 +217,10 @@
                     <CategoryCard
                         category={cat}
                         {isOrganizer}
+                        {autoStopAvailable}
                         liveVersion={categoryVersions.get(cat.id) ?? null}
                         onCategoryActionComplete={handleCategoryActionComplete}
+                        onAutoStopToggled={handleAutoStopToggled}
                     />
                 {/each}
             </div>
@@ -230,8 +244,10 @@
                     <CategoryCard
                         category={cat}
                         {isOrganizer}
+                        {autoStopAvailable}
                         liveVersion={categoryVersions.get(cat.id) ?? null}
                         onCategoryActionComplete={handleCategoryActionComplete}
+                        onAutoStopToggled={handleAutoStopToggled}
                     />
                 {/each}
             </div>
@@ -253,8 +269,10 @@
                     <CategoryCard
                         category={cat}
                         {isOrganizer}
+                        {autoStopAvailable}
                         liveVersion={categoryVersions.get(cat.id) ?? null}
                         onCategoryActionComplete={handleCategoryActionComplete}
+                        onAutoStopToggled={handleAutoStopToggled}
                     />
                 {/each}
             </div>
@@ -276,8 +294,10 @@
                     <CategoryCard
                         category={cat}
                         {isOrganizer}
+                        {autoStopAvailable}
                         liveVersion={categoryVersions.get(cat.id) ?? null}
                         onCategoryActionComplete={handleCategoryActionComplete}
+                        onAutoStopToggled={handleAutoStopToggled}
                     />
                 {/each}
             </div>

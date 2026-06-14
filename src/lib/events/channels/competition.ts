@@ -46,7 +46,7 @@ export async function resolveCompetitionState(params: { id: number }): Promise<C
 			realStartTime: true,
 			realEndTime: true,
 			extraMinutes: true,
-			autoStop: true,
+			autoStopMessageId: true,
 			_count: {
 				select: {
 					entries: { where: { status: RegistrationStatus.CONFIRMED } }
@@ -78,7 +78,7 @@ export async function resolveCompetitionState(params: { id: number }): Promise<C
 		realStartTime: cat.realStartTime?.toISOString() ?? null,
 		realEndTime: cat.realEndTime?.toISOString() ?? null,
 		extraMinutes: cat.extraMinutes,
-		autoStop: cat.autoStop
+		autoStop: cat.autoStopMessageId !== null
 	}));
 
 	// Compute version hash from category data

@@ -49,11 +49,12 @@ async function findCategoryOrThrow(categoryId: number) {
 			id: true,
 			status: true,
 			competitionId: true,
-			autoStop: true,
+			autoStopMessageId: true,
 			startTime: true,
 			endTime: true,
 			extraMinutes: true,
 			realStartTime: true,
+			realEndTime: true,
 		}
 	});
 	if (!category) throw new CategoryNotFoundError(categoryId);
@@ -83,6 +84,18 @@ async function publishStatusChanged(
 		competitionId,
 		status,
 		...extra
+	});
+}
+
+async function publishAutoStopChanged(
+	competitionId: number,
+	categoryId: number,
+	armed: boolean
+): Promise<void> {
+	await publishCompetitionEvent(competitionId, 'category.auto_stop_changed', {
+		categoryId,
+		competitionId,
+		armed
 	});
 }
 
@@ -183,10 +196,9 @@ export async function stopCategory(categoryId: number, options?: AutoStopOptions
 		autoStop: options?.isAutoStop ?? false
 	});
 
-	// Cancel any scheduled auto-stop
-	if (options?.scheduler) {
-		await options.scheduler.cancelAutoStop(categoryId);
-	}
+	// NOTE: stop intentionally does NOT cancel the scheduled auto-stop. The webhook is
+	// idempotent for non-LIVE categories, so a message that fires during a pause no-ops.
+	// Leaving the message keeps `autoStopMessageId` (intent) alive across stop → resume.
 
 	return { ...updatedCategory, totalEntries, finishedEntries };
 }
@@ -253,11 +265,20 @@ export async function completeCategory(categoryId: number): Promise<CategoryWith
 	return { ...updatedCategory, totalEntries, finishedEntries };
 }
 
-export async function resumeCategory(categoryId: number): Promise<CategoryWithCounts> {
+export async function resumeCategory(categoryId: number, options?: AutoStopOptions): Promise<CategoryWithCounts> {
 	const category = await findCategoryOrThrow(categoryId);
 
 	if (category.status !== CategoryStatus.STOPPED) {
 		throw new InvalidStatusTransitionError('Only STOPPED categories can be resumed');
+	}
+
+	// Capture armed-state and the time that was frozen at stop BEFORE we clear realEndTime.
+	const wasArmed = category.autoStopMessageId !== null;
+	let remainingMs = -1;
+	if (wasArmed && category.realStartTime && category.realEndTime) {
+		const durationMs = category.endTime.getTime() - category.startTime.getTime();
+		const extraMs = category.extraMinutes * 60_000;
+		remainingMs = category.realStartTime.getTime() + durationMs + extraMs - category.realEndTime.getTime();
 	}
 
 	const updatedCategory = await prisma.category.update({
@@ -273,6 +294,19 @@ export async function resumeCategory(categoryId: number): Promise<CategoryWithCo
 	await publishStatusChanged(updatedCategory.competitionId, updatedCategory.id, updatedCategory.status, {
 		realEndTime: null
 	});
+
+	// Re-arm auto-stop carrying the paused time. If no time is left (the category had
+	// auto-stopped at its deadline) do not re-arm — clear any stale message instead.
+	if (wasArmed && options?.scheduler) {
+		if (remainingMs > 0) {
+			const newDeadline = new Date(Date.now() + remainingMs);
+			await options.scheduler.rescheduleAutoStop(categoryId, updatedCategory.competitionId, newDeadline);
+			await publishAutoStopChanged(updatedCategory.competitionId, categoryId, true);
+		} else {
+			await options.scheduler.cancelAutoStop(categoryId);
+			await publishAutoStopChanged(updatedCategory.competitionId, categoryId, false);
+		}
+	}
 
 	return { ...updatedCategory, totalEntries, finishedEntries };
 }
@@ -317,9 +351,10 @@ export async function restartCategory(categoryId: number, options?: AutoStopOpti
 
 	// Cancel old auto-stop, then re-schedule if category has autoStop enabled
 	if (options?.scheduler) {
+		const wasArmed = category.autoStopMessageId !== null;
 		await options.scheduler.cancelAutoStop(categoryId);
 
-		if (category.autoStop) {
+		if (wasArmed) {
 			const durationMs = new Date(category.endTime).getTime() - new Date(category.startTime).getTime();
 			const extraMs = category.extraMinutes * 60_000;
 			const deadline = new Date(Date.now() + durationMs + extraMs);
@@ -355,7 +390,7 @@ export async function addTimeToCategory(
 			id: true,
 			status: true,
 			competitionId: true,
-			autoStop: true,
+			autoStopMessageId: true,
 			realStartTime: true,
 			startTime: true,
 			endTime: true,
@@ -381,8 +416,8 @@ export async function addTimeToCategory(
 		addedMinutes: minutes
 	});
 
-	// Reschedule auto-stop if enabled
-	if (category.autoStop && category.realStartTime && options?.scheduler) {
+	// Reschedule auto-stop if currently armed
+	if (category.autoStopMessageId !== null && category.realStartTime && options?.scheduler) {
 		const durationMs = category.endTime.getTime() - category.startTime.getTime();
 		const newDeadline = new Date(
 			category.realStartTime.getTime() + durationMs + updatedCategory.extraMinutes * 60_000
@@ -391,6 +426,42 @@ export async function addTimeToCategory(
 	}
 
 	return { extraMinutes: updatedCategory.extraMinutes };
+}
+
+/**
+ * Enable or disable auto-stop on a LIVE category. Schedules or cancels the QStash message
+ * against the current deadline (realStartTime + duration + extraMinutes). Rejects when
+ * enabling with no time remaining — the organizer must add time first.
+ */
+export async function setAutoStop(
+	categoryId: number,
+	enabled: boolean,
+	options: { scheduler: AutoStopScheduler }
+): Promise<{ armed: boolean }> {
+	const category = await findCategoryOrThrow(categoryId);
+
+	if (category.status !== CategoryStatus.LIVE) {
+		throw new InvalidStatusTransitionError('Auto-stop can only be toggled on LIVE categories');
+	}
+
+	if (enabled) {
+		if (!category.realStartTime) {
+			throw new InvalidStatusTransitionError('Category has no real start time');
+		}
+		const durationMs = category.endTime.getTime() - category.startTime.getTime();
+		const extraMs = category.extraMinutes * 60_000;
+		const deadline = new Date(category.realStartTime.getTime() + durationMs + extraMs);
+		if (deadline.getTime() <= Date.now()) {
+			throw new InvalidStatusTransitionError('No time remaining; add time before enabling auto-stop');
+		}
+		await options.scheduler.scheduleAutoStop(categoryId, category.competitionId, deadline);
+	} else {
+		await options.scheduler.cancelAutoStop(categoryId);
+	}
+
+	await publishAutoStopChanged(category.competitionId, categoryId, enabled);
+
+	return { armed: enabled };
 }
 
 /**

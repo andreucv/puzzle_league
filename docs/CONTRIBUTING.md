@@ -4,7 +4,7 @@
 
 Use Node 20 and pnpm. Install dependencies with `pnpm install`; the repo rejects other package managers through `preinstall`.
 
-Start from `.env.example`, then add any feature-specific keys required by the code you are running. Common local keys include database connection values, `BETTER_AUTH_SECRET`, OAuth keys, Cloudinary keys, Ably, Resend, PostHog, QStash, and `CRON_SECRET`. Playwright requires `LOCAL_DATABASE_TEST_DATABASE_URL` pointing to a local PostgreSQL database.
+Start from `.env.example`, then add any feature-specific keys required by the code you are running. Common local keys include database connection values, `BETTER_AUTH_SECRET`, OAuth keys, Cloudinary keys, Ably, Resend, PostHog, and QStash (the QStash signing keys also authenticate the scheduled cron endpoints). Playwright requires `LOCAL_DATABASE_TEST_DATABASE_URL` pointing to a local PostgreSQL database.
 
 Useful commands:
 

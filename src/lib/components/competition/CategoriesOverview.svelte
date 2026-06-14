@@ -5,7 +5,7 @@
     import type { Category, Puzzle } from '$lib/.prisma/generated/prisma/browser';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
-    type CategoryWithCounts = Category & { totalEntries: number; finishedEntries: number; reservedSlots?: number };
+    type CategoryWithCounts = Omit<Category, 'autoStopMessageId'> & { autoStop?: boolean; totalEntries: number; finishedEntries: number; reservedSlots?: number };
     type UserEntry = { categoryId: number; status?: string; tableNumber?: number | null; users?: { id: string; name: string; email: string; image: string | null }[]; externalParticipants?: { id: string; name: string; claimedById: string | null }[] };
 
     let {

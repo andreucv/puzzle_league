@@ -32,10 +32,15 @@
     let showPresets = $state(false);
     const activePresetCount = $derived(activePresets.length);
 
+    // A NOT_STARTED competition whose start date has already passed is stale and
+    // must not be shown as upcoming (matches the homepage "Other Upcoming" feed).
+    const isUpcoming = (c: { status: string; startDate: string | Date }) =>
+        c.status === 'NOT_STARTED' && new Date(c.startDate) >= new Date();
+
     // Tab definitions with counts — labels match CompetitionStatusChip
     const tabs = $derived([
         { id: 'ALL', label: $t('manage_registrations.all'), count: competitions.length },
-        { id: 'NOT_STARTED', label: $t('competition_status.upcoming'), count: competitions.filter(c => c.status === 'NOT_STARTED').length },
+        { id: 'NOT_STARTED', label: $t('competition_status.upcoming'), count: competitions.filter(isUpcoming).length },
         { id: 'STARTED', label: $t('competition_status.live'), count: competitions.filter(c => c.status === 'STARTED').length },
         { id: 'FINISHED', label: $t('competition_status.finished'), count: competitions.filter(c => c.status === 'FINISHED').length },
         { id: 'CANCELLED', label: $t('competition_status.cancelled'), count: competitions.filter(c => c.status === 'CANCELLED').length },
@@ -54,8 +59,11 @@
     const filteredCompetitions = $derived.by(() => {
         let result = [...competitions];
 
-        // Tab filter (status)
-        if (activeTab !== 'ALL') {
+        // Tab filter (status). The Upcoming tab additionally excludes past-dated
+        // NOT_STARTED competitions so stale entries are not advertised as upcoming.
+        if (activeTab === 'NOT_STARTED') {
+            result = result.filter(isUpcoming);
+        } else if (activeTab !== 'ALL') {
             result = result.filter(c => c.status === activeTab);
         }
 

@@ -97,7 +97,8 @@
     function getAuthErrorKey(error: any): string {
         switch (error?.code) {
             case 'INVALID_EMAIL_OR_PASSWORD': return 'auth.errors.invalid_credentials';
-            case 'USER_ALREADY_EXISTS': return 'auth.errors.email_already_exists';
+            case 'USER_ALREADY_EXISTS':
+            case 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL': return 'auth.errors.email_already_exists';
             default: return 'auth.errors.unexpected';
         }
     }

@@ -8,8 +8,30 @@
     import { toaster } from '$lib/stores/toaster';
     import { getPosthog } from '$lib/analytics/posthog';
     import { browser } from '$app/environment';
+    import { afterNavigate } from '$app/navigation';
+    import { refreshHasUnread } from '$lib/stores/notifications.svelte';
 
     let {children, data} = $props();
+
+    // Refresh the notifications unread dot on initial mount and after every
+    // client-side navigation (afterNavigate covers both). Gated on data.user
+    // because the unread-count endpoint is auth-guarded and the bell only
+    // renders for signed-in users.
+    afterNavigate(() => {
+        if (data.user) refreshHasUnread();
+    });
+
+    // Idle-tab gap-filler: a user sitting on one page won't trigger afterNavigate,
+    // so refresh when the tab regains visibility. Zero Ably cost, naturally
+    // throttled by real tab switches.
+    $effect(() => {
+        if (!browser) return;
+        const onVisible = () => {
+            if (document.visibilityState === 'visible' && data.user) refreshHasUnread();
+        };
+        document.addEventListener('visibilitychange', onVisible);
+        return () => document.removeEventListener('visibilitychange', onVisible);
+    });
 
     // E2E hydration signal: tests wait for body[data-hydrated] before
     // interacting, since clicks/submits before hydration are lost or fall

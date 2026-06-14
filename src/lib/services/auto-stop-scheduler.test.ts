@@ -46,10 +46,10 @@ describe('auto-stop scheduler', () => {
 			expect(publishCall.body).toEqual({ categoryId: 1, competitionId: 42 });
 			expect(publishCall.notBefore).toBe(Math.floor(deadline.getTime() / 1000));
 
-			// Should store message ID and set autoStop flag
+			// Should store the message ID (the message handle is the single source of truth)
 			expect(mockDb.category.update).toHaveBeenCalledWith({
 				where: { id: 1 },
-				data: { autoStop: true, autoStopMessageId: 'qstash-msg-123' },
+				data: { autoStopMessageId: 'qstash-msg-123' },
 			});
 		});
 	});

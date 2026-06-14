@@ -27,7 +27,7 @@ export function createAutoStopScheduler({ qstashClient, db, webhookUrl }: AutoSt
 
 			await db.category.update({
 				where: { id: categoryId },
-				data: { autoStop: true, autoStopMessageId: result.messageId },
+				data: { autoStopMessageId: result.messageId },
 			});
 		},
 

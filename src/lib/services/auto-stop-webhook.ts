@@ -76,7 +76,7 @@ export async function handleAutoStopWebhook({
 		// Notify organizer of successful auto-stop
 		await createNotification({
 			userId: category.competition.creatorId,
-			type: NotificationType.COMPETITION_STARTED, // Reuse existing type; consider adding AUTO_STOP_SUCCESS later
+			type: NotificationType.AUTO_STOP_SUCCESS,
 			title: 'notifications.titles.auto_stop_success',
 			message: 'notifications.messages.auto_stop_success',
 			link: `/competitions/competition_details/${competitionId}`,
@@ -88,7 +88,7 @@ export async function handleAutoStopWebhook({
 		// Notify organizer of failure
 		await createNotification({
 			userId: category.competition.creatorId,
-			type: NotificationType.COMPETITION_STARTED, // Reuse existing type; consider adding AUTO_STOP_FAILED later
+			type: NotificationType.AUTO_STOP_FAILED,
 			title: 'notifications.titles.auto_stop_failed',
 			message: 'notifications.messages.auto_stop_failed',
 			link: `/competitions/competition_details/${competitionId}`,

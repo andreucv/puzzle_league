@@ -1,0 +1,15 @@
+{
+  "types": [
+    { "type": "feat", "section": "✨ Features" },
+    { "type": "fix", "section": "🐛 Bug Fixes" },
+    { "type": "perf", "section": "⚡ Performance" },
+    { "type": "revert", "section": "Reverts" },
+    { "type": "docs", "section": "Documentation", "hidden": true },
+    { "type": "chore", "section": "Misc", "hidden": true },
+    { "type": "refactor", "section": "Refactors", "hidden": true },
+    { "type": "test", "section": "Tests", "hidden": true },
+    { "type": "style", "hidden": true },
+    { "type": "build", "hidden": true },
+    { "type": "ci", "hidden": true }
+  ]
+}

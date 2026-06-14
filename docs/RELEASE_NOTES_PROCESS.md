@@ -8,11 +8,11 @@ copywriting gate owns the voice.
 ## Overview: the four stages
 
 ```
-1. COMMIT            2. RELEASE                3. COPYWRITE                4. SURFACE
-Conventional      release-please Action     "What's New" draft         in-app modal/page
-Commits  ───────▶  Release PR ──(merge)──▶  (AI-seeded, human-edited) ──▶ via i18n entries
-+ commitlint       CHANGELOG.md + tag        en / es / ca               (en / es / ca)
-                   + GitHub Release
+1. COMMIT            2. RELEASE                    3. COPYWRITE                4. SURFACE
+Conventional      commit-and-tag-version        "What's New" draft         in-app modal/page
+Commits  ──────▶  (bump on `test`;            ─▶ (AI-seeded, human-edited) ─▶ via i18n entries
++ commitlint       tag + Release on merge)       en / es / ca               (en / es / ca)
+                   CHANGELOG.md + tag + Release
 ```
 
 Two audiences, two documents — never share one:
@@ -23,248 +23,234 @@ Two audiences, two documents — never share one:
 | Source | automatic, from conventional commits | hand-polished from the changelog |
 | Tone | terse, technical | conversational (see `docs/release_notes_guidelines.md`) |
 | Localized | no | **yes — en / es / ca** |
-| Owner | release-please | copywriting gate (human-reviewed) |
+| Owner | `commit-and-tag-version` | copywriting gate (human-reviewed) |
 
-## Assessment of the chosen tools (validated June 2026)
+## The tooling (chosen June 2026)
 
-The stack — **Conventional Commits → commitlint → release-please** — is the canonical,
-well-supported combination. Notes and caveats:
+The stack is **Conventional Commits → commitlint → [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version)**.
 
-- **Conventional Commits + commitlint** — correct enforcement layer. `@commitlint/cli` and
-  `@commitlint/config-conventional` (v21) and `commitlint.config.js` are already installed,
-  but nothing invokes them yet (see Stage 1 to wire a hook + CI).
-- **release-please** — sound, with two hard requirements:
-  - ⚠️ The hosted **"release-please" GitHub App was shut down (Aug 2025)**. The only
-    supported path is the **GitHub Action**, which is what we use here.
-  - ⚠️ The org **renamed from `google-github-actions` to `googleapis`**. Use
-    `googleapis/release-please-action@v4`. Old references break.
-- **Squash-merge gotcha** — if PRs are squash-merged, the **PR title** becomes the commit on
-  `main`, so the PR title must itself be a valid conventional commit. Lint PR titles (Stage 1)
-  or use the "merge" strategy.
+- **Conventional Commits + commitlint** — the enforcement layer. `@commitlint/cli` and
+  `@commitlint/config-conventional` (v21) and `commitlint.config.js` are installed, with a
+  CI PR-title check (Stage 1).
+- **commit-and-tag-version** — a maintained fork of `standard-version`. It is a **local CLI**,
+  not a GitHub App or Action: one command bumps `package.json`, regenerates `CHANGELOG.md`, and
+  commits `chore(release): X.Y.Z`. We run it with `--skip.tag`, because it is a CLI and not tied
+  to a branch push, **on `test` while the `test → main` PR is open** — so the version bump is
+  part of the release *before* it merges, not a second round-trip after. The **tag itself is
+  created at merge time on `main`** (see Stage 2c), so it lands on the commit that actually ships
+  to production.
+- **Why we moved off release-please** — release-please runs *on `main`*, so it can only version
+  *after* the `test → main` merge. That forced a second Release PR and a second production
+  deploy per release. Running `commit-and-tag-version` on `test` collapses the whole thing to a
+  **single merge and a single production build**.
+- **Squash-merge gotcha** — `commit-and-tag-version` builds the changelog from the conventional
+  commits on **`test`**. So the **feature → `test`** PR title (the future squash commit) must be
+  a valid conventional commit. Lint PR titles (Stage 1).
 
 Sources:
-[release-please-action](https://github.com/googleapis/release-please-action) ·
-[manifest/config docs](https://github.com/googleapis/release-please/blob/main/docs/manifest-releaser.md) ·
-[App turndown #2569](https://github.com/googleapis/release-please/issues/2569) ·
-[org-rename breakage #2288](https://github.com/googleapis/release-please/issues/2288)
+[commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) ·
+[config-spec (`.versionrc`)](https://github.com/conventional-changelog/conventional-changelog-config-spec) ·
+[Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 
 ---
 
 ## Branching model
 
-Vercel deploys `test` → **preview** and `main` → **production**. release-please fits this with
-one principle: **a "release" means *what's in production*, so release-please runs on `main` only.**
-`test` stays a plain preview branch with no release-please — versions, tags, `CHANGELOG.md`, and
-"What's New" all describe production.
+Vercel deploys `test` → **preview** and `main` → **production**. The principle: **a release is
+prepared on `test` and shipped by merging it to `main`.** Every release artifact — the version
+bump, `CHANGELOG.md`, the tag, and the finalized "What's New" copy — is created **on `test`,
+before the merge**. `main` never produces release commits of its own; it only ever fast-advances
+to a point on `test`.
 
 ```
-feat/xyz ──PR(conventional title)──▶ test ──▶ Vercel preview  (QA here)
+feat/xyz ──PR(conventional title)──▶ test ──▶ Vercel preview (QA features)
                                        │
-                                       └──PR──▶ main ──▶ release-please opens/updates Release PR
-                                                          │
-                                                merge Release PR ──▶ tag + GitHub Release + What's New draft
-                                                          │
-                                                          └──▶ Vercel production
+                                       │  pnpm release   (bump + CHANGELOG, on test; no tag)
+                                       │  promote What's New draft → released
+                                       │  git push origin test ──▶ preview (QA the release)
+                                       │
+                                       └──PR(test → main, merge)──▶ main ──▶ Vercel production
+                                                                    │         (single prod build)
+                                                                    └──▶ CI tags the merge commit
+                                                                         + publishes GitHub Release
 ```
 
 1. Short-lived branches → PR into `test`. Preview deploy. QA.
-2. When a batch is ready, PR `test` → `main`.
-3. release-please sees the new conventional commits on `main` and maintains the **Release PR**.
-4. Merge the Release PR when you want to cut the release → tag, GitHub Release, and the Stage 3
-   "What's New" draft fire.
+2. When a batch is ready, open the `test → main` PR.
+3. **Cut the release on `test`:** `pnpm release` bumps the version, regenerates `CHANGELOG.md`,
+   and commits (no tag). Promote the draft `whats-new.json` entry to released. Push `test`
+   normally. The preview now shows the **exact** release (version, changelog, What's New modal)
+   for a final QA pass.
+4. **Merge the `test → main` PR.** Features and the version land in production together, in one
+   deploy. The push to `main` triggers CI, which tags the merge commit and publishes the GitHub
+   Release (Stage 2c).
 
-### The rule that makes or breaks it: merge strategy
+### Why this is simpler than the old `main`-based model
 
-release-please can only build a changelog from **conventional commits visible on `main`**.
+Because all release commits live on `test` and `main` only advances *to* `test`:
 
-| Merge | Strategy | Why |
-|---|---|---|
-| `feat/xyz` → `test` | **Squash is fine** — but the **PR title must be a conventional commit** (it becomes the commit). Merge commit also works. | Collapses messy WIP into one clean `feat:`/`fix:` commit. |
-| `test` → `main` | **Merge commit or rebase — NEVER squash.** | Squashing `test`→`main` collapses *every* feature into one commit, so the changelog gets one line instead of one per feature. A merge/rebase carries each conventional commit onto `main` so release-please categorizes them individually. |
+- **No `main`/`test` divergence, no back-merge.** `main` never gets a version bump or changelog
+  commit of its own, so there is nothing to merge back into `test`. The next release's bump is
+  still computed correctly without a back-merge: the merge commit on `main` (where the tag lands)
+  *contains* `test`'s history up to the release point, so `commit-and-tag-version` on `test` sees
+  exactly the new commits since the last release.
+- **The `test → main` merge strategy no longer affects the changelog.** The changelog is built
+  on `test` *before* the merge, so `main` does not need to see the individual conventional
+  commits. A merge commit is the default and is fine. (The old "never squash `test → main`" rule
+  existed only because release-please read commits on `main`; it no longer applies.)
 
-Enforce the second row in repo settings/habits — it is the single most important constraint.
+### The tag lands on the production commit
 
-### Nuance: features reach production before the release is cut
+Because the tag is created by CI **on the `test → main` merge**, it points at the exact commit
+that ships to production, and the GitHub Release appears right as the code goes live — no lag and
+no manual `git push --follow-tags`. Tag creation adds no commit, so it does **not** trigger a
+second Vercel production build.
 
-Because `main` = production in Vercel, features go **live the moment `test`→`main` merges** —
-*before* you merge the Release PR. Sequence: features deploy to prod → merge Release PR (adds
-version + changelog, triggers a second tiny prod deploy) → "What's New" published. This small lag
-is acceptable for this app. If you ever need *nothing in production until formally released*, you
-would decouple Vercel production from `main`-push and tie it to tags/releases instead — more moving
-parts, deliberately out of scope for now.
+### Versioning shown in the app
 
-### Versioning across environments
-
-The app version shown in the header comes from `package.json`, baked at **build time** by
-`vite.config.ts` (`__APP_VERSION__ = JSON.stringify(pkg.version)`) and surfaced in
+The version comes from `package.json`, baked at **build time** by `vite.config.ts`
+(`__APP_VERSION__ = JSON.stringify(pkg.version)`) and surfaced in
 `src/routes/+layout.server.ts` as `appVersion`, alongside `commitSha`
 (`VERCEL_GIT_COMMIT_SHA`) and `isPreview` (`VERCEL_ENV === 'preview'`).
 
-The same versioning story is shown at two resolutions:
+- **Preview (`test`)** shows the clean release semver from `package.json`. After `pnpm release`
+  runs on `test`, that is the **about-to-ship** version (e.g. `0.7.0`), so QA sees the real
+  release number paired with the real changelog and What's New modal.
+- **Production (`main`)** runs the same `package.json` version; the version badge is rendered
+  **only when `isPreview`**, so production shows no badge.
 
-- **Production (`main`)** shows the official semver from `package.json`, owned by release-please.
-  One bump **per release**, aggregating all the `feat:`/`fix:` commits since the previous
-  release — the *kind* of change decides the bump, not the count (`feat:` → minor, only
-  `fix:`/`perf:` → patch, `!`/`BREAKING CHANGE` → major). Example: `v0.5.0`.
-- **Preview (`test`)** shows the **last shipped** semver plus a per-commit build counter:
-  **`v0.5.0-b7`**. `b7` = the 7th commit on `test` since the `v0.5.0` release tag; it increments
-  on every commit you push to `test`, giving QA an orderable "which build is this" number. Each
-  `bN` maps to exactly one commit, so it pinpoints the build on its own (no SHA needed). After the
-  next release ships (e.g. `0.6.0`) and is back-merged, the base rolls forward and the counter
-  resets (`v0.6.0-b1`).
+`commit-and-tag-version` is the **only** writer of the semver in `package.json` and the only
+creator of tags. The bump *kind* is decided by the commits since the last tag (`feat:` → minor,
+only `fix:`/`perf:` → patch, `!`/`BREAKING CHANGE` → major), aggregated into one bump per release.
 
-The semver in `package.json` is **never** rewritten per commit — release-please is its only
-writer. `bN` is **derived at build time** (from git, in `vite.config.ts`) and shown only when
-`isPreview`.
-
-| Environment | Header shows | Means |
-|---|---|---|
-| Production (`main`) | `v0.5.0` | the shipped release (the aggregation of its commits) |
-| Preview (`test`) | `v0.5.0-b7` | 7th build since shipping 0.5.0; bumps every commit |
-
-Implementation notes / caveats:
-
-- **Counter source:** commits since the last release tag, e.g. `git rev-list --count <lastTag>..HEAD`.
-  Vercel shallow-clones by default, so the build may lack tags/history — verify and, if needed,
-  fetch tags / unshallow in the build (or fall back to a tag-independent count). Resolve when
-  implementing checklist item 4c.
-- **Ordering footnote:** `-bN` is a single alphanumeric semver prerelease identifier, so strict
-  semver tools sort `b10` *before* `b9` (lexical). Irrelevant for the human-read header; if you
-  ever sort these programmatically, use `-b.N` (the dot makes `N` numeric) instead.
-
-**File divergence between `main` and `test` is narrow and safe.** Only two files drift:
-`package.json` (version line) and `CHANGELOG.md`. A `test`→`main` merge **cannot** regress
-`main`'s version, because git 3-way-merges the line only one side changed:
-
-```
-ancestor 0.4.0 | main 0.5.0 (release-please bumped) | test 0.4.0 (untouched)
-merge test → main  →  0.5.0   (no conflict, no downgrade)
-```
-
-**Back-merge after each release — now part of the version story, not just tidiness.** After
-merging the Release PR into `main`, merge `main → test` (standard git-flow "merge release back
-into develop"). This does two jobs: it pulls the bump + new `CHANGELOG.md` back into `test`, and
-it makes the new release tag reachable from `test` so the preview counter's **base advances and
-resets** (`v0.5.0-b12` → `v0.6.0-b1`). Skip it and the base stays on the old release while
-`bN` just keeps climbing. Automatable on `release_created`.
+> There is **no per-commit build counter** (`-bN`). It was removed ("remove build number
+> convention"); the header shows the plain semver.
 
 ### Practical notes
 
 - Run the commitlint PR-title check (Stage 1) on PRs targeting **both** `test` and `main`.
-- release-please creates a `release-please--branches--main` branch for its Release PR; Vercel spins
-  a harmless preview for it — ignore it.
-- To preview the upcoming changelog from `test`, release-please has a `target-branch` input — skip
-  it for now.
+- `pnpm release` prints a `Run git push --follow-tags … && pnpm publish` hint — ignore it. There
+  is no local tag to push (we skip tagging) and this is not a published package; a plain
+  `git push origin test` is all you do.
+- Preview the upcoming changelog any time without touching anything: `pnpm release:dry`.
 
 ---
 
 ## Stage 1 — Commit: Conventional Commits + commitlint
 
 Commit messages follow the [Conventional Commits Specification](https://www.conventionalcommits.org/en/v1.0.0/#specification),
-enforced by [commitlint](https://commitlint.js.org). The config already exists
-(`commitlint.config.js` → `@commitlint/config-conventional`). Two things still need wiring:
+enforced by [commitlint](https://commitlint.js.org) (`commitlint.config.js` →
+`@commitlint/config-conventional`):
 
-1. **Local `commit-msg` hook** (fast feedback before push). Either add husky, or a plain hook
-   that runs `pnpm exec commitlint --edit "$1"`.
-2. **CI guard on PRs** — lint the PR title (the future squash commit) on every pull request:
+1. **Local `commit-msg` hook** (optional, fast feedback) — `pnpm exec commitlint --edit "$1"`.
+2. **CI guard on PRs** — `.github/workflows/commitlint.yaml` lints the PR title (the future
+   squash commit) on every pull request.
 
-   `.github/workflows/commitlint.yml`
-   ```yaml
-   name: commitlint
-   on:
-     pull_request:
-       types: [opened, edited, synchronize, reopened]
-   permissions:
-     contents: read
-   jobs:
-     lint-pr-title:
-       runs-on: ubuntu-latest
-       steps:
-         - run: echo "${{ github.event.pull_request.title }}" | npx --yes commitlint
-   ```
-
-Commit type → changelog mapping is controlled in Stage 2 (`changelog-sections`). Use
+Commit type → changelog mapping is controlled in Stage 2 (`.versionrc.json`). Use
 `feat:` / `fix:` for anything users should see; `chore:` / `docs:` / `refactor:` / `test:`
 stay hidden from the public changelog.
 
 ---
 
-## Stage 2 — Release: release-please GitHub Action
+## Stage 2 — Release: commit-and-tag-version (local) + tag/Release on merge (Action)
 
-release-please watches `main`. As `feat:`/`fix:` commits land, it maintains a standing
-**Release PR** that accumulates the version bump + `CHANGELOG.md`. Merge that PR when you want
-to ship — it then tags the commit, bumps `package.json`, and publishes a **GitHub Release**.
-This is how "release sometime after features are committed" works: you control timing by
-choosing when to merge.
+### Step 2a — Config (repo root)
 
-### Step 2a — Seed config files at repo root
+`.versionrc.json` maps commit types to changelog sections (hidden types stay out of the public
+changelog):
 
-Current version is `0.4.0`; seed the manifest so versioning continues from there.
-
-`release-please-config.json`
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
-  "packages": {
-    ".": {
-      "release-type": "node",
-      "changelog-sections": [
-        { "type": "feat", "section": "✨ Features" },
-        { "type": "fix", "section": "🐛 Bug Fixes" },
-        { "type": "perf", "section": "⚡ Performance" },
-        { "type": "revert", "section": "Reverts" },
-        { "type": "docs", "section": "Documentation", "hidden": true },
-        { "type": "chore", "section": "Misc", "hidden": true },
-        { "type": "refactor", "section": "Refactors", "hidden": true },
-        { "type": "test", "section": "Tests", "hidden": true }
-      ]
-    }
-  }
+  "types": [
+    { "type": "feat", "section": "✨ Features" },
+    { "type": "fix", "section": "🐛 Bug Fixes" },
+    { "type": "perf", "section": "⚡ Performance" },
+    { "type": "revert", "section": "Reverts" },
+    { "type": "docs", "section": "Documentation", "hidden": true },
+    { "type": "chore", "section": "Misc", "hidden": true },
+    { "type": "refactor", "section": "Refactors", "hidden": true },
+    { "type": "test", "section": "Tests", "hidden": true },
+    { "type": "style", "hidden": true },
+    { "type": "build", "hidden": true },
+    { "type": "ci", "hidden": true }
+  ]
 }
 ```
 
-`.release-please-manifest.json`
+`package.json` scripts (`--skip.tag`, because the tag is created on merge in Stage 2c):
+
 ```json
-{ ".": "0.4.0" }
+"release": "commit-and-tag-version --skip.tag",
+"release:dry": "commit-and-tag-version --skip.tag --dry-run"
 ```
 
-### Step 2b — The workflow
+Defaults otherwise fit this repo: it bumps `package.json`, regenerates `CHANGELOG.md`, and
+commits `chore(release): X.Y.Z`. The bump is computed from the commits since the last release
+tag (which follows the existing `v0.6.0` convention).
 
-`.github/workflows/release-please.yml`
+### Step 2b — The release ritual (on `test`, with the `test → main` PR open)
+
+```bash
+pnpm release:dry                      # preview the bump + changelog, no changes
+pnpm release                          # bump package.json + CHANGELOG.md, commit (no tag)
+# promote the draft whats-new.json entry (en/es/ca) → released, then commit it
+git push origin test                  # release commit + What's New
+# → preview build = final QA of the exact release
+# then merge the test → main PR  → single prod build; CI tags + releases (Stage 2c)
+```
+
+### Step 2c — Tag the merge commit + publish the GitHub Release (on merge to `main`)
+
+`.github/workflows/github-release.yaml` runs on every push to `main`. It reads the version from
+`package.json`; if that version has **no tag yet**, it tags the merge commit and publishes a
+GitHub Release whose body is the matching `CHANGELOG.md` section. If the version is already
+tagged (an ordinary merge that did not cut a release), it is a no-op — so it is safe on every
+merge.
+
 ```yaml
-name: release-please
+name: github-release
 on:
   push:
     branches: [main]
-
 permissions:
   contents: write
-  pull-requests: write
-  issues: write
-
 jobs:
-  release-please:
+  release:
     runs-on: ubuntu-latest
     steps:
-      - id: release
-        uses: googleapis/release-please-action@v4
+      - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
-
-      # Stage 3 trigger — runs ONLY when a release was actually cut.
-      # Kept in this same job on purpose: events from GITHUB_TOKEN do not
-      # trigger separate workflows, so chaining here avoids needing a PAT.
-      - if: ${{ steps.release.outputs.release_created }}
-        run: echo "Released ${{ steps.release.outputs.tag_name }} — open What's New draft"
+          fetch-depth: 0
+      - name: Resolve version and whether it is already tagged
+        id: v
+        run: |
+          version=$(node -p "require('./package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if git rev-parse "v$version" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Extract changelog section for this version
+        if: steps.v.outputs.exists == 'false'
+        run: |
+          version="${{ steps.v.outputs.version }}"
+          awk -v ver="$version" '
+            $0 ~ "^## \\[" ver "\\]" {flag=1; next}
+            /^## \[/ && flag {flag=0}
+            flag {print}
+          ' CHANGELOG.md > release-notes.md
+      - name: Tag the merge commit and publish the GitHub Release
+        if: steps.v.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.v.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          body_path: release-notes.md
 ```
 
-The default `GITHUB_TOKEN` is sufficient. Only switch to a PAT if you ever need the release to
-trigger a *separate* workflow (it won't cascade with `GITHUB_TOKEN`).
-
-Useful outputs: `release_created` (bool), `tag_name`, `version`, `major`/`minor`/`patch`,
-`body` (the release notes).
+The default `GITHUB_TOKEN` is sufficient. Tagging via the API/Action adds no commit to `main`, so
+Vercel does not produce a second production build.
 
 ---
 
@@ -273,20 +259,16 @@ Useful outputs: `release_created` (bool), `tag_name`, `version`, `major`/`minor`
 This is the only non-automated stage, and deliberately so — tone and judgment can't be
 generated mechanically. It is **AI-seeded, human-reviewed**.
 
-**The "What's New" content is ordinary app content, not a main-only artifact.** The
-`whats-new.json` entries live in `src/lib/translations/` (Stage 4) and ride `test → main` like
-any code, so they build into the **Vercel preview**. That means you author and **QA the exact
-WhatsNewModal your users will see on `test`/preview, before it ever reaches `main`** — which is
-the whole point. release-please does *not* gate it.
+**The "What's New" content is ordinary app content.** The `whats-new.json` entries live in
+`src/lib/translations/` (Stage 4) and ride `test → main` like any code, so they build into the
+**Vercel preview**. You author and **QA the exact WhatsNewModal your users will see on
+`test`/preview before it ever reaches `main`** — which is the whole point.
 
-**When to author:** during development, keyed to the upcoming release. Maintain a single
-`unreleased` entry that preview shows (gate on `isPreview`, or an entry `status: "draft"`), so
-QA and preview users see the granular, in-progress "What's New" paired with the matching
-`v0.5.0-bN` build. On release it is finalized and its version key set.
-
-**Optional auto-seed (convenience, not a gate):** the `release_created` step in the
-release-please workflow can open a draft PR seeded with `steps.release.outputs.body` to jump-start
-the copy. This only *speeds up* drafting; it never blocks testing on preview.
+**When to author:** during development, keyed to the upcoming release. Maintain a single draft
+entry (`"status": "draft"`) that preview shows, so QA and preview users see the in-progress
+"What's New" paired with the matching preview build. As part of the Stage 2b ritual you promote
+that entry to released (set its real semver `version` and `status: "released"`) in the same push,
+so it ships with the version bump.
 
 **Drafting:** from the accumulating changelog / release body + `docs/release_notes_guidelines.md`
 (summary-first, conversational tone, watch the word count), draft the user-facing copy in
@@ -294,14 +276,14 @@ the copy. This only *speeds up* drafting; it never blocks testing on preview.
 merges.
 
 **Output format** — one entry per version, localized (see Stage 4 for the schema). Keep it
-short: a `title` and a few bullet-free sentences, optionally a "highlights" list. Only include
-changes users feel — skip internal refactors even if they appear in `CHANGELOG.md`.
+short: a `title` and a few sentences, optionally a `highlights` list. Only include changes users
+feel — skip internal refactors even if they appear in `CHANGELOG.md`.
 
 ---
 
 ## Stage 4 — Surface: in-app "What's New" via i18n
 
-Decision: user-facing notes live as **localized translation entries** and render in a
+User-facing notes live as **localized translation entries** and render in a
 `<WhatsNewModal/>` (or `/whats-new` page). This reuses the existing sveltekit-i18n setup
 (`src/lib/translations/`, locales en/es/ca) and ships through the normal Vercel deploy — no new
 infrastructure.
@@ -343,8 +325,8 @@ semver `version`.
 }
 ```
 `es/whats-new.json` and `ca/whats-new.json` mirror the same `version`/`status`/`date` with
-translated copy. A single `"status": "draft"`, `"version": "next"` entry seeds the upcoming
-release and is visible only on preview until promoted.
+translated copy. A single `"status": "draft"` entry seeds the upcoming release and is visible
+only on preview until promoted.
 
 ### Rendering  *(`WhatsNewModal.svelte`, mounted in `+layout.svelte`)*
 
@@ -355,21 +337,29 @@ release and is visible only on preview until promoted.
   replayed); afterwards, released entries newer than the baseline auto-open the modal, and dismiss
   advances the baseline.
 - **Preview shows drafts:** when `page.data.isPreview`, `status: "draft"` entries are included so
-  QA/preview users see what's coming, paired with the `v0.5.0-bN` build. Production renders only
-  released entries, and drafts never advance the seen-baseline.
+  QA/preview users see what's coming. Production renders only released entries, and drafts never
+  advance the seen-baseline.
 - Keep it scoped to what users feel; the technical detail stays in `CHANGELOG.md`.
 
 ---
 
 ## End-to-end checklist (implementation order)
 
-1. [ ] Wire commitlint: local `commit-msg` hook + `.github/workflows/commitlint.yml` (PR-title lint).
-2. [ ] Add `release-please-config.json` + `.release-please-manifest.json` (seed `0.4.0`).
-3. [ ] Add `.github/workflows/release-please.yml` (Stage 2b).
-4. [ ] Confirm GitHub repo setting: allow Actions to create and approve pull requests.
-4b. [ ] Enforce merge strategy (Branching model): `test`→`main` is merge/rebase, **never squash**.
-4c. [ ] Render version in the header: `v{appVersion}` in prod, `v{appVersion}-b{N}` in preview (N = commits since last release tag; resolve the Vercel git-depth caveat) — see Versioning across environments.
-4d. [ ] Back-merge `main`→`test` after each release: syncs `package.json` + `CHANGELOG.md` **and** resets the preview counter base (`v0.6.0-b1`).
-5. [ ] Add the `release_created` step that opens the "What's New" draft (Stage 3).
-6. [ ] Add `whats-new.json` (en/es/ca) + loaders in `index.js`; build `<WhatsNewModal/>` (Stage 4).
-7. [ ] Document the shipped behavior under `docs/features/<slug>/` once built (feature lifecycle).
+1. [x] Wire commitlint: `.github/workflows/commitlint.yaml` (PR-title lint); optional local `commit-msg` hook.
+2. [x] Add `.versionrc.json` + `release` / `release:dry` scripts (`--skip.tag`); add `commit-and-tag-version` dev dep.
+3. [x] Add `.github/workflows/github-release.yaml` (push to `main` → tag merge commit + GitHub Release).
+4. [x] Remove release-please (`release-please.yaml`, `release-please-config.json`, `.release-please-manifest.json`).
+5. [x] Render the version in the header from `package.json` (preview-only badge); no `-bN` counter.
+6. [x] Add `whats-new.json` (en/es/ca) + `<WhatsNewModal/>` (Stage 4).
+7. [ ] Document the shipped behavior under `docs/features/<slug>/` once the change settles (feature lifecycle).
+
+### The release ritual, in one place
+
+```bash
+# on `test`, with the test → main PR open
+pnpm release:dry                      # preview
+pnpm release                          # bump + CHANGELOG, commit (no tag)
+# promote draft whats-new.json (en/es/ca) → released, commit
+git push origin test                  # release commit + What's New
+# merge the test → main PR            # single prod build; CI tags + releases
+```

@@ -72,12 +72,20 @@ export interface CategoryTimeExtendedEvent {
 	addedMinutes: number;
 }
 
+export interface CategoryAutoStopChangedEvent {
+	type: 'category.auto_stop_changed';
+	categoryId: number;
+	competitionId: number;
+	armed: boolean;
+}
+
 export type CompetitionEvent =
 	| CategoryStatusChangedEvent
 	| EntryFinishedEvent
 	| EntryUnfinishedEvent
 	| EntryPiecesUpdatedEvent
-	| CategoryTimeExtendedEvent;
+	| CategoryTimeExtendedEvent
+	| CategoryAutoStopChangedEvent;
 
 // Monotonic counter for generating unique event versions on the client side.
 // Each applied event gets a unique version so downstream effects can detect changes.
@@ -151,6 +159,17 @@ export function applyCompetitionEvent(
 				categories: state.categories.map((cat) =>
 					cat.id === event.categoryId
 						? { ...cat, extraMinutes: event.extraMinutes }
+						: cat
+				)
+			};
+		}
+		case 'category.auto_stop_changed': {
+			return {
+				...state,
+				version: nextEventVersion(),
+				categories: state.categories.map((cat) =>
+					cat.id === event.categoryId
+						? { ...cat, autoStop: event.armed }
 						: cat
 				)
 			};

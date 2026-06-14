@@ -2,9 +2,11 @@ import { json, type RequestEvent } from '@sveltejs/kit';
 import { startCategory, CategoryNotFoundError } from '$lib/services/category-lifecycle';
 import { getAutoStopScheduler } from '$lib/services/auto-stop-singleton';
 import { getPostHogClient } from '$lib/server/posthog';
+import { requireCompetitionRole } from '$lib/api_utils/api_auth';
+import { Role } from '$lib/.prisma/generated/prisma/enums';
+import { prisma } from '$lib/database/create_prisma_client';
 
 export const POST = async (event: RequestEvent) => {
-  console.log('[auto-stop] === START ENDPOINT HIT ===', event.params.id);
   try {
     const categoryId = parseInt(event.params.id as string);
 
@@ -16,13 +18,22 @@ export const POST = async (event: RequestEvent) => {
     const autoStop = body?.autoStop === true;
     const deadline = body?.deadline ? new Date(body.deadline) : undefined;
 
-    console.log('[auto-stop] Start request body:', JSON.stringify(body));
-    console.log('[auto-stop] autoStop:', autoStop, 'deadline:', deadline);
-
     let options;
     if (autoStop && deadline) {
+      // Req 1: starting is judge-or-organizer, but only the ORGANIZER may arm auto-stop.
+      const category = await prisma.category.findUnique({
+        where: { id: categoryId },
+        select: { competitionId: true }
+      });
+      if (!category) {
+        return json({ error: 'Category not found' }, { status: 404 });
+      }
+      const auth = await requireCompetitionRole(event, category.competitionId, [Role.ORGANIZER]);
+      if (!auth.authorized) {
+        return auth.response;
+      }
+
       const scheduler = getAutoStopScheduler();
-      console.log('[auto-stop] scheduler:', scheduler ? 'CONFIGURED' : 'NULL');
       if (scheduler) {
         options = { autoStop: true as const, deadline, scheduler };
       }

@@ -1081,7 +1081,11 @@
     "add_time_error": "Error en afegir temps",
     "add_time_label": "Afegir temps extra",
     "auto_stop_label": "Aturar automàticament al termini",
-    "auto_stop": "Auto-stop"
+    "auto_stop": "Auto-stop",
+    "auto_stop_enabled": "Auto-aturada activada",
+    "auto_stop_disabled": "Auto-aturada desactivada",
+    "auto_stop_error": "Error en canviar l'auto-aturada",
+    "auto_stop_unavailable": "L'auto-aturada no està disponible"
   },
   "results": {
     "title": "Resultats",

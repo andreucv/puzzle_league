@@ -1083,7 +1083,11 @@
     "add_time_error": "Failed to add time",
     "add_time_label": "Add extra time",
     "auto_stop_label": "Auto-stop at deadline",
-    "auto_stop": "Auto-stop"
+    "auto_stop": "Auto-stop",
+    "auto_stop_enabled": "Auto-stop enabled",
+    "auto_stop_disabled": "Auto-stop disabled",
+    "auto_stop_error": "Failed to change auto-stop",
+    "auto_stop_unavailable": "Auto-stop is unavailable"
   },
   "results": {
     "title": "Results",

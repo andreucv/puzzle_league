@@ -155,6 +155,8 @@ enum NotificationType {
   COMPETITION_CANCELLED
   ROLE_REQUEST_APPROVED
   ROLE_REQUEST_REJECTED
+  AUTO_STOP_SUCCESS
+  AUTO_STOP_FAILED
   EXTERNAL_PARTICIPANT_CLAIMED
   TABLE_ASSIGNED
   PAYMENT_REMINDER
@@ -239,7 +241,6 @@ model Category {
   realEndTime       DateTime?
   extraMinutes      Int                       @default(0)
   status            CategoryStatus            @default(NOT_STARTED)
-  autoStop          Boolean                   @default(false)
   autoStopMessageId String?
   maxParties        Int?
   price             Int                       @default(0)

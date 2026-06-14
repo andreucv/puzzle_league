@@ -6,6 +6,14 @@ import { env } from '$env/dynamic/private';
 let _scheduler: AutoStopScheduler | null = null;
 
 /**
+ * Whether auto-stop scheduling is available (QStash configured). Used by loaders to tell
+ * the UI to disable the toggle when scheduling is impossible.
+ */
+export function isAutoStopAvailable(): boolean {
+	return Boolean(env.QSTASH_TOKEN && env.QSTASH_PUBLIC_APP_URL);
+}
+
+/**
  * Returns the auto-stop scheduler singleton, or null if QStash is not configured.
  * Gracefully degrades — auto-stop is optional and won't break the app if QStash
  * env vars are missing.

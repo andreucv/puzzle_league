@@ -2,6 +2,7 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getCompetition, getCompetitionCategories } from '$lib/database/db_competition';
 import { buildEventStateFromCategories } from '$lib/events/channels/competition';
+import { isAutoStopAvailable } from '$lib/services/auto-stop-singleton';
 
 export const load: PageServerLoad = async ({ parent }) => {
     const { competitionId, access } = await parent();
@@ -27,7 +28,8 @@ export const load: PageServerLoad = async ({ parent }) => {
             categories,
             userRole: access.canManageCompetition ? 'organizer' : 'judge',
             judgedCategoryIds: access.judgedCategoryIds,
-            initialEventState
+            initialEventState,
+            autoStopAvailable: isAutoStopAvailable()
         }
     };
 };

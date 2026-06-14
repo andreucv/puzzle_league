@@ -13,6 +13,7 @@
     import { showSuccessToast, showErrorToast } from '$lib/utils/toast';
     import { t } from '$lib/translations';
     import { untrack } from 'svelte';
+    import { Switch } from '@skeletonlabs/skeleton-svelte';
 
     // Icons
     import PlayIcon from '@iconify-svelte/mdi/play';
@@ -38,13 +39,17 @@
     let {
         category,
         isOrganizer,
+        autoStopAvailable = true,
         liveVersion,
-        onCategoryActionComplete
+        onCategoryActionComplete,
+        onAutoStopToggled
     }: {
         category: CategoryData;
         isOrganizer: boolean;
+        autoStopAvailable?: boolean;
         liveVersion?: string | null;
         onCategoryActionComplete?: (categoryId: number, action: CategoryAction, result: CategoryActionResult & { ok: true }) => void;
+        onAutoStopToggled?: (categoryId: number, armed: boolean) => void;
     } = $props();
 
     let status = $derived(category.status);
@@ -133,24 +138,41 @@
         return puzzles.reduce((sum, p) => sum + p.pieces, 0);
     });
 
-    // --- Auto-stop toggle for starting categories ---
-    let autoStopEnabled = $state(false);
-
     // --- Category action handler ---
     async function handleCategoryAction(action: CategoryAction) {
-        let body: Record<string, unknown> | undefined;
-        if (action === 'start' && autoStopEnabled && category.startTime && category.endTime) {
-            const durationMs = new Date(category.endTime).getTime() - new Date(category.startTime).getTime();
-            const extraMs = category.extraMinutes * 60_000;
-            const deadline = new Date(Date.now() + durationMs + extraMs);
-            body = { autoStop: true, deadline: deadline.toISOString() };
-        }
-        const result = await executeCategoryAction(category.id, action, body);
+        const result = await executeCategoryAction(category.id, action);
         if (result.ok) {
             onCategoryActionComplete?.(category.id, action, result);
             showSuccessToast($t(`during_competition.${action}_success`));
         } else {
             showErrorToast($t(`during_competition.${action}_error`), result.error);
+        }
+    }
+
+    // --- Auto-stop toggle handler (organizer, LIVE only) ---
+    let togglingAutoStop = $state(false);
+
+    async function handleToggleAutoStop(enabled: boolean) {
+        togglingAutoStop = true;
+        try {
+            const res = await fetch(`/api/categories/${category.id}/auto-stop`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled })
+            });
+            if (res.ok) {
+                // Optimistic Ably update flows back into category.autoStop, which the
+                // Switch is bound to — no manual revert needed on the control itself.
+                onAutoStopToggled?.(category.id, enabled);
+                showSuccessToast($t(enabled ? 'during_competition.auto_stop_enabled' : 'during_competition.auto_stop_disabled'));
+            } else {
+                const data = await res.json().catch(() => ({}));
+                showErrorToast($t('during_competition.auto_stop_error'), data.error);
+            }
+        } catch {
+            showErrorToast($t('during_competition.auto_stop_error'));
+        } finally {
+            togglingAutoStop = false;
         }
     }
 
@@ -510,13 +532,6 @@
                     {category.totalEntries} {$t('during_competition.entries')}
                 </span>
             </div>
-            {#if isOrganizer}
-                <label class="flex items-center gap-2 text-sm cursor-pointer" data-testid="auto-stop-toggle-{category.id}">
-                    <input type="checkbox" class="checkbox" bind:checked={autoStopEnabled} />
-                    <TimerOffOutlineIcon width="1rem" height="1rem" />
-                    <span>{$t('during_competition.auto_stop_label')}</span>
-                </label>
-            {/if}
         {:else if isLive}
             <div class="flex justify-between flex-wrap items-center gap-4 text-sm">
                 {#if category.realStartTime && theoreticalDurationMs > 0}
@@ -575,7 +590,25 @@
                     <FlagCheckeredIcon width="1rem" height="1rem" />
                     {effectiveFinishedCount}/{category.totalEntries}
                 </span>
-                {#if category.autoStop}
+                {#if isOrganizer}
+                    <Switch
+                        checked={category.autoStop}
+                        onCheckedChange={(e) => handleToggleAutoStop(e.checked)}
+                        disabled={!autoStopAvailable || togglingAutoStop}
+                        title={!autoStopAvailable ? $t('during_competition.auto_stop_unavailable') : ''}
+                        data-testid="auto-stop-toggle-live-{category.id}"
+                        class="flex items-center gap-1.5 {!autoStopAvailable ? 'opacity-50 cursor-not-allowed' : ''}"
+                    >
+                        <Switch.Label class="flex items-center gap-1 text-xs cursor-pointer">
+                            <TimerOffOutlineIcon width="0.8rem" height="0.8rem" />
+                            <span>{$t('during_competition.auto_stop')}</span>
+                        </Switch.Label>
+                        <Switch.Control class="preset-filled-surface-300-700 data-[state=checked]:preset-filled-warning-500">
+                            <Switch.Thumb />
+                        </Switch.Control>
+                        <Switch.HiddenInput />
+                    </Switch>
+                {:else if category.autoStop}
                     <span class="badge preset-tonal-warning gap-1 text-xs" data-testid="auto-stop-badge-{category.id}">
                         <TimerOffOutlineIcon width="0.8rem" height="0.8rem" />
                         {$t('during_competition.auto_stop')}

@@ -32,7 +32,7 @@ vi.mock('$lib/notifications/notifications', () => ({
 }));
 
 import { prisma } from '$lib/database/create_prisma_client';
-import { startCategory, stopCategory, cancelCategory, restartCategory } from './category-lifecycle';
+import { startCategory, stopCategory, cancelCategory, restartCategory, resumeCategory, setAutoStop, InvalidStatusTransitionError } from './category-lifecycle';
 
 function createMockScheduler(): AutoStopScheduler {
 	return {
@@ -90,12 +90,20 @@ describe('category-lifecycle auto-stop integration', () => {
 		});
 	});
 
-	describe('stopCategory cancels auto-stop', () => {
-		it('cancels scheduled auto-stop when stopping a category', async () => {
+	describe('stopCategory leaves auto-stop scheduled', () => {
+		it('does NOT cancel the scheduled auto-stop when stopping a category', async () => {
+			// Stop intentionally leaves the QStash message; the webhook is idempotent for
+			// non-LIVE categories, so intent (autoStopMessageId) survives stop → resume.
 			(prisma.category.findUnique as any).mockResolvedValue({
 				id: 1,
 				status: 'LIVE',
 				competitionId: 42,
+				autoStopMessageId: 'msg_1',
+				startTime: new Date('2026-05-03T14:00:00Z'),
+				endTime: new Date('2026-05-03T15:00:00Z'),
+				extraMinutes: 0,
+				realStartTime: new Date('2026-05-03T14:00:00Z'),
+				realEndTime: null,
 			});
 
 			(prisma.$transaction as any).mockResolvedValue([
@@ -106,7 +114,7 @@ describe('category-lifecycle auto-stop integration', () => {
 
 			await stopCategory(1, { scheduler });
 
-			expect(scheduler.cancelAutoStop).toHaveBeenCalledWith(1);
+			expect(scheduler.cancelAutoStop).not.toHaveBeenCalled();
 		});
 	});
 
@@ -131,12 +139,12 @@ describe('category-lifecycle auto-stop integration', () => {
 	});
 
 	describe('restartCategory cancels and re-schedules auto-stop', () => {
-		it('cancels old auto-stop and re-schedules when category has autoStop enabled', async () => {
+		it('cancels old auto-stop and re-schedules when category was armed', async () => {
 			(prisma.category.findUnique as any).mockResolvedValue({
 				id: 1,
 				status: 'STOPPED',
 				competitionId: 42,
-				autoStop: true,
+				autoStopMessageId: 'msg_1',
 				startTime: new Date('2026-05-03T14:00:00Z'),
 				endTime: new Date('2026-05-03T15:00:00Z'),
 				extraMinutes: 5,
@@ -155,12 +163,12 @@ describe('category-lifecycle auto-stop integration', () => {
 			expect(scheduler.scheduleAutoStop).toHaveBeenCalledWith(1, 42, expect.any(Date));
 		});
 
-		it('cancels auto-stop but does not re-schedule when category has autoStop disabled', async () => {
+		it('cancels auto-stop but does not re-schedule when category was not armed', async () => {
 			(prisma.category.findUnique as any).mockResolvedValue({
 				id: 1,
 				status: 'STOPPED',
 				competitionId: 42,
-				autoStop: false,
+				autoStopMessageId: null,
 				startTime: new Date('2026-05-03T14:00:00Z'),
 				endTime: new Date('2026-05-03T15:00:00Z'),
 				extraMinutes: 0,
@@ -177,6 +185,125 @@ describe('category-lifecycle auto-stop integration', () => {
 
 			expect(scheduler.cancelAutoStop).toHaveBeenCalledWith(1);
 			expect(scheduler.scheduleAutoStop).not.toHaveBeenCalled();
+		});
+	});
+
+	describe('setAutoStop', () => {
+		it('schedules auto-stop when enabling on a LIVE category with time left', async () => {
+			(prisma.category.findUnique as any).mockResolvedValue({
+				id: 1,
+				status: 'LIVE',
+				competitionId: 42,
+				autoStopMessageId: null,
+				startTime: new Date('2026-05-03T14:00:00Z'),
+				endTime: new Date('2026-05-03T15:00:00Z'),
+				extraMinutes: 0,
+				realStartTime: new Date(Date.now() - 10 * 60_000), // started 10 min ago, 1h duration
+				realEndTime: null,
+			});
+
+			const result = await setAutoStop(1, true, { scheduler });
+
+			expect(scheduler.scheduleAutoStop).toHaveBeenCalledWith(1, 42, expect.any(Date));
+			expect(result).toEqual({ armed: true });
+		});
+
+		it('cancels auto-stop when disabling on a LIVE category', async () => {
+			(prisma.category.findUnique as any).mockResolvedValue({
+				id: 1,
+				status: 'LIVE',
+				competitionId: 42,
+				autoStopMessageId: 'msg_1',
+				startTime: new Date('2026-05-03T14:00:00Z'),
+				endTime: new Date('2026-05-03T15:00:00Z'),
+				extraMinutes: 0,
+				realStartTime: new Date(Date.now() - 10 * 60_000),
+				realEndTime: null,
+			});
+
+			const result = await setAutoStop(1, false, { scheduler });
+
+			expect(scheduler.cancelAutoStop).toHaveBeenCalledWith(1);
+			expect(scheduler.scheduleAutoStop).not.toHaveBeenCalled();
+			expect(result).toEqual({ armed: false });
+		});
+
+		it('rejects enabling when no time remains', async () => {
+			(prisma.category.findUnique as any).mockResolvedValue({
+				id: 1,
+				status: 'LIVE',
+				competitionId: 42,
+				autoStopMessageId: null,
+				startTime: new Date('2026-05-03T14:00:00Z'),
+				endTime: new Date('2026-05-03T15:00:00Z'),
+				extraMinutes: 0,
+				realStartTime: new Date(Date.now() - 2 * 60 * 60_000), // started 2h ago, 1h duration → past deadline
+				realEndTime: null,
+			});
+
+			await expect(setAutoStop(1, true, { scheduler })).rejects.toBeInstanceOf(InvalidStatusTransitionError);
+			expect(scheduler.scheduleAutoStop).not.toHaveBeenCalled();
+		});
+
+		it('rejects toggling on a non-LIVE category', async () => {
+			(prisma.category.findUnique as any).mockResolvedValue({
+				id: 1,
+				status: 'STOPPED',
+				competitionId: 42,
+				autoStopMessageId: null,
+				startTime: new Date('2026-05-03T14:00:00Z'),
+				endTime: new Date('2026-05-03T15:00:00Z'),
+				extraMinutes: 0,
+				realStartTime: new Date(),
+				realEndTime: new Date(),
+			});
+
+			await expect(setAutoStop(1, true, { scheduler })).rejects.toBeInstanceOf(InvalidStatusTransitionError);
+		});
+	});
+
+	describe('resumeCategory re-arms auto-stop', () => {
+		it('reschedules with the paused time when armed and time remains', async () => {
+			(prisma.category.findUnique as any).mockResolvedValue({
+				id: 1,
+				status: 'STOPPED',
+				competitionId: 42,
+				autoStopMessageId: 'msg_1',
+				startTime: new Date('2026-05-03T14:00:00Z'),
+				endTime: new Date('2026-05-03T15:00:00Z'), // 1h duration
+				extraMinutes: 0,
+				realStartTime: new Date(Date.now() - 30 * 60_000), // started 30 min ago
+				realEndTime: new Date(), // stopped now → 30 min remaining
+			});
+			(prisma.category.update as any).mockResolvedValue({
+				id: 1, competitionId: 42, status: 'LIVE', realStartTime: new Date(), realEndTime: null,
+			});
+
+			await resumeCategory(1, { scheduler });
+
+			expect(scheduler.rescheduleAutoStop).toHaveBeenCalledWith(1, 42, expect.any(Date));
+		});
+
+		it('does not re-arm when no time remains', async () => {
+			(prisma.category.findUnique as any).mockResolvedValue({
+				id: 1,
+				status: 'STOPPED',
+				competitionId: 42,
+				autoStopMessageId: 'msg_1',
+				startTime: new Date('2026-05-03T14:00:00Z'),
+				endTime: new Date('2026-05-03T15:00:00Z'), // 1h duration
+				extraMinutes: 0,
+				realStartTime: new Date(Date.now() - 2 * 60 * 60_000), // started 2h ago → deadline passed
+				realEndTime: new Date(),
+			});
+			(prisma.category.update as any).mockResolvedValue({
+				id: 1, competitionId: 42, status: 'LIVE', realStartTime: new Date(), realEndTime: null,
+			});
+
+			await resumeCategory(1, { scheduler });
+
+			expect(scheduler.rescheduleAutoStop).not.toHaveBeenCalled();
+			expect(scheduler.cancelAutoStop).toHaveBeenCalledWith(1);
 		});
 	});
 });

@@ -207,7 +207,7 @@ export async function getCompetitionResults(competitionId: number) {
 
 export async function getCompetitionCategories(
     competitionId: number
-): Promise<Array<Category & { totalEntries: number; finishedEntries: number; pendingEntries: number; confirmedEntries: number; reservedSlots: number }>> {
+): Promise<Array<Omit<Category, 'autoStopMessageId'> & { autoStop: boolean; totalEntries: number; finishedEntries: number; pendingEntries: number; confirmedEntries: number; reservedSlots: number }>> {
     try {
         // Fetch categories and all record counts in parallel (2 queries instead of 4N+1)
         const [categories, statusCounts, finishedCounts] = await Promise.all([
@@ -247,8 +247,12 @@ export async function getCompetitionCategories(
 
         return categories.map((category) => {
             const counts = statusMap.get(category.id) ?? { confirmed: 0, pending: 0 };
+            // Derive the client-facing `autoStop` flag from the QStash message handle and
+            // never leak the raw `autoStopMessageId` to the client.
+            const { autoStopMessageId, ...rest } = category as unknown as Category & { autoStopMessageId: string | null };
             return {
-                ...(category as unknown as Category),
+                ...rest,
+                autoStop: autoStopMessageId !== null,
                 totalEntries: counts.confirmed,
                 finishedEntries: finishedMap.get(category.id) ?? 0,
                 pendingEntries: counts.pending,

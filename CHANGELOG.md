@@ -1,5 +1,14 @@
 # Changelog
 
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
+
+## [0.6.1](https://github.com/andreucv/puzzle_league/compare/v0.6.0...v0.6.1) (2026-06-14)
+
+
+### ✨ Features
+
+* release bumps on test branch and git tags on main merge ([68cfcd7](https://github.com/andreucv/puzzle_league/commit/68cfcd7d13c53e4c8bbbd4f6f838c914fe867fe5))
+
 ## [0.6.0](https://github.com/andreucv/puzzle_league/compare/v0.5.0...v0.6.0) (2026-06-14)
 
 

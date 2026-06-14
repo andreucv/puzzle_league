@@ -1,6 +1,6 @@
 {
 	"name": "puzzle-league",
-	"version": "0.6.0",
+	"version": "0.6.1",
 	"type": "module",
 	"engines": {
 		"node": "20.x"
@@ -16,6 +16,8 @@
 		"test:unit": "vitest run",
 		"test:unit:watch": "vitest",
 		"test": "pnpm test:unit && pnpm test:e2e",
+		"release": "commit-and-tag-version --skip.tag",
+		"release:dry": "commit-and-tag-version --skip.tag --dry-run",
 		"postinstall": "svelte-kit sync && prisma generate"
 	},
 	"devDependencies": {
@@ -40,6 +42,7 @@
 		"better-auth": "^1.6.11",
 		"bits-ui": "^2.16.2",
 		"cloudinary": "^2.9.0",
+		"commit-and-tag-version": "^12.7.3",
 		"dotenv": "^16.6.1",
 		"jsdom": "^29.0.0",
 		"pg": "^8.20.0",

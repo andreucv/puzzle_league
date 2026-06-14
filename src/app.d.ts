@@ -7,7 +7,6 @@ import type { CategoryType, CategoryStatus } from '$lib/.prisma/generated/prisma
 
 declare global {
     const __APP_VERSION__: string;
-    const __BUILD_NUMBER__: number;
 
     namespace App {
         interface Error {

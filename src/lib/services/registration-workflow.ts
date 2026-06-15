@@ -2,12 +2,13 @@ import { prisma } from '$lib/database/create_prisma_client';
 import { CategoryStatus, EntryTagStatus, NotificationType, ParticipantTagType, RegistrationStatus, Role } from '$lib/.prisma/generated/prisma/enums';
 import { getMaxEntriesPerCategory } from '$lib/utils/category_utils';
 import {
-	notifyRegistrationConfirmed,
-	notifyRegistrationCreatedForTeammates,
-	notifyRegistrationRefused,
-	notifyRegistrationWaitlisted,
-	notifyWaitlistPromotion,
+	notificationsForRegistrationConfirmed,
+	notificationsForRegistrationCreated,
+	notificationsForRegistrationRefused,
+	notificationsForRegistrationWaitlisted,
+	notificationsForWaitlistPromotion,
 } from '$lib/notifications/registration_notifications';
+import { dispatchNotifications } from '$lib/notifications/dispatcher';
 import type { PrismaClient } from '$lib/.prisma/generated/prisma/client';
 
 type Tx = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
@@ -482,9 +483,11 @@ export async function submitRegistration({
 	await runNotificationWork('registration submission', async () => {
 		for (const entry of entries) {
 			if (entry.status === RegistrationStatus.WAITLISTED) {
-				await notifyRegistrationWaitlisted(entry);
+				await dispatchNotifications(notificationsForRegistrationWaitlisted(entry));
 			} else {
-				await notifyRegistrationCreatedForTeammates(entry, actor.userId, actor.name);
+				await dispatchNotifications(
+					notificationsForRegistrationCreated(entry, actor.userId, actor.name),
+				);
 			}
 		}
 	});
@@ -548,7 +551,7 @@ export async function unregisterRegistration({
 	const promotedEntry = result.promotedEntry;
 	if (promotedEntry) {
 		await runNotificationWork('waitlist promotion', async () => {
-			await notifyWaitlistPromotion(promotedEntry);
+			await dispatchNotifications(notificationsForWaitlistPromotion(promotedEntry));
 		});
 	}
 
@@ -617,7 +620,9 @@ export async function confirmRegistration({
 	});
 
 	await runNotificationWork('registration confirmation', async () => {
-		await notifyRegistrationConfirmed(result.notificationEntry, actor.name);
+		await dispatchNotifications(
+			notificationsForRegistrationConfirmed(result.notificationEntry, actor.name),
+		);
 	});
 
 	return { entry: result.entry };
@@ -683,13 +688,13 @@ export async function refuseRegistration({
 	});
 
 	await runNotificationWork('registration refusal', async () => {
-		await notifyRegistrationRefused(result.entry, actor.name);
+		await dispatchNotifications(notificationsForRegistrationRefused(result.entry, actor.name));
 	});
 
 	const promotedEntry = result.promotedEntry;
 	if (promotedEntry) {
 		await runNotificationWork('waitlist promotion', async () => {
-			await notifyWaitlistPromotion(promotedEntry, actor.name);
+			await dispatchNotifications(notificationsForWaitlistPromotion(promotedEntry, actor.name));
 		});
 	}
 

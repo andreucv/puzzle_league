@@ -2,11 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CategoryStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
 
 const mockTransaction = vi.fn();
-const mockNotifyCreated = vi.fn().mockResolvedValue(undefined);
-const mockNotifyWaitlisted = vi.fn().mockResolvedValue(undefined);
-const mockNotifyConfirmed = vi.fn().mockResolvedValue(undefined);
-const mockNotifyRefused = vi.fn().mockResolvedValue(undefined);
-const mockNotifyPromotion = vi.fn().mockResolvedValue(undefined);
+const mockNotifyCreated = vi.fn().mockReturnValue([]);
+const mockNotifyWaitlisted = vi.fn().mockReturnValue([]);
+const mockNotifyConfirmed = vi.fn().mockReturnValue([]);
+const mockNotifyRefused = vi.fn().mockReturnValue([]);
+const mockNotifyPromotion = vi.fn().mockReturnValue([]);
+const mockDispatch = vi.fn().mockResolvedValue({ persisted: 0, emailed: 0, emailFailures: 0 });
 
 vi.mock('$lib/database/create_prisma_client', () => ({
 	prisma: {
@@ -15,11 +16,15 @@ vi.mock('$lib/database/create_prisma_client', () => ({
 }));
 
 vi.mock('$lib/notifications/registration_notifications', () => ({
-	notifyRegistrationCreatedForTeammates: (...args: unknown[]) => mockNotifyCreated(...args),
-	notifyRegistrationWaitlisted: (...args: unknown[]) => mockNotifyWaitlisted(...args),
-	notifyRegistrationConfirmed: (...args: unknown[]) => mockNotifyConfirmed(...args),
-	notifyRegistrationRefused: (...args: unknown[]) => mockNotifyRefused(...args),
-	notifyWaitlistPromotion: (...args: unknown[]) => mockNotifyPromotion(...args),
+	notificationsForRegistrationCreated: (...args: unknown[]) => mockNotifyCreated(...args),
+	notificationsForRegistrationWaitlisted: (...args: unknown[]) => mockNotifyWaitlisted(...args),
+	notificationsForRegistrationConfirmed: (...args: unknown[]) => mockNotifyConfirmed(...args),
+	notificationsForRegistrationRefused: (...args: unknown[]) => mockNotifyRefused(...args),
+	notificationsForWaitlistPromotion: (...args: unknown[]) => mockNotifyPromotion(...args),
+}));
+
+vi.mock('$lib/notifications/dispatcher', () => ({
+	dispatchNotifications: (...args: unknown[]) => mockDispatch(...args),
 }));
 
 import {

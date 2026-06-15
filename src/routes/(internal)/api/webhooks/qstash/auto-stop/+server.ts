@@ -2,7 +2,7 @@ import { json, type RequestEvent } from '@sveltejs/kit';
 import { Receiver } from '@upstash/qstash';
 import { handleAutoStopWebhook } from '$lib/services/auto-stop-webhook';
 import { stopCategory } from '$lib/services/category-lifecycle';
-import { createNotification } from '$lib/notifications/notifications';
+import { dispatchNotifications } from '$lib/notifications/dispatcher';
 import { prisma } from '$lib/database/create_prisma_client';
 import { env } from '$env/dynamic/private';
 
@@ -28,7 +28,7 @@ export const POST = async (event: RequestEvent) => {
 		receiver,
 		db: prisma as any,
 		stopCategory,
-		createNotification,
+		dispatchNotifications,
 	});
 
 	return json(result.body, { status: result.status });

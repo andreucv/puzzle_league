@@ -27,8 +27,8 @@ vi.mock('$lib/events/server/ably', () => ({
 	publishCompetitionEvent: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('$lib/notifications/notifications', () => ({
-	createNotificationForUsers: vi.fn().mockResolvedValue(undefined),
+vi.mock('$lib/notifications/dispatcher', () => ({
+	dispatchNotifications: vi.fn().mockResolvedValue({ persisted: 0, emailed: 0, emailFailures: 0 }),
 }));
 
 import { prisma } from '$lib/database/create_prisma_client';

@@ -16,7 +16,7 @@ function createMockDb() {
 }
 
 const mockStopCategory = vi.fn();
-const mockCreateNotification = vi.fn();
+const mockDispatch = vi.fn().mockResolvedValue({ persisted: 1, emailed: 0, emailFailures: 0 });
 
 describe('auto-stop webhook handler', () => {
 	let mockReceiver: ReturnType<typeof createMockReceiver>;
@@ -35,7 +35,7 @@ describe('auto-stop webhook handler', () => {
 			receiver: mockReceiver as any,
 			db: mockDb as any,
 			stopCategory: mockStopCategory,
-			createNotification: mockCreateNotification,
+			dispatchNotifications: mockDispatch,
 		});
 	}
 
@@ -125,11 +125,12 @@ describe('auto-stop webhook handler', () => {
 
 		await callWebhook();
 
-		expect(mockCreateNotification).toHaveBeenCalledWith(
+		expect(mockDispatch).toHaveBeenCalledWith([
 			expect.objectContaining({
-				userId: 'org-user-1',
-			})
-		);
+				userIds: ['org-user-1'],
+				type: 'AUTO_STOP_SUCCESS',
+			}),
+		]);
 	});
 
 	it('creates a failure notification when stopCategory throws', async () => {
@@ -144,10 +145,11 @@ describe('auto-stop webhook handler', () => {
 		const result = await callWebhook();
 
 		expect(result.status).toBe(500);
-		expect(mockCreateNotification).toHaveBeenCalledWith(
+		expect(mockDispatch).toHaveBeenCalledWith([
 			expect.objectContaining({
-				userId: 'org-user-1',
-			})
-		);
+				userIds: ['org-user-1'],
+				type: 'AUTO_STOP_FAILED',
+			}),
+		]);
 	});
 });

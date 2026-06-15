@@ -2,7 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { getPendingRequests, acceptRequest, rejectRequest } from '$lib/database/db_request';
 import { getRoleAssignments } from '$lib/database/db_user';
-import { createNotification } from '$lib/notifications/notifications';
+import { dispatchNotifications } from '$lib/notifications/dispatcher';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 
 export const load: PageServerLoad = async ({ request }) => {
@@ -42,14 +42,16 @@ export const actions: Actions = {
 
         try {
             const result = await acceptRequest(requestId, locals.user.id);
-            await createNotification({
-                userId: result.updatedRequest.userId,
-                type: NotificationType.ROLE_REQUEST_APPROVED,
-                title: 'notifications.titles.role_request_approved',
-                message: 'notifications.messages.role_request_approved',
-                link: '/request_permissions',
-                data: { roleName: result.updatedRequest.role },
-            });
+            await dispatchNotifications([
+                {
+                    userIds: [result.updatedRequest.userId],
+                    type: NotificationType.ROLE_REQUEST_APPROVED,
+                    title: 'notifications.titles.role_request_approved',
+                    message: 'notifications.messages.role_request_approved',
+                    link: '/request_permissions',
+                    data: { roleName: result.updatedRequest.role },
+                },
+            ]);
             return { success: true, message: 'Request approved successfully' };
         } catch (err) {
             console.error('Error accepting request:', err);
@@ -79,14 +81,16 @@ export const actions: Actions = {
 
         try {
             const result = await rejectRequest(requestId, locals.user.id);
-            await createNotification({
-                userId: result.userId,
-                type: NotificationType.ROLE_REQUEST_REJECTED,
-                title: 'notifications.titles.role_request_rejected',
-                message: 'notifications.messages.role_request_rejected',
-                link: '/request_permissions',
-                data: { roleName: result.role },
-            });
+            await dispatchNotifications([
+                {
+                    userIds: [result.userId],
+                    type: NotificationType.ROLE_REQUEST_REJECTED,
+                    title: 'notifications.titles.role_request_rejected',
+                    message: 'notifications.messages.role_request_rejected',
+                    link: '/request_permissions',
+                    data: { roleName: result.role },
+                },
+            ]);
             return { success: true, message: 'Request rejected successfully' };
         } catch (err) {
             console.error('Error rejecting request:', err);

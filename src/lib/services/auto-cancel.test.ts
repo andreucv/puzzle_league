@@ -22,10 +22,10 @@ vi.mock('$lib/database/create_prisma_client', () => ({
 	},
 }));
 
-const mockCreateNotificationForUsers = vi.fn().mockResolvedValue(undefined);
+const mockDispatch = vi.fn().mockResolvedValue({ persisted: 0, emailed: 0, emailFailures: 0 });
 
-vi.mock('$lib/notifications/notifications', () => ({
-	createNotificationForUsers: (...args: unknown[]) => mockCreateNotificationForUsers(...args),
+vi.mock('$lib/notifications/dispatcher', () => ({
+	dispatchNotifications: (...args: unknown[]) => mockDispatch(...args),
 }));
 
 import { autoCancelExpiredCompetitions } from './auto-cancel';
@@ -182,8 +182,8 @@ describe('autoCancelExpiredCompetitions', () => {
 			const result = await autoCancelExpiredCompetitions();
 
 			expect(result.recipientsAttempted).toBe(4); // user-1, user-2, user-3, user-4
-			const notifyCall = mockCreateNotificationForUsers.mock.calls[0];
-			const recipientIds = notifyCall[0] as string[];
+			const notifyCall = mockDispatch.mock.calls[0];
+			const recipientIds = notifyCall[0][0].userIds as string[];
 			expect(recipientIds).toHaveLength(4);
 			expect(new Set(recipientIds)).toEqual(new Set(['user-1', 'user-2', 'user-3', 'user-4']));
 		});
@@ -196,7 +196,7 @@ describe('autoCancelExpiredCompetitions', () => {
 			const result = await autoCancelExpiredCompetitions();
 
 			expect(result.recipientsAttempted).toBe(1);
-			const recipientIds = mockCreateNotificationForUsers.mock.calls[0][0] as string[];
+			const recipientIds = mockDispatch.mock.calls[0][0][0].userIds as string[];
 			expect(recipientIds).toEqual(['org-1']);
 		});
 	});
@@ -207,7 +207,7 @@ describe('autoCancelExpiredCompetitions', () => {
 		it('does not rollback cancellation when notification fails', async () => {
 			const comp = makeCompetition();
 			mockFindMany.mockResolvedValue([comp]);
-			mockCreateNotificationForUsers.mockRejectedValue(new Error('Notification service down'));
+			mockDispatch.mockRejectedValue(new Error('Notification service down'));
 
 			const result = await autoCancelExpiredCompetitions();
 
@@ -268,7 +268,7 @@ describe('autoCancelExpiredCompetitions', () => {
 			// No mutations occurred
 			expect(mockUpdate).not.toHaveBeenCalled();
 			expect(mockCategoryUpdateMany).not.toHaveBeenCalled();
-			expect(mockCreateNotificationForUsers).not.toHaveBeenCalled();
+			expect(mockDispatch).not.toHaveBeenCalled();
 		});
 	});
 
@@ -281,14 +281,16 @@ describe('autoCancelExpiredCompetitions', () => {
 
 			await autoCancelExpiredCompetitions();
 
-			expect(mockCreateNotificationForUsers).toHaveBeenCalledWith(
-				expect.any(Array),
-				'COMPETITION_CANCELLED',
-				'notifications.titles.competition_auto_cancelled',
-				'notifications.messages.competition_auto_cancelled',
-				'/competitions/competition_details/5',
-				{ competitionName: 'Speed Cup' },
-			);
+			expect(mockDispatch).toHaveBeenCalledWith([
+				expect.objectContaining({
+					userIds: expect.any(Array),
+					type: 'COMPETITION_CANCELLED',
+					title: 'notifications.titles.competition_auto_cancelled',
+					message: 'notifications.messages.competition_auto_cancelled',
+					link: '/competitions/competition_details/5',
+					data: { competitionName: 'Speed Cup' },
+				}),
+			]);
 		});
 	});
 });

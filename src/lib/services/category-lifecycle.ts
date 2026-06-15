@@ -1,9 +1,9 @@
 import { prisma } from '$lib/database/create_prisma_client';
 import { CategoryStatus, CompetitionStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
 import { publishCompetitionEvent } from '$lib/events/server/ably';
-import { createNotificationForUsers } from '$lib/notifications/notifications';
+import { dispatchNotifications } from '$lib/notifications/dispatcher';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
-import { notifyTableAssignments, notifyPaymentReminder } from '$lib/notifications/registration_notifications';
+import { notificationsForTableAssignment, notificationsForPaymentReminder } from '$lib/notifications/registration_notifications';
 import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/registration';
 import type { AutoStopScheduler } from './auto-stop-scheduler';
 
@@ -134,14 +134,16 @@ export async function startCategory(categoryId: number, options?: StartAutoStopO
 		const uniqueUserIds = [...new Set(participantIds.flatMap(r => r.users.map(u => u.id)))];
 
 		if (uniqueUserIds.length > 0 && competition) {
-			await createNotificationForUsers(
-				uniqueUserIds,
-				NotificationType.COMPETITION_STARTED,
-				'notifications.titles.competition_started',
-				'notifications.messages.competition_started',
-				`/competitions/competition_details/${updatedCategory.competitionId}`,
-				{ competitionName: competition.name }
-			);
+			await dispatchNotifications([
+				{
+					userIds: uniqueUserIds,
+					type: NotificationType.COMPETITION_STARTED,
+					title: 'notifications.titles.competition_started',
+					message: 'notifications.messages.competition_started',
+					link: `/competitions/competition_details/${updatedCategory.competitionId}`,
+					data: { competitionName: competition.name }
+				}
+			]);
 		}
 	}
 
@@ -516,7 +518,7 @@ export async function publishTableAssignments(categoryId: number) {
 	);
 
 	if (changedEntries.length > 0) {
-		await notifyTableAssignments(changedEntries, category);
+		await dispatchNotifications(notificationsForTableAssignment(changedEntries, category));
 	}
 
 	return { assignedCount: entries.length, notifiedCount: changedEntries.length };
@@ -572,11 +574,13 @@ export async function remindPendingPayments(
 		data: { lastRemindedAt: now }
 	});
 
-	const remindedCount = await notifyPaymentReminder(
+	const reminderIntents = notificationsForPaymentReminder(
 		eligibleEntries,
 		options?.actorName,
 		options?.note
 	);
+	await dispatchNotifications(reminderIntents);
+	const remindedCount = new Set(reminderIntents.flatMap((i) => i.userIds)).size;
 
 	return { remindedCount, skippedCount };
 }

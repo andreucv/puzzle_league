@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { prisma } from '$lib/database/create_prisma_client';
 import { getAuthUserId } from '$lib/api_utils/api_auth';
-import { createNotification } from '$lib/notifications/notifications';
+import { dispatchNotifications } from '$lib/notifications/dispatcher';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 import { getPostHogClient } from '$lib/server/posthog';
 
@@ -66,16 +66,16 @@ export const POST: RequestHandler = async (event) => {
         });
 
         // Send notifications to the users who created the external participants
-        for (const ep of result) {
-            await createNotification({
-                userId: ep.createdById,
+        await dispatchNotifications(
+            result.map((ep) => ({
+                userIds: [ep.createdById],
                 type: NotificationType.EXTERNAL_PARTICIPANT_CLAIMED,
                 title: 'notifications.titles.external_participant_claimed',
                 message: 'notifications.messages.external_participant_claimed',
                 link: '/competitions/explore_competitions',
                 data: { intentName: ep.name },
-            });
-        }
+            })),
+        );
 
         const posthog = getPostHogClient();
         posthog.capture({

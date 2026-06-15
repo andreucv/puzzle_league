@@ -1,6 +1,6 @@
 import { prisma } from '$lib/database/create_prisma_client';
 import { CompetitionStatus, CategoryStatus, NotificationType } from '$lib/.prisma/generated/prisma/enums';
-import { createNotificationForUsers } from '$lib/notifications/notifications';
+import { dispatchNotifications } from '$lib/notifications/dispatcher';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -121,14 +121,16 @@ export async function autoCancelExpiredCompetitions(
 			// 4. Send notifications (failures do not rollback the cancellation)
 			if (recipientIds.length > 0) {
 				try {
-					await createNotificationForUsers(
-						recipientIds,
-						NotificationType.COMPETITION_CANCELLED,
-						'notifications.titles.competition_auto_cancelled',
-						'notifications.messages.competition_auto_cancelled',
-						`/competitions/competition_details/${competition.id}`,
-						{ competitionName: competition.name },
-					);
+					await dispatchNotifications([
+						{
+							userIds: recipientIds,
+							type: NotificationType.COMPETITION_CANCELLED,
+							title: 'notifications.titles.competition_auto_cancelled',
+							message: 'notifications.messages.competition_auto_cancelled',
+							link: `/competitions/competition_details/${competition.id}`,
+							data: { competitionName: competition.name },
+						},
+					]);
 				} catch (notificationError) {
 					result.notificationFailures += 1;
 					console.error(

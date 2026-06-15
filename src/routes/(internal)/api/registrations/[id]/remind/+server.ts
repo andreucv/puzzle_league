@@ -1,7 +1,8 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/create_prisma_client';
 import { RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
-import { notifyPaymentReminder } from '$lib/notifications/registration_notifications';
+import { notificationsForPaymentReminder } from '$lib/notifications/registration_notifications';
+import { dispatchNotifications } from '$lib/notifications/dispatcher';
 import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/registration';
 
 export const POST = async (event: RequestEvent) => {
@@ -54,7 +55,9 @@ export const POST = async (event: RequestEvent) => {
 			data: { lastRemindedAt: now },
 		});
 
-		const remindedCount = await notifyPaymentReminder([entry], actorName, note);
+		const reminderIntents = notificationsForPaymentReminder([entry], actorName, note);
+		await dispatchNotifications(reminderIntents);
+		const remindedCount = new Set(reminderIntents.flatMap((i) => i.userIds)).size;
 
 		return json({ success: true, remindedAt: now.toISOString(), remindedCount });
 	} catch (error) {

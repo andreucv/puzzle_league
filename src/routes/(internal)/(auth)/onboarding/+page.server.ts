@@ -7,6 +7,8 @@ import { validatePhone, validatePostalCode } from '$lib/utils/contact_validation
 import { countries } from '$lib/utils/country_utils';
 import { resolveOnboardingSteps } from '$lib/utils/onboarding_utils';
 import { auth } from '$lib/auth';
+import { dispatchNotifications } from '$lib/notifications/dispatcher';
+import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 
 export const load: PageServerLoad = async ({ parent, locals, cookies }) => {
 	const { user } = await parent();
@@ -127,18 +129,16 @@ export const actions: Actions = {
 			const result = await claimExternalParticipants(user.id, externalParticipantIds);
 
 			// Send notifications (non-blocking, best-effort)
-			const { createNotification } = await import('$lib/notifications/notifications');
-			const { NotificationType } = await import('$lib/.prisma/generated/prisma/enums');
-			for (const ep of result) {
-				await createNotification({
-					userId: ep.createdById,
+			await dispatchNotifications(
+				result.map((ep) => ({
+					userIds: [ep.createdById],
 					type: NotificationType.EXTERNAL_PARTICIPANT_CLAIMED,
 					title: 'notifications.titles.external_participant_claimed',
 					message: 'notifications.messages.external_participant_claimed',
 					link: '/competitions/explore_competitions',
 					data: { externalParticipantName: ep.name },
-				});
-			}
+				})),
+			);
 		} catch (err) {
 			console.error('Error claiming intents:', err);
 			return fail(400, {

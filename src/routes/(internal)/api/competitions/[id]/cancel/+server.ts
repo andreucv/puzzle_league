@@ -1,7 +1,7 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/create_prisma_client';
 import { CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
-import { createNotificationForUsers } from '$lib/notifications/notifications';
+import { dispatchNotifications } from '$lib/notifications/dispatcher';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
 import { getPostHogClient } from '$lib/server/posthog';
 
@@ -50,14 +50,16 @@ export const POST = async (event: RequestEvent) => {
     const uniqueUserIds = [...new Set(participantIds.flatMap(r => r.users.map(u => u.id)))];
 
     if (uniqueUserIds.length > 0) {
-      await createNotificationForUsers(
-        uniqueUserIds,
-        NotificationType.COMPETITION_CANCELLED,
-        'notifications.titles.competition_cancelled',
-        'notifications.messages.competition_cancelled',
-        `/competitions/competition_details/${competitionId}`,
-        { competitionName: competition.name },
-      );
+      await dispatchNotifications([
+        {
+          userIds: uniqueUserIds,
+          type: NotificationType.COMPETITION_CANCELLED,
+          title: 'notifications.titles.competition_cancelled',
+          message: 'notifications.messages.competition_cancelled',
+          link: `/competitions/competition_details/${competitionId}`,
+          data: { competitionName: competition.name },
+        },
+      ]);
     }
 
     const posthog = getPostHogClient();

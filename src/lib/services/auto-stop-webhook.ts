@@ -2,6 +2,7 @@ import type { Receiver } from '@upstash/qstash';
 import type { PrismaClient } from '$lib/.prisma/generated/prisma/client';
 import { CategoryStatus } from '$lib/.prisma/generated/prisma/enums';
 import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import type { NotificationIntent } from '$lib/notifications/dispatcher';
 
 interface WebhookResult {
 	status: number;
@@ -14,14 +15,7 @@ interface HandleAutoStopWebhookParams {
 	receiver: Receiver;
 	db: PrismaClient;
 	stopCategory: (categoryId: number, options?: { isAutoStop?: boolean }) => Promise<unknown>;
-	createNotification: (params: {
-		userId: string;
-		type: NotificationType;
-		title: string;
-		message: string;
-		link?: string;
-		data?: Record<string, string | number | boolean>;
-	}) => Promise<unknown>;
+	dispatchNotifications: (intents: NotificationIntent[]) => Promise<unknown>;
 }
 
 const NON_STOPPABLE_STATUSES: string[] = [
@@ -36,7 +30,7 @@ export async function handleAutoStopWebhook({
 	receiver,
 	db,
 	stopCategory,
-	createNotification,
+	dispatchNotifications,
 }: HandleAutoStopWebhookParams): Promise<WebhookResult> {
 	// Verify QStash signature
 	const isValid = await receiver.verify({ signature, body });
@@ -74,26 +68,30 @@ export async function handleAutoStopWebhook({
 		await stopCategory(categoryId, { isAutoStop: true });
 
 		// Notify organizer of successful auto-stop
-		await createNotification({
-			userId: category.competition.creatorId,
-			type: NotificationType.AUTO_STOP_SUCCESS,
-			title: 'notifications.titles.auto_stop_success',
-			message: 'notifications.messages.auto_stop_success',
-			link: `/competitions/competition_details/${competitionId}`,
-			data: { competitionName: category.competition.name },
-		});
+		await dispatchNotifications([
+			{
+				userIds: [category.competition.creatorId],
+				type: NotificationType.AUTO_STOP_SUCCESS,
+				title: 'notifications.titles.auto_stop_success',
+				message: 'notifications.messages.auto_stop_success',
+				link: `/competitions/competition_details/${competitionId}`,
+				data: { competitionName: category.competition.name },
+			},
+		]);
 
 		return { status: 200, body: { message: 'Category auto-stopped' } };
 	} catch (error) {
 		// Notify organizer of failure
-		await createNotification({
-			userId: category.competition.creatorId,
-			type: NotificationType.AUTO_STOP_FAILED,
-			title: 'notifications.titles.auto_stop_failed',
-			message: 'notifications.messages.auto_stop_failed',
-			link: `/competitions/competition_details/${competitionId}`,
-			data: { competitionName: category.competition.name },
-		});
+		await dispatchNotifications([
+			{
+				userIds: [category.competition.creatorId],
+				type: NotificationType.AUTO_STOP_FAILED,
+				title: 'notifications.titles.auto_stop_failed',
+				message: 'notifications.messages.auto_stop_failed',
+				link: `/competitions/competition_details/${competitionId}`,
+				data: { competitionName: category.competition.name },
+			},
+		]);
 
 		return { status: 500, body: { error: 'Failed to stop category' } };
 	}

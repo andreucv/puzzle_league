@@ -1,92 +1,11 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
-import { sendEmail } from '$lib/emails/send_email_utils';
-
-// ---------------------------------------------------------------------------
-// Mail hooks — delegates to src/lib/emails/send_email_utils
-// ---------------------------------------------------------------------------
-
-/** Notification types that should also trigger an email. */
-const EMAIL_ENABLED_TYPES = new Set<NotificationType>([
-	NotificationType.REGISTRATION_CONFIRMED,
-	NotificationType.REGISTRATION_REFUSED,
-	NotificationType.REGISTRATION_PROMOTED,
-	NotificationType.PAYMENT_REMINDER,
-]);
-
-function shouldSendMail(type: NotificationType): boolean {
-	return EMAIL_ENABLED_TYPES.has(type);
-}
-
-// ---------------------------------------------------------------------------
-// Create notifications
-// ---------------------------------------------------------------------------
-
-export async function createNotification({
-	userId,
-	type,
-	title,
-	message,
-	link,
-	data,
-	actorName,
-	translationKey,
-}: {
-	userId: string;
-	type: NotificationType;
-	title: string;
-	message: string;
-	link?: string;
-	data?: Record<string, string | number | boolean>;
-	actorName?: string;
-	translationKey?: string;
-}) {
-	const notification = await prisma.notification.create({
-		data: { userId, type, title, message, link, data: data ?? undefined },
-	});
-
-	if (shouldSendMail(type) && link) {
-		const emailData: Record<string, string> = {};
-		if (data) {
-			for (const [k, v] of Object.entries(data)) emailData[k] = String(v);
-		}
-		await sendEmail([userId], type, link, emailData, actorName, translationKey).catch((err) => {
-			console.error(`[createNotification] Email send failed for user ${userId}:`, err);
-		});
-	}
-
-	return notification;
-}
-
-export async function createNotificationForUsers(
-	userIds: string[],
-	type: NotificationType,
-	title: string,
-	message: string,
-	link?: string,
-	data?: Record<string, string | number | boolean>,
-	actorName?: string,
-	translationKey?: string,
-) {
-	const notifications = await prisma.notification.createMany({
-		data: userIds.map((userId) => ({ userId, type, title, message, link, data: data ?? undefined })),
-	});
-
-	if (shouldSendMail(type) && link) {
-		const emailData: Record<string, string> = {};
-		if (data) {
-			for (const [k, v] of Object.entries(data)) emailData[k] = String(v);
-		}
-		await sendEmail(userIds, type, link, emailData, actorName, translationKey).catch((err) => {
-			console.error(`[createNotificationForUsers] Email send failed:`, err);
-		});
-	}
-
-	return notifications;
-}
 
 // ---------------------------------------------------------------------------
 // Query notifications
+//
+// Notification creation, the email decision, and delivery now live behind the
+// Notification Dispatcher (see ./dispatcher.ts). This module owns only the
+// read/mark side of the inbox.
 // ---------------------------------------------------------------------------
 
 export async function getNotificationsForUser(userId: string, limit = 50) {

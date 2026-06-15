@@ -70,6 +70,14 @@ _Avoid_: Request, permission request, application
 **Notification**:
 A read-only informational alert delivered to a user's inbox. Covers registration updates, competition lifecycle events, role request outcomes, and more. No user action required.
 
+**Notification Intent**:
+A plain, side-effect-free description of one Notification to be delivered to one or more users — recipients, type, translation keys, link, and data. Builders produce intents; they do not write to the database or send email. The unit of currency handed to the Notification Dispatcher.
+_Avoid_: notification payload, notification request, notify call
+
+**Notification Dispatcher**:
+The single seam that takes Notification Intents and realises them: persists the `Notification` rows and routes email through a downstream channel adapter. The one place that owns notification side-effect orchestration, failure handling, and which types also email.
+_Avoid_: notification service, notification manager, notifier
+
 **Other Upcoming Competitions**:
 The authenticated landing page discovery section for competitions where the current Participant has no Registration. Includes future competitions and live competitions, ordered by soonest start date.
 

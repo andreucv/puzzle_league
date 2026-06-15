@@ -2,7 +2,8 @@ import { prisma } from '$lib/database/create_prisma_client';
 import { EntryTagStatus, type ParticipantTagType } from '$lib/.prisma/generated/prisma/enums';
 import { getCompetitionAccess } from '$lib/services/competition-access';
 import { isTagClaimableInCategory } from '$lib/database/db_participant_tags';
-import { notifyTagRejected } from '$lib/notifications/tag_notifications';
+import { notificationsForTagRejected } from '$lib/notifications/tag_notifications';
+import { dispatchNotifications } from '$lib/notifications/dispatcher';
 
 // ---------------------------------------------------------------------------
 // Errors
@@ -113,12 +114,14 @@ export async function rejectEntryTag(entryTagId: string, actor: EntryTagActor) {
 		data: { status: EntryTagStatus.REJECTED },
 	});
 
-	await notifyTagRejected({
-		creatorId: entryTag.entry.creatorId,
-		competitionId: category.competitionId,
-		competitionName: category.competition.name,
-		categoryName: category.description || category.type,
-	});
+	await dispatchNotifications(
+		notificationsForTagRejected({
+			creatorId: entryTag.entry.creatorId,
+			competitionId: category.competitionId,
+			competitionName: category.competition.name,
+			categoryName: category.description || category.type,
+		}),
+	);
 
 	return updated;
 }

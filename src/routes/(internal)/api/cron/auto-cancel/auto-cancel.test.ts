@@ -1,22 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { prismaMock, mockFn } from '$tests/mocks/prisma';
 
 // ── Hoisted mocks ──
 
 const mockAutoCancelExpiredCompetitions = vi.fn();
-const mockFindFirst = vi.fn();
 const mockVerify = vi.fn();
 
 vi.mock('$lib/services/auto-cancel', () => ({
 	autoCancelExpiredCompetitions: (...args: unknown[]) => mockAutoCancelExpiredCompetitions(...args),
 }));
 
-vi.mock('$lib/database/create_prisma_client', () => ({
-	prisma: {
-		roleAssignment: {
-			findFirst: (...args: unknown[]) => mockFindFirst(...args),
-		},
-	},
-}));
+vi.mock('$lib/database/create_prisma_client', () => ({ prisma: prismaMock }));
+
+const mockFindFirst = mockFn(prismaMock.roleAssignment.findFirst);
 
 vi.mock('@upstash/qstash', () => ({
 	Receiver: class {
@@ -28,12 +24,6 @@ vi.mock('@upstash/qstash', () => ({
 
 vi.mock('$env/dynamic/private', () => ({
 	env: { QSTASH_CURRENT_SIGNING_KEY: 'current-key', QSTASH_NEXT_SIGNING_KEY: 'next-key' },
-}));
-
-vi.mock('@sveltejs/kit', () => ({
-	json: (data: unknown, init?: { status?: number }) => {
-		return { body: data, status: init?.status ?? 200 };
-	},
 }));
 
 import { GET } from './+server';
@@ -84,7 +74,6 @@ function makeSuccessResult(overrides: Record<string, unknown> = {}) {
 
 describe('GET /api/cron/auto-cancel', () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
 		mockFindFirst.mockResolvedValue(null);
 		mockVerify.mockResolvedValue(true);
 	});
@@ -96,7 +85,7 @@ describe('GET /api/cron/auto-cancel', () => {
 			const response = await GET(makeEvent());
 
 			expect(response.status).toBe(401);
-			expect(response.body).toEqual({ error: 'Unauthorized' });
+			expect(await response.json()).toEqual({ error: 'Unauthorized' });
 			expect(mockAutoCancelExpiredCompetitions).not.toHaveBeenCalled();
 		});
 
@@ -106,7 +95,7 @@ describe('GET /api/cron/auto-cancel', () => {
 			const response = await GET(makeEvent({ signature: 'bad-sig' }));
 
 			expect(response.status).toBe(401);
-			expect(response.body).toEqual({ error: 'Invalid signature' });
+			expect(await response.json()).toEqual({ error: 'Invalid signature' });
 			expect(mockAutoCancelExpiredCompetitions).not.toHaveBeenCalled();
 		});
 
@@ -118,7 +107,7 @@ describe('GET /api/cron/auto-cancel', () => {
 			const response = await GET(makeEvent({ signature: 'good-sig' }));
 
 			expect(response.status).toBe(200);
-			expect(response.body).toEqual(result);
+			expect(await response.json()).toEqual(result);
 		});
 
 		it('returns 200 when user has admin role (no signature needed)', async () => {
@@ -129,7 +118,7 @@ describe('GET /api/cron/auto-cancel', () => {
 			const response = await GET(makeEvent({ user: { id: 'admin-1' } }));
 
 			expect(response.status).toBe(200);
-			expect(response.body).toEqual(result);
+			expect(await response.json()).toEqual(result);
 		});
 
 		it('returns 401 when user is logged in but not admin', async () => {
@@ -180,7 +169,7 @@ describe('GET /api/cron/auto-cancel', () => {
 			}));
 
 			expect(response.status).toBe(400);
-			expect(response.body).toEqual({ error: 'Invalid competitionId — must be a number' });
+			expect(await response.json()).toEqual({ error: 'Invalid competitionId — must be a number' });
 			expect(mockAutoCancelExpiredCompetitions).not.toHaveBeenCalled();
 		});
 	});
@@ -204,7 +193,7 @@ describe('GET /api/cron/auto-cancel', () => {
 			const response = await GET(makeEvent({ signature: 'good-sig' }));
 
 			expect(response.status).toBe(200);
-			expect(response.body).toEqual(result);
+			expect(await response.json()).toEqual(result);
 		});
 
 		it('returns 500 when the service throws', async () => {
@@ -214,7 +203,7 @@ describe('GET /api/cron/auto-cancel', () => {
 			const response = await GET(makeEvent({ signature: 'good-sig' }));
 
 			expect(response.status).toBe(500);
-			expect(response.body).toEqual({ error: 'Internal server error' });
+			expect(await response.json()).toEqual({ error: 'Internal server error' });
 			consoleSpy.mockRestore();
 		});
 	});

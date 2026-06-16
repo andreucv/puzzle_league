@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/svelte';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/svelte';
 
-vi.mock('$lib/translations', async () => import('../../../tests/mocks/translations'));
+vi.mock('$lib/translations', async () => import('$tests/mocks/translations'));
 
 import EntryList from './EntryList.svelte';
-import StubIcon from '../../../tests/mocks/StubIcon.svelte';
+import StubIcon from '$tests/mocks/StubIcon.svelte';
 
 function makeRecord(id: string, overrides: Record<string, any> = {}) {
 	return {
@@ -36,10 +36,6 @@ function renderList(overrides: Record<string, any> = {}) {
 }
 
 describe('EntryList', () => {
-	beforeEach(() => {
-		cleanup();
-	});
-
 	it('renders nothing when records empty, not loading, and alwaysShow=false', () => {
 		const { container } = renderList({ records: [], alwaysShow: false });
 		expect(container.innerHTML).toBe('<!---->');

@@ -17,6 +17,12 @@ const config = {
 		// Required for PostHog session replay to work correctly with SSR
 		paths: {
 			relative: false
+		},
+		// Test-only alias so suites import shared mocks/factories as `$tests/...`
+		// instead of fragile `../../../tests/...` relative paths. svelte-kit sync
+		// propagates this into .svelte-kit/tsconfig.json so `pnpm check` resolves it.
+		alias: {
+			$tests: 'src/tests'
 		}
 	},
 };

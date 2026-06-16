@@ -1,0 +1,75 @@
+name: unit-tests
+
+# Gate for the Vitest unit layer: type-check + tests with coverage thresholds.
+# The unit layer is fully mocked (no Postgres / network), so this is a single fast job.
+# e2e / Playwright is intentionally out of scope here.
+on:
+  pull_request:
+    branches: [main, test]
+  push:
+    branches: [main, test]
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # `$env/static/private` + `$env/static/public` only export vars present when
+      # `svelte-kit sync` runs (it runs in `postinstall`), so the type-check needs them
+      # declared. These are dummy, non-secret values: `pnpm check` only type-checks and
+      # the unit tests mock `$env`, so nothing here is executed or contacted. Must be
+      # written before `pnpm install` so `postinstall`'s sync picks them up.
+      - name: Seed dummy env for the type-check
+        run: |
+          cat > .env <<'EOF'
+          RESEND_API_KEY=dummy
+          RESEND_FROM_EMAIL=noreply@example.com
+          ABLY_API_KEY=dummy:dummy
+          CLOUDINARY_CLOUD_NAME=dummy
+          CLOUDINARY_API_KEY=dummy
+          CLOUDINARY_API_SECRET=dummy
+          PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
+          PUBLIC_POSTHOG_PROJECT_TOKEN=dummy
+          EOF
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check
+        run: pnpm check
+
+      # Format gate is changed-files-only: the existing src/ tree predates Prettier, so we
+      # only require files a PR adds or modifies under src/ to be Prettier-clean. Run
+      # `pnpm format` locally to fix. Runs on PRs only (a push has no base to diff against).
+      # .svelte is excluded — Prettier has no Svelte parser configured (no plugin in .prettierrc).
+      - name: Prettier (changed src files)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch --no-tags --depth=1 origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
+          CHANGED=$(git diff --name-only --diff-filter=ACMR "origin/$BASE_REF" HEAD -- src \
+            | grep -E '\.(ts|js)$' || true)
+          if [ -z "$CHANGED" ]; then
+            echo "No changed src files to format-check."
+            exit 0
+          fi
+          echo "Prettier-checking changed files:"
+          printf '%s\n' "$CHANGED"
+          printf '%s\n' "$CHANGED" | xargs pnpm exec prettier --check
+
+      - name: Unit tests with coverage
+        run: pnpm test:unit:coverage

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/svelte';
+import { render, screen } from '@testing-library/svelte';
 
-vi.mock('$lib/translations', async () => import('../../../../tests/mocks/translations'));
+vi.mock('$lib/translations', async () => import('$tests/mocks/translations'));
 vi.mock('$lib/stores/drawer.svelte', () => ({
 	drawerState: { open: false },
 }));
@@ -17,7 +17,6 @@ import { notificationState } from '$lib/stores/notifications.svelte';
 
 describe('Header - notifications unread dot', () => {
 	beforeEach(() => {
-		cleanup();
 		notificationState.hasUnread = false;
 	});
 

@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import { makeEntryData } from '$tests/factories';
 
 const mockConfirmRegistration = vi.fn();
 const mockCapture = vi.fn();
@@ -13,12 +14,6 @@ vi.mock('$lib/server/posthog', () => ({
 	getPostHogClient: () => ({ capture: mockCapture }),
 }));
 
-vi.mock('@sveltejs/kit', () => ({
-	json: (data: unknown, init?: { status?: number }) => {
-		return { body: data, status: init?.status ?? 200 };
-	},
-}));
-
 import { POST } from './+server';
 
 function makeEvent(id: string, user?: { id: string; name?: string }) {
@@ -28,27 +23,7 @@ function makeEvent(id: string, user?: { id: string; name?: string }) {
 	} as any;
 }
 
-function makeEntryData() {
-	return {
-		id: 'entry-1',
-		creatorId: 'user-1',
-		users: [{ id: 'user-1', name: 'Alice' }],
-		externalParticipants: [],
-		category: {
-			competitionId: 42,
-			description: 'Individual',
-			subname: null,
-			type: 'INDIVIDUAL',
-			competition: { name: 'Speed Cup' },
-		},
-	};
-}
-
 describe('POST /api/registrations/[id]/confirm', () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-	});
-
 	it('Given valid entry, when workflow succeeds, then returns success', async () => {
 		const entry = makeEntryData();
 		mockConfirmRegistration.mockResolvedValue({ entry });
@@ -56,7 +31,7 @@ describe('POST /api/registrations/[id]/confirm', () => {
 		const response = await POST(makeEvent('entry-1', { id: 'organizer-1', name: 'Organizer' }));
 
 		expect(response.status).toBe(200);
-		expect(response.body).toEqual({ success: true, data: entry });
+		expect(await response.json()).toEqual({ success: true, data: entry });
 		expect(mockConfirmRegistration).toHaveBeenCalledWith({
 			entryId: 'entry-1',
 			actor: { userId: 'organizer-1', name: 'Organizer', isOrganizer: false },
@@ -72,7 +47,7 @@ describe('POST /api/registrations/[id]/confirm', () => {
 		const response = await POST(makeEvent('missing', { id: 'organizer-1' }));
 
 		expect(response.status).toBe(404);
-		expect(response.body).toEqual({ error: 'Entry not found' });
+		expect(await response.json()).toEqual({ error: 'Entry not found' });
 	});
 
 	it('Given invalid status, when workflow throws, then returns 400', async () => {
@@ -84,7 +59,7 @@ describe('POST /api/registrations/[id]/confirm', () => {
 		const response = await POST(makeEvent('entry-1', { id: 'organizer-1' }));
 
 		expect(response.status).toBe(400);
-		expect(response.body).toEqual({ error: 'Only pending confirmation registrations can be confirmed' });
+		expect(await response.json()).toEqual({ error: 'Only pending confirmation registrations can be confirmed' });
 	});
 
 	it('Given successful confirmation, when route captures analytics, then uses workflow metadata', async () => {
@@ -108,14 +83,14 @@ describe('POST /api/registrations/[id]/confirm', () => {
 		const response = await POST(makeEvent('', { id: 'organizer-1' }));
 
 		expect(response.status).toBe(400);
-		expect(response.body).toEqual({ error: 'Invalid entry ID' });
+		expect(await response.json()).toEqual({ error: 'Invalid entry ID' });
 	});
 
 	it('Given no logged-in user, when POST called, then returns 401', async () => {
 		const response = await POST(makeEvent('entry-1'));
 
 		expect(response.status).toBe(401);
-		expect(response.body).toEqual({ error: 'You must be logged in' });
+		expect(await response.json()).toEqual({ error: 'You must be logged in' });
 		expect(mockConfirmRegistration).not.toHaveBeenCalled();
 	});
 });

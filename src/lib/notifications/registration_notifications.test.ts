@@ -30,21 +30,7 @@ import type { NotificationIntent } from './dispatcher';
 
 // ── Helpers ──
 
-function makeEntry(overrides: Record<string, unknown> = {}) {
-	return {
-		creatorId: 'creator-1',
-		users: [{ id: 'user-1', name: 'Alice' }],
-		externalParticipants: [],
-		category: {
-			competitionId: 42,
-			description: 'Individual',
-			subname: null,
-			type: 'INDIVIDUAL',
-			competition: { name: 'Speed Cup' },
-		},
-		...overrides,
-	};
-}
+import { makeEntryData } from '$tests/factories';
 
 /** All distinct recipients across an intent array. */
 function recipients(intents: NotificationIntent[]): string[] {
@@ -57,7 +43,7 @@ function recipients(intents: NotificationIntent[]): string[] {
 
 describe('notificationsForRegistrationRefused', () => {
 	it('Given creator is a participant, then one intent to that user', () => {
-		const intents = notificationsForRegistrationRefused(makeEntry({ creatorId: 'user-1' }) as never);
+		const intents = notificationsForRegistrationRefused(makeEntryData({ creatorId: 'user-1' }) as never);
 
 		expect(intents).toHaveLength(1);
 		expect(intents[0]).toMatchObject({
@@ -70,7 +56,7 @@ describe('notificationsForRegistrationRefused', () => {
 
 	it('Given creator is NOT a participant, then participant AND creator intents', () => {
 		const intents = notificationsForRegistrationRefused(
-			makeEntry({ creatorId: 'creator-not-user', users: [{ id: 'user-1', name: 'Alice' }] }) as never,
+			makeEntryData({ creatorId: 'creator-not-user', users: [{ id: 'user-1', name: 'Alice' }] }) as never,
 		);
 
 		expect(intents).toHaveLength(2);
@@ -86,7 +72,7 @@ describe('notificationsForRegistrationRefused', () => {
 
 	it('Given external-only entry, then only the creator intent (with participant names)', () => {
 		const intents = notificationsForRegistrationRefused(
-			makeEntry({ creatorId: 'creator-1', users: [], externalParticipants: [{ name: 'Ext User' }] }) as never,
+			makeEntryData({ creatorId: 'creator-1', users: [], externalParticipants: [{ name: 'Ext User' }] }) as never,
 		);
 
 		expect(intents).toHaveLength(1);
@@ -100,7 +86,7 @@ describe('notificationsForRegistrationRefused', () => {
 
 	it('Given a team entry, then every intent uses the team variant keys', () => {
 		const intents = notificationsForRegistrationRefused(
-			makeEntry({
+			makeEntryData({
 				creatorId: 'user-1',
 				users: [
 					{ id: 'user-1', name: 'Alice' },
@@ -119,7 +105,7 @@ describe('notificationsForRegistrationRefused', () => {
 
 	it('Given an external teammate, then the team variant lists the external name in teammateNames', () => {
 		const intents = notificationsForRegistrationRefused(
-			makeEntry({
+			makeEntryData({
 				creatorId: 'user-1',
 				users: [{ id: 'user-1', name: 'Alice' }],
 				externalParticipants: [{ name: 'External Bob' }],
@@ -134,7 +120,7 @@ describe('notificationsForRegistrationRefused', () => {
 	});
 
 	it('Given an actorName, then it is carried on the intent', () => {
-		const intents = notificationsForRegistrationRefused(makeEntry({ creatorId: 'user-1' }) as never, 'OrganizerJohn');
+		const intents = notificationsForRegistrationRefused(makeEntryData({ creatorId: 'user-1' }) as never, 'OrganizerJohn');
 
 		expect(intents[0]).toMatchObject({ actorName: 'OrganizerJohn' });
 	});
@@ -147,7 +133,7 @@ describe('notificationsForRegistrationRefused', () => {
 describe('notificationsForRegistrationConfirmed (parity check)', () => {
 	it('Given creator is NOT a participant, then both participant and creator intents', () => {
 		const intents = notificationsForRegistrationConfirmed(
-			makeEntry({ creatorId: 'creator-not-user', users: [{ id: 'user-1', name: 'Alice' }] }) as never,
+			makeEntryData({ creatorId: 'creator-not-user', users: [{ id: 'user-1', name: 'Alice' }] }) as never,
 			'Organizer',
 		);
 
@@ -170,7 +156,7 @@ describe('notificationsForPaymentReminder', () => {
 
 	it('Given a participant entry, then the distinct recipient count is derivable', () => {
 		const intents = notificationsForPaymentReminder([
-			makeEntry({ creatorId: 'user-1' }) as never,
+			makeEntryData({ creatorId: 'user-1' }) as never,
 		]);
 
 		const distinct = new Set(recipients(intents)).size;
@@ -180,7 +166,7 @@ describe('notificationsForPaymentReminder', () => {
 
 	it('Given a creator who is not a participant, then both are counted', () => {
 		const intents = notificationsForPaymentReminder([
-			makeEntry({ creatorId: 'creator-x', users: [{ id: 'user-1', name: 'Alice' }] }) as never,
+			makeEntryData({ creatorId: 'creator-x', users: [{ id: 'user-1', name: 'Alice' }] }) as never,
 		]);
 
 		expect(new Set(recipients(intents)).size).toBe(2);

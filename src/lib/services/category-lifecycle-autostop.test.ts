@@ -2,26 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { AutoStopScheduler } from './auto-stop-scheduler';
 
 // Mock all external dependencies of category-lifecycle
-vi.mock('$lib/database/create_prisma_client', () => ({
-	prisma: {
-		category: {
-			findUnique: vi.fn(),
-			update: vi.fn(),
-			count: vi.fn(),
-		},
-		competition: {
-			findUnique: vi.fn(),
-			update: vi.fn(),
-			updateMany: vi.fn(),
-		},
-		entry: {
-			count: vi.fn(),
-			findMany: vi.fn(),
-			updateMany: vi.fn(),
-		},
-		$transaction: vi.fn(),
-	},
-}));
+import { prismaMock, mockFn } from '$tests/mocks/prisma';
+
+vi.mock('$lib/database/create_prisma_client', () => ({ prisma: prismaMock }));
 
 vi.mock('$lib/events/server/ably', () => ({
 	publishCompetitionEvent: vi.fn().mockResolvedValue(undefined),
@@ -31,8 +14,14 @@ vi.mock('$lib/notifications/dispatcher', () => ({
 	dispatchNotifications: vi.fn().mockResolvedValue({ persisted: 0, emailed: 0, emailFailures: 0 }),
 }));
 
-import { prisma } from '$lib/database/create_prisma_client';
 import { startCategory, stopCategory, cancelCategory, restartCategory, resumeCategory, setAutoStop, InvalidStatusTransitionError } from './category-lifecycle';
+
+const mockCategoryFindUnique = mockFn(prismaMock.category.findUnique);
+const mockCategoryUpdate = mockFn(prismaMock.category.update);
+const mockEntryCount = mockFn(prismaMock.entry.count);
+const mockEntryFindMany = mockFn(prismaMock.entry.findMany);
+const mockCompetitionUpdateMany = mockFn(prismaMock.competition.updateMany);
+const mockTransaction = mockFn(prismaMock.$transaction);
 
 function createMockScheduler(): AutoStopScheduler {
 	return {
@@ -46,20 +35,19 @@ describe('category-lifecycle auto-stop integration', () => {
 	let scheduler: ReturnType<typeof createMockScheduler>;
 
 	beforeEach(() => {
-		vi.clearAllMocks();
 		scheduler = createMockScheduler();
 
 		// Default mock for entry counts
-		(prisma.entry.count as any).mockResolvedValue(0);
-		(prisma.entry.findMany as any).mockResolvedValue([]);
-		(prisma.competition.updateMany as any).mockResolvedValue({ count: 0 });
+		mockEntryCount.mockResolvedValue(0);
+		mockEntryFindMany.mockResolvedValue([]);
+		mockCompetitionUpdateMany.mockResolvedValue({ count: 0 });
 	});
 
 	describe('startCategory with autoStop', () => {
 		it('schedules auto-stop when autoStop option is provided', async () => {
 			const deadline = new Date('2026-05-03T15:00:00Z');
 
-			(prisma.category.update as any).mockResolvedValue({
+			mockCategoryUpdate.mockResolvedValue({
 				id: 1,
 				competitionId: 42,
 				status: 'LIVE',
@@ -76,7 +64,7 @@ describe('category-lifecycle auto-stop integration', () => {
 		});
 
 		it('does not schedule auto-stop when no options provided', async () => {
-			(prisma.category.update as any).mockResolvedValue({
+			mockCategoryUpdate.mockResolvedValue({
 				id: 1,
 				competitionId: 42,
 				status: 'LIVE',
@@ -94,7 +82,7 @@ describe('category-lifecycle auto-stop integration', () => {
 		it('does NOT cancel the scheduled auto-stop when stopping a category', async () => {
 			// Stop intentionally leaves the QStash message; the webhook is idempotent for
 			// non-LIVE categories, so intent (autoStopMessageId) survives stop → resume.
-			(prisma.category.findUnique as any).mockResolvedValue({
+			mockCategoryFindUnique.mockResolvedValue({
 				id: 1,
 				status: 'LIVE',
 				competitionId: 42,
@@ -106,7 +94,7 @@ describe('category-lifecycle auto-stop integration', () => {
 				realEndTime: null,
 			});
 
-			(prisma.$transaction as any).mockResolvedValue([
+			mockTransaction.mockResolvedValue([
 				{ id: 1, competitionId: 42, status: 'STOPPED', realEndTime: new Date() },
 				5, // totalEntries
 				2, // finishedEntries
@@ -120,13 +108,13 @@ describe('category-lifecycle auto-stop integration', () => {
 
 	describe('cancelCategory cancels auto-stop', () => {
 		it('cancels scheduled auto-stop when canceling a category', async () => {
-			(prisma.category.findUnique as any).mockResolvedValue({
+			mockCategoryFindUnique.mockResolvedValue({
 				id: 1,
 				status: 'LIVE',
 				competitionId: 42,
 			});
 
-			(prisma.category.update as any).mockResolvedValue({
+			mockCategoryUpdate.mockResolvedValue({
 				id: 1,
 				competitionId: 42,
 				status: 'CANCELED',
@@ -140,7 +128,7 @@ describe('category-lifecycle auto-stop integration', () => {
 
 	describe('restartCategory cancels and re-schedules auto-stop', () => {
 		it('cancels old auto-stop and re-schedules when category was armed', async () => {
-			(prisma.category.findUnique as any).mockResolvedValue({
+			mockCategoryFindUnique.mockResolvedValue({
 				id: 1,
 				status: 'STOPPED',
 				competitionId: 42,
@@ -150,12 +138,12 @@ describe('category-lifecycle auto-stop integration', () => {
 				extraMinutes: 5,
 			});
 
-			(prisma.$transaction as any).mockResolvedValue([
+			mockTransaction.mockResolvedValue([
 				{ id: 1, competitionId: 42, status: 'LIVE', realStartTime: new Date(), realEndTime: null },
 				{ count: 0 }, // record updateMany
 			]);
 
-			(prisma.entry.count as any).mockResolvedValue(3);
+			mockEntryCount.mockResolvedValue(3);
 
 			await restartCategory(1, { scheduler });
 
@@ -164,7 +152,7 @@ describe('category-lifecycle auto-stop integration', () => {
 		});
 
 		it('cancels auto-stop but does not re-schedule when category was not armed', async () => {
-			(prisma.category.findUnique as any).mockResolvedValue({
+			mockCategoryFindUnique.mockResolvedValue({
 				id: 1,
 				status: 'STOPPED',
 				competitionId: 42,
@@ -174,12 +162,12 @@ describe('category-lifecycle auto-stop integration', () => {
 				extraMinutes: 0,
 			});
 
-			(prisma.$transaction as any).mockResolvedValue([
+			mockTransaction.mockResolvedValue([
 				{ id: 1, competitionId: 42, status: 'LIVE', realStartTime: new Date(), realEndTime: null },
 				{ count: 0 }, // record updateMany
 			]);
 
-			(prisma.entry.count as any).mockResolvedValue(3);
+			mockEntryCount.mockResolvedValue(3);
 
 			await restartCategory(1, { scheduler });
 
@@ -190,7 +178,7 @@ describe('category-lifecycle auto-stop integration', () => {
 
 	describe('setAutoStop', () => {
 		it('schedules auto-stop when enabling on a LIVE category with time left', async () => {
-			(prisma.category.findUnique as any).mockResolvedValue({
+			mockCategoryFindUnique.mockResolvedValue({
 				id: 1,
 				status: 'LIVE',
 				competitionId: 42,
@@ -209,7 +197,7 @@ describe('category-lifecycle auto-stop integration', () => {
 		});
 
 		it('cancels auto-stop when disabling on a LIVE category', async () => {
-			(prisma.category.findUnique as any).mockResolvedValue({
+			mockCategoryFindUnique.mockResolvedValue({
 				id: 1,
 				status: 'LIVE',
 				competitionId: 42,
@@ -229,7 +217,7 @@ describe('category-lifecycle auto-stop integration', () => {
 		});
 
 		it('rejects enabling when no time remains', async () => {
-			(prisma.category.findUnique as any).mockResolvedValue({
+			mockCategoryFindUnique.mockResolvedValue({
 				id: 1,
 				status: 'LIVE',
 				competitionId: 42,
@@ -246,7 +234,7 @@ describe('category-lifecycle auto-stop integration', () => {
 		});
 
 		it('rejects toggling on a non-LIVE category', async () => {
-			(prisma.category.findUnique as any).mockResolvedValue({
+			mockCategoryFindUnique.mockResolvedValue({
 				id: 1,
 				status: 'STOPPED',
 				competitionId: 42,
@@ -264,7 +252,7 @@ describe('category-lifecycle auto-stop integration', () => {
 
 	describe('resumeCategory re-arms auto-stop', () => {
 		it('reschedules with the paused time when armed and time remains', async () => {
-			(prisma.category.findUnique as any).mockResolvedValue({
+			mockCategoryFindUnique.mockResolvedValue({
 				id: 1,
 				status: 'STOPPED',
 				competitionId: 42,
@@ -275,7 +263,7 @@ describe('category-lifecycle auto-stop integration', () => {
 				realStartTime: new Date(Date.now() - 30 * 60_000), // started 30 min ago
 				realEndTime: new Date(), // stopped now → 30 min remaining
 			});
-			(prisma.category.update as any).mockResolvedValue({
+			mockCategoryUpdate.mockResolvedValue({
 				id: 1, competitionId: 42, status: 'LIVE', realStartTime: new Date(), realEndTime: null,
 			});
 
@@ -285,7 +273,7 @@ describe('category-lifecycle auto-stop integration', () => {
 		});
 
 		it('does not re-arm when no time remains', async () => {
-			(prisma.category.findUnique as any).mockResolvedValue({
+			mockCategoryFindUnique.mockResolvedValue({
 				id: 1,
 				status: 'STOPPED',
 				competitionId: 42,
@@ -296,7 +284,7 @@ describe('category-lifecycle auto-stop integration', () => {
 				realStartTime: new Date(Date.now() - 2 * 60 * 60_000), // started 2h ago → deadline passed
 				realEndTime: new Date(),
 			});
-			(prisma.category.update as any).mockResolvedValue({
+			mockCategoryUpdate.mockResolvedValue({
 				id: 1, competitionId: 42, status: 'LIVE', realStartTime: new Date(), realEndTime: null,
 			});
 

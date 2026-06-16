@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup, waitFor } from '@testing-library/svelte';
+import { render, screen, waitFor } from '@testing-library/svelte';
 
 // vi.mock factories are hoisted, so we must use vi.hoisted for shared state
 const { localeMock } = vi.hoisted(() => {
@@ -24,8 +24,7 @@ vi.mock('$lib/translations', () => {
 		setRoute: vi.fn(),
 	};
 });
-vi.mock('$app/stores', async () => import('../tests/mocks/app_stores'));
-vi.mock('$app/navigation', async () => import('../tests/mocks/app_navigation'));
+// $app/stores + $app/navigation are mocked globally via the vite.config test alias.
 
 import Page from './(internal)/(auth)/home/+page.svelte';
 
@@ -69,7 +68,6 @@ function makePageData(overrides: {
 
 describe('Authenticated Home Page', () => {
 	beforeEach(() => {
-		cleanup();
 		vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ competitions: [], hasMore: false }) })));
 		// IntersectionObserver is not available in jsdom
 		vi.stubGlobal('IntersectionObserver', class {

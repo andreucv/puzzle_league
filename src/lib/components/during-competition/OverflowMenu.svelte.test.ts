@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/svelte';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/svelte';
 
-vi.mock('$lib/translations', async () => import('../../../tests/mocks/translations'));
+vi.mock('$lib/translations', async () => import('$tests/mocks/translations'));
 
 import OverflowMenu from './OverflowMenu.svelte';
-import StubIcon from '../../../tests/mocks/StubIcon.svelte';
+import StubIcon from '$tests/mocks/StubIcon.svelte';
 
 function makeAction(overrides: Record<string, any> = {}) {
 	return {
@@ -21,10 +21,6 @@ function makeAction(overrides: Record<string, any> = {}) {
 }
 
 describe('OverflowMenu', () => {
-	beforeEach(() => {
-		cleanup();
-	});
-
 	it('renders nothing when actions array is empty', () => {
 		const { container } = render(OverflowMenu, {
 			props: { actions: [], testId: 'overflow-menu' }

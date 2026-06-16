@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CategoryStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
+import { prismaMock, mockFn } from '$tests/mocks/prisma';
 
-const mockTransaction = vi.fn();
 const mockNotifyCreated = vi.fn().mockReturnValue([]);
 const mockNotifyWaitlisted = vi.fn().mockReturnValue([]);
 const mockNotifyConfirmed = vi.fn().mockReturnValue([]);
@@ -9,11 +9,9 @@ const mockNotifyRefused = vi.fn().mockReturnValue([]);
 const mockNotifyPromotion = vi.fn().mockReturnValue([]);
 const mockDispatch = vi.fn().mockResolvedValue({ persisted: 0, emailed: 0, emailFailures: 0 });
 
-vi.mock('$lib/database/create_prisma_client', () => ({
-	prisma: {
-		$transaction: (...args: unknown[]) => mockTransaction(...args),
-	},
-}));
+vi.mock('$lib/database/create_prisma_client', () => ({ prisma: prismaMock }));
+
+const mockTransaction = mockFn(prismaMock.$transaction);
 
 vi.mock('$lib/notifications/registration_notifications', () => ({
 	notificationsForRegistrationCreated: (...args: unknown[]) => mockNotifyCreated(...args),
@@ -35,37 +33,44 @@ import {
 	unregisterRegistration,
 } from './registration-workflow';
 
+// The interactive `$transaction` callback receives the deep prismaMock as its `tx`. makeTx()
+// exposes the same mock methods (loosened to vitest's Mock so partial fixtures type-check) plus
+// the defaults the workflow relies on — mockReset (in $tests/mocks/prisma) clears these per test.
 function makeTx() {
-	return {
+	const tx = {
 		competition: {
-			findUnique: vi.fn(),
+			findUnique: mockFn(prismaMock.competition.findUnique),
 		},
 		category: {
-			findMany: vi.fn(),
-			findUniqueOrThrow: vi.fn(),
+			findMany: mockFn(prismaMock.category.findMany),
+			findUniqueOrThrow: mockFn(prismaMock.category.findUniqueOrThrow),
 		},
 		entry: {
-			count: vi.fn().mockResolvedValue(0),
-			findMany: vi.fn().mockResolvedValue([]),
-			findFirst: vi.fn(),
-			findUnique: vi.fn(),
-			create: vi.fn(),
-			update: vi.fn(),
-			delete: vi.fn().mockResolvedValue({}),
+			count: mockFn(prismaMock.entry.count),
+			findMany: mockFn(prismaMock.entry.findMany),
+			findFirst: mockFn(prismaMock.entry.findFirst),
+			findUnique: mockFn(prismaMock.entry.findUnique),
+			create: mockFn(prismaMock.entry.create),
+			update: mockFn(prismaMock.entry.update),
+			delete: mockFn(prismaMock.entry.delete),
 		},
 		user: {
-			findMany: vi.fn(),
+			findMany: mockFn(prismaMock.user.findMany),
 		},
 		externalParticipant: {
-			findMany: vi.fn(),
+			findMany: mockFn(prismaMock.externalParticipant.findMany),
 		},
 		roleAssignment: {
-			findFirst: vi.fn(),
+			findFirst: mockFn(prismaMock.roleAssignment.findFirst),
 		},
 		competitionCoorganizerRoleAssignment: {
-			findFirst: vi.fn(),
+			findFirst: mockFn(prismaMock.competitionCoorganizerRoleAssignment.findFirst),
 		},
 	};
+	tx.entry.count.mockResolvedValue(0);
+	tx.entry.findMany.mockResolvedValue([]);
+	tx.entry.delete.mockResolvedValue({});
+	return tx;
 }
 
 function makeCompetition(overrides: Record<string, unknown> = {}) {
@@ -131,10 +136,6 @@ function setupSignupTx(category = makeCategory(), competition = category.competi
 }
 
 describe('registration workflow', () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-	});
-
 	it('creates paid participant registrations as pending confirmation', async () => {
 		const tx = setupSignupTx();
 

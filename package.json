@@ -14,8 +14,11 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test:e2e": "playwright test",
 		"test:unit": "vitest run",
+		"test:unit:coverage": "vitest run --coverage",
 		"test:unit:watch": "vitest",
 		"test": "pnpm test:unit && pnpm test:e2e",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
 		"release": "commit-and-tag-version --skip.tag",
 		"release:dry": "commit-and-tag-version --skip.tag --dry-run",
 		"postinstall": "svelte-kit sync && prisma generate"
@@ -38,6 +41,7 @@
 		"@testing-library/svelte": "^5.3.1",
 		"@types/node": "^22.19.12",
 		"@types/pg": "^8.20.0",
+		"@vitest/coverage-v8": "^4.1.8",
 		"autoprefixer": "^10.4.27",
 		"better-auth": "^1.6.11",
 		"bits-ui": "^2.16.2",
@@ -47,6 +51,8 @@
 		"jsdom": "^29.0.0",
 		"pg": "^8.20.0",
 		"phosphor-svelte": "^3.1.0",
+		"prettier": "^3.8.4",
+		"prettier-plugin-svelte": "^4.1.0",
 		"svelte": "^5.55.9",
 		"svelte-check": "^4.4.3",
 		"sveltekit-i18n": "^2.4.2",
@@ -54,7 +60,8 @@
 		"svelteworld": "^1.0.1",
 		"typescript": "^5.9.3",
 		"vite": "7.3.3",
-		"vitest": "^4.1.0"
+		"vitest": "^4.1.0",
+		"vitest-mock-extended": "^4.0.0"
 	},
 	"dependencies": {
 		"@iconify-svelte/icon-park": "^1.0.0",

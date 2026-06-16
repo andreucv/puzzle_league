@@ -1,26 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { prismaMock, mockFn } from '$tests/mocks/prisma';
 
-// ── Hoisted mocks ──
+vi.mock('$lib/database/create_prisma_client', () => ({ prisma: prismaMock }));
 
-const mockFindMany = vi.fn();
-const mockUpdate = vi.fn();
-const mockCategoryUpdateMany = vi.fn();
-const mockEntryFindMany = vi.fn();
-
-vi.mock('$lib/database/create_prisma_client', () => ({
-	prisma: {
-		competition: {
-			findMany: (...args: unknown[]) => mockFindMany(...args),
-			update: (...args: unknown[]) => mockUpdate(...args),
-		},
-		category: {
-			updateMany: (...args: unknown[]) => mockCategoryUpdateMany(...args),
-		},
-		entry: {
-			findMany: (...args: unknown[]) => mockEntryFindMany(...args),
-		},
-	},
-}));
+const mockFindMany = mockFn(prismaMock.competition.findMany);
+const mockUpdate = mockFn(prismaMock.competition.update);
+const mockCategoryUpdateMany = mockFn(prismaMock.category.updateMany);
+const mockEntryFindMany = mockFn(prismaMock.entry.findMany);
 
 const mockDispatch = vi.fn().mockResolvedValue({ persisted: 0, emailed: 0, emailFailures: 0 });
 
@@ -51,7 +37,6 @@ function makeCompetition(overrides: Partial<{
 
 describe('autoCancelExpiredCompetitions', () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
 		// Default: no entries, so only organizer gets notified
 		mockEntryFindMany.mockResolvedValue([]);
 		mockUpdate.mockResolvedValue({});

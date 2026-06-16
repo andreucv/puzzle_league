@@ -1,0 +1,14 @@
+# Generated / build output
+.svelte-kit
+build
+.vercel
+coverage
+src/lib/.prisma
+prisma/generated
+
+# Lockfiles & data
+pnpm-lock.yaml
+*.md
+
+# No Svelte parser configured (no prettier-plugin-svelte in .prettierrc)
+*.svelte

@@ -1,29 +1,14 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
+import { prismaMock } from '$tests/mocks/prisma';
 
-const mockCategoryFindMany = vi.fn();
-const mockEntryGroupBy = vi.fn();
-
-vi.mock('$lib/database/create_prisma_client', () => ({
-	prisma: {
-		category: {
-			findMany: (...args: unknown[]) => mockCategoryFindMany(...args),
-		},
-		entry: {
-			groupBy: (...args: unknown[]) => mockEntryGroupBy(...args),
-		},
-	},
-}));
+vi.mock('$lib/database/create_prisma_client', () => ({ prisma: prismaMock }));
 
 import { getCompetitionCategories } from './db_competition';
 
 describe('getCompetitionCategories', () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-	});
-
 	it('returns reservedSlots as pending plus confirmed while totalEntries remains confirmed', async () => {
-		mockCategoryFindMany.mockResolvedValue([
+		prismaMock.category.findMany.mockResolvedValue([
 			{
 				id: 1,
 				competitionId: 42,
@@ -31,16 +16,16 @@ describe('getCompetitionCategories', () => {
 				type: 'INDIVIDUAL',
 				puzzles: [],
 			},
-		]);
-		mockEntryGroupBy
+		] as never);
+		vi.mocked(prismaMock.entry.groupBy)
 			.mockResolvedValueOnce([
 				{ categoryId: 1, status: RegistrationStatus.CONFIRMED, _count: 2 },
 				{ categoryId: 1, status: RegistrationStatus.PENDING_CONFIRMATION, _count: 3 },
 				{ categoryId: 1, status: RegistrationStatus.WAITLISTED, _count: 4 },
-			])
+			] as never)
 			.mockResolvedValueOnce([
 				{ categoryId: 1, _count: 1 },
-			]);
+			] as never);
 
 		const result = await getCompetitionCategories(42);
 

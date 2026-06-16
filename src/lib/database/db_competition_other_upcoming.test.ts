@@ -1,41 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import { prismaMock } from '$tests/mocks/prisma';
+import { makeUpcomingCompetition } from '$tests/factories';
 
-// ── Hoisted mocks ──
-
-const mockFindMany = vi.fn();
-
-vi.mock('$lib/database/create_prisma_client', () => ({
-	prisma: {
-		competition: {
-			findMany: (...args: unknown[]) => mockFindMany(...args),
-		},
-	},
-}));
+vi.mock('$lib/database/create_prisma_client', () => ({ prisma: prismaMock }));
 
 import { getOtherUpcomingCompetitions } from './db_competition';
 
-// ── Helpers ──
-
-function makeCompetition(overrides: Partial<{
-	id: number;
-	name: string;
-	startDate: Date;
-	status: string;
-}> = {}) {
-	return {
-		id: overrides.id ?? 1,
-		name: overrides.name ?? 'Test Competition',
-		startDate: overrides.startDate ?? new Date('2026-07-01'),
-		status: overrides.status ?? 'NOT_STARTED',
-		categories: [],
-	};
-}
+const mockFindMany = prismaMock.competition.findMany;
 
 describe('getOtherUpcomingCompetitions', () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-	});
-
 	it('passes correct where clause including NOT_STARTED and STARTED statuses', async () => {
 		mockFindMany.mockResolvedValue([]);
 
@@ -123,10 +96,10 @@ describe('getOtherUpcomingCompetitions', () => {
 
 	it('returns competitions from Prisma', async () => {
 		const competitions = [
-			makeCompetition({ id: 1, startDate: new Date('2026-06-01') }),
-			makeCompetition({ id: 2, startDate: new Date('2026-07-01') }),
+			makeUpcomingCompetition({ id: 1, startDate: new Date('2026-06-01') }),
+			makeUpcomingCompetition({ id: 2, startDate: new Date('2026-07-01') }),
 		];
-		mockFindMany.mockResolvedValue(competitions);
+		mockFindMany.mockResolvedValue(competitions as never);
 
 		const result = await getOtherUpcomingCompetitions('user-1', 10, 0);
 

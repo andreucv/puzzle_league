@@ -9,12 +9,9 @@ vi.mock('$lib/database/db_competition', () => ({
 }));
 
 import { GET } from './+server';
+import { makeUpcomingCompetition } from '$tests/factories';
 
 // ── Helpers ──
-
-function makeCompetition(id: number) {
-	return { id, name: `Competition ${id}`, startDate: new Date('2026-07-01'), categories: [] };
-}
 
 function makeEvent(overrides: {
 	user?: { id: string; name: string } | null;
@@ -98,7 +95,7 @@ describe('GET /api/competitions/other-upcoming', () => {
 	// ── Successful response ──
 
 	it('returns competitions and hasMore=false when fewer than limit', async () => {
-		const competitions = [makeCompetition(1), makeCompetition(2)];
+		const competitions = [makeUpcomingCompetition({ id: 1 }), makeUpcomingCompetition({ id: 2 })];
 		mockGetOtherUpcoming.mockResolvedValue(competitions);
 
 		const response = await GET(makeEvent());
@@ -111,7 +108,7 @@ describe('GET /api/competitions/other-upcoming', () => {
 
 	it('returns hasMore=true when more results exist', async () => {
 		// Requesting limit=10, so query asks for 11. Return 11 to indicate more.
-		const competitions = Array.from({ length: 11 }, (_, i) => makeCompetition(i + 1));
+		const competitions = Array.from({ length: 11 }, (_, i) => makeUpcomingCompetition({ id: i + 1 }));
 		mockGetOtherUpcoming.mockResolvedValue(competitions);
 
 		const response = await GET(makeEvent());

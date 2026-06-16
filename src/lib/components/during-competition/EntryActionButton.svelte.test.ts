@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/svelte';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/svelte';
 
-vi.mock('$lib/translations', async () => import('../../../tests/mocks/translations'));
+vi.mock('$lib/translations', async () => import('$tests/mocks/translations'));
 
 import EntryActionButton from './EntryActionButton.svelte';
-import StubIcon from '../../../tests/mocks/StubIcon.svelte';
+import StubIcon from '$tests/mocks/StubIcon.svelte';
 
 function renderButton(overrides: Record<string, any> = {}) {
 	return render(EntryActionButton, {
@@ -20,10 +20,6 @@ function renderButton(overrides: Record<string, any> = {}) {
 }
 
 describe('EntryActionButton', () => {
-	beforeEach(() => {
-		cleanup();
-	});
-
 	it('applies the colorClass to the button', () => {
 		renderButton({ colorClass: 'preset-filled-warning-500' });
 		const btn = screen.getByRole('button');

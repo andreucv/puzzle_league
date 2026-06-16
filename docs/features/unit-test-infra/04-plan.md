@@ -5,8 +5,11 @@ feature: Unit testing infrastructure overhaul — env split, shared factories, t
 issue: null
 status: draft
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-16
 related:
+  - docs/features/unit-test-infra/05-workflow.md
+  - docs/features/unit-test-ci-gate/04-plan.md
+  - docs/features/unit-test-ci-gate/05-workflow.md
   - docs/features/e2e-infra-overhaul/04-plan.md
   - docs/features/e2e-testid-stabilization/04-plan.md
 ---
@@ -39,23 +42,32 @@ Current pain points this plan resolves (from the review):
   differs from `makeEntry` in registration-workflow). N sources of truth for one domain model.
 - **The framework is mocked.** 3 API-route suites `vi.mock('@sveltejs/kit')` to stub `json()`,
   asserting against a re-implementation of SvelteKit rather than a real `Response`.
-- **Two competing `$app/*` mock mechanisms.** [vite.config.ts:23-27](../../../vite.config.ts)
-  aliases `$app/navigation|environment|stores`, yet component suites *also*
-  `vi.mock('$app/stores', …)` via fragile `../../../tests/mocks/...` relative imports.
 - **Inlined jsdom polyfills.** [CategoryCard.test.ts:72-79](../../../src/lib/components/during-competition/CategoryCard.test.ts)
-  patches `Element.prototype.animate` / `getAnimations` inline (copy-paste fodder); manual
-  `cleanup()` in `beforeEach` instead of auto-cleanup in `afterEach`.
+  patches `Element.prototype.animate` / `getAnimations` inline (this is now the **only** file with
+  inline polyfills, but it's copy-paste fodder); manual `cleanup()` is called in **all 10** component
+  suites instead of a single auto-cleanup in `afterEach`.
 - **`src/tests/setup.ts` is one line** — only registers jest-dom matchers; no shared polyfills,
   cleanup, or mock registration.
+
+> **Verified against the tree on 2026-06-16** (34 test files total). Two things changed since this
+> plan was drafted: (a) the "two competing `$app/*` mock mechanisms" pain point is **resolved** — no
+> suite mocks `$app/stores`/`$app/state` inline anymore; the config alias is now the sole mechanism,
+> so it's dropped from the tasks below. (b) The component-suite count is **10, not 9** — the original
+> rename list omitted [Header.test.ts](../../../src/lib/components/common/layout/Header.test.ts).
+
+> **Prerequisite — now satisfied.** This plan assumed a green, CI-gated suite; that landed via
+> [unit-test-ci-gate](../unit-test-ci-gate/04-plan.md) (suite green at 318/318, `unit-tests`
+> workflow live). The restructure below is therefore **unblocked**, and every phase's "leaves
+> `pnpm test:unit` green" requirement is now an *enforced* gate, not an aspiration.
 
 Relevant docs: [docs/CONTRIBUTING.md](../../CONTRIBUTING.md) (testing expectations — update after
 this change), [docs/ARCHITECTURE.md](../../ARCHITECTURE.md) (stack, services, data model).
 
 ## Architecture and design
 
-Five independently-shippable phases, ordered by leverage. **Each phase leaves `pnpm test:unit`
-green.** Tests remain colocated throughout; the only file moves are the component-test renames in
-Phase 1.
+Five prioritized, independently-shippable steps (**P0–P4**, see the prioritized-actions table
+below), ordered by dependency then leverage. **Each step leaves `pnpm test:unit` green.** Tests
+remain colocated throughout; the only file moves are the component-test renames in P0.
 
 ### Target layout (`src/tests/`)
 
@@ -80,7 +92,7 @@ Discriminator is **filename**, not path, because route component tests
 route tests. Adopt the SvelteKit-official convention:
 
 - **`*.svelte.test.ts` → `client` project** — `environment: 'jsdom'`, `setup.client.ts`,
-  `resolve.conditions: ['browser']` scoped here only. (9 files renamed in Phase 1.)
+  `resolve.conditions: ['browser']` scoped here only. (**10** files renamed in P0.)
 - **`*.test.ts` (all others) → `server` project** — `environment: 'node'`, `setup.server.ts`,
   no browser conditions.
 
@@ -108,7 +120,7 @@ test: {
 One typed module exporting `makeCompetition`, `makeCategory`, `makeEntry`, and the
 API-route-shaped `makeEntryData`. Type the returns against the Prisma generated types
 (`$lib/.prisma/generated/...`) where practical so model drift surfaces at compile time. Per-file
-factory copies are deleted as each suite is migrated (Phase 2).
+factory copies are deleted as each suite is migrated (P3).
 
 ### Typed Prisma mock (`src/tests/mocks/prisma.ts`)
 
@@ -136,54 +148,135 @@ Per the request, one fully-migrated **server** suite
 **client** suite ([EntryRow.test.ts](../../../src/lib/components/during-competition/EntryRow.test.ts)
 → `EntryRow.svelte.test.ts`) land first as the pattern other migrations follow.
 
+## Prioritized actions
+
+Ordered by **dependency then leverage**. The env split (P0) is the keystone enabler — it must land
+first because everything else assumes a `server`/`node` and `client`/`jsdom` project exist. After
+that, the order maximises value-per-risk: type-safety (P1) before the DRY cleanup that feeds it (P2
+is intentionally folded *under* the typed mock — see note), the small high-correctness framework-mock
+removal (P2), then docs.
+
+| Priority | Action | Files touched | Value | Effort | Risk | Independent of P0? |
+|---|---|---|---|---|---|---|
+| **P0** | Environment split + shared setup/scaffolding | `vite.config.ts`, 2 new setup files, **10** renames | **High** (fixes the backwards browser-build-for-server-code bug; enabler for all) | High | Med (10 renames + config) | — (is the enabler) |
+| **P1** | Typed Prisma mock | 1 new mock module, **8** suite migrations | **High** (kills `makeTx()`, type-safety, removes ~28 casts in prisma suites) | Med | Med | Yes, but cleaner after split (these are node suites) |
+| **P2** | Drop framework (`@sveltejs/kit`) mocks | **3** API-route suites | Med-High (assert a *real* `Response`) | Low | Low | Yes (quick win) |
+| **P3** | Shared factories | 1 new module, **10** suite migrations | Med (one source of truth; ends fixture drift) | Med | Low | Yes |
+| **P4** | Docs + verification + close-out | `CONTRIBUTING.md`, graphify, `/feature-doc` | Med (lifecycle gate) | Low | — | — |
+
+**Overlap to sequence deliberately:** `cron/auto-cancel.test.ts` is in **both** the Prisma-mock set
+(P1) and the framework-mock set (P2). Migrate it once — drop its `@sveltejs/kit` mock in the same
+pass that moves it onto `prismaMock` — rather than touching it twice.
+
+**Scope note on `as any` / `as never`:** the typed Prisma mock removes the casts in the **8
+`create_prisma_client` suites** (heaviest: `category-lifecycle-autostop`, ~23). It does **not** touch
+the casts in [auto-stop-scheduler.test.ts](../../../src/lib/services/auto-stop-scheduler.test.ts)
+(~8), [auto-stop-webhook.test.ts](../../../src/lib/services/auto-stop-webhook.test.ts) (~2), or
+[registration_notifications.test.ts](../../../src/lib/notifications/registration_notifications.test.ts)
+(~9) — those mock other modules (schedulers/enums), and cleaning them is a separate follow-up, not
+part of this plan.
+
 ## Tasks
 
-### Phase 1 — Environment split + scaffolding (enabler; no assertion changes)
-- [ ] Add `$tests` alias and split `test` into `server`/`client` `projects` in
-      [vite.config.ts](../../../vite.config.ts); scope `conditions: ['browser']` to the client
-      project; keep `$app/*` aliases global.
-- [ ] Create `src/tests/setup.client.ts` (jest-dom matchers, WAAPI polyfills moved out of
-      CategoryCard, `afterEach(cleanup)`) and `src/tests/setup.server.ts` (minimal). Delete the
-      one-line `src/tests/setup.ts`.
-- [ ] Rename the 9 component suites to `*.svelte.test.ts` (`DrawerNav`, `CategoryCapacityRow`,
-      `CategoryCard`, `EntryActionButton`, `EntryList`, `EntryRow`, `OverflowMenu`, `login`,
-      `home-page`); remove their inline `vi.mock('$app/stores', …)` and inline polyfills/`cleanup()`
-      now covered by config alias + setup.
-- [ ] Repoint mock imports to the `$tests` alias; run `pnpm test:unit` — both projects green.
+### P0 — Environment split + scaffolding (enabler; no assertion changes) ✅
+- [x] Add `$tests` alias and split the single `test` block into `server`/`client` `projects` in
+      [vite.config.ts](../../../vite.config.ts); `conditions: ['browser']` scoped to the **client**
+      project only; `$app/*` + `$tests` aliases global; `coverage`/`clearMocks`/thresholds kept at the
+      shared root `test` level (both projects inherit via `extends: true`). `$tests` also added to
+      `svelte.config.js` `kit.alias` so `pnpm check` resolves it.
+- [x] Create [src/tests/setup.client.ts](../../../src/tests/setup.client.ts) (jest-dom matchers +
+      WAAPI polyfills lifted out of CategoryCard + `afterEach(cleanup)`) and
+      [src/tests/setup.server.ts](../../../src/tests/setup.server.ts) (minimal). Deleted the one-line
+      `src/tests/setup.ts`.
+- [x] Renamed the **10** component suites to `*.svelte.test.ts` (incl. `Header`), deleted redundant
+      manual `cleanup()`, lifted CategoryCard's inline polyfills, and dropped the now-redundant inline
+      `vi.mock('$app/stores'|'$app/navigation')` (config alias covers them; `Header`'s `$app/state`
+      mock is kept — not aliased).
+- [x] Repointed mock/factory imports to the `$tests` alias.
+- [x] Reference pair landed: server `registration-workflow.test.ts` (already `create_prisma_client`
+      based) and client `EntryRow.svelte.test.ts`.
+- [x] `pnpm test:unit` (server 23f/208t, client 11f/110t) + `pnpm check` (0 errors) green.
 
-### Phase 2 — Shared factories
-- [ ] Create `src/tests/factories.ts` (`makeCompetition/Category/Entry/EntryData`, typed).
-- [ ] Migrate the 10 suites with local factories onto `$tests/factories`; delete the per-file
-      copies. Green after each.
+### P1 — Typed Prisma mock ✅
+- [x] Added `vitest-mock-extended`; created [src/tests/mocks/prisma.ts](../../../src/tests/mocks/prisma.ts)
+      exporting `prismaMock = mockDeep<PrismaClient>()`, a module-scoped `beforeEach(mockReset)`, a
+      `mockPrismaTransaction()` helper for the interactive `$transaction` callback, and a `mockFn()`
+      helper that narrows a deep-mocked method to vitest's `Mock` so partial fixtures type-check
+      (method NAME stays validated; full payload typing is P3's job). Overloaded methods
+      (`groupBy`/`aggregate`) use `vi.mocked(...)`.
+- [x] Migrated [registration-workflow.test.ts](../../../src/lib/services/registration-workflow.test.ts):
+      `makeTx()` now exposes the deep mock's methods (same test API), `$transaction` driven by the
+      same mock; removed the hand-rolled `vi.fn()` tx and `vi.clearAllMocks()`.
+- [x] Migrated the other **7** `create_prisma_client` suites onto `prismaMock` (green after each):
+      [db_competition_categories](../../../src/lib/database/db_competition_categories.test.ts),
+      [db_competition_other_upcoming](../../../src/lib/database/db_competition_other_upcoming.test.ts),
+      [dispatcher](../../../src/lib/notifications/dispatcher.test.ts),
+      [auto-cancel (service)](../../../src/lib/services/auto-cancel.test.ts),
+      [category-lifecycle-autostop](../../../src/lib/services/category-lifecycle-autostop.test.ts),
+      [competition-access](../../../src/lib/services/competition-access.test.ts),
+      [cron/auto-cancel](../../../src/routes/(internal)/api/cron/auto-cancel/auto-cancel.test.ts)
+      *(do P2's framework-mock removal in this same pass — see overlap note)*.
 
-### Phase 3 — Typed Prisma mock
-- [ ] Add `vitest-mock-extended` (devDependency); create `src/tests/mocks/prisma.ts`.
-- [ ] Migrate [registration-workflow.test.ts](../../../src/lib/services/registration-workflow.test.ts)
-      as the reference (remove `makeTx()`), then the other 7 hand-mock suites.
-
-### Phase 4 — Drop framework mocks
-- [ ] Remove `vi.mock('@sveltejs/kit')` from the 3 API-route suites
-      ([confirm](../../../src/routes/(internal)/api/registrations/[id]/confirm/confirm.test.ts),
+### P2 — Drop framework mocks ✅
+- [x] Removed `vi.mock('@sveltejs/kit')` from all 3 API-route suites; assertions now read a real
+      `Response` (`await response.json()` + `response.status`):
+      [confirm](../../../src/routes/(internal)/api/registrations/[id]/confirm/confirm.test.ts),
       [refuse](../../../src/routes/(internal)/api/registrations/[id]/refuse/refuse.test.ts),
-      [auto-cancel](../../../src/routes/(internal)/api/cron/auto-cancel/auto-cancel.test.ts)); adjust
-      assertions to read the real `Response`.
+      [cron/auto-cancel](../../../src/routes/(internal)/api/cron/auto-cancel/auto-cancel.test.ts)
+      (the last migrated in the same pass as its P1 Prisma migration).
 
-### Phase 5 — Docs, verification, close-out
-- [ ] Update [docs/CONTRIBUTING.md](../../CONTRIBUTING.md) testing section: env-split convention
-      (`*.svelte.test.ts` = jsdom), where fixtures/mocks live, how to mock Prisma.
-- [ ] **Verify:** run `pnpm test:unit` (and `pnpm check`) — full suite green across both projects;
-      spot-run the reference pair in isolation.
-- [ ] Run `graphify update .` to refresh the knowledge graph.
-- [ ] **Run `/feature-doc` (Stage 5)** once merged to produce `05-workflow.md`.
+### P3 — Shared factories ✅
+- [x] Created [src/tests/factories.ts](../../../src/tests/factories.ts) with the two genuinely
+      **duplicated** shapes: `makeEntryData` (entry + participants + category→competition relation)
+      and `makeUpcomingCompetition` (discovery competition shape).
+- [x] Migrated the **5** consumers of those shapes onto `$tests/factories` (green after each):
+      `makeEntryData` →
+      [confirm](../../../src/routes/(internal)/api/registrations/[id]/confirm/confirm.test.ts),
+      [refuse](../../../src/routes/(internal)/api/registrations/[id]/refuse/refuse.test.ts),
+      [registration_notifications](../../../src/lib/notifications/registration_notifications.test.ts);
+      `makeUpcomingCompetition` →
+      [db_competition_other_upcoming](../../../src/lib/database/db_competition_other_upcoming.test.ts),
+      [other-upcoming (api)](../../../src/routes/(internal)/api/competitions/other-upcoming/other-upcoming.test.ts).
 
-## Open questions
+> **Scope correction (verified against the tree):** the plan assumed `makeCompetition`/`makeCategory`/
+> `makeEntry` were re-declared across ~10 suites. In reality only the two shapes above were *truly
+> duplicated*. The remaining local factories are **single-use with divergent, test-meaningful
+> shapes**: the component-render `makeCategory` in
+> [CategoryCard](../../../src/lib/components/during-competition/CategoryCard.svelte.test.ts) and
+> [CategoryCapacityRow](../../../src/lib/components/competition/CategoryCapacityRow.svelte.test.ts),
+> the presentation `makeCompetition` in
+> [home-page](../../../src/routes/home-page.svelte.test.ts), the auto-cancel `makeCompetition`
+> ([auto-cancel](../../../src/lib/services/auto-cancel.test.ts)), and the registration-workflow domain
+> trio ([registration-workflow](../../../src/lib/services/registration-workflow.test.ts)). Each has a
+> single consumer; centralising them would add coupling without removing duplication (CLAUDE.md
+> simplicity), so they stay colocated.
 
-1. **Real-DB integration tier?** Should the hairy workflow modules (waitlist promotion in
-   `registration-workflow`, `auto-cancel`) get a `*.integration.test.ts` tier against the e2e
-   Postgres DB, or is the typed mock enough for now? (Deferred by default — heavier, slower.)
-2. **File-naming convention** — adopt `*.svelte.test.ts` for jsdom (recommended; matches SvelteKit
-   docs and survives file moves), or keep `*.test.ts` everywhere and split by include-glob (more
-   config, breaks when a component test moves under `src/routes`)?
-3. **Enable Vitest `globals: true`?** Would let `@testing-library/svelte` auto-register cleanup and
-   drop per-file `vitest` imports, but touches every file's import line. Default: **no** — keep
-   explicit imports, put `afterEach(cleanup)` in `setup.client.ts`.
+### P4 — Docs, verification, close-out ✅
+- [x] Updated [docs/CONTRIBUTING.md](../../CONTRIBUTING.md) with a "Unit test conventions" section:
+      the `*.svelte.test.ts` = jsdom split, `$tests/*` scaffolding, the typed `prismaMock`, global
+      `$app/*` aliasing, real-`Response` assertions, and global `clearMocks`.
+- [x] **Verified:** `pnpm test:unit` 318/318 across both projects (server 23f/208t, client 11f/110t),
+      `pnpm check` 0 errors, `pnpm test:unit:coverage` above the
+      [ci-gate](../unit-test-ci-gate/04-plan.md) floor (Stmts 21.02 / Branch 22.96 / Funcs 19.2 /
+      Lines 21.47).
+- [x] Ran `graphify update .` to refresh the knowledge graph.
+- [x] **Run `/feature-doc` (Stage 5)** → [05-workflow.md](./05-workflow.md).
+
+## Open questions — resolved (2026-06-16)
+
+1. **Real-DB integration tier?** → **No — the typed mock is enough for now.** The unit layer stays
+   mock-based; no `*.integration.test.ts` tier against Postgres in this plan.
+2. **File-naming convention?** → **Adopt `*.svelte.test.ts` for jsdom** (matches SvelteKit docs,
+   survives file moves). This is the discriminator the P0 env split uses.
+3. **Enable Vitest `globals: true`?** → **No (keep the default).** Keep explicit `vitest` imports and
+   put `afterEach(cleanup)` in `setup.client.ts`. Captured as a **follow-up task** (see below), not
+   done in this plan.
+
+## Follow-up tasks (out of scope here)
+
+- **`globals: true`** sweep — auto-register cleanup and drop per-file `vitest` imports across all
+  suites (deferred per Q3).
+- **Remaining `as any` / `as never` casts** not covered by the typed Prisma mock:
+  [auto-stop-scheduler.test.ts](../../../src/lib/services/auto-stop-scheduler.test.ts) (~8),
+  [auto-stop-webhook.test.ts](../../../src/lib/services/auto-stop-webhook.test.ts) (~2),
+  [registration_notifications.test.ts](../../../src/lib/notifications/registration_notifications.test.ts) (~9).

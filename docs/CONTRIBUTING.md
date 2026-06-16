@@ -11,8 +11,10 @@ Useful commands:
 - `pnpm dev` starts the Vite dev server.
 - `pnpm check` runs SvelteKit sync and `svelte-check`.
 - `pnpm test:unit` runs Vitest tests under `src/**/*.test.ts`.
+- `pnpm test:unit:coverage` runs the unit suite with v8 coverage (text + HTML in `coverage/`, plus `lcov`).
 - `pnpm test:e2e` runs Playwright tests under `e2e/`.
 - `pnpm test` runs unit tests and E2E tests.
+- `pnpm format` / `pnpm format:check` write / check Prettier formatting.
 - `pnpm build` creates the production build.
 
 ## Code Guidelines
@@ -33,6 +35,14 @@ Edit `prisma/schema.prisma` and add migrations for data model changes. Do not ed
 
 Add focused Vitest coverage for services, utilities, API guards, and reusable components. Add Playwright coverage for participant, organizer, admin, onboarding, registration, or competition-day workflows.
 
+Unit test conventions (`src/**/*.test.ts`, colocated with the code):
+
+- **Environment split by filename.** Vitest runs two projects (`vite.config.ts`). Component/Svelte suites are named `*.svelte.test.ts` and run in the **client** project (jsdom + browser resolve conditions); everything else (`*.test.ts`) runs in the **server** project (node, no browser conditions). Name a new component test `Foo.svelte.test.ts` so it lands in jsdom.
+- **Shared scaffolding lives in `src/tests/`, imported via the `$tests` alias** (not `../../../tests/...`): `setup.client.ts` (jest-dom matchers, Web Animations polyfills, `afterEach(cleanup)` — no manual `cleanup()` needed), `setup.server.ts`, `factories.ts` (shared fixtures like `makeEntryData`), and `mocks/` (`prisma.ts`, `translations`, `app_stores`, `auth_client`, `StubIcon.svelte`).
+- **Mock Prisma with the typed deep mock.** `import { prismaMock } from '$tests/mocks/prisma'` then `vi.mock('$lib/database/create_prisma_client', () => ({ prisma: prismaMock }))`. `prismaMock` auto-resets before each test. Use `mockFn(prismaMock.x.y)` to set partial-fixture return values, `vi.mocked(prismaMock.x.groupBy)` for overloaded methods, and `mockPrismaTransaction()` for interactive `$transaction` callbacks. Don't hand-roll `makeTx()` objects.
+- **`$app/*` is mocked globally** through the `vite.config.ts` test alias — don't re-`vi.mock('$app/stores')` in a suite. Assert API routes against a **real** `Response` (`await response.json()` / `response.status`); don't mock `@sveltejs/kit`.
+- **No per-file `vi.clearAllMocks()`** — `clearMocks: true` is global.
+
 E2E conventions (`e2e/`):
 
 - **Roles come from fixtures, not file names.** Import `test` from `e2e/fixtures.ts` and request `participantPage`, `organizerPage`, `adminPage`, or `actor` (UI login as a seed-created user). Never inline `playwright/.auth/...` paths; use the `AUTH_FILES` map for `test.use({ storageState })`.
@@ -43,3 +53,12 @@ E2E conventions (`e2e/`):
 - **Server lifecycle:** `scripts/e2e-server.ts` prepares the test DB, builds (hash-cached), and serves; Playwright launches it via `webServer`. Run it manually in a terminal to keep a warm server across local runs.
 
 Before opening a PR, run the smallest relevant tests plus `pnpm check`; run `pnpm test` for broad workflow or schema changes. Keep PRs scoped, mention migrations/env changes, and include the commands you ran.
+
+### CI gate (unit layer)
+
+`.github/workflows/unit-tests.yaml` runs on every PR into `main`/`test` and on pushes to those branches. It installs with a frozen lockfile, then runs `pnpm check` (type-check) and `pnpm test:unit:coverage`. The unit layer is fully mocked, so no Postgres or secrets are needed — the workflow seeds dummy `$env/static/*` values only so the type-check resolves. e2e/Playwright is **not** part of this gate.
+
+- **Green before merge.** Keep the unit suite green; the gate blocks a red suite.
+- **Coverage is a regression-only floor.** `vite.config.ts` pins thresholds a couple points below the measured baseline, so CI fails on a coverage *drop*, not on missing tests. Raise the floor deliberately when you add coverage.
+- **Format gate is changed-files-only.** The PR run Prettier-checks just the `.ts`/`.js` files your PR adds or modifies under `src/` (the legacy tree predates Prettier and is untouched; `.svelte` is excluded — no Svelte parser is configured). Run `pnpm format` to fix your files before pushing.
+- **Branch protection is a repo setting, not a file.** To make this check required, enable branch protection on `main` (and `test`) in GitHub repo settings → Branches, and add `unit-tests / unit-tests` as a required status check.

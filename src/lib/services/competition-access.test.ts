@@ -1,27 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Role } from '$lib/.prisma/generated/prisma/enums';
+import { prismaMock, mockFn } from '$tests/mocks/prisma';
 
-const mockCompetitionFindUnique = vi.fn();
-const mockRoleAssignmentFindFirst = vi.fn();
-const mockCompetitionCoorganizerRoleAssignmentFindFirst = vi.fn();
-const mockCategoryJudgeAssignmentFindMany = vi.fn();
-const mockCategoryFindMany = vi.fn();
-const mockCategoryFindUnique = vi.fn();
-const mockEntryFindUnique = vi.fn();
+vi.mock('$lib/database/create_prisma_client', () => ({ prisma: prismaMock }));
 
-vi.mock('$lib/database/create_prisma_client', () => ({
-	prisma: {
-		competition: { findUnique: (...args: unknown[]) => mockCompetitionFindUnique(...args) },
-		roleAssignment: { findFirst: (...args: unknown[]) => mockRoleAssignmentFindFirst(...args) },
-		competitionCoorganizerRoleAssignment: { findFirst: (...args: unknown[]) => mockCompetitionCoorganizerRoleAssignmentFindFirst(...args) },
-		categoryJudgeAssignment: { findMany: (...args: unknown[]) => mockCategoryJudgeAssignmentFindMany(...args) },
-		category: {
-			findMany: (...args: unknown[]) => mockCategoryFindMany(...args),
-			findUnique: (...args: unknown[]) => mockCategoryFindUnique(...args),
-		},
-		entry: { findUnique: (...args: unknown[]) => mockEntryFindUnique(...args) },
-	},
-}));
+const mockCompetitionFindUnique = mockFn(prismaMock.competition.findUnique);
+const mockRoleAssignmentFindFirst = mockFn(prismaMock.roleAssignment.findFirst);
+const mockCompetitionCoorganizerRoleAssignmentFindFirst = mockFn(prismaMock.competitionCoorganizerRoleAssignment.findFirst);
+const mockCategoryJudgeAssignmentFindMany = mockFn(prismaMock.categoryJudgeAssignment.findMany);
+const mockCategoryFindUnique = mockFn(prismaMock.category.findUnique);
+const mockEntryFindUnique = mockFn(prismaMock.entry.findUnique);
 
 import {
 	getCompetitionAccess,
@@ -31,7 +19,6 @@ import {
 } from './competition-access';
 
 beforeEach(() => {
-	vi.clearAllMocks();
 	// Defaults: no access
 	mockCompetitionFindUnique.mockResolvedValue({ creatorId: 'other-user' });
 	mockRoleAssignmentFindFirst.mockResolvedValue(null);

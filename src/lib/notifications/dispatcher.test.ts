@@ -1,15 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { prismaMock } from '$tests/mocks/prisma';
 
-const mockCreateMany = vi.fn().mockResolvedValue({ count: 1 });
 const mockCapture = vi.fn();
 
-vi.mock('$lib/database/create_prisma_client', () => ({
-	prisma: {
-		notification: {
-			createMany: (...args: unknown[]) => mockCreateMany(...args),
-		},
-	},
-}));
+vi.mock('$lib/database/create_prisma_client', () => ({ prisma: prismaMock }));
+
+const mockCreateMany = prismaMock.notification.createMany;
 
 vi.mock('$lib/.prisma/generated/prisma/enums', () => ({
 	NotificationType: {
@@ -52,7 +48,6 @@ const nonEmailIntent: NotificationIntent = {
 
 describe('dispatchNotifications', () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
 		mockCreateMany.mockResolvedValue({ count: 1 });
 	});
 

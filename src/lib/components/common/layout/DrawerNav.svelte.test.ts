@@ -1,9 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/svelte';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/svelte';
 
-vi.mock('$lib/translations', async () => import('../../../../tests/mocks/translations'));
-vi.mock('$lib/auth_client', async () => import('../../../../tests/mocks/auth_client'));
-vi.mock('$app/stores', async () => import('../../../../tests/mocks/app_stores'));
+vi.mock('$lib/translations', async () => import('$tests/mocks/translations'));
+vi.mock('$lib/auth_client', async () => import('$tests/mocks/auth_client'));
 vi.mock('$lib/stores/drawer.svelte', () => ({
 	drawerState: { open: false },
 }));
@@ -14,10 +13,6 @@ import { notificationState } from '$lib/stores/notifications.svelte';
 const baseMockUser = { id: '1', name: 'Test User', email: 'test@example.com', image: null };
 
 describe('DrawerNav - Anonymous user', () => {
-	beforeEach(() => {
-		cleanup();
-	});
-
 	it('shows home and competitions links', () => {
 		render(DrawerNav, { props: { user: null } });
 
@@ -51,10 +46,6 @@ describe('DrawerNav - Anonymous user', () => {
 });
 
 describe('DrawerNav - Participant user', () => {
-	beforeEach(() => {
-		cleanup();
-	});
-
 	it('shows home and competitions links', () => {
 		render(DrawerNav, { props: { user: { ...baseMockUser, roleAssignments: [] } } });
 
@@ -97,10 +88,6 @@ describe('DrawerNav - Participant user', () => {
 });
 
 describe('DrawerNav - Organizer user', () => {
-	beforeEach(() => {
-		cleanup();
-	});
-
 	const organizerUser = { ...baseMockUser, roleAssignments: [{ role: 'ORGANIZER' }] };
 
 	it('shows create competition link', () => {
@@ -129,10 +116,6 @@ describe('DrawerNav - Organizer user', () => {
 });
 
 describe('DrawerNav - Admin user', () => {
-	beforeEach(() => {
-		cleanup();
-	});
-
 	const adminUser = { ...baseMockUser, roleAssignments: [{ role: 'ADMIN' }] };
 
 	it('shows review permissions requests link', () => {

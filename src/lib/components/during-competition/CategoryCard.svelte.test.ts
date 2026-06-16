@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/svelte';
+import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 
-vi.mock('$lib/translations', async () => import('../../../tests/mocks/translations'));
-vi.mock('$app/stores', async () => import('../../../tests/mocks/app_stores'));
+vi.mock('$lib/translations', async () => import('$tests/mocks/translations'));
 vi.mock('$lib/api/category-actions', () => ({
 	executeCategoryAction: vi.fn(() => Promise.resolve({ ok: true, category: {} }))
 }));
@@ -66,17 +65,9 @@ describe('CategoryCard', () => {
 	let fetchMock: ReturnType<typeof vi.fn>;
 
 	beforeEach(() => {
-		cleanup();
+		// Web Animations API polyfills live in src/tests/setup.client.ts; auto-cleanup runs there too.
 		fetchMock = mockFetchRecords();
 		vi.stubGlobal('fetch', fetchMock);
-		// JSDOM doesn't implement the Web Animations API used by Svelte's flip/animate
-		if (!Element.prototype.animate) {
-			Element.prototype.animate = vi.fn(() => ({ cancel: vi.fn(), finished: Promise.resolve() })) as any;
-		}
-		// Svelte's slide outro calls getAnimations(); jsdom lacks it
-		if (!Element.prototype.getAnimations) {
-			Element.prototype.getAnimations = vi.fn(() => []) as any;
-		}
 	});
 
 	afterEach(() => {

@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/svelte';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/svelte';
 
-vi.mock('$lib/translations', async () => import('../../../tests/mocks/translations'));
+vi.mock('$lib/translations', async () => import('$tests/mocks/translations'));
 
 import EntryRow from './EntryRow.svelte';
 
@@ -39,10 +39,6 @@ function renderRow(props: Record<string, any> = {}) {
 }
 
 describe('EntryRow', () => {
-	beforeEach(() => {
-		cleanup();
-	});
-
 	it('renders with data-testid based on record id', () => {
 		renderRow({ record: makeRecord({ id: 'rec-42' }) });
 		expect(screen.getByTestId('record-row-rec-42')).toBeInTheDocument();

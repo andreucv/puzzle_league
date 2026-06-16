@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Progress } from '@skeletonlabs/skeleton-svelte';
     import { getCategoryTypeName, getCategoryTypeIcon, getCategoryStatusVisual } from '$lib/utils/category_utils';
+    import { getCapacityLevel, type CapacityLevel } from '$lib/utils/capacity';
     import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
     import { t } from '$lib/translations';
     import AccountGroupOutlineIcon from '@iconify-svelte/mdi/account-group-outline';
@@ -54,8 +55,12 @@
 
     // Capacity derivations (no overbooked: label clamps to max, bar value clamps to max)
     const reserved = $derived(max != null ? Math.min(count, max) : count);
-    const spotsLeft = $derived(max != null ? Math.max(0, max - count) : 0);
-    const rangeClass = $derived(spotsLeft <= 0 ? 'bg-error-500' : spotsLeft <= 3 ? 'bg-warning-500' : 'bg-success-500');
+    const CAPACITY_RANGE_CLASS: Record<CapacityLevel, string> = {
+        full: 'bg-error-500',
+        low: 'bg-warning-500',
+        available: 'bg-success-500'
+    };
+    const rangeClass = $derived(CAPACITY_RANGE_CLASS[max != null ? getCapacityLevel(count, max) : 'available']);
 </script>
 
 <div class="flex items-center gap-2 w-full">

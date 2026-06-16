@@ -30,42 +30,19 @@ function renderRow(
 }
 
 describe("CategoryCapacityRow", () => {
+    // NOTE: the count→fill-level threshold logic (success/warning/error range) is unit
+    // tested directly in src/lib/utils/capacity.test.ts. These tests only assert the
+    // user-facing N/max label so they don't break on a styling/class rename.
     describe("capacity bar (capped + NOT_STARTED)", () => {
-        it("shows N/max and a success range when there is plenty of room", () => {
-            const { container } = renderRow({
-                maxParties: 12,
-                _count: { entries: 3 },
-            });
+        it("shows the N/max label when capped and upcoming", () => {
+            renderRow({ maxParties: 12, _count: { entries: 3 } });
             expect(screen.getByText("3/12")).toBeInTheDocument();
-            expect(container.querySelector(".bg-success-500")).not.toBeNull();
-        });
-
-        it("shows a warning range when 3 or fewer spots remain", () => {
-            const { container } = renderRow({
-                maxParties: 12,
-                _count: { entries: 10 },
-            });
-            expect(screen.getByText("10/12")).toBeInTheDocument();
-            expect(container.querySelector(".bg-warning-500")).not.toBeNull();
-        });
-
-        it("shows an error range when full", () => {
-            const { container } = renderRow({
-                maxParties: 12,
-                _count: { entries: 12 },
-            });
-            expect(screen.getByText("12/12")).toBeInTheDocument();
-            expect(container.querySelector(".bg-error-500")).not.toBeNull();
         });
 
         it("clamps the label to max when overbooked (no overbooked shown)", () => {
-            const { container } = renderRow({
-                maxParties: 12,
-                _count: { entries: 15 },
-            });
+            renderRow({ maxParties: 12, _count: { entries: 15 } });
             expect(screen.getByText("12/12")).toBeInTheDocument();
             expect(screen.queryByText("15/12")).toBeNull();
-            expect(container.querySelector(".bg-error-500")).not.toBeNull();
         });
     });
 

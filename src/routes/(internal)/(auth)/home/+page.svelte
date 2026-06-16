@@ -76,7 +76,7 @@
         </section>
     {:then startedCompetitions}
         {#if startedCompetitions}
-            <section>
+            <section data-testid="live-now-section">
                 <GenericTitle text={$t('landing_page.live_now')} />
                 {#if startedCompetitions.length > 0}
                     <CompetitionList competitions={startedCompetitions} n_show={2} currentUsedId={data.user.id} />
@@ -108,7 +108,7 @@
             </div>
         </section>
     {:then upcomingRegisteredCompetitions}
-        <section>
+        <section data-testid="my-upcoming-section">
             {#if upcomingRegisteredCompetitions && upcomingRegisteredCompetitions.length === 0}
                 <GenericTitle text={$t('landing_page.no_upcoming_competitions')} />
                 <p class="text-surface-500">{$t('landing_page.no_upcoming_competitions_detail')}</p>
@@ -137,7 +137,7 @@
         </section>
     {:then lastResults}
         {#if lastResults}
-            <section>
+            <section data-testid="last-results-section">
                 <GenericTitle text={$t('landing_page.my_last_results')} />
                 {#if lastResults.length > 0}
                     <LastResultsList results={lastResults} currentUserId={data.user.id} />

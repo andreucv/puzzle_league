@@ -95,21 +95,21 @@ describe('Authenticated Home Page', () => {
 			},
 		});
 
+		const expectedOrder = [
+			'live-now-section',
+			'my-upcoming-section',
+			'last-results-section',
+			'other-upcoming-section',
+		];
+
 		await waitFor(() => {
-			const allText = document.body.textContent ?? '';
-			const livePos = allText.indexOf('landing_page.live_now');
-			const upcomingPos = allText.indexOf('landing_page.my_upcoming_competitions');
-			const lastResultsPos = allText.indexOf('landing_page.my_last_results');
-			const otherPos = allText.indexOf('competitions.other_upcoming_competitions');
+			// Assert DOM order by testid rather than the position of translated text in the
+			// body string — resilient to copy changes and to text appearing elsewhere.
+			const renderedOrder = Array.from(document.querySelectorAll('[data-testid]'))
+				.map((el) => el.getAttribute('data-testid'))
+				.filter((id): id is string => expectedOrder.includes(id ?? ''));
 
-			expect(livePos).toBeGreaterThan(-1);
-			expect(upcomingPos).toBeGreaterThan(-1);
-			expect(lastResultsPos).toBeGreaterThan(-1);
-			expect(otherPos).toBeGreaterThan(-1);
-
-			expect(livePos).toBeLessThan(upcomingPos);
-			expect(upcomingPos).toBeLessThan(lastResultsPos);
-			expect(lastResultsPos).toBeLessThan(otherPos);
+			expect(renderedOrder).toEqual(expectedOrder);
 		});
 	});
 

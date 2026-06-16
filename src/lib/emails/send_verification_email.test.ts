@@ -55,13 +55,7 @@ describe('sendVerificationEmail', () => {
 		consoleSpy.mockRestore();
 	});
 
-	it('Given valid email, when Resend throws non-Error, then returns failure with generic message', async () => {
-		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-		mockSend.mockRejectedValue('network timeout');
-
-		const result = await sendVerificationEmail('user@test.com', 'https://app.test/verify?token=abc');
-
-		expect(result).toEqual({ success: false, error: 'Unknown error' });
-		consoleSpy.mockRestore();
-	});
+	// NOTE: the non-Error → 'Unknown error' normalization is identical across both email
+	// senders; its canonical coverage lives in send_password_reset_email.test.ts. This file
+	// keeps only the verification-specific behaviour (tri-lingual content + its own catch).
 });

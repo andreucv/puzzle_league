@@ -1022,6 +1022,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.start_time')}</span>
                                     <input
                                         type="time"
+                                        lang={data.i18n.locale}
                                         class="input bg-primary-50-950"
                                         class:input-error={cat.errors?.startTime}
                                         data-testid="start-time-update-{i}"
@@ -1057,6 +1058,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.end_time')}</span>
                                     <input
                                         type="time"
+                                        lang={data.i18n.locale}
                                         class="input bg-primary-50-950"
                                         class:input-error={cat.errors?.endTime}
                                         data-testid="end-time-update-{i}"
@@ -1229,6 +1231,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.start_time')}</span>
                                     <input
                                         type="time"
+                                        lang={data.i18n.locale}
                                         class="input bg-primary-50-950"
                                         class:input-error={cat.errors?.startTime}
                                         data-testid="start-time-create-{i}"
@@ -1264,6 +1267,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.end_time')}</span>
                                     <input
                                         type="time"
+                                        lang={data.i18n.locale}
                                         class="input bg-primary-50-950"
                                         class:input-error={cat.errors?.endTime}
                                         data-testid="end-time-create-{i}"

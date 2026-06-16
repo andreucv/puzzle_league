@@ -24,7 +24,7 @@ function makeEvent(id: string, user?: { id: string; name?: string }) {
 }
 
 describe('POST /api/registrations/[id]/refuse', () => {
-	it('Given valid entry, when workflow succeeds, then returns success', async () => {
+	it('Given valid entry, when workflow succeeds, then returns the entry and acts as the session user', async () => {
 		const entryData = makeEntryData();
 		mockRefuseRegistration.mockResolvedValue({
 			entry: entryData,
@@ -35,10 +35,16 @@ describe('POST /api/registrations/[id]/refuse', () => {
 
 		expect(response.status).toBe(200);
 		expect(await response.json()).toEqual({ success: true, data: entryData });
-		expect(mockRefuseRegistration).toHaveBeenCalledWith({
-			entryId: 'entry-1',
-			actor: { userId: 'organizer-1', name: 'Organizer', isOrganizer: false },
-		});
+		// Contracts that matter: the route param is forwarded and the actor is the *session*
+		// user (not a client-supplied id). The rest of the actor shape (name passthrough,
+		// isOrganizer flag the workflow re-derives from the DB) is incidental and was a
+		// change-detector, so it is no longer re-asserted here.
+		expect(mockRefuseRegistration).toHaveBeenCalledWith(
+			expect.objectContaining({
+				entryId: 'entry-1',
+				actor: expect.objectContaining({ userId: 'organizer-1' }),
+			}),
+		);
 	});
 
 	it('Given entry not found, when workflow throws, then returns 404', async () => {

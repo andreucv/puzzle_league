@@ -395,6 +395,7 @@
     "empty_spots": "llocs buits",
     "organizer_mode": "Mode d'organitzador - els organitzadors poden crear inscripcions sense límit i es confirmen automàticament.",
     "registration_not_available": "Les inscripcions no estan disponibles per aquesta categoria.",
+    "category_registration_closed": "La inscripció està tancada per aquesta categoria.",
     "status_confirmed": "Confirmat",
     "status_pending_confirmation": "Pendent de confirmació",
     "status_waitlisted": "En llista d'espera",
@@ -922,6 +923,9 @@
     "open_registration": "Obrir",
     "add_categories_first": "Afegeix categories abans d'obrir la inscripció.",
     "toggle_error": "Error en actualitzar l'estat de la inscripció.",
+    "category_registration_open": "Oberta",
+    "category_registration_closed": "Tancada",
+    "category_registration_toggle": "Obrir o tancar la inscripció d'aquesta categoria",
     "unexpected_error": "S'ha produït un error inesperat."
   },
   "notifications": {

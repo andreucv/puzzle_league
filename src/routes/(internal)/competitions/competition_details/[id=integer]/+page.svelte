@@ -63,17 +63,26 @@
         return actions;
     }
 
-    // Registration is possible when at least one not-yet-started category still has room
-    // (or has no capacity limit). Mirrors the seat math in CategoriesOverview.
-    type CategoryCounts = { status: string; maxParties: number | null; reservedSlots?: number; totalEntries?: number };
+    // Registration is possible when at least one not-yet-started, registration-open category
+    // still has room (or has no capacity limit). Mirrors the seat math in CategoriesOverview.
+    type CategoryCounts = { status: string; registrationOpen: boolean; maxParties: number | null; reservedSlots?: number; totalEntries?: number };
     function hasRegistrableSpot(categories: CategoryCounts[] | undefined): boolean {
         if (!categories) return false;
         return categories.some((c) => {
             if (c.status !== 'NOT_STARTED') return false;
+            if (!c.registrationOpen) return false;
             if (c.maxParties == null) return true;
             const registered = c.reservedSlots ?? c.totalEntries ?? 0;
             return c.maxParties - registered > 0;
         });
+    }
+
+    // Whether registration is open *somewhere*: at least one not-yet-started category still
+    // accepts registrations (ignoring capacity). Distinguishes "closed" (no open category) from
+    // "full" (open categories exist but none has room) on the single competition-level CTA.
+    function hasOpenRegistrationCategory(categories: CategoryCounts[] | undefined): boolean {
+        if (!categories) return false;
+        return categories.some((c) => c.status === 'NOT_STARTED' && c.registrationOpen);
     }
 </script>
 
@@ -230,10 +239,14 @@
                 {@const hasRegistrations = userRecords && userRecords.length > 0}
                 {@const registrationPath = `/competitions/competition_details/${competition?.id}/registration`}
                 {@const hasOpenSpot = hasRegistrableSpot(categoriesWithCounts)}
+                <!-- Effective open: master switch AND at least one category still open. When the
+                     competition is open but every category is individually closed, this is false
+                     so the button reads "closed" rather than "full". -->
+                {@const effectiveRegistrationOpen = !!competition?.registrationOpen && hasOpenRegistrationCategory(categoriesWithCounts)}
                 <div class="flex flex-col items-center gap-2">
                     <RegistrationActionButton
                         loggedIn={!!currentUser}
-                        registrationOpen={!!competition?.registrationOpen}
+                        registrationOpen={effectiveRegistrationOpen}
                         {isOrganizer}
                         {hasOpenSpot}
                         hasRegistrations={!!hasRegistrations}

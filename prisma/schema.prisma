@@ -241,6 +241,7 @@ model Category {
   realEndTime       DateTime?
   extraMinutes      Int                       @default(0)
   status            CategoryStatus            @default(NOT_STARTED)
+  registrationOpen  Boolean                   @default(true)
   autoStopMessageId String?
   maxParties        Int?
   price             Int                       @default(0)

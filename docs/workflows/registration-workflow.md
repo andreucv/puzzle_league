@@ -1,6 +1,6 @@
 # Registration Workflow
 
-Last updated: 2026-05-25
+Last updated: 2026-06-17
 
 This document describes the current registration workflow for a Competition Category. It is based on the code in:
 
@@ -46,23 +46,40 @@ Notification side effects are local to workflow outcomes and run after the datab
 
 ## Competition Settings That Affect Registration
 
-### `registrationOpen`
+### `registrationOpen` (competition-wide master) and `Category.registrationOpen` (per-category)
 
-`Competition.registrationOpen` controls whether Participants can submit new registrations. Organizers can toggle it from the manage registrations page.
+Registration open/close is gated at two levels that are **AND-ed** together:
 
-The competition details page enables the registration button when:
+- `Competition.registrationOpen` — the master switch for the whole Competition. Organizers toggle it from the competition-wide control on the manage registrations page.
+- `Category.registrationOpen` (default `true`) — a per-category switch. Organizers toggle it per active Category on the manage registrations page, so a Category that fills up early can be closed while others stay open, and a newly added Category can be opened without re-exposing the others.
 
-- the user is logged in **and** `competition.registrationOpen` is true, **or**
+A Participant may submit a new registration into a Category only when **all** hold:
+
+```
+competition.registrationOpen && category.registrationOpen && category.status === NOT_STARTED
+```
+
+"Closed" is independent from "full": reaching `Category.maxParties` still waitlists new entries (it does **not** auto-close); closing is an explicit organizer action.
+
+The competition details page enables the single registration button when:
+
+- the user is logged in **and** at least one `NOT_STARTED` Category is both `registrationOpen` **and** has room (the per-category flag is folded into the "registrable spot" check), **or**
 - the user is the Competition creator or an Admin (organizer mode)
 
-The registration page allows creating entries when:
+When the button is disabled, its copy distinguishes the reason from an **effective open** state
+(`competition.registrationOpen` **and** at least one `NOT_STARTED` Category still `registrationOpen`, ignoring capacity): it reads **"closed"** when no Category is open for registration — including when the master switch is open but every Category is individually closed — and **"full"** only when open Categories exist but none has room.
 
-- `competition.registrationOpen` is true **or** the user is in organizer mode
+The registration page allows creating entries for a Category when:
+
+- the user is in organizer mode (bypasses both the master and per-category flags), **or**
+- `competition.registrationOpen` **and** `category.registrationOpen` are both true
 - **and** `category.status === NOT_STARTED`
 
-This means the Competition creator can always register entries through the registration page regardless of the `registrationOpen` toggle, as long as the Category has not started.
+This means the Competition creator / Admin can always register entries through the registration page regardless of either toggle, as long as the Category has not started.
 
-The `submitRegistration` workflow enforces `registrationOpen` server-side. Direct form submission cannot bypass a closed Competition unless the server-created actor is in organizer mode. The workflow still requires each submitted Category to be `NOT_STARTED`.
+The `submitRegistration` workflow enforces both flags server-side. Direct form submission cannot bypass a closed Competition or a closed Category unless the server-created actor is in organizer mode. The workflow still requires each submitted Category to be `NOT_STARTED`. A closed Category raises `REGISTRATION_CLOSED`.
+
+Toggling is owned by the registration-workflow seam: `toggleCategoryRegistration({ categoryId, actor })` flips `Category.registrationOpen` after authorizing the actor via `ensureCanManageCompetition` (Competition creator, Admin, or scoped Organizer). The per-category endpoint is `POST /api/categories/[id]/toggle_registration`; the competition-wide endpoint `POST /api/competitions/[id]/toggle_registration` performs the same authorization. Toggling emits no notification.
 
 ### `showPaymentWarning`
 

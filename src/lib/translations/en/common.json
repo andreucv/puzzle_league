@@ -521,6 +521,7 @@
     "empty_spots": "empty spots",
     "organizer_mode": "Organizer mode — Organizers can create entries without limit and are auto-confirmed.",
     "registration_not_available": "Registration is not available for this category.",
+    "category_registration_closed": "Registration is closed for this category.",
     "status_pending_confirmation": "Pending Confirmation",
     "status_confirmed": "Confirmed",
     "status_waitlisted": "Waitlisted",
@@ -655,6 +656,9 @@
     "open_registration": "Open",
     "add_categories_first": "Add categories before opening registration.",
     "toggle_error": "Failed to update registration status.",
+    "category_registration_open": "Open",
+    "category_registration_closed": "Closed",
+    "category_registration_toggle": "Open or close registration for this category",
     "unexpected_error": "An unexpected error occurred."
   },
   "puzzles": {

@@ -37,5 +37,17 @@ export function createPrismaClient(databaseUrl?: string): PrismaClient {
     });
 }
 
-/** Singleton instance for the running app — uses DATABASE_URL from env. */
-export const prisma = createPrismaClient();
+/**
+ * Lazily-created singleton for the running app — uses DATABASE_ACCELERATE_URL
+ * from env. The client is instantiated on first access rather than at import
+ * time, so importing this module during SvelteKit's postbuild route analysis
+ * does not require the database URL to be present at build time.
+ */
+let singleton: PrismaClient | undefined;
+export const prisma = new Proxy({} as PrismaClient, {
+    get(_target, prop) {
+        singleton ??= createPrismaClient();
+        const value = Reflect.get(singleton, prop);
+        return typeof value === 'function' ? value.bind(singleton) : value;
+    }
+});

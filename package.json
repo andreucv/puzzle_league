@@ -32,6 +32,7 @@
 		"@skeletonlabs/skeleton": "^4.12.1",
 		"@skeletonlabs/skeleton-svelte": "^4.12.1",
 		"@sveltejs/adapter-auto": "^3.3.1",
+		"@sveltejs/adapter-node": "^5.5.4",
 		"@sveltejs/adapter-vercel": "^6.3.3",
 		"@sveltejs/enhanced-img": "^0.10.3",
 		"@sveltejs/kit": "^2.60.1",

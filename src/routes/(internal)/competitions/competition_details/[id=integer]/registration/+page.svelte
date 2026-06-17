@@ -59,7 +59,10 @@
     let canRegister = $derived(competition?.registrationOpen || isOrganizer);
 
     function canRegisterForCategory(category: Category): boolean {
-        return !!canRegister && category.status === 'NOT_STARTED';
+        if (category.status !== 'NOT_STARTED') return false;
+        // Organizers bypass both the competition-wide and per-category open flags.
+        if (isOrganizer) return true;
+        return !!competition?.registrationOpen && category.registrationOpen;
     }
 
     function getSpotsLeft(category: Category): number | undefined {
@@ -1038,7 +1041,11 @@
                         </p>
                     {/if}
                 {:else if entries.length === 0 && slots.length === 0}
-                    <p class="text-sm text-surface-500 italic">{$t('registration.registration_not_available')}</p>
+                    {#if competition?.registrationOpen && category.status === 'NOT_STARTED' && !category.registrationOpen}
+                        <p class="text-sm text-surface-500 italic" data-testid="category-closed-message">{$t('registration.category_registration_closed')}</p>
+                    {:else}
+                        <p class="text-sm text-surface-500 italic">{$t('registration.registration_not_available')}</p>
+                    {/if}
                 {/if}
             </Card>
         {/each}

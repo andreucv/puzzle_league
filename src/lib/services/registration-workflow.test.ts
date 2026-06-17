@@ -30,6 +30,7 @@ import {
 	confirmRegistration,
 	refuseRegistration,
 	submitRegistration,
+	toggleCategoryRegistration,
 	unregisterRegistration,
 } from './registration-workflow';
 
@@ -43,7 +44,9 @@ function makeTx() {
 		},
 		category: {
 			findMany: mockFn(prismaMock.category.findMany),
+			findUnique: mockFn(prismaMock.category.findUnique),
 			findUniqueOrThrow: mockFn(prismaMock.category.findUniqueOrThrow),
+			update: mockFn(prismaMock.category.update),
 		},
 		entry: {
 			count: mockFn(prismaMock.entry.count),
@@ -93,6 +96,7 @@ function makeCategory(overrides: Record<string, unknown> = {}) {
 		subname: null,
 		type: 'INDIVIDUAL',
 		status: CategoryStatus.NOT_STARTED,
+		registrationOpen: true,
 		maxPartySize: 1,
 		maxParties: null,
 		price: 500,
@@ -197,6 +201,35 @@ describe('registration workflow', () => {
 			code: 'REGISTRATION_CLOSED',
 			message: 'Registration is currently closed for this competition',
 		});
+	});
+
+	it('rejects participant signup when the category registration is closed but the competition is open', async () => {
+		const competition = makeCompetition({ registrationOpen: true });
+		setupSignupTx(makeCategory({ competition, registrationOpen: false }), competition);
+
+		await expect(submitRegistration({
+			competitionId: 42,
+			actor: { userId: 'user-1', name: 'Alice', isOrganizer: false },
+			signups: [{ categoryId: 1, teammateIds: [] }],
+		})).rejects.toMatchObject({
+			code: 'REGISTRATION_CLOSED',
+			message: 'Registration is closed for category: Individual',
+		});
+	});
+
+	it('lets organizer registration override a closed category', async () => {
+		const competition = makeCompetition({ registrationOpen: true });
+		const tx = setupSignupTx(makeCategory({ competition, registrationOpen: false }), competition);
+
+		await submitRegistration({
+			competitionId: 42,
+			actor: { userId: 'organizer-1', name: 'Organizer', isOrganizer: true },
+			signups: [{ categoryId: 1, teammateIds: [] }],
+		});
+
+		expect(tx.entry.create).toHaveBeenCalledWith(expect.objectContaining({
+			data: expect.objectContaining({ status: RegistrationStatus.CONFIRMED }),
+		}));
 	});
 
 	it('rejects signup when category is not started anymore', async () => {
@@ -310,5 +343,39 @@ describe('registration workflow', () => {
 			entryId: 'entry-1',
 			actor: { userId: 'user-1', isOrganizer: false },
 		})).rejects.toBeInstanceOf(RegistrationWorkflowError);
+	});
+
+	it('toggles a category registration flag for an authorized organizer', async () => {
+		const tx = makeTx();
+		tx.category.findUnique.mockResolvedValue({ id: 1, competitionId: 42, registrationOpen: true });
+		tx.competition.findUnique.mockResolvedValue({ creatorId: 'organizer-1' });
+		tx.category.update.mockResolvedValue({ id: 1, registrationOpen: false });
+		mockTransaction.mockImplementation(async (callback) => callback(tx));
+
+		const result = await toggleCategoryRegistration({
+			categoryId: 1,
+			actor: { userId: 'organizer-1', isOrganizer: true },
+		});
+
+		expect(tx.category.update).toHaveBeenCalledWith(expect.objectContaining({
+			where: { id: 1 },
+			data: { registrationOpen: false },
+		}));
+		expect(result).toEqual({ id: 1, registrationOpen: false });
+	});
+
+	it('rejects a category registration toggle by users who cannot manage the competition', async () => {
+		const tx = makeTx();
+		tx.category.findUnique.mockResolvedValue({ id: 1, competitionId: 42, registrationOpen: true });
+		tx.competition.findUnique.mockResolvedValue({ creatorId: 'organizer-1' });
+		tx.roleAssignment.findFirst.mockResolvedValue(null);
+		tx.competitionCoorganizerRoleAssignment.findFirst.mockResolvedValue(null);
+		mockTransaction.mockImplementation(async (callback) => callback(tx));
+
+		await expect(toggleCategoryRegistration({
+			categoryId: 1,
+			actor: { userId: 'user-1', isOrganizer: false },
+		})).rejects.toMatchObject({ code: 'NOT_ALLOWED' });
+		expect(tx.category.update).not.toHaveBeenCalled();
 	});
 });

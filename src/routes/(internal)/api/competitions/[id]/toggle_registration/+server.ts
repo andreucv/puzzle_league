@@ -1,5 +1,6 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { getCompetition, updateCompetition } from '$lib/database/db_competition';
+import { getCompetitionAccess } from '$lib/services/competition-access';
 import { getPostHogClient } from '$lib/server/posthog';
 
 export const POST = async (event: RequestEvent) => {
@@ -10,9 +11,19 @@ export const POST = async (event: RequestEvent) => {
 			return json({ error: 'Invalid competition ID' }, { status: 400 });
 		}
 
+		const user = event.locals.user;
+		if (!user) {
+			return json({ error: 'You must be logged in' }, { status: 401 });
+		}
+
 		const competition = await getCompetition(competitionId);
 		if (!competition) {
 			return json({ error: 'Competition not found' }, { status: 404 });
+		}
+
+		const access = await getCompetitionAccess(competitionId, user.id);
+		if (!access.canManageCompetition) {
+			return json({ error: 'Not authorized to manage this registration' }, { status: 403 });
 		}
 
 		const result = await updateCompetition(competitionId, {

@@ -401,6 +401,10 @@ export async function submitRegistration({
 				throw new RegistrationWorkflowError('INVALID_STATUS', `Registration closed for category: ${category.subname || category.type}`);
 			}
 
+			if (!category.registrationOpen && !actor.isOrganizer) {
+				throw new RegistrationWorkflowError('REGISTRATION_CLOSED', `Registration is closed for category: ${category.description || category.type}`);
+			}
+
 			let initialStatus: RegistrationStatus = actor.isOrganizer || isFreeRegistration(category, competition)
 				? RegistrationStatus.CONFIRMED
 				: RegistrationStatus.PENDING_CONFIRMATION;
@@ -699,4 +703,41 @@ export async function refuseRegistration({
 	}
 
 	return result;
+}
+
+/**
+ * Toggle a single Category's `registrationOpen` flag. Authorizes the actor through
+ * `ensureCanManageCompetition` (Competition creator, Admin, or scoped Organizer). This is the
+ * per-category counterpart to the competition-wide `registrationOpen` master switch; the two are
+ * AND-ed in `submitRegistration`. Emits no notification.
+ */
+export async function toggleCategoryRegistration({
+	categoryId,
+	actor,
+}: {
+	categoryId: number;
+	actor: RegistrationActor;
+}): Promise<{ id: number; registrationOpen: boolean }> {
+	assertActor(actor);
+
+	return prisma.$transaction(async (tx) => {
+		const category = await tx.category.findUnique({
+			where: { id: categoryId },
+			select: { id: true, competitionId: true, registrationOpen: true },
+		});
+
+		if (!category) {
+			throw new RegistrationWorkflowError('ENTRY_NOT_FOUND', 'Category not found');
+		}
+
+		await ensureCanManageCompetition(tx, category.competitionId, actor);
+
+		const updated = await tx.category.update({
+			where: { id: categoryId },
+			data: { registrationOpen: !category.registrationOpen },
+			select: { id: true, registrationOpen: true },
+		});
+
+		return updated;
+	});
 }

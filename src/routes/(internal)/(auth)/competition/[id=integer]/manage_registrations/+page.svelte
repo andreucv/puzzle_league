@@ -20,6 +20,8 @@
     import CollapsibleSection from '$lib/components/manage_registrations/CollapsibleSection.svelte';
     import ConfirmPopover from '$lib/components/common/ConfirmPopover.svelte';
     import BellRingOutlineIcon from '@iconify-svelte/mdi/bell-ring-outline';
+    import LockOpenVariantIcon from '@iconify-svelte/mdi/lock-open-variant';
+    import LockIcon from '@iconify-svelte/mdi/lock';
     import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/registration';
 
     let { data } = $props();
@@ -39,6 +41,7 @@
 
     // Loading state for individual actions
     let processingEntryId: string | null = $state(null);
+    let togglingCategoryId: number | null = $state(null);
     let publishingCategoryId: number | null = $state(null);
     let confirmingCategoryId: number | null = $state(null);
     let remindingCategoryId: number | null = $state(null);
@@ -144,6 +147,28 @@
             showResultMessage({ success: false, message: $t('manage_registrations.refuse_error') });
         } finally {
             processingEntryId = null;
+        }
+    }
+
+    async function handleToggleCategoryRegistration(categoryId: number) {
+        togglingCategoryId = categoryId;
+        const minLoadingTime = new Promise(resolve => setTimeout(resolve, 300));
+        try {
+            const response = await fetch(`/api/categories/${categoryId}/toggle_registration`, {
+                method: 'POST'
+            });
+            await minLoadingTime;
+
+            if (response.ok) {
+                await invalidate('data:manage-registrations');
+            } else {
+                const result = await response.json();
+                showResultMessage({ success: false, message: result.error || $t('manage_registrations.toggle_error') });
+            }
+        } catch {
+            showResultMessage({ success: false, message: $t('manage_registrations.toggle_error') });
+        } finally {
+            togglingCategoryId = null;
         }
     }
 
@@ -296,14 +321,38 @@
         <Card>
             <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
                 <CategoryCardTitle type={category.type} subname={category.subname ?? ''}/>
-                {#if category.maxParties}
-                    {@const reservedCount = category.entries.filter((r: any) => r.status === 'CONFIRMED' || r.status === 'PENDING_CONFIRMATION').length}
-                    {@const remaining = category.maxParties - reservedCount}
-                    <span class="text-sm {remaining > 0 ? 'text-surface-600 dark:text-surface-400' : 'text-error-600 dark:text-error-400'}">
-                        <SeatOutlineIcon width="1rem" height="1rem" class="inline-block align-text-bottom mr-1" />
-                        {$t('manage_registrations.seats_available', { accepted: reservedCount, max: category.maxParties })}
-                    </span>
-                {/if}
+                <div class="flex items-center gap-3 flex-wrap">
+                    {#if category.maxParties}
+                        {@const reservedCount = category.entries.filter((r: any) => r.status === 'CONFIRMED' || r.status === 'PENDING_CONFIRMATION').length}
+                        {@const remaining = category.maxParties - reservedCount}
+                        <span class="text-sm {remaining > 0 ? 'text-surface-600 dark:text-surface-400' : 'text-error-600 dark:text-error-400'}">
+                            <SeatOutlineIcon width="1rem" height="1rem" class="inline-block align-text-bottom mr-1" />
+                            {$t('manage_registrations.seats_available', { accepted: reservedCount, max: category.maxParties })}
+                        </span>
+                    {/if}
+                    {#if showActions}
+                        <button
+                            type="button"
+                            class="btn btn-sm gap-1 {category.registrationOpen ? 'preset-tonal-success' : 'preset-tonal-error'}"
+                            disabled={togglingCategoryId === category.id}
+                            onclick={() => handleToggleCategoryRegistration(category.id)}
+                            aria-label={$t('manage_registrations.category_registration_toggle')}
+                            title={$t('manage_registrations.category_registration_toggle')}
+                            data-testid="toggle-category-registration-{category.id}"
+                        >
+                            {#if togglingCategoryId === category.id}
+                                <LoadingIcon width="1rem" height="1rem" class="animate-spin" />
+                            {:else if category.registrationOpen}
+                                <LockOpenVariantIcon width="1rem" height="1rem" />
+                            {:else}
+                                <LockIcon width="1rem" height="1rem" />
+                            {/if}
+                            <span data-testid="category-registration-status" data-open={category.registrationOpen}>
+                                {category.registrationOpen ? $t('manage_registrations.category_registration_open') : $t('manage_registrations.category_registration_closed')}
+                            </span>
+                        </button>
+                    {/if}
+                </div>
             </div>
 
             <RegistrationList

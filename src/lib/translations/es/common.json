@@ -584,7 +584,7 @@
     "cancel": "Cancelar",
     "submit": "Enviar solicitud",
     "submitting": "Enviando...",
-    "subtitle": "Solicita acceso para organizar competiciones o juzgar entregas. Un administrador revisará tu solicitud y se te notificará la decisión.",
+    "subtitle": "Solicita acceso para organizar concursos. \nUn administrador revisará su solicitud y se le notificará la decisión.",
     "new_request_title": "Nueva solicitud",
     "your_requests_title": "Tus solicitudes",
     "requested_on": "Solicitado el {{date}}",

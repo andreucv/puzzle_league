@@ -584,7 +584,7 @@
     "cancel": "Cancel·lar",
     "submit": "Enviar sol·licitud",
     "submitting": "Enviant...",
-    "subtitle": "Sol·licita accés per organitzar competicions o jutjar lliuraments. Un administrador revisarà la teva sol·licitud i se't notificarà la decisió.",
+    "subtitle": "Sol·licitar accés per organitzar competicions. \nUn administrador revisarà la vostra sol·licitud i se us notificarà la decisió.",
     "new_request_title": "Nova sol·licitud",
     "your_requests_title": "Les teves sol·licituds",
     "requested_on": "Sol·licitat el {{date}}",

@@ -681,7 +681,7 @@
     "cancel": "Cancel",
     "submit": "Submit Request",
     "submitting": "Submitting...",
-    "subtitle": "Request access to organize competitions or judge submissions. An admin will review your request and you'll be notified of the decision.",
+    "subtitle": "Request access to organize competitions. An admin will review your request and you'll be notified of the decision.",
     "new_request_title": "New request",
     "your_requests_title": "Your requests",
     "requested_on": "Requested on {{date}}",

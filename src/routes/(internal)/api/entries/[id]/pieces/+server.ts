@@ -1,5 +1,4 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { prisma } from '$lib/database/create_prisma_client';
 import { updatePiecesCompleted, resetPiecesCompleted, EntryNotFoundError, InvalidEntryStateError } from '$lib/database/db_entry';
 import { publishCompetitionEvent } from '$lib/events/server/ably';
 
@@ -20,18 +19,14 @@ export const POST = async (event: RequestEvent) => {
 
 		const updatedEntry = await updatePiecesCompleted(entryId, nPiecesCompleted);
 
-		const cat = await prisma.category.findUnique({
-			where: { id: updatedEntry.categoryId },
-			select: { competitionId: true }
+		// competitionId is included in the update above, avoiding an extra query
+		// on this high-frequency live-competition path.
+		await publishCompetitionEvent(updatedEntry.category.competitionId, 'entry.pieces_updated', {
+			entryId: updatedEntry.id,
+			categoryId: updatedEntry.categoryId,
+			competitionId: updatedEntry.category.competitionId,
+			nPiecesCompleted
 		});
-		if (cat) {
-			await publishCompetitionEvent(cat.competitionId, 'entry.pieces_updated', {
-				entryId: updatedEntry.id,
-				categoryId: updatedEntry.categoryId,
-				competitionId: cat.competitionId,
-				nPiecesCompleted
-			});
-		}
 
 		return json({ entry: updatedEntry });
 	} catch (error) {

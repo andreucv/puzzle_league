@@ -56,6 +56,7 @@ export async function handle({ event, resolve }) {
 	}
 
 	// Fetch current session from Better Auth
+	// cookieCache enabled in auth.ts
 	const session = await auth.api.getSession({
 		headers: event.request.headers,
 	});
@@ -68,8 +69,6 @@ export async function handle({ event, resolve }) {
 		// If the user has already been presented onboarding (cookie set) and navigates
 		// away, we let them through — all steps are optional/skippable.
 		const path = event.url.pathname;
-
-		console.log(`Handling request for ${path} (user: ${session.user.email})`);
 
 		if (isPageRequest(path) && path !== '/onboarding' && path !== '/verify-email' && path !== '/forgot-password' && path !== '/reset-password') {
 			const alreadyPresented = (event.cookies.get('onboarding_presented') === event.locals.session.id);

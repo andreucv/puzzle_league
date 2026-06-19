@@ -255,7 +255,10 @@ export async function updatePiecesCompleted(entryId: string, nPiecesCompleted: n
     return prisma.entry.update({
         where: { id: entryId },
         data: { nPiecesCompleted },
-        include: { users: { select: { id: true, name: true, email: true } } }
+        include: {
+            users: { select: { id: true, name: true, email: true } },
+            category: { select: { competitionId: true } }
+        }
     });
 }
 

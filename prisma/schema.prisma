@@ -211,6 +211,9 @@ model Competition {
   registrationOpen       Boolean                                @default(false)
   showPaymentWarning     Boolean                                @default(false)
 
+  @@index([status, startDate])
+  @@index([leagueId])
+  @@index([creatorId])
   @@map("competition")
 }
 
@@ -251,6 +254,7 @@ model Category {
   judgeAssignments  CategoryJudgeAssignment[]
   tagCategories     TagCategory[]
 
+  @@index([competitionId])
   @@map("category")
 }
 
@@ -272,6 +276,8 @@ model Entry {
   creator              User                  @relation("EntryCreator", fields: [creatorId], references: [id], onDelete: SetDefault)
   entryTag             EntryTag?
 
+  @@index([categoryId])
+  @@index([creatorId])
   @@map("entry")
 }
 
@@ -362,6 +368,8 @@ model Request {
   reason         String?
   additionalInfo String?
 
+  @@index([competitionId])
+  @@index([userId])
   @@map("request")
 }
 

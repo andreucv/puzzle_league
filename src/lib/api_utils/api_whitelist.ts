@@ -7,6 +7,7 @@ const PUBLIC_API_PREFIXES = [
   '/api/competitions/bymonth/',    // Public competition calendar
   '/api/webhooks/',                // Webhook endpoints (signature-verified internally)
   '/api/cron/',                    // Cron endpoints (QStash-signature-verified internally)
+  '/api/ably-token/public',        // Subscribe-only realtime token for logged-out results viewers
 ] as const;
 
 /** Returns true if the given pathname is a public API route (no auth required). */

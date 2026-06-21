@@ -1,6 +1,6 @@
 import * as Ably from 'ably';
 import { metrics } from '../metrics';
-import { fetchAblyToken, refetchResults, type HttpClient } from '../http';
+import { fetchAblyToken, refetchResults, type CookieJar, type HttpClient } from '../http';
 
 /**
  * A results-page viewer: holds a real Ably subscription to `competition:{id}` and re-fetches the
@@ -16,7 +16,7 @@ export interface Viewer {
 export async function startViewer(
 	client: HttpClient,
 	competitionId: number,
-	opts: { cookie?: string } = {}
+	opts: { cookie?: CookieJar } = {}
 ): Promise<Viewer> {
 	const channelName = `competition:${competitionId}`;
 

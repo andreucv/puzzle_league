@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.2](https://github.com/andreucv/puzzle_league/compare/v0.6.1...v0.6.2) (2026-06-21)
+
+
+### 🐛 Bug Fixes
+
+* catalan wording in homepage. issue 119 ([0eeba62](https://github.com/andreucv/puzzle_league/commit/0eeba623d45a6bdeecfc07142c10a2317175a579))
+* text according action request_permission. issue 122 ([7bc3c19](https://github.com/andreucv/puzzle_league/commit/7bc3c19344368afb282d70fd1c0ba3ad366c6977))
+* translations on payment warning checked. issue 121 ([2e4934c](https://github.com/andreucv/puzzle_league/commit/2e4934cc87c5b327cdd90bf1b0796f1fd4596b14))
+* update pnpm-lock.yaml ([831f099](https://github.com/andreucv/puzzle_league/commit/831f0994f3f96cc38b58e8b531e5388ad7c7913f))
+* use lang for time pickers in chrome browser. issue 98 ([0fb63c1](https://github.com/andreucv/puzzle_league/commit/0fb63c1ccce17908a5de7600a8f002b0e6104847))
+* whitelist api/ably-token/public endpoint ([2c2a20c](https://github.com/andreucv/puzzle_league/commit/2c2a20cfc9dff5e3de322722279903c4cd999d91))
+
+
+### ⚡ Performance
+
+* **db:** add indexes on hot foreign keys and reduce live-path query ([fe669d6](https://github.com/andreucv/puzzle_league/commit/fe669d6a124e6a9234d42d246c6b681ddab03f48))
+* **db:** cache strategy for competitionId and creatorId ([aadafa5](https://github.com/andreucv/puzzle_league/commit/aadafa5a21c0a927af132f12716452afc5ec1f72))
+* load test infrastructure ([b84e6d0](https://github.com/andreucv/puzzle_league/commit/b84e6d0826a55bcf044b1ed4e22816b8064ab6bd))
+* **loadtest:** optimize cookie usage in loadtest ([8718f39](https://github.com/andreucv/puzzle_league/commit/8718f39bcfc6a6069bf825b0c6c4fbb33475f089))
+* removed log in hooks.server.ts ([cc32dfe](https://github.com/andreucv/puzzle_league/commit/cc32dfe6080fce47756e9aa483ecb9d19547c599))
+
 ## [0.6.1](https://github.com/andreucv/puzzle_league/compare/v0.6.0...v0.6.1) (2026-06-14)
 
 

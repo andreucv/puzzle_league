@@ -1,4 +1,4 @@
-import { prisma } from '$lib/database/create_prisma_client';
+import { prisma, accelerateEnabled } from '$lib/database/create_prisma_client';
 import { Role } from '$lib/.prisma/generated/prisma/enums';
 import type { PrismaClient } from '$lib/.prisma/generated/prisma/client';
 
@@ -27,8 +27,14 @@ export async function getCompetitionAccess(
 	client: PrismaLike = prisma,
 ): Promise<CompetitionAccess> {
 	const [competition, adminRole, scopedOrganizer, judgedCategories] = await Promise.all([
+		// creatorId is immutable for a competition, so it is safe to cache. Only the
+		// default singleton talks to Accelerate; a passed-in client (e.g. a tx) would
+		// reject cacheStrategy, so gate on both.
 		client.competition.findUnique({
 			where: { id: competitionId },
+			...(accelerateEnabled && client === prisma
+				? { cacheStrategy: { ttl: 300, swr: 600 } as unknown as never }
+				: {}),
 			select: { creatorId: true },
 		}),
 		client.roleAssignment.findFirst({

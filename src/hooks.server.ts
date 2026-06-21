@@ -79,6 +79,8 @@ export async function handle({ event, resolve }) {
 		}
 	}
 
+	console.log("hooks.server.ts: handling request to ", pathname, "from user: ", event.locals.user);
+
 	// -----------------------------------------------------------------------
 	// API Security Pipeline — runs for all /api/ routes
 	// -----------------------------------------------------------------------

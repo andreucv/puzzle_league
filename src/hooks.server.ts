@@ -10,6 +10,7 @@ import { resolveOnboardingSteps } from "$lib/utils/onboarding_utils";
 import type { HandleServerError } from "@sveltejs/kit";
 import { getPostHogClient } from "$lib/server/posthog";
 import { PUBLIC_POSTHOG_HOST } from "$env/static/public";
+import { env } from "$env/dynamic/private";
 
 // Derive proxy hostnames from PUBLIC_POSTHOG_HOST (e.g. "https://us.i.posthog.com")
 const posthogHost = new URL(PUBLIC_POSTHOG_HOST).hostname;                      // "us.i.posthog.com"
@@ -79,7 +80,18 @@ export async function handle({ event, resolve }) {
 		}
 	}
 
-	console.log("hooks.server.ts: handling request to ", pathname, "from user: ", event.locals.user);
+	// Verbose request logging — enable by setting DEBUG_REQUEST_LOG=true in the
+	// environment (e.g. Railway vars). Off by default; no commit needed to toggle.
+	if (env.DEBUG_REQUEST_LOG === 'true') {
+		console.log(
+			"hooks.server.ts: handling request to", pathname,
+			"| user:", event.locals.user?.id ?? 'undefined',
+			"| ip:", event.getClientAddress(),
+			"| ua:", event.request.headers.get('user-agent'),
+			"| referer:", event.request.headers.get('referer'),
+			"| has-cookie:", event.request.headers.has('cookie')
+		);
+	}
 
 	// -----------------------------------------------------------------------
 	// API Security Pipeline — runs for all /api/ routes

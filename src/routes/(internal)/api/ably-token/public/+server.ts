@@ -1,5 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { prisma } from '$lib/database/create_prisma_client';
+import { prisma, accelerateEnabled } from '$lib/database/create_prisma_client';
 import { createAblyJwt } from '$lib/events/server/ably-jwt';
 
 export const GET = async (event: RequestEvent) => {
@@ -14,8 +14,13 @@ export const GET = async (event: RequestEvent) => {
 	}
 
 	try {
+		// Existence check only — a competition's id never changes, so cache it
+		// aggressively. Every external viewer hits this on token fetch/reconnect.
 		const competition = await prisma.competition.findUnique({
 			where: { id: competitionId },
+			...(accelerateEnabled
+				? { cacheStrategy: { ttl: 300, swr: 600 } as unknown as never }
+				: {}),
 			select: { id: true }
 		});
 

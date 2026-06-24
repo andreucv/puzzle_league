@@ -1,6 +1,6 @@
 <script lang="ts">
     import { AppBar, Avatar } from '@skeletonlabs/skeleton-svelte';
-    import HamburgerIcon from '@iconify-svelte/icon-park/hamburger-button';
+    import HamburgerIcon from '@iconify-svelte/mdi/menu';
     import BellOutlineIcon from '@iconify-svelte/mdi/bell-outline';
     import UserAltFillIcon from '@iconify-svelte/mdi/account-circle';
     import { page } from '$app/state';

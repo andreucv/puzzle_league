@@ -52,14 +52,12 @@
 		"dotenv": "^16.6.1",
 		"jsdom": "^29.0.0",
 		"pg": "^8.20.0",
-		"phosphor-svelte": "^3.1.0",
 		"prettier": "^3.8.4",
 		"prettier-plugin-svelte": "^4.1.0",
 		"svelte": "^5.55.9",
 		"svelte-check": "^4.4.3",
 		"sveltekit-i18n": "^2.4.2",
 		"sveltekit-superforms": "^2.30.0",
-		"svelteworld": "^1.0.1",
 		"ts-node": "^10.9.2",
 		"tsx": "^4.22.4",
 		"typescript": "^5.9.3",
@@ -68,8 +66,6 @@
 		"vitest-mock-extended": "^4.0.0"
 	},
 	"dependencies": {
-		"@iconify-svelte/icon-park": "^1.0.0",
-		"@iconify-svelte/material-symbols": "^1.0.18",
 		"@iconify-svelte/mdi": "^1.0.0",
 		"@iconify/svelte": "^5.2.1",
 		"@prisma/adapter-pg": "^7.4.1",

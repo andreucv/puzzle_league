@@ -1,9 +1,9 @@
 <script lang="ts">
     import { DateRangePicker, type DateRange } from "bits-ui";
     import type { CalendarDate, DateValue } from "@internationalized/date";
-    import CalendarBlank from "phosphor-svelte/lib/CalendarBlank";
-    import CaretLeft from "phosphor-svelte/lib/CaretLeft";
-    import CaretRight from "phosphor-svelte/lib/CaretRight";
+    import CalendarBlank from "@iconify-svelte/mdi/calendar-blank-outline";
+    import CaretLeft from "@iconify-svelte/mdi/chevron-left";
+    import CaretRight from "@iconify-svelte/mdi/chevron-right";
 
     let {
         locale,

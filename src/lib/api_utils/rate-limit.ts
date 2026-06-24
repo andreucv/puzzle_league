@@ -1,25 +1,16 @@
 import type { RequestEvent } from '@sveltejs/kit';
 import { createUpstashRateLimiter, isUpstashConfigured } from './rate-limit-redis';
 
-// ---------------------------------------------------------------------------
-// Store interface (pluggable: in-memory, Redis, etc.)
-// ---------------------------------------------------------------------------
-
 export interface RateLimitEntry {
   count: number;
   resetAt: number; // epoch ms
-}
-
-export interface RateLimitStore {
-  /** Increment the counter for a key. If the window has expired, reset it first. */
-  increment(key: string, windowMs: number): Promise<RateLimitEntry>;
 }
 
 // ---------------------------------------------------------------------------
 // In-memory store (good for single-instance / dev / basic Vercel protection)
 // ---------------------------------------------------------------------------
 
-export class InMemoryRateLimitStore implements RateLimitStore {
+export class InMemoryRateLimitStore {
   private map = new Map<string, RateLimitEntry>();
   private cleanupTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -66,8 +57,6 @@ export interface RateLimiterConfig {
   maxRequests: number;
   /** Extract the rate-limit key from the request (default: IP + pathname group) */
   keyExtractor?: (event: RequestEvent) => string;
-  /** Storage backend (default: InMemoryRateLimitStore) */
-  store?: RateLimitStore;
 }
 
 // Strips dynamic route segments (e.g. IDs, UUIDs) from pathnames for grouping
@@ -88,7 +77,7 @@ function defaultKeyExtractor(event: RequestEvent): string {
  * Returns null if the request is within limits, or a 429 Response if rate-limited.
  */
 export function createRateLimiter(config: RateLimiterConfig) {
-  const store = config.store ?? new InMemoryRateLimitStore();
+  const store = new InMemoryRateLimitStore();
   const keyExtractor = config.keyExtractor ?? defaultKeyExtractor;
 
   return async function rateLimit(event: RequestEvent): Promise<Response | null> {

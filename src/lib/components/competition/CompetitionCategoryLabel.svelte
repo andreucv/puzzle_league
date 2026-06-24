@@ -2,7 +2,7 @@
     import Icon from "@iconify/svelte";
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
     import { getCategoryTypeName } from "$lib/utils/category_utils";
-    import { formatTime } from "$lib/utils/datetime_utils";
+    import { formatTime } from "$lib/utils/date_utils";
     import { t } from '$lib/translations';
 
     let { category, currentUserId } = $props();

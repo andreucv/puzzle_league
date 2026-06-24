@@ -7,7 +7,7 @@
     import { getCategoryTypeName, getCategoryTypeSingularName, getCategoryTypeIcon, getMaxEntriesPerCategory } from '$lib/utils/category_utils';
     import { getRegistrationStatusBorderClass as getStatusBorderClass } from '$lib/utils/registration_utils';
     import RegistrationStatusBadge from '$lib/components/registration/EntryRegistrationStatusBadge.svelte';
-    import { formatTime } from '$lib/utils/datetime_utils';
+    import { formatTime } from '$lib/utils/date_utils';
     import { slide } from 'svelte/transition';
     import LoadingOverlay from '$lib/components/common/LoadingOverlay.svelte';
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';

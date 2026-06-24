@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
-    import { formatTime } from '$lib/utils/datetime_utils';
+    import { formatTime } from '$lib/utils/date_utils';
     import { getCategoryTypeName } from '$lib/utils/category_utils';
     import { t } from '$lib/translations';
     import type { Category, Puzzle } from '$lib/.prisma/generated/prisma/browser';

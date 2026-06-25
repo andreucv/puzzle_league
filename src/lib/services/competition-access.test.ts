@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Role } from '$lib/.prisma/generated/prisma/enums';
 import { prismaMock, mockFn } from '$tests/mocks/prisma';
 
-vi.mock('$lib/database/create_prisma_client', () => ({ prisma: prismaMock }));
+vi.mock('$lib/database/create_prisma_client', () => ({ prisma: prismaMock, accelerateEnabled: false }));
 
 const mockCompetitionFindUnique = mockFn(prismaMock.competition.findUnique);
 const mockRoleAssignmentFindFirst = mockFn(prismaMock.roleAssignment.findFirst);

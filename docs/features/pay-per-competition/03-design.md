@@ -3,12 +3,13 @@ slug: pay-per-competition
 stage: design
 feature: Pay-per-competition organizer billing
 issue: null
-status: draft
+status: approved
 created: 2026-06-19
-updated: 2026-06-19
+updated: 2026-06-25
 related:
   - docs/features/pay-per-competition/01-problem.md
   - docs/features/pay-per-competition/02-ideas.md
+  - docs/features/pay-per-competition/02b-gtm.md
 ---
 
 # Design: Pay-per-competition organizer billing
@@ -181,6 +182,58 @@ Once `status != DRAFT`, the priced inputs are frozen:
   when the competition is not `DRAFT` (the UI also disables those controls). While still `DRAFT`,
   everything is freely editable and the price recomputes.
 
+### 9. Organizer documentation page — submission → draft → payment → public visibility
+
+Organizers need a plain-language explanation of the new publish-for-pay process *before* they hit
+the price, so the charge and the "not visible until paid" step are expected, not a surprise. This
+mirrors the existing guide pattern — step-by-step `GuideStep` cards + an `FaqAccordion` — and
+reuses every component already built for it.
+
+**Where it lives (decided): a new section inside the existing organizer guide**
+[`src/routes/(internal)/how-it-works/organizer/+page.svelte`](../../../src/routes/(internal)/how-it-works/organizer/+page.svelte),
+placed between the spine steps and the FAQ — exactly how the *"Working with judges"* section is
+already nested there with `level={3}` `GuideStep`s. **No new route, no change to the `how-it-works`
+layout's binary organizer↔participant cross-link
+([`+layout.svelte`](../../../src/routes/(internal)/how-it-works/+layout.svelte)), no new footer
+entry** — it sits where organizers already read their process and follows that guide's existing
+tone (step cards + FAQ, no marketing block).
+
+**Phasing — concierge wording now, rewrite at Q1 2027 (decided).** The page ships with the
+**concierge-interim** flow from [`02b-gtm.md`](./02b-gtm.md), *not* the end-state automated flow.
+The concierge model has **no `DRAFT` enum, no checkout redirect, no webhook** yet — publication is a
+manual admin step — so the interim copy must not promise self-serve drafts or instant
+publish-on-pay. When the full `DRAFT → webhook → publish` flow lands (Q1 2027, §1–§8), this section
+is **rewritten** to the automated lifecycle (and only then gains the `DRAFT` chip demo below).
+
+**Section shape (concierge)** — "Publishing your competition" with four `level={3}` `GuideStep`s:
+
+```
+Publishing your competition
+ 1 · Submit       You configure categories and capacity, then submit your competition.
+ 2 · See the price A price is shown from your total capacity (capacity × rate; IVA at checkout).
+                   Your first competition is free.
+ 3 · Pay          From your 2nd competition on, we send you a secure Lemon Squeezy payment link.
+ 4 · We publish   Once payment is in, we publish it and it becomes visible and joinable.
+```
+
+- Follows the organizer guide's existing tone: step cards + FAQ only, **no marketing/card block**.
+- States the load-bearing facts so the docs match concierge behavior: **first competition free**
+  (GTM trial), **price = capacity × rate, IVA added at checkout by Lemon Squeezy**, **not visible to
+  participants until paid & published**, and that **publishing is done by the team after payment**
+  (no instant self-serve publish yet).
+- Add **2–3 FAQ items** to the existing `faqItems` array (e.g. *"Why am I charged?"*, *"Is my first
+  competition really free?"*, *"How do I pay?"*). Refund/cancel and field-locking wording is held
+  until the Q1 2027 automated rewrite (those are §7/§8 of the automated flow).
+- **Deferred to the Q1 2027 rewrite:** a `ComponentDemo` showing the `DRAFT` vs `NOT_STARTED`
+  transition via [`CompetitionStatusChip`](../../../src/lib/components/common/status/CompetitionStatusChip.svelte),
+  which first needs a `DRAFT` case (today an unknown status falls through to the "upcoming" default —
+  [`CompetitionStatusChip.svelte:19-22`](../../../src/lib/components/common/status/CompetitionStatusChip.svelte)).
+  Not part of the concierge page.
+
+**Content is pure i18n + markup — no schema, query, or server change.** New keys under
+`how_it_works_guides.organizer.*` (a `publishing.*` sub-tree + extra `faq.q4/a4…`) added to all
+three locale files (`en`/`es`/`ca`).
+
 ## Data / model impact
 
 **Deferred to Stage 4 (described, not implemented now):**
@@ -196,6 +249,12 @@ Once `status != DRAFT`, the priced inputs are frozen:
 `getMonthCompetitions`, and (conditionally) `getAllCompetitions`; add a `DRAFT` authorization
 guard to the competition-detail route load. New checkout-creation server action and new LS webhook
 route.
+
+**Documentation page (§9), concierge phase:** no schema/query/server change — a new section + 2–3
+FAQ items in the existing organizer guide and new `how_it_works_guides.organizer.publishing.*` /
+`faq` i18n keys in `en`/`es`/`ca`. The `DRAFT` chip demo and the `DRAFT` case on
+[`CompetitionStatusChip`](../../../src/lib/components/common/status/CompetitionStatusChip.svelte)
+belong to the Q1 2027 automated rewrite, not this page.
 
 **Config:** `UNIT_RATE` (+ currency), LS API key, store/variant id, and webhook signing secret
 (server env). `participant` entry fees and `paymentMethod`/`showPaymentWarning` are untouched.
@@ -226,5 +285,16 @@ All four open questions are resolved (2026-06-19):
    participant discovery feed, so it stays unfiltered; consumers that are participant-facing must
    exclude `DRAFT` themselves. (Folded into §4.)
 
-> Design questions are settled. Status remains `draft` until you explicitly approve — say the word
-> and I'll set `status: approved` (the gate to Stage 4 / `/feature-plan`).
+## Resolved questions (documentation page, §9)
+
+Resolved 2026-06-25:
+
+5. **Page placement — section, not a standalone page.** §9 is a new section inside the existing
+   `how-it-works/organizer` guide; no new route, no layout cross-link change, no footer entry.
+6. **Phasing — concierge wording now, rewrite at Q1 2027.** Ships with the manual concierge flow
+   (price shown, first competition free, Payment Link from the 2nd, team publishes after payment);
+   rewritten to the automated `DRAFT → webhook → publish` lifecycle when §1–§8 land.
+7. **Tone — same as the organizer guide.** Step cards + FAQ only; no marketing/card block.
+
+> All design questions (billing mechanics §1–§8 and documentation page §9) are settled.
+> **`status: approved`** — cleared for Stage 4 / `/feature-plan`.

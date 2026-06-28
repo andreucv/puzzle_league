@@ -8,10 +8,18 @@ created: 2026-06-25
 updated: 2026-06-25
 related:
   - docs/features/organizer-retention/01-problem.md
+  - docs/features/organizer-retention/04-plan.md
   - docs/features/pay-per-competition/02b-gtm.md
+  - docs/features/pay-per-competition/00-roadmap.md
 ---
 
 # Organizer year-over-year account retention — Ideas
+
+> **⚠️ Superseded as abuse defense (2026-06-26).** The economic argument below ("why the blend beats
+> account-hopping") is moot: the hopping vector is now closed at the source by reshaping the free
+> trial into a ≤10-slot sandbox, so a fresh account gains nothing worth re-claiming. See
+> [pay-per-competition/07-free-tier-policy.md](../pay-per-competition/07-free-tier-policy.md). These
+> ideas survive only as optional growth features, not monetization protection.
 
 Problem: [./01-problem.md](./01-problem.md)
 

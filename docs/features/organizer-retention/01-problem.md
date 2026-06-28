@@ -8,10 +8,17 @@ created: 2026-06-25
 updated: 2026-06-25
 related:
   - docs/features/organizer-retention/02-ideas.md
+  - docs/features/organizer-retention/04-plan.md
   - docs/features/pay-per-competition/02b-gtm.md
 ---
 
 # Organizer year-over-year account retention — Problem
+
+> **⚠️ Resolved at the source (2026-06-26).** This problem (account-hopping to re-claim the free
+> trial) is now closed not by a retention moat but by reshaping the free trial itself into a ≤10-slot
+> sandbox — see
+> [pay-per-competition/07-free-tier-policy.md](../pay-per-competition/07-free-tier-policy.md). The
+> framing below is retained for history.
 
 ## Context
 

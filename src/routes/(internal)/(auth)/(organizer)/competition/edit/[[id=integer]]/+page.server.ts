@@ -6,6 +6,11 @@ import { CategoryType, CompetitionStatus } from '$lib/.prisma/generated/prisma/e
 import type { Prisma } from '$lib/.prisma/generated/prisma/client';
 import { getPostHogClient } from '$lib/server/posthog';
 import { getCompetitionAccess } from '$lib/services/competition-access';
+import { env } from '$env/dynamic/private';
+
+// Capacity unit rate (euros per slot) for the enablement-price priming (P1).
+// Placeholder default until the rate is fixed — see 04-plan.md open question 1.
+const UNIT_RATE_EUR = Number(env.COMPETITION_UNIT_RATE_EUR ?? '0.3');
 
 import { superValidate, message} from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
@@ -92,6 +97,7 @@ export const load: PageServerLoad = async (event) => {
 
         return {
             form,
+            unitRate: UNIT_RATE_EUR,
             props: {
                 categoryTypes,
                 participantTags: PARTICIPANT_TAG_TYPES
@@ -149,7 +155,8 @@ const create_update_competition: Action = async ({ locals, request, params }) =>
     const posthog = getPostHogClient();
     posthog.capture({
         distinctId: user.id,
-        event: 'competition_updated',
+        // Distinguish the create endpoint of the priming funnel (P3) from edits.
+        event: params.id ? 'competition_updated' : 'competition_created',
         properties: {
             competition_id: result.data?.competition.id
         }

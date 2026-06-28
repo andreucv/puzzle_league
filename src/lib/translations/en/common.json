@@ -403,7 +403,17 @@
       "puzzle_search_placeholder": "Search by name, brand or barcode...",
       "no_puzzles_found": "No puzzles found",
       "create_puzzle": "Create new puzzle",
-      "remove_puzzle": "Remove puzzle"
+      "remove_puzzle": "Remove puzzle",
+      "pricing": {
+        "title": "Platform fee",
+        "explainer": "Running and maintaining the platform has a cost, so organizing a competition includes a fee based on its capacity.",
+        "capacity": "Total capacity: {{slots}} slots",
+        "free_sandbox": "Free — test sandbox (up to 10 slots) to try the platform before running a real competition.",
+        "estimate": "Estimated fee: {{price}} €",
+        "offer_label": "Limited-time offer",
+        "launch_free": "Free to organize competitions until November 2026.",
+        "after_offer": "After that, this fee applies."
+      }
     },
     "upload_image": "Uploading image... This may take a moment",
     "saving_competition": "Saving competition...",

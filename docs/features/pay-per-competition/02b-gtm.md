@@ -21,6 +21,12 @@ answers *when, at what price, to whom, and how we validate it*. It deliberately 
 Q4 build to a concierge MVP** rather than shipping the full automated system in 2026 — it does not
 contradict the design, it sequences it.
 
+> **⚠️ Trial reshaped 2026-06-26.** The "1 free competition, forever (full)" trial in the **Trial**
+> row, the Phase 2 "1st competition free", and the priming message ("Free, normally €33") are
+> **superseded** by [`07-free-tier-policy.md`](./07-free-tier-policy.md): the freebie is now a
+> **≤10-slot sandbox**, and the **first real competition shows its real price**. Update priming copy
+> and the comms to already-active organizers accordingly.
+
 ## Framing decision
 
 **The 2026 goal is to validate willingness-to-pay and stand up the billing machinery — NOT to

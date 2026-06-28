@@ -13,6 +13,8 @@
     import { FileUpload, Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
     import { cldUrl } from '$lib/utils/cld_url';
     import { countries, getCountryFlag, getLocalizedCountryName } from '$lib/utils/country_utils';
+    import { totalCapacity, enablementPrice, isFreeEligible } from '$lib/utils/competition_pricing';
+    import { getPosthog } from '$lib/analytics/posthog';
 
     // Components
     import CustomDatePicker from "$lib/components/bits_ui/CustomDatePicker.svelte";
@@ -242,6 +244,28 @@
     const activeCategories = $derived(categories.filter((c) => !c.removed));
     const existingCategories = $derived(activeCategories.filter((c) => c.origin === 'existing'));
     const newCategories = $derived(activeCategories.filter((c) => c.origin === 'new'));
+
+    // Enablement-price priming (P1/P2): capacity × unit rate, shown for free.
+    // A ≤10-slot config is the free test sandbox (F1); larger configs show the
+    // real price they will pay from edition 1 once charging flips on.
+    const unitRate = $derived(data.unitRate ?? 0.3);
+    const totalCap = $derived(totalCapacity(activeCategories));
+    const freeEligible = $derived(isFreeEligible(activeCategories));
+    const estPrice = $derived(enablementPrice(activeCategories, unitRate));
+
+    // P3 — funnel "price shown" event, captured once when capacity first appears.
+    let priceShownCaptured = false;
+    $effect(() => {
+        if (!priceShownCaptured && totalCap > 0) {
+            priceShownCaptured = true;
+            void getPosthog().then((p) => p.capture('enablement_price_shown', {
+                capacity: totalCap,
+                estimated_price: estPrice,
+                free_eligible: freeEligible,
+                is_edit: isEdit
+            }));
+        }
+    });
 
     /** Build a CalendarDate (1-indexed month) from an ISO/date string. */
     function calendarDateFrom(value: string): CalendarDate {
@@ -1423,6 +1447,46 @@
                 {/if}
             </div>
         </div>
+
+        <!-- Enablement-price priming (P2): anchors the future price; free to organize until Nov 2026 -->
+        {#if totalCap > 0}
+            <div class="card preset-outlined-surface-200-800 p-4 rounded-lg" data-testid="enablement-price-summary">
+                <h2 class="h4 font-semibold mb-2 flex items-center gap-2">
+                    <Icon icon="mdi:tag-outline" width="1.5rem" height="1.5rem" class="text-primary-500" />
+                    {$t('competition.create.pricing.title')}
+                </h2>
+                <p class="text-sm text-surface-600-400">
+                    {$t('competition.create.pricing.explainer')}
+                </p>
+                <p class="mt-3 text-sm text-surface-600-400">
+                    {$t('competition.create.pricing.capacity', { slots: totalCap })}
+                </p>
+                {#if freeEligible}
+                    <p class="mt-2 font-medium text-success-700-300">
+                        {$t('competition.create.pricing.free_sandbox')}
+                    </p>
+                {:else}
+                    <p class="mt-2 font-medium">
+                        {$t('competition.create.pricing.estimate', { price: estPrice.toFixed(2) })}
+                    </p>
+                    <div class="mt-2 flex flex-col items-start gap-1">
+                        <span
+                            class="rounded-full bg-success-500/15 px-2 py-0.5 text-xs font-semibold text-success-700-300"
+                        >
+                            {$t('competition.create.pricing.offer_label')}
+                        </span>
+                        <p class="text-xs">
+                            <span class="font-medium text-success-700-300"
+                                >{$t('competition.create.pricing.launch_free')}</span
+                            >
+                            <span class="text-surface-500"
+                                >{$t('competition.create.pricing.after_offer')}</span
+                            >
+                        </p>
+                    </div>
+                {/if}
+            </div>
+        {/if}
 
         {#if isEdit}
             <div

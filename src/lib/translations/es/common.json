@@ -397,7 +397,17 @@
       "puzzle_search_placeholder": "Buscar por nombre, marca o código de barras...",
       "no_puzzles_found": "No se encontraron puzles",
       "create_puzzle": "Crear nuevo puzle",
-      "remove_puzzle": "Eliminar puzle"
+      "remove_puzzle": "Eliminar puzle",
+      "pricing": {
+        "title": "Tarifa de la plataforma",
+        "explainer": "Mantener la plataforma en funcionamiento tiene un coste, por eso organizar una competición incluye una tarifa según su capacidad.",
+        "capacity": "Capacidad total: {{slots}} plazas",
+        "free_sandbox": "Gratis — entorno de prueba (hasta 10 plazas) para probar la plataforma antes de organizar una competición real.",
+        "estimate": "Tarifa estimada: {{price}} €",
+        "offer_label": "Oferta temporal",
+        "launch_free": "Gratis para organizar competiciones hasta noviembre de 2026.",
+        "after_offer": "A partir de entonces, se aplicará esta tarifa."
+      }
     },
     "edit": {
       "title": "Edita Competición",

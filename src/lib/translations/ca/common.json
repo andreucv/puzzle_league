@@ -514,7 +514,17 @@
       "puzzle_search_placeholder": "Cerca per nom, marca o codi de barres...",
       "no_puzzles_found": "No s'han trobat trencaclosques",
       "create_puzzle": "Crea un nou trencaclosques",
-      "remove_puzzle": "Elimina el trencaclosques"
+      "remove_puzzle": "Elimina el trencaclosques",
+      "pricing": {
+        "title": "Tarifa de la plataforma",
+        "explainer": "Mantenir la plataforma en funcionament té un cost, per això organitzar una competició inclou una tarifa segons la seva capacitat.",
+        "capacity": "Capacitat total: {{slots}} places",
+        "free_sandbox": "Gratis — entorn de proves (fins a 10 places) per provar la plataforma abans d'organitzar una competició real.",
+        "estimate": "Tarifa estimada: {{price}} €",
+        "offer_label": "Oferta temporal",
+        "launch_free": "Gratis per organitzar competicions fins al novembre de 2026.",
+        "after_offer": "A partir de llavors, s'aplicarà aquesta tarifa."
+      }
     },
     "edit": {
       "title": "Edita Competició",

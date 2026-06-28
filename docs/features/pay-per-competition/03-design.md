@@ -10,6 +10,8 @@ related:
   - docs/features/pay-per-competition/01-problem.md
   - docs/features/pay-per-competition/02-ideas.md
   - docs/features/pay-per-competition/02b-gtm.md
+  - docs/features/pay-per-competition/00-roadmap.md
+  - docs/features/pay-per-competition/04-plan.md
 ---
 
 # Design: Pay-per-competition organizer billing
@@ -69,6 +71,11 @@ create (organizer)            payment success (LS webhook)
   signature gains `'DRAFT'`.
 
 ### 2. Price computation (capacity-driven)
+
+> **Updated 2026-06-26:** the "no free allowance" line below is **superseded** by
+> [`07-free-tier-policy.md`](./07-free-tier-policy.md): one free **≤10-slot** competition per
+> account (a sandbox), real events pay from edition 1. Free competitions (`Σ maxParties ≤ 10` under
+> the unused grant) bypass checkout and publish directly.
 
 `enablementPrice = UNIT_RATE × Σ Category.maxParties` over the competition's categories
 ([`maxParties` at `prisma/schema.prisma:248`](../../../prisma/schema.prisma)). One flat unit rate,
@@ -183,6 +190,11 @@ Once `status != DRAFT`, the priced inputs are frozen:
   everything is freely editable and the price recomputes.
 
 ### 9. Organizer documentation page — submission → draft → payment → public visibility
+
+> **Updated 2026-06-26:** wherever this section says "your first competition is free", that means a
+> free **≤10-slot sandbox**, not a free real event — real competitions pay from the first one. See
+> [`07-free-tier-policy.md`](./07-free-tier-policy.md). The concierge/automated copy below needs this
+> wording correction.
 
 Organizers need a plain-language explanation of the new publish-for-pay process *before* they hit
 the price, so the charge and the "not visible until paid" step are expected, not a surprise. This

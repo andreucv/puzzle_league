@@ -21,6 +21,16 @@ function isPageRequest(path: string): boolean {
 	return !path.startsWith('/api/') && !path.startsWith('/auth/');
 }
 
+// Cold-start instrumentation — enable with DEBUG_BOOT=true (e.g. Vercel vars).
+// process.uptime() is seconds since the Node process started, so this captures
+// the cost of the eager imports above (Prisma client + better-auth) that run at
+// module load, before any request. firstRequest splits boot from first handler.
+const DEBUG_BOOT = env.DEBUG_BOOT === 'true';
+if (DEBUG_BOOT) {
+	console.log(`[boot] hooks.server.ts loaded at uptime ${(process.uptime() * 1000).toFixed(0)}ms`);
+}
+let firstRequest = true;
+
 // Auth handler
 export async function handle({ event, resolve }) {
 	// PostHog reverse proxy — route /ingest/* to PostHog servers
@@ -58,9 +68,17 @@ export async function handle({ event, resolve }) {
 
 	// Fetch current session from Better Auth
 	// cookieCache enabled in auth.ts
+	const _sessionStart = DEBUG_BOOT ? Date.now() : 0;
 	const session = await auth.api.getSession({
 		headers: event.request.headers,
 	});
+	if (DEBUG_BOOT) {
+		console.log(`[req] getSession +${Date.now() - _sessionStart}ms for ${pathname}`);
+		if (firstRequest) {
+			firstRequest = false;
+			console.log(`[boot] first request served at uptime ${(process.uptime() * 1000).toFixed(0)}ms (cold-start total)`);
+		}
+	}
 	// Make session and user available on server
 	if (session) {
 		event.locals.session = session.session as typeof event.locals.session;

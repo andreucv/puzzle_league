@@ -84,6 +84,9 @@ export default defineConfig({
 		},
 		fs: {
 			allow: ['prisma/generated'] // Allow access to parent directory for better-auth and prisma client
+		},
+		warmup: {
+			ssrFiles: ['./src/hooks.server.ts']
 		}
 	}
 });

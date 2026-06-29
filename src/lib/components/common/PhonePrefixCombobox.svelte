@@ -51,12 +51,32 @@
 
     const phonePrefixData = getPhonePrefixData();
     let filteredPrefixes = $state(phonePrefixData);
+    // What the user actually typed. zag clears the bound inputValue on blur (reason
+    // "interact-outside") before onOpenChange fires, so we can't read it there — track it here.
+    let typedValue = $state('');
 
     const collection = $derived(useListCollection({
         items: filteredPrefixes,
         itemToString: (item) => item.label,
         itemToValue: (item) => item.value,
     }));
+
+    // Skeleton's combobox only commits a selection via the dropdown; on blur it resets the
+    // input to the committed value. So a user who types "+34" but doesn't click the option
+    // loses it. When the field closes without a selection, commit a matching typed prefix.
+    function commitTypedValue() {
+        if (value.length) return;
+        const typed = typedValue.trim();
+        if (!typed) return;
+        const normalized = typed.startsWith('+') ? typed : `+${typed}`;
+        const match =
+            phonePrefixData.find((p) => p.value === normalized) ??
+            (filteredPrefixes.length === 1 ? filteredPrefixes[0] : undefined);
+        if (match) {
+            value = [match.value];
+            inputValue = match.label;
+        }
+    }
 </script>
 
 <div class="border border-surface-300 bg-white rounded-lg overflow-hidden">
@@ -67,12 +87,17 @@
         onValueChange={(e) => (value = e.value)}
         onInputValueChange={(e) => {
             inputValue = e.inputValue;
+            if (e.reason === 'input-change') typedValue = e.inputValue;
+            else if (e.reason === 'item-select' || e.reason === 'clear-trigger') typedValue = '';
             filteredPrefixes = phonePrefixData.filter((item) =>
                 item.label.toLowerCase().includes(e.inputValue.toLowerCase()) ||
                 item.value.includes(e.inputValue)
             );
         }}
-        onOpenChange={() => { filteredPrefixes = phonePrefixData; }}
+        onOpenChange={(e) => {
+            if (!e.open) commitTypedValue();
+            filteredPrefixes = phonePrefixData;
+        }}
         {placeholder}
     >
         <Combobox.Control>

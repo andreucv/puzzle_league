@@ -16,12 +16,33 @@
         locale?: string;
     } = $props();
 
+    // Lowercase + strip diacritics so "austria" matches "Àustria", "peru" matches "Perú".
+    const fold = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+
+    // Most probable country from the browser locale's region (e.g. "ca" → ES, "en-US" → US).
+    const probableCountry = (() => {
+        if (typeof navigator === 'undefined') return '';
+        try {
+            return new Intl.Locale(navigator.language).maximize().region ?? '';
+        } catch {
+            return '';
+        }
+    })();
+
     const getCountryData = () => {
-        return countries.map(c => ({
-            label: getLocalizedCountryName(c.code, locale || 'en'),
-            value: c.code,
-            emoji: getCountryFlag(c.code),
-        }));
+        return countries
+            .map(c => ({
+                label: getLocalizedCountryName(c.code, locale || 'en'),
+                value: c.code,
+                emoji: getCountryFlag(c.code),
+            }))
+            // Pin the probable country first, then sort by localized name so e.g. "Espanya"
+            // is found under E in Catalan, not at the static array position of its ISO code.
+            .sort((a, b) => {
+                if (a.value === probableCountry) return -1;
+                if (b.value === probableCountry) return 1;
+                return a.label.localeCompare(b.label, locale || 'en');
+            });
     };
 
     const countryData = $derived(getCountryData());
@@ -43,7 +64,7 @@
         onInputValueChange={(e) => {
             inputValue = e.inputValue;
             filteredItems = countryData.filter((item) =>
-                item.label.toLowerCase().includes(e.inputValue.toLowerCase())
+                fold(item.label).includes(fold(e.inputValue))
             );
         }}
         onOpenChange={() => { filteredItems = countryData; }}

@@ -14,9 +14,29 @@
         testId?: string;
     } = $props();
 
+    // Most probable country from the browser locale's region (e.g. "ca" → ES, "en-US" → US).
+    const probableCountry = (() => {
+        if (typeof navigator === 'undefined') return '';
+        try {
+            return new Intl.Locale(navigator.language).maximize().region ?? '';
+        } catch {
+            return '';
+        }
+    })();
+
     const getPhonePrefixData = () => {
         const seen = new Set<string>();
         const prefixes: { label: string; value: string }[] = [];
+        // Pin the probable country's prefix first, with its own flag — shared prefixes (e.g. +1)
+        // would otherwise dedupe to the first matching country in the static list.
+        const probable = countries.find((c) => c.code === probableCountry && c.phonePrefix);
+        if (probable?.phonePrefix) {
+            seen.add(probable.phonePrefix);
+            prefixes.push({
+                label: `${getCountryFlag(probable.code)} ${probable.phonePrefix}`,
+                value: probable.phonePrefix,
+            });
+        }
         for (const c of countries) {
             if (c.phonePrefix && !seen.has(c.phonePrefix)) {
                 seen.add(c.phonePrefix);

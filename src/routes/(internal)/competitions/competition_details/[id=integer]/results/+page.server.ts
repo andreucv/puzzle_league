@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getCompetitionResults } from '$lib/database/db_competition';
-import { Role } from '$lib/.prisma/generated/prisma/enums';
+import { Role } from '$prisma/enums';
 
 export const load: PageServerLoad = async ({ params, parent }) => {
     const competitionId = parseInt(params.id as string);

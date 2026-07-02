@@ -3,7 +3,7 @@ import { env } from '$env/dynamic/private';
 import { Receiver } from '@upstash/qstash';
 import { autoCancelExpiredCompetitions } from '$lib/services/auto-cancel';
 import { prisma } from '$lib/database/create_prisma_client';
-import { Role } from '$lib/.prisma/generated/prisma/enums';
+import { Role } from '$prisma/enums';
 
 function getReceiver(): Receiver | null {
 	const current = env.QSTASH_CURRENT_SIGNING_KEY;

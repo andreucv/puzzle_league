@@ -1,8 +1,8 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/create_prisma_client';
-import { CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
+import { CompetitionStatus } from '$prisma/enums';
 import { dispatchNotifications } from '$lib/notifications/dispatcher';
-import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { NotificationType } from '$prisma/enums';
 import { getPostHogClient } from '$lib/server/posthog';
 
 export const POST = async (event: RequestEvent) => {

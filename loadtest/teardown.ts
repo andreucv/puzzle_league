@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { createPrismaClient } from '../src/lib/database/create_prisma_client';
-import type { PrismaClient } from '../src/lib/.prisma/generated/prisma/client';
+import type { PrismaClient } from '../prisma/generated/prisma/client';
 import { loadConfig } from './config';
 
 /**

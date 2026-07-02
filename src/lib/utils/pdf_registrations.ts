@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
+import type { CategoryType } from '$prisma/browser';
 import { getCategoryTypeName } from '$lib/utils/category_utils';
 
 interface PdfEntry {

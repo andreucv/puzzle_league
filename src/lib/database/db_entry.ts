@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { CategoryStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, RegistrationStatus } from '$prisma/enums';
 
 // ---------------------------------------------------------------------------
 // Entry queries — read-only functions for fetching entries and

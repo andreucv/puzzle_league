@@ -7,7 +7,7 @@ vi.mock('$lib/database/create_prisma_client', () => ({ prisma: prismaMock }));
 
 const mockCreateMany = prismaMock.notification.createMany;
 
-vi.mock('$lib/.prisma/generated/prisma/enums', () => ({
+vi.mock('$prisma/enums', () => ({
 	NotificationType: {
 		REGISTRATION_CONFIRMED: 'REGISTRATION_CONFIRMED',
 		REGISTRATION_REFUSED: 'REGISTRATION_REFUSED',

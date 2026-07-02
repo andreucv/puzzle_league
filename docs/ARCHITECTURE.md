@@ -6,7 +6,7 @@ Puzzle League is a SvelteKit application for speed puzzling competitions. It run
 
 - **Frontend and routing:** SvelteKit 2, Svelte 5, TypeScript, Tailwind CSS 4, Skeleton UI, Bits UI, and Iconify.
 - **Backend:** SvelteKit `+page.server.ts`, form actions, and `+server.ts` API routes.
-- **Database:** PostgreSQL with Prisma. The Prisma client and Zod types are generated into `src/lib/.prisma/generated`.
+- **Database:** PostgreSQL with Prisma. The Prisma client is generated into `prisma/generated/prisma` (gitignored) and imported via the `$prisma` alias.
 - **Auth:** Better Auth with email/password, Google OAuth, session storage in Prisma, email verification, password reset, and JWT support.
 - **Deployment:** Vercel adapter for Node 20. Scheduled jobs (`/api/cron/auto-cancel`, `/api/cron/landing-stats`) are driven by Upstash QStash recurring schedules rather than Vercel native crons, so they run against both production and preview environments; each cron endpoint verifies the QStash request signature (or an admin session for manual runs).
 - **External services:** Cloudinary for competition/puzzle images, Ably for realtime competition events, Resend for emails, PostHog and Vercel Analytics/Speed Insights for telemetry, and optional Upstash QStash for category auto-stop webhooks.

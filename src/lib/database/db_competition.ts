@@ -1,6 +1,6 @@
-import { CategoryStatus, CompetitionStatus, EntryTagStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
-import type { Prisma } from '$lib/.prisma/generated/prisma/client';
-import type { Competition, Category } from '$lib/.prisma/generated/prisma/browser';
+import { CategoryStatus, CompetitionStatus, EntryTagStatus, RegistrationStatus } from '$prisma/enums';
+import type { Prisma } from '$prisma/client';
+import type { Competition, Category } from '$prisma/browser';
 import { prisma, accelerateEnabled } from '$lib/database/create_prisma_client';
 
 // ---------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 
-vi.mock('$lib/.prisma/generated/prisma/enums', () => ({
+vi.mock('$prisma/enums', () => ({
 	NotificationType: {
 		REGISTRATION_CONFIRMED: 'REGISTRATION_CONFIRMED',
 		REGISTRATION_REFUSED: 'REGISTRATION_REFUSED',

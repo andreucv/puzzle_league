@@ -22,7 +22,9 @@ const config = {
 		// instead of fragile `../../../tests/...` relative paths. svelte-kit sync
 		// propagates this into .svelte-kit/tsconfig.json so `pnpm check` resolves it.
 		alias: {
-			$tests: 'src/tests'
+			$tests: 'src/tests',
+			// Generated Prisma client lives outside src/ (output in prisma/schema.prisma)
+			$prisma: 'prisma/generated/prisma'
 		}
 	},
 };

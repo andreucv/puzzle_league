@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
+import { RegistrationStatus } from '$prisma/enums';
 import { prismaMock } from '$tests/mocks/prisma';
 
 vi.mock('$lib/database/create_prisma_client', () => ({ prisma: prismaMock }));

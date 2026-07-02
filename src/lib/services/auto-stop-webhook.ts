@@ -1,7 +1,7 @@
 import type { Receiver } from '@upstash/qstash';
-import type { PrismaClient } from '$lib/.prisma/generated/prisma/client';
-import { CategoryStatus } from '$lib/.prisma/generated/prisma/enums';
-import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import type { PrismaClient } from '$prisma/client';
+import { CategoryStatus } from '$prisma/enums';
+import { NotificationType } from '$prisma/enums';
 import type { NotificationIntent } from '$lib/notifications/dispatcher';
 
 interface WebhookResult {

@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { prisma } from './create_prisma_client';
-import { Role } from '../../src/lib/.prisma/generated/prisma/client';
+import { Role } from '../../prisma/generated/prisma/client';
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 

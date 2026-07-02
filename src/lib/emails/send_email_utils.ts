@@ -1,7 +1,7 @@
 import { RESEND_API_KEY, RESEND_FROM_EMAIL } from '$env/static/private';
 import { Resend } from 'resend';
 import { prisma } from '$lib/database/create_prisma_client';
-import type { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import type { NotificationType } from '$prisma/enums';
 import { resolveEmailTranslation, resolveMultiLanguageTranslations } from './email_translations';
 import { buildSingleLanguageEmail, buildMultiLanguageEmail } from './email_template';
 

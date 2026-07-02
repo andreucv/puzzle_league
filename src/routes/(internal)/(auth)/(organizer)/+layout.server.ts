@@ -1,6 +1,6 @@
 import type { LayoutServerLoad } from "./$types";
 import { error, redirect } from "@sveltejs/kit";
-import { Role } from '$lib/.prisma/generated/prisma/enums';
+import { Role } from '$prisma/enums';
 
 /**
  * Layout server load function

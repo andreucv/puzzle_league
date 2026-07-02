@@ -8,7 +8,7 @@ import { countries } from '$lib/utils/country_utils';
 import { resolveOnboardingSteps } from '$lib/utils/onboarding_utils';
 import { auth } from '$lib/auth';
 import { dispatchNotifications } from '$lib/notifications/dispatcher';
-import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { NotificationType } from '$prisma/enums';
 
 export const load: PageServerLoad = async ({ parent, locals, cookies }) => {
 	const { user } = await parent();

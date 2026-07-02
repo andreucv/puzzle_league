@@ -9,7 +9,7 @@
     import { validateCompetitionForm } from "$lib/utils/competition_form_validation";
     import { collectFormErrorMessages } from "$lib/utils/form_errors";
     import { buildCategoriesPayload, resolveCategoryDateTime, type CategoryDraft } from "../services/competition-categories";
-    import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
+    import type { CategoryType } from '$prisma/browser';
     import { FileUpload, Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
     import { cldUrl } from '$lib/utils/cld_url';
     import { countries, getCountryFlag, getLocalizedCountryName } from '$lib/utils/country_utils';

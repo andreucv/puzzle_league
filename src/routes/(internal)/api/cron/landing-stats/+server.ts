@@ -3,8 +3,8 @@ import { env } from '$env/dynamic/private';
 import { Receiver } from '@upstash/qstash';
 import { prisma } from '$lib/database/create_prisma_client';
 import { upsertLandingStats } from '$lib/database/db_competition';
-import { Role } from '$lib/.prisma/generated/prisma/enums';
-import { CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
+import { Role } from '$prisma/enums';
+import { CompetitionStatus } from '$prisma/enums';
 
 function getReceiver(): Receiver | null {
 	const current = env.QSTASH_CURRENT_SIGNING_KEY;

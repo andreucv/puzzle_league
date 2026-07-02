@@ -1,5 +1,5 @@
 import type { SeedContext, CompetitionSeedInput, SeededCompetition } from '../types';
-import { CategoryType } from '../../../src/lib/.prisma/generated/prisma/enums';
+import { CategoryType } from '../../../prisma/generated/prisma/enums';
 
 /**
  * Creates a competition with nested categories in a single transaction.

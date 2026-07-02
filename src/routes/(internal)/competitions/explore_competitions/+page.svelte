@@ -8,7 +8,7 @@
     import SmartPresetChips from "./components/SmartPresetChips.svelte";
     import CompetitionCard from "$lib/components/competition/CompetitionCard.svelte";
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
-    import type { RoleAssignment } from '$lib/.prisma/generated/prisma/browser';
+    import type { RoleAssignment } from '$prisma/browser';
 
     let { data } = $props();
 

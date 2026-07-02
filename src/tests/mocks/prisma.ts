@@ -14,7 +14,7 @@
 // (e.g. in a `beforeEach`) so the interactive callback receives the same deep mock as `tx`.
 import { beforeEach, type Mock } from 'vitest';
 import { mockDeep, mockReset, type DeepMockProxy } from 'vitest-mock-extended';
-import type { PrismaClient } from '$lib/.prisma/generated/prisma/client';
+import type { PrismaClient } from '$prisma/client';
 
 export const prismaMock: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();
 

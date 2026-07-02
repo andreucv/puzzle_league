@@ -1,4 +1,4 @@
-import type { PrismaClient } from '../../src/lib/.prisma/generated/prisma/client';
+import type { PrismaClient } from '../../prisma/generated/prisma/client';
 
 // ── Seed Context ──
 

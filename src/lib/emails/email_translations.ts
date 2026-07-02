@@ -1,4 +1,4 @@
-import type { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import type { NotificationType } from '$prisma/enums';
 
 /** Map NotificationType enum values to the translation key suffix. */
 const NOTIFICATION_TYPE_KEY: Record<string, string> = {

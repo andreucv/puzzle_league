@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { CompetitionStatus, CategoryStatus, NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { CompetitionStatus, CategoryStatus, NotificationType } from '$prisma/enums';
 import { dispatchNotifications } from '$lib/notifications/dispatcher';
 
 // ---------------------------------------------------------------------------

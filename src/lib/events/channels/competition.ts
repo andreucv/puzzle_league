@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
+import { RegistrationStatus } from '$prisma/enums';
 import type { CompetitionEventState } from '../types';
 import crypto from 'node:crypto';
 

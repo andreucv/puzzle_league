@@ -3,7 +3,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { getPendingRequests, acceptRequest, rejectRequest } from '$lib/database/db_request';
 import { getRoleAssignments } from '$lib/database/db_user';
 import { dispatchNotifications } from '$lib/notifications/dispatcher';
-import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { NotificationType } from '$prisma/enums';
 
 export const load: PageServerLoad = async ({ request }) => {
     try {

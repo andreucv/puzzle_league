@@ -8,7 +8,9 @@ Start from `.env.example`, then add any feature-specific keys required by the co
 
 Useful commands:
 
-- `pnpm dev` starts the Vite dev server.
+- `pnpm dev` starts the Vite dev server. If you develop inside Docker (no native file-system
+  events), set `VITE_POLLING=true` to enable watcher polling for HMR; leave it unset on native
+  checkouts — polling makes cold starts drastically slower.
 - `pnpm check` runs SvelteKit sync and `svelte-check`.
 - `pnpm test:unit` runs Vitest tests under `src/**/*.test.ts`.
 - `pnpm test:unit:coverage` runs the unit suite with v8 coverage (text + HTML in `coverage/`, plus `lcov`).

@@ -77,10 +77,12 @@ export default defineConfig({
 			$tests: '/src/tests',
 		},
 	},
-    // To enable hot module reloading, we need to enable polling because of docker environment
 	server: {
 		watch: {
-			usePolling: true,
+			// Polling is only needed for HMR inside Docker (no native FS events). On native
+			// checkouts it stat-polls the whole tree and starves the transform pipeline
+			// (measured: >240s cold start with polling vs 5.5s without). Opt in via env.
+			usePolling: process.env.VITE_POLLING === 'true',
 		},
 		fs: {
 			allow: ['prisma/generated'] // Allow access to parent directory for better-auth and prisma client

@@ -42,6 +42,7 @@ scripts/db_migration/*seed_data.json
 /playwright/.auth/
 /playwright/.test-server-state.json
 /playwright/.e2e-build-hash
+/playwright/walkthroughs/
 
 # E2E test generated data
 /e2e/*/test-data*.json

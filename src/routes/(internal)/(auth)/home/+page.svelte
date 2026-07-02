@@ -112,6 +112,9 @@
             {#if upcomingRegisteredCompetitions && upcomingRegisteredCompetitions.length === 0}
                 <GenericTitle text={$t('landing_page.no_upcoming_competitions')} />
                 <p class="text-surface-500">{$t('landing_page.no_upcoming_competitions_detail')}</p>
+                <a href="/competitions/explore_competitions" class="btn btn-sm preset-filled-primary-500 mt-3" data-testid="home-explore-cta">
+                    {$t('competitions.explore_competitions')}
+                </a>
             {:else}
                 <GenericTitle text={$t('landing_page.my_upcoming_competitions')} />
                 <CompetitionList competitions={upcomingRegisteredCompetitions ?? []} n_show={2} currentUsedId={data.user.id} />

@@ -111,7 +111,7 @@
         </a>
     </li>
     <li>
-        <a data-testid="nav-drawer-my-organized-competitions" href="/my_organized_competitions" onclick={navigate} class="nav-item" class:nav-item-active={isActive('/my_organized_competitions')}>
+        <a data-testid="nav-drawer-my-organized-competitions" href="/competitions/explore_competitions?preset=organized" onclick={navigate} class="nav-item">
             <ClipboardListOutlineIcon width="1.25rem" height="1.25rem" />
             <span>{$t('competitions.my_organized_competitions')}</span>
         </a>

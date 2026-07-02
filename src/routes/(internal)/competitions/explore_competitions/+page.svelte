@@ -3,6 +3,7 @@
     import FilterToggleIcon from '@iconify-svelte/mdi/filter-variant';
     import PlusIcon from '@iconify-svelte/mdi/plus';
     import { t } from '$lib/translations';
+    import { afterNavigate } from '$app/navigation';
     import SearchInput from "$lib/components/common/SearchInput.svelte";
     import FilterTabs from "./components/FilterTabs.svelte";
     import SmartPresetChips from "./components/SmartPresetChips.svelte";
@@ -20,6 +21,7 @@
     const hasUserLocation = $derived(Boolean(user?.country && user?.postalCode));
     // Set of registered category IDs for quick lookup
     const registeredCategorySet = $derived(new Set(registeredCategoryIds));
+    const isOrganizer = $derived(Boolean(user?.roleAssignments?.some((role: RoleAssignment) => role.role === 'ORGANIZER')));
     const hasRegistrations = $derived(registeredCategoryIds.length > 0);
     // Search filter
     let filter = $state('');
@@ -41,6 +43,16 @@
     let showPresets = $state(false);
     const activePresetCount = $derived(activePresets.length);
 
+    // The drawer's "My organized competitions" link points here with ?preset=organized.
+    // afterNavigate (not init-only state) so the link also works when already on this page.
+    afterNavigate(({ to }) => {
+        if (to?.url.searchParams.get('preset') === 'organized') {
+            activePresets = ['organized'];
+            showPresets = true;
+            activeTab = 'ALL';
+        }
+    });
+
     // Tab definitions with counts — labels match CompetitionStatusChip
     const tabs = $derived([
         { id: 'ALL', label: $t('manage_registrations.all'), count: competitions.length },
@@ -57,6 +69,7 @@
         { id: 'registered', label: $t('registration.registered'), icon: 'mdi:account-check', disabled: !hasRegistrations },
         { id: 'near-me', label: $t('manage_registrations.near-me'), icon: 'mdi:map-marker-radius', disabled: !hasUserLocation },
         { id: 'open-registration', label: $t('manage_registrations.open'), icon: 'mdi:door-open' },
+        ...(isOrganizer ? [{ id: 'organized', label: $t('competitions.my_organized_competitions'), icon: 'mdi:clipboard-list-outline' }] : []),
     ]);
 
     // Filtered competitions based on all filters
@@ -120,6 +133,13 @@
             result = result.filter(c => c.registrationOpen && c.status === 'NOT_STARTED');
         }
 
+        if (activePresets.includes('organized')) {
+            // ponytail: client-side creatorId filter works because the load fetches ALL
+            // competitions; if explore ever gets paged loading, fetch the viewer's own
+            // competitions server-side (where: { creatorId }) and merge them instead.
+            result = result.filter(c => c.creatorId === user?.id);
+        }
+
         return result;
     });
 
@@ -170,7 +190,7 @@
                 <span class="text-surface-500"> of {totalCount}</span>
             {/if}
         </span>
-        {#if user?.roleAssignments?.some((role: RoleAssignment) => role.role === 'ORGANIZER')}
+        {#if isOrganizer}
             <a class="btn btn-sm preset-filled-primary-500" href="/competition/edit">
                 <PlusIcon width="1rem" height="1rem" class="mr-1" />
                 {$t('competitions.create_competition')}

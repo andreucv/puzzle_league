@@ -342,22 +342,6 @@ export async function getMonthCompetitions(month: number, year: number) {
     }
 }
 
-export async function getOrganisedCompetitions(creatorId: string) {
-    try {
-        const competitions = await prisma.competition.findMany({
-            where: { creatorId },
-            orderBy: {
-                startDate: 'desc'
-            }
-        });
-
-        return competitions;
-    } catch (error) {
-        console.error('Error getting organised competitions:', error);
-        throw error;
-    }
-}
-
 export async function getUpcomingCompetitions(n_objects: number, offset: number) {
     // Public feed, identical for all visitors (cache key includes take/skip).
     // Reserved-slot counts may lag up to ttl+swr.

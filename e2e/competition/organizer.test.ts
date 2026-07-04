@@ -233,9 +233,15 @@ async function addCategoryWithType(page: Page, index: number, type: string) {
     await page.locator(`#category-type-create-${index}`).selectOption(type);
 }
 
-/** Clicks the submit button using the stable data-testid. */
-async function submitCompetition(page: Page) {
+/**
+ * Clicks the submit button using the stable data-testid. Creating (not editing)
+ * opens the first-publish confirmation dialog, which must be confirmed.
+ */
+async function submitCompetition(page: Page, opts: { edit?: boolean } = {}) {
     await page.getByTestId('submit-competition').click();
+    if (!opts.edit) {
+        await page.getByTestId('confirm-publish').click();
+    }
 }
 
 /** Asserts the competition details page shows the expected competition and category data. */
@@ -290,7 +296,7 @@ test.describe('Single-day competition', () => {
 
         // Update details and submit again
         await fillCompetitionDetails(page, updated_competition_data.competition);
-        await submitCompetition(page);
+        await submitCompetition(page, { edit: true });
 
         // Assert the updated details are shown
         await assertCompetitionCreated(page, updated_competition_data.competition, updated_competition_data.categories);
@@ -363,7 +369,8 @@ test.describe('Multi-day competition', () => {
         await page.getByTestId('end-time-create-0').fill('12:00');
         await page.getByTestId('max-parties-create-0').fill('10');
 
-        await submitCompetition(page);
+        // Validation fails before the first-publish dialog, so submit directly.
+        await page.getByTestId('submit-competition').click();
 
         await expect(page.getByTestId('category-start-date-create-0')).toBeVisible();
     });

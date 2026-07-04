@@ -15,6 +15,7 @@
     import { countries, getCountryFlag, getLocalizedCountryName } from '$lib/utils/country_utils';
     import { totalCapacity, enablementPrice, isFreeEligible } from '$lib/utils/competition_pricing';
     import { getPosthog } from '$lib/analytics/posthog';
+    import { showSuccessToast } from '$lib/utils/toast';
 
     // Components
     import CustomDatePicker from "$lib/components/bits_ui/CustomDatePicker.svelte";
@@ -90,6 +91,15 @@
                 return;
             }
 
+            // First publish only: recap the resulting state before anything goes live.
+            if (!isEdit && !publishConfirmed) {
+                isSubmitting = false;
+                loadingMessage = '';
+                showPublishConfirmation = true;
+                cancel();
+                return;
+            }
+
             // Derive the Prisma { create, update, delete } payload once, here at submit.
             $form.categories = buildCategoriesPayload(categories) as any;
 
@@ -105,6 +115,19 @@
             if (result.type === 'success' && result.data?.form?.message?.success) {
                 const competitionId = result.data.form.message.id;
                 if (competitionId) {
+                    if (isEdit) {
+                        showSuccessToast(
+                            $t('competition.publish.toast_updated_title'),
+                            $t('competition.publish.toast_updated')
+                        );
+                    } else {
+                        showSuccessToast(
+                            $t('competition.publish.toast_created_title'),
+                            $form.registrationOpen
+                                ? $t('competition.publish.toast_created_open')
+                                : $t('competition.publish.toast_created_closed')
+                        );
+                    }
                     await goto(`/competitions/competition_details/${competitionId}`);
                 }
             } else if (result.type === 'error') {
@@ -239,11 +262,50 @@
     let showRemoveConfirmation = $state(false);
     let pendingRemoval = $state<CategoryDraft | null>(null);
 
+    // First-publish confirmation: creating publishes instantly, so the organizer
+    // acknowledges the resulting state once before the competition goes live.
+    let formElement = $state<HTMLFormElement>();
+    let showPublishConfirmation = $state(false);
+    let publishConfirmed = false;
+
+    function confirmPublish() {
+        publishConfirmed = true;
+        showPublishConfirmation = false;
+        formElement?.requestSubmit();
+    }
+
+    // Recommended-but-empty fields, named with their form labels for the dialog nudge.
+    const missingRecommendedFields = $derived.by(() => {
+        const missing: string[] = [];
+        if (!$form.location) missing.push($t('competition.create.location'));
+        if (!countryValue[0]) missing.push($t('competition.create.country'));
+        if (!$form.description) missing.push($t('competition.create.comments'));
+        if (selected_image_src === undefined) missing.push($t('competition.create.image'));
+        return missing;
+    });
+
     // Categories still on screen — existing rows flagged `removed` are hidden but
     // kept in `categories` so the submit payload can list them for deletion.
     const activeCategories = $derived(categories.filter((c) => !c.removed));
     const existingCategories = $derived(activeCategories.filter((c) => c.origin === 'existing'));
     const newCategories = $derived(activeCategories.filter((c) => c.origin === 'new'));
+
+    // Publish-state summary strip labels
+    const publishCategoryLabel = $derived(
+        activeCategories.length === 1
+            ? $t('competition.publish.category_count_one')
+            : $t('competition.publish.category_count_many', { count: activeCategories.length })
+    );
+    const publishDateLabel = $derived.by(() => {
+        if (!$form.startDate) return $t('competition.publish.date_not_set');
+        const opts = { year: 'numeric', month: 'short', day: 'numeric' } as const;
+        const start = new Date($form.startDate as string).toLocaleDateString(data.i18n.locale, opts);
+        if ($form.endDate && $form.endDate !== $form.startDate) {
+            const end = new Date($form.endDate as string).toLocaleDateString(data.i18n.locale, opts);
+            if (end !== start) return `${start} – ${end}`;
+        }
+        return start;
+    });
 
     // Enablement-price priming (P1/P2): capacity × unit rate, shown for free.
     // A ≤10-slot config is the free test sandbox (F1); larger configs show the
@@ -618,6 +680,7 @@
         class="space-y-4"
         novalidate
         use:enhance
+        bind:this={formElement}
     >
         <!-- Basic Information Section -->
         <div class="card preset-outlined-surface-200-800 p-4 rounded-lg">
@@ -638,7 +701,7 @@
                         type="text"
                         name="competition_name"
                         bind:value={$form.name}
-                        class="input rounded-lg bg-primary-50-950"
+                        class="input rounded-lg bg-surface-50-950"
                         class:input-error={formErrors.name || $errors.name}
                         oninput={() => {
                             // Clear error on input
@@ -653,13 +716,13 @@
                 </div>
 
                 <div class="label">
-                    <span>{$t('competition.create.location')}</span>
+                    <span>{$t('competition.create.location')} <span class="badge preset-tonal text-xs">{$t('competition.publish.recommended_badge')}</span></span>
                     <input
                         type="text"
                         name="location"
                         bind:value={$form.location}
                         maxlength="120"
-                        class="input rounded-lg bg-primary-50-950"
+                        class="input rounded-lg bg-surface-50-950"
                         class:input-error={formErrors.location || $errors.location}
                         oninput={() => {
                             if (formErrors.location) formErrors.location = undefined;
@@ -673,9 +736,9 @@
                 </div>
 
                 <div class="label">
-                    <span>{$t('competition.create.country')}</span>
+                    <span>{$t('competition.create.country')} <span class="badge preset-tonal text-xs">{$t('competition.publish.recommended_badge')}</span></span>
                     <input type="hidden" name="country" value={countryValue[0] || ''} />
-                    <div class="border border-surface-300 dark:border-surface-600 rounded-lg overflow-hidden bg-primary-50-950">
+                    <div class="border border-surface-300 dark:border-surface-600 rounded-lg overflow-hidden bg-surface-50-950">
                         <Combobox
                             collection={countryCollection}
                             value={countryValue}
@@ -733,7 +796,7 @@
                         maxlength="20"
                         data-testid="postal-code"
                         placeholder={$t('competition.create.postal_code_placeholder')}
-                        class="input rounded-lg bg-primary-50-950"
+                        class="input rounded-lg bg-surface-50-950"
                         class:input-error={formErrors.postalCode || $errors.postalCode}
                         oninput={() => {
                             if (formErrors.postalCode) formErrors.postalCode = undefined;
@@ -747,13 +810,13 @@
                 </div>
 
                 <div class="label lg:col-span-2">
-                    <span>{$t('competition.create.comments')}</span>
+                    <span>{$t('competition.create.comments')} <span class="badge preset-tonal text-xs">{$t('competition.publish.recommended_badge')}</span></span>
                     <textarea
                         name="description"
                         bind:value={$form.description}
                         rows="3"
                         maxlength="1000"
-                        class="textarea rounded-lg bg-primary-50-950"
+                        class="textarea rounded-lg bg-surface-50-950"
                         class:input-error={formErrors.description || $errors.description}
                         oninput={() => {
                             if (formErrors.description) formErrors.description = undefined;
@@ -773,7 +836,7 @@
                         bind:value={$form.paymentMethod}
                         rows="3"
                         maxlength="500"
-                        class="textarea rounded-lg bg-primary-50-950"
+                        class="textarea rounded-lg bg-surface-50-950"
                         class:input-error={formErrors.paymentMethod || $errors.paymentMethod}
                         placeholder={$t('competition.create.payment_method_placeholder')}
                         data-testid="payment-method"
@@ -812,32 +875,8 @@
                     </div>
                 </div>
 
-                <!-- Open registration toggle -->
-                <div class="label lg:col-span-2">
-                    <div class="flex items-center gap-3">
-                        <button
-                            type="button"
-                            role="switch"
-                            aria-checked={$form.registrationOpen}
-                            aria-label={$t('competition.create.registration_open')}
-                            class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 {$form.registrationOpen ? 'bg-primary-500' : 'bg-surface-300 dark:bg-surface-600'}"
-                            onclick={() => { $form.registrationOpen = !$form.registrationOpen; }}
-                            data-testid="registration-open-toggle"
-                        >
-                            <span
-                                aria-hidden="true"
-                                class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {$form.registrationOpen ? 'translate-x-5' : 'translate-x-0'}"
-                            ></span>
-                        </button>
-                        <div class="flex flex-col">
-                            <span class="text-sm font-medium">{$t('competition.create.registration_open')}</span>
-                            <span class="text-xs text-surface-500">{$t('competition.create.registration_open_help')}</span>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="label">
-                    <span>{$t('competition.create.image')}</span>
+                    <span>{$t('competition.create.image')} <span class="badge preset-tonal text-xs">{$t('competition.publish.recommended_badge')}</span></span>
                     {#if selected_image_src === undefined}
                         <FileUpload accept="image/*" maxFiles={1} onFileChange={handleImageChange} onFileReject={handleImageReject}>
                             <FileUpload.Dropzone>
@@ -950,7 +989,7 @@
 
         <!-- Categories Section -->
         <div class="card preset-outlined-surface-200-800 p-4 rounded-lg">
-            <div class="flex items-center justify-between gap-2 mb-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <h2 class="h4 font-semibold flex items-center gap-2">
                     <Icon
                         icon="mdi:format-list-bulleted"
@@ -963,7 +1002,7 @@
 
                 <button
                     type="button"
-                    class="btn-icon sm:btn preset-filled-primary-500 rounded-lg shrink-0"
+                    class="btn preset-filled-primary-500 rounded-lg shrink-0"
                     onclick={addCategory}
                     disabled={!isMultiDay && !$form.startDate}
                     aria-label={$t('competition.create.add_category')}
@@ -988,7 +1027,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.category_type')}</span>
                                     <select
                                         id="category-type-update-{i}"
-                                        class="select bg-primary-50-950"
+                                        class="select bg-surface-50-950"
                                         class:input-error={cat.errors?.type}
                                         bind:value={cat.type}
                                         onchange={(e) => {
@@ -1017,7 +1056,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.category_subname')}</span>
                                     <input
                                         type="text"
-                                        class="input bg-primary-50-950"
+                                        class="input bg-surface-50-950"
                                         bind:value={cat.subname}
                                         placeholder={$t('competition.create.category_subname_placeholder')}
                                         maxlength="60"
@@ -1047,7 +1086,7 @@
                                     <input
                                         type="time"
                                         lang={data.i18n.locale}
-                                        class="input bg-primary-50-950"
+                                        class="input bg-surface-50-950"
                                         class:input-error={cat.errors?.startTime}
                                         data-testid="start-time-update-{i}"
                                         bind:value={cat.startTime}
@@ -1083,7 +1122,7 @@
                                     <input
                                         type="time"
                                         lang={data.i18n.locale}
-                                        class="input bg-primary-50-950"
+                                        class="input bg-surface-50-950"
                                         class:input-error={cat.errors?.endTime}
                                         data-testid="end-time-update-{i}"
                                         bind:value={cat.endTime}
@@ -1102,7 +1141,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.max_parties')}</span>
                                     <input
                                         type="number"
-                                        class="input bg-primary-50-950"
+                                        class="input bg-surface-50-950"
                                         class:input-error={cat.errors?.maxParties}
                                         data-testid="max-parties-update-{i}"
                                         bind:value={cat.maxParties}
@@ -1120,7 +1159,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.participants_per_party')}</span>
                                     <input
                                         type="number"
-                                        class="input bg-primary-50-950"
+                                        class="input bg-surface-50-950"
                                         class:input-error={cat.errors?.maxPartySize}
                                         data-testid="max-party-size-update-{i}"
                                         bind:value={cat.maxPartySize}
@@ -1136,7 +1175,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.price')} *</span>
                                     <input
                                         type="number"
-                                        class="input bg-primary-50-950"
+                                        class="input bg-surface-50-950"
                                         class:input-error={cat.errors?.price}
                                         data-testid="price-update-{i}"
                                         bind:value={cat.price}
@@ -1154,7 +1193,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.category_description')}</span>
                                     <input
                                         type="text"
-                                        class="input bg-primary-50-950"
+                                        class="input bg-surface-50-950"
                                         class:input-error={cat.errors?.description}
                                         data-testid="description-update-{i}"
                                         bind:value={cat.description}
@@ -1209,7 +1248,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.category_type')}</span>
                                     <select
                                         id="category-type-create-{i}"
-                                        class="select bg-primary-50-950"
+                                        class="select bg-surface-50-950"
                                         class:input-error={cat.errors?.type}
                                         bind:value={cat.type}
                                         onchange={(e) => {
@@ -1256,7 +1295,7 @@
                                     <input
                                         type="time"
                                         lang={data.i18n.locale}
-                                        class="input bg-primary-50-950"
+                                        class="input bg-surface-50-950"
                                         class:input-error={cat.errors?.startTime}
                                         data-testid="start-time-create-{i}"
                                         bind:value={cat.startTime}
@@ -1292,7 +1331,7 @@
                                     <input
                                         type="time"
                                         lang={data.i18n.locale}
-                                        class="input bg-primary-50-950"
+                                        class="input bg-surface-50-950"
                                         class:input-error={cat.errors?.endTime}
                                         data-testid="end-time-create-{i}"
                                         bind:value={cat.endTime}
@@ -1312,7 +1351,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.max_parties')}</span>
                                     <input
                                         type="number"
-                                        class="input bg-primary-50-950"
+                                        class="input bg-surface-50-950"
                                         class:input-error={cat.errors?.maxParties}
                                         data-testid="max-parties-create-{i}"
                                         bind:value={cat.maxParties}
@@ -1330,7 +1369,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.participants_per_party')}</span>
                                     <input
                                         type="number"
-                                        class="input bg-primary-50-950"
+                                        class="input bg-surface-50-950"
                                         class:input-error={cat.errors?.maxPartySize}
                                         data-testid="max-party-size-create-{i}"
                                         bind:value={cat.maxPartySize}
@@ -1346,7 +1385,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.price')} *</span>
                                     <input
                                         type="number"
-                                        class="input bg-primary-50-950"
+                                        class="input bg-surface-50-950"
                                         class:input-error={cat.errors?.price}
                                         data-testid="price-create-{i}"
                                         bind:value={cat.price}
@@ -1364,7 +1403,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.category_description')}</span>
                                     <input
                                         type="text"
-                                        class="input bg-primary-50-950"
+                                        class="input bg-surface-50-950"
                                         class:input-error={cat.errors?.description}
                                         data-testid="description-create-{i}"
                                         bind:value={cat.description}
@@ -1382,7 +1421,7 @@
                                     <span class="text-sm font-medium">{$t('competition.create.category_subname')}</span>
                                     <input
                                         type="text"
-                                        class="input bg-primary-50-950"
+                                        class="input bg-surface-50-950"
                                         bind:value={cat.subname}
                                         placeholder={$t('competition.create.category_subname_placeholder')}
                                         maxlength="60"
@@ -1551,6 +1590,53 @@
             </div>
         {/if}
 
+        <!-- Publish state summary strip -->
+        <div class="card preset-outlined-surface-200-800 p-4 rounded-lg mt-4 space-y-3" data-testid="publish-summary">
+            <p class="text-sm flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                {#if isEdit}
+                    <Icon icon="mdi:circle" width="0.6rem" height="0.6rem" class="text-success-500 shrink-0" />
+                    <span class="font-medium">{$t('competition.publish.strip_live')}</span>
+                {:else}
+                    <Icon icon="mdi:information-outline" width="1.1rem" height="1.1rem" class="text-primary-500 shrink-0" />
+                    <span class="font-medium">{$t('competition.publish.strip_on_publish')}</span>
+                {/if}
+                <span aria-hidden="true">·</span>
+                <span class={$form.registrationOpen ? 'text-success-500 font-medium' : ''}>
+                    {$form.registrationOpen
+                        ? $t('competition.publish.registration_open')
+                        : $t('competition.publish.registration_closed')}
+                </span>
+                <span aria-hidden="true">·</span>
+                <span>{publishCategoryLabel}</span>
+                <span aria-hidden="true">·</span>
+                <span>{publishDateLabel}</span>
+            </p>
+            {#if isEdit}
+                <p class="text-xs text-surface-500">{$t('competition.publish.strip_changes_immediate')}</p>
+            {/if}
+            <!-- Open registration toggle -->
+            <div class="flex items-center gap-3">
+                <button
+                    type="button"
+                    role="switch"
+                    aria-checked={$form.registrationOpen}
+                    aria-label={$t('competition.create.registration_open')}
+                    class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 {$form.registrationOpen ? 'bg-primary-500' : 'bg-surface-300 dark:bg-surface-600'}"
+                    onclick={() => { $form.registrationOpen = !$form.registrationOpen; }}
+                    data-testid="registration-open-toggle"
+                >
+                    <span
+                        aria-hidden="true"
+                        class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {$form.registrationOpen ? 'translate-x-5' : 'translate-x-0'}"
+                    ></span>
+                </button>
+                <div class="flex flex-col">
+                    <span class="text-sm font-medium">{$t('competition.create.registration_open')}</span>
+                    <span class="text-xs text-surface-500">{$t('competition.create.registration_open_help')}</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Submit Buttons -->
         <div class="flex justify-end gap-4 mt-4">
             {#if isEdit}
@@ -1584,7 +1670,7 @@
                     <Icon icon="mdi:loading" width="1.2rem" height="1.2rem" class="animate-spin" />
                     {loadingMessage || $t('competition.saving')}
                 {:else}
-                    <Icon icon="mdi:content-save" width="1.2rem" height="1.2rem" />
+                    <Icon icon={isEdit ? 'mdi:content-save' : 'mdi:publish'} width="1.2rem" height="1.2rem" />
                     {isEdit
                         ? $t('edit_competition.submit_button')
                         : $t('competition.create.submit_button')
@@ -1624,6 +1710,51 @@
                 >
                     <Icon icon="mdi:delete" width="1.2rem" height="1.2rem" />
                     {$t('competition.remove')}
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}
+
+<!-- First-publish Confirmation Dialog -->
+{#if showPublishConfirmation}
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true">
+        <div class="card preset-filled-surface-100-900 p-6 rounded-lg max-w-md w-full mx-4 shadow-xl">
+            <h3 class="h4 font-semibold mb-4 flex items-center gap-2">
+                <Icon icon="mdi:publish" width="1.5rem" height="1.5rem" class="text-primary-500" />
+                {$t('competition.publish.dialog_title', { name: $form.name })}
+            </h3>
+            <ul class="mb-4 space-y-1 text-surface-600-400 list-disc list-inside">
+                <li>{$t('competition.publish.dialog_visible')}</li>
+                <li>
+                    {$form.registrationOpen
+                        ? $t('competition.publish.dialog_registration_open')
+                        : $t('competition.publish.dialog_registration_closed')}
+                </li>
+                <li>{publishCategoryLabel} · {publishDateLabel}</li>
+            </ul>
+            {#if missingRecommendedFields.length > 0}
+                <p class="mb-4 text-sm text-warning-600-400 flex items-start gap-2">
+                    <Icon icon="mdi:alert" width="1.2rem" height="1.2rem" class="shrink-0 mt-0.5" />
+                    <span>{$t('competition.publish.dialog_missing_fields', { fields: missingRecommendedFields.join(', ') })}</span>
+                </p>
+            {/if}
+            <div class="flex justify-end gap-4">
+                <button
+                    type="button"
+                    class="btn preset-tonal rounded-lg"
+                    onclick={() => { showPublishConfirmation = false; }}
+                >
+                    {$t('competition.publish.dialog_back')}
+                </button>
+                <button
+                    type="button"
+                    class="btn preset-filled-primary-500 rounded-lg"
+                    data-testid="confirm-publish"
+                    onclick={confirmPublish}
+                >
+                    <Icon icon="mdi:publish" width="1.2rem" height="1.2rem" />
+                    {$t('competition.publish.dialog_confirm')}
                 </button>
             </div>
         </div>

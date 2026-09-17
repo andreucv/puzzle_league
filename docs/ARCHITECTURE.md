@@ -9,7 +9,7 @@ Puzzle League is a SvelteKit application for speed puzzling competitions. It run
 - **Database:** PostgreSQL with Prisma. The Prisma client is generated into `prisma/generated/prisma` (gitignored) and imported via the `$prisma` alias.
 - **Auth:** Better Auth with email/password, Google OAuth, session storage in Prisma, email verification, password reset, and JWT support.
 - **Deployment:** Vercel adapter for Node 20. Scheduled jobs (`/api/cron/auto-cancel`, `/api/cron/landing-stats`) are driven by Upstash QStash recurring schedules rather than Vercel native crons, so they run against both production and preview environments; each cron endpoint verifies the QStash request signature (or an admin session for manual runs).
-- **External services:** Cloudinary for competition/puzzle images, Ably for realtime competition events, Resend for emails, PostHog and Vercel Analytics/Speed Insights for telemetry, and optional Upstash QStash for category auto-stop webhooks.
+- **External services:** Cloudinary for competition/puzzle images, Ably for realtime competition events, Scaleway Transactional Email for emails, PostHog and Vercel Analytics/Speed Insights for telemetry, and optional Upstash QStash for category auto-stop webhooks.
 
 ## Code Layout
 
@@ -59,4 +59,4 @@ Automation includes daily auto-cancel of expired not-started competitions and we
 
 Competition mutations publish Ably events to `competition:{id}`. During-competition pages load an initial state from Prisma, subscribe through an Ably JWT endpoint, apply incremental client-side state updates, and invalidate SvelteKit data after reconnects.
 
-Notifications are persisted in Prisma, rendered from translation keys, and can link users back into relevant pages. Selected registration notification types also send Resend emails; email failures are logged without rolling back successful domain mutations.
+Notifications are persisted in Prisma, rendered from translation keys, and can link users back into relevant pages. Selected registration notification types also send Scaleway emails; email failures are logged without rolling back successful domain mutations.

@@ -1,11 +1,9 @@
-import { RESEND_API_KEY, RESEND_FROM_EMAIL } from '$env/static/private';
-import { Resend } from 'resend';
+import { SCW_FROM_EMAIL } from '$env/static/private';
+import { sendScalewayEmail } from './scaleway_email';
 import { prisma } from '$lib/database/create_prisma_client';
 import type { NotificationType } from '$prisma/enums';
 import { resolveEmailTranslation, resolveMultiLanguageTranslations } from './email_translations';
 import { buildSingleLanguageEmail, buildMultiLanguageEmail } from './email_template';
-
-const resend = new Resend(RESEND_API_KEY);
 
 /**
  * Send an email notification to one or more users.
@@ -29,10 +27,10 @@ export async function sendEmail(
 			select: { id: true, email: true, locale: true },
 		});
 
-		const baseEmail = RESEND_FROM_EMAIL.match(/<(.+)>/)?.[1] ?? RESEND_FROM_EMAIL;
+		const baseEmail = SCW_FROM_EMAIL.match(/<(.+)>/)?.[1] ?? SCW_FROM_EMAIL;
 		const fromAddress = actorName
 			? `${actorName} from PuzzLigas <${baseEmail}>`
-			: RESEND_FROM_EMAIL;
+			: SCW_FROM_EMAIL;
 
 		// Pre-resolve multi-language translations once (shared by all no-locale users)
 		let multiLangTranslations: Awaited<ReturnType<typeof resolveMultiLanguageTranslations>> | null = null;
@@ -59,7 +57,7 @@ export async function sendEmail(
 					subject = multiLangSubject!;
 				}
 
-				await resend.emails.send({
+				await sendScalewayEmail({
 					from: fromAddress,
 					to: user.email,
 					subject,

@@ -83,6 +83,8 @@ async function main() {
         DATABASE_URL: testDbUrl,
         DATABASE_ACCELERATE_URL: testDbUrl,
         BETTER_AUTH_URL: `http://localhost:${PREVIEW_PORT}`,
+        // Never hit Scaleway from e2e: emails are logged by scaleway_email.mock.ts instead.
+        MOCK_EMAILS: 'true',
     };
 
     await prepareDatabase(testDbUrl, env);

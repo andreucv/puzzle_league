@@ -73,7 +73,7 @@ Defined in [.github/workflows/unit-tests.yaml](../../../.github/workflows/unit-t
 
 **Steps, in order:**
 
-1. **Seed dummy env** — writes a non-secret `.env` (`RESEND_*`, `ABLY_API_KEY`, `CLOUDINARY_*`,
+1. **Seed dummy env** — writes a non-secret `.env` (`SCW_*`, `ABLY_API_KEY`, `CLOUDINARY_*`,
    `PUBLIC_POSTHOG_*`) *before* install. `$env/static/*` only exports vars present when
    `svelte-kit sync` runs (in `postinstall`), so the type-check needs them **declared**. Nothing
    here is executed or contacted — the values are dummies.

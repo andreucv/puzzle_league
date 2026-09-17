@@ -4,15 +4,10 @@ const { mockSend } = vi.hoisted(() => ({
     mockSend: vi.fn(),
 }));
 
-vi.mock("resend", () => ({
-    Resend: class {
-        emails = { send: mockSend };
-    },
-}));
+vi.mock("./scaleway_email", () => ({ sendScalewayEmail: mockSend }));
 
 vi.mock("$env/static/private", () => ({
-    RESEND_API_KEY: "test-api-key",
-    RESEND_FROM_EMAIL: "noreply@test.com",
+    SCW_FROM_EMAIL: "noreply@test.com",
 }));
 
 vi.mock("./email_template", () => ({
@@ -47,7 +42,7 @@ describe("sendPasswordResetEmail", () => {
         );
     });
 
-    it("Given valid email, when Resend throws, then returns failure with error message", async () => {
+    it("Given valid email, when Scaleway throws, then returns failure with error message", async () => {
         const consoleSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
@@ -69,7 +64,7 @@ describe("sendPasswordResetEmail", () => {
         consoleSpy.mockRestore();
     });
 
-    it("Given valid email, when Resend throws non-Error, then returns failure with generic message", async () => {
+    it("Given valid email, when Scaleway throws non-Error, then returns failure with generic message", async () => {
         const consoleSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});

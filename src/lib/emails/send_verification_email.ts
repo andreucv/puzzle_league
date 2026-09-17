@@ -1,9 +1,7 @@
-import { RESEND_API_KEY, RESEND_FROM_EMAIL } from '$env/static/private';
-import { Resend } from 'resend';
+import { SCW_FROM_EMAIL } from '$env/static/private';
+import { sendScalewayEmail } from './scaleway_email';
 import { buildSingleLanguageEmail, buildMultiLanguageEmail } from './email_template';
 import type { EmailTranslation } from './email_translations';
-
-const resend = new Resend(RESEND_API_KEY);
 
 /**
  * Lightweight email sender for verification emails.
@@ -52,8 +50,8 @@ export async function sendVerificationEmail(
 		const html = buildMultiLanguageEmail(translations, verificationUrl);
 		const subject = translations.map((t) => t.title).join(' / ');
 
-		await resend.emails.send({
-			from: RESEND_FROM_EMAIL,
+		await sendScalewayEmail({
+			from: SCW_FROM_EMAIL,
 			to,
 			subject,
 			html,

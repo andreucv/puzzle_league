@@ -15,9 +15,9 @@
       ]
     },
     {
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "released",
-      "date": null,
+      "date": "2026-09-17",
       "title": "Imprime las tarjetas de inscripciones para organizar las mesas",
       "summary": "Ahora puedes imprimir las tarjetas de inscripciones de las categorías de tu competición, así los participantes podrán encontrar su mesa.",
       "highlights": [

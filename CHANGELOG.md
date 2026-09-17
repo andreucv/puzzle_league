@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.1.0](https://github.com/andreucv/puzzle_league/compare/v1.0.0...v1.1.0) (2026-09-17)
+
+
+### ✨ Features
+
+* last results cards follow style design ([8b8636b](https://github.com/andreucv/puzzle_league/commit/8b8636b4707a605e7fbf6389af9f6e3866ad96c6))
+* printing entry cards for tables with QR code pointing to results or during_competition ([ef0c440](https://github.com/andreucv/puzzle_league/commit/ef0c440537015daea90e068663564f5d33071acf))
+* publish ready data into create competition form ([772b6f3](https://github.com/andreucv/puzzle_league/commit/772b6f39d527c58e83ecf8b89b3d4a45dae06960))
+
+
+### 🐛 Bug Fixes
+
+* disable polling coming from hmr docker environment ([3b7e0cc](https://github.com/andreucv/puzzle_league/commit/3b7e0cce2bc1e776429bc2fdd0b23e2c2a4fb720))
+* enhance user experience at home page and in explore_competition page ([eaa5635](https://github.com/andreucv/puzzle_league/commit/eaa5635fec2f59713e314a8188bc88879e3817e8))
+* onboarding components contry and phone prefix do sort the most probable value the first one ([affdef2](https://github.com/andreucv/puzzle_league/commit/affdef2c900c03a1077ddab4414ebf9a934628a9))
+* phone prefix input stays when the user inserted it ([94b9ecd](https://github.com/andreucv/puzzle_league/commit/94b9ecd5b1583cd332b72d4d55a15399f5dd987c))
+
+
+### ⚡ Performance
+
+* debug boot traces and vite eager warmup hooks.server.ts ([7c1228e](https://github.com/andreucv/puzzle_league/commit/7c1228e345feb4b149ea72d44524dc75533061ca))
+
 ## [1.0.0](https://github.com/andreucv/puzzle_league/compare/v0.6.3...v1.0.0) (2026-06-28)
 
 ## [0.6.3](https://github.com/andreucv/puzzle_league/compare/v0.6.1...v0.6.3) (2026-06-28)

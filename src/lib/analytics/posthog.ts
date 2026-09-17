@@ -10,12 +10,15 @@ let posthogPromise: Promise<PostHog> | null = null;
 export function getPosthog(): Promise<PostHog> {
 	if (!posthogPromise) {
 		posthogPromise = import('posthog-js').then(({ default: posthog }) => {
-			posthog.init(PUBLIC_POSTHOG_PROJECT_TOKEN, {
-				api_host: '/ingest',
-				ui_host: PUBLIC_POSTHOG_HOST.replace('.i.posthog.com', '.posthog.com'),
-				defaults: '2026-01-30',
-				capture_exceptions: true
-			});
+			// Uninitialized posthog-js silently no-ops capture/identify calls (e2e build).
+			if (!import.meta.env.VITE_DISABLE_ANALYTICS) {
+				posthog.init(PUBLIC_POSTHOG_PROJECT_TOKEN, {
+					api_host: '/ingest',
+					ui_host: PUBLIC_POSTHOG_HOST.replace('.i.posthog.com', '.posthog.com'),
+					defaults: '2026-01-30',
+					capture_exceptions: true
+				});
+			}
 			return posthog;
 		});
 	}

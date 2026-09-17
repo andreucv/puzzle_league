@@ -2,7 +2,7 @@
 // for information about these interfaces
 
 import type { User, Session } from '@prisma/client';
-import type { CategoryType, CategoryStatus } from '$lib/.prisma/generated/prisma/browser';
+import type { CategoryType, CategoryStatus } from '$prisma/browser';
 
 
 declare global {

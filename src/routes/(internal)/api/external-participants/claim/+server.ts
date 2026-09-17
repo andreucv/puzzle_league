@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { prisma } from '$lib/database/create_prisma_client';
 import { getAuthUserId } from '$lib/api_utils/api_auth';
 import { dispatchNotifications } from '$lib/notifications/dispatcher';
-import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { NotificationType } from '$prisma/enums';
 import { getPostHogClient } from '$lib/server/posthog';
 
 export const POST: RequestHandler = async (event) => {

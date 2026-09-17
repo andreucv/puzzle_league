@@ -1,6 +1,6 @@
 <script lang="ts">
     import { getCategoryTypeName, getCategoryTypeIcon } from '$lib/utils/category_utils';
-    import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
+    import type { CategoryType } from '$prisma/browser';
     import { t } from '$lib/translations';
 
     let { type, subname }: { type: CategoryType, subname: string } = $props();

@@ -2,13 +2,15 @@
 
 ## Setup
 
-Use Node 20 and pnpm. Install dependencies with `pnpm install`; the repo rejects other package managers through `preinstall`.
+Use Node 24 and pnpm. Install dependencies with `pnpm install`; the repo rejects other package managers through `preinstall`.
 
-Start from `.env.example`, then add any feature-specific keys required by the code you are running. Common local keys include database connection values, `BETTER_AUTH_SECRET`, OAuth keys, Cloudinary keys, Ably, Resend, PostHog, and QStash (the QStash signing keys also authenticate the scheduled cron endpoints). Playwright requires `LOCAL_DATABASE_TEST_DATABASE_URL` pointing to a local PostgreSQL database.
+Start from `.env.example`, then add any feature-specific keys required by the code you are running. Common local keys include database connection values, `BETTER_AUTH_SECRET`, OAuth keys, Cloudinary keys, Ably, Scaleway (`SCW_SECRET_KEY`, `SCW_DEFAULT_PROJECT_ID`, `SCW_FROM_EMAIL` as sender), PostHog, and QStash (the QStash signing keys also authenticate the scheduled cron endpoints). Playwright requires `LOCAL_DATABASE_TEST_DATABASE_URL` pointing to a local PostgreSQL database.
 
 Useful commands:
 
-- `pnpm dev` starts the Vite dev server.
+- `pnpm dev` starts the Vite dev server. If you develop inside Docker (no native file-system
+  events), set `VITE_POLLING=true` to enable watcher polling for HMR; leave it unset on native
+  checkouts — polling makes cold starts drastically slower.
 - `pnpm check` runs SvelteKit sync and `svelte-check`.
 - `pnpm test:unit` runs Vitest tests under `src/**/*.test.ts`.
 - `pnpm test:unit:coverage` runs the unit suite with v8 coverage (text + HTML in `coverage/`, plus `lcov`).
@@ -50,7 +52,7 @@ E2E conventions (`e2e/`):
 - **Multi-step workflows are journey tests.** Model a flow that builds on previous actions as one `test()` with `test.step()` blocks, not a serial `describe` chain.
 - **Navigation waits for hydration.** Use `gotoHydrated` (`e2e/utils/navigation.ts`) before interacting with a page; never `waitUntil: 'networkidle'`.
 - **Selectors target `data-testid` or roles**, never CSS utility classes. Timeouts are centralized in `playwright.config.ts`; only add an inline timeout for a documented constraint (e.g. real-time sync).
-- **Server lifecycle:** `scripts/e2e-server.ts` prepares the test DB, builds (hash-cached), and serves; Playwright launches it via `webServer`. Run it manually in a terminal to keep a warm server across local runs.
+- **Server lifecycle:** `e2e/e2e-server.ts` prepares the test DB, builds (hash-cached), and serves; Playwright launches it via `webServer`. Run it manually in a terminal to keep a warm server across local runs. It sets `MOCK_EMAILS=true`, so emails are only logged (`scaleway_email.mock.ts`) and never sent through Scaleway. It also builds with `VITE_DISABLE_ANALYTICS=true`, so Vercel Analytics/Speed Insights (served from `/_vercel/*`, Vercel-only) are not injected and PostHog (client and server) sends nothing.
 
 Before opening a PR, run the smallest relevant tests plus `pnpm check`; run `pnpm test` for broad workflow or schema changes. Keep PRs scoped, mention migrations/env changes, and include the commands you ran.
 

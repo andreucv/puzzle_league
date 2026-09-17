@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { CategoryStatus, EntryTagStatus, NotificationType, ParticipantTagType, RegistrationStatus, Role } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, EntryTagStatus, NotificationType, ParticipantTagType, RegistrationStatus, Role } from '$prisma/enums';
 import { getMaxEntriesPerCategory } from '$lib/utils/category_utils';
 import {
 	notificationsForRegistrationConfirmed,
@@ -9,7 +9,7 @@ import {
 	notificationsForWaitlistPromotion,
 } from '$lib/notifications/registration_notifications';
 import { dispatchNotifications } from '$lib/notifications/dispatcher';
-import type { PrismaClient } from '$lib/.prisma/generated/prisma/client';
+import type { PrismaClient } from '$prisma/client';
 
 type Tx = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
 

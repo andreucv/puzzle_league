@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CategoryType, CompetitionStatus, ParticipantTagType} from '$lib/.prisma/generated/prisma/enums';
+import { CategoryType, CompetitionStatus, ParticipantTagType} from '$prisma/enums';
 
 // ---------------------------------------------------------------------------
 // Schemas

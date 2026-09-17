@@ -1,6 +1,6 @@
 import type { PageServerLoad } from "./$types";
 import { createRequest, getRequestsByUserId } from '$lib/database/db_request';
-import { Role } from '$lib/.prisma/generated/prisma/enums';
+import { Role } from '$prisma/enums';
 import { error, fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import { getPostHogClient } from '$lib/server/posthog';

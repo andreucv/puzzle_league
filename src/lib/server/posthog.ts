@@ -8,7 +8,8 @@ export function getPostHogClient() {
 		posthogClient = new PostHog(PUBLIC_POSTHOG_PROJECT_TOKEN, {
 			host: PUBLIC_POSTHOG_HOST,
 			flushAt: 1,
-			flushInterval: 0
+			flushInterval: 0,
+			disabled: !!import.meta.env.VITE_DISABLE_ANALYTICS
 		});
 	}
 	return posthogClient;

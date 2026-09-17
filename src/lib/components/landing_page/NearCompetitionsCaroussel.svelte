@@ -1,6 +1,6 @@
 <script lang="ts">
-    import type { Competition, Category } from '$lib/.prisma/generated/prisma/browser';
-    import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
+    import type { Competition, Category } from '$prisma/browser';
+    import type { CategoryType } from '$prisma/browser';
     import { Carousel } from '@skeletonlabs/skeleton-svelte';
     import { cldUrl } from '$lib/utils/cld_url';
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';

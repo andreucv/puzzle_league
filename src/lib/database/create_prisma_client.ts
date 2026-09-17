@@ -1,7 +1,7 @@
 import "dotenv/config";
 // Relative import so this file can be consumed by both SvelteKit (via $lib)
 // and standalone tsx scripts (e2e seeds, db_migration) without alias issues.
-import { PrismaClient } from '../.prisma/generated/prisma/client';
+import { PrismaClient } from '../../../prisma/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { withAccelerate } from '@prisma/extension-accelerate';
 import { prismaQueryInsights } from "@prisma/sqlcommenter-query-insights";

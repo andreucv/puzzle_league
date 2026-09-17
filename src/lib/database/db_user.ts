@@ -1,5 +1,5 @@
 import { prisma, accelerateEnabled } from '$lib/database/create_prisma_client';
-import { Role } from '$lib/.prisma/generated/prisma/enums';
+import { Role } from '$prisma/enums';
 
 // ---------------------------------------------------------------------------
 // getUserWithRoles cache (Prisma Accelerate)

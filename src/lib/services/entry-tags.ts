@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { EntryTagStatus, type ParticipantTagType } from '$lib/.prisma/generated/prisma/enums';
+import { EntryTagStatus, type ParticipantTagType } from '$prisma/enums';
 import { getCompetitionAccess } from '$lib/services/competition-access';
 import { isTagClaimableInCategory } from '$lib/database/db_participant_tags';
 import { notificationsForTagRejected } from '$lib/notifications/tag_notifications';

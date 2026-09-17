@@ -1,5 +1,5 @@
 import type { RequestEvent } from '@sveltejs/kit';
-import { Role } from '$lib/.prisma/generated/prisma/enums';
+import { Role } from '$prisma/enums';
 import {
   requireCompetitionRole,
   requireCategoryJudge,

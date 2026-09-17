@@ -1,4 +1,4 @@
-import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
+import type { CategoryType } from '$prisma/browser';
 
 export interface CategoryData {
 	id: number;

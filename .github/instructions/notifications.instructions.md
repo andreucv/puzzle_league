@@ -24,7 +24,7 @@ Always use the helper functions in `src/lib/notifications/notifications.ts`. **N
 
 ```ts
 import { createNotification } from '$lib/notifications/notifications';
-import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { NotificationType } from '$prisma/enums';
 
 await createNotification({
     userId: targetUser.id,
@@ -39,7 +39,7 @@ await createNotification({
 
 ```ts
 import { createNotificationForUsers } from '$lib/notifications/notifications';
-import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { NotificationType } from '$prisma/enums';
 
 const userIds = entry.users.map((u) => u.id);
 await createNotificationForUsers(
@@ -144,4 +144,4 @@ All endpoints require authentication via `requireAuth`.
 - The notifications page fetches data client-side via `fetch('/api/notifications')`.
 - The header bell icon polls `/api/notifications/unread-count` every 30 seconds and shows a small red dot (no count) when there are unread notifications.
 - Each notification type has an icon and color defined in the `typeIcons` / `typeColors` maps on the page. Keep these in sync when adding new types.
-- The `Notification` type in `.svelte` files must be imported with `import type` from `$lib/.prisma/generated/prisma/browser` (never runtime imports from Prisma in client code).
+- The `Notification` type in `.svelte` files must be imported with `import type` from `$prisma/browser` (never runtime imports from Prisma in client code).

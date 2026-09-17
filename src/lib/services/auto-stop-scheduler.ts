@@ -1,5 +1,5 @@
 import type { Client } from '@upstash/qstash';
-import type { PrismaClient } from '$lib/.prisma/generated/prisma/client';
+import type { PrismaClient } from '$prisma/client';
 
 export interface AutoStopScheduler {
 	scheduleAutoStop(categoryId: number, competitionId: number, deadline: Date): Promise<void>;

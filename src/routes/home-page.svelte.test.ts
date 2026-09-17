@@ -161,6 +161,48 @@ describe('Authenticated Home Page', () => {
 		});
 	});
 
+	// ── Last results ──
+
+	it('groups last results by competition, one row per category entry', async () => {
+		const makeResult = (id: string, competitionId: number, finishTime: Date | null) => ({
+			id,
+			finishTime,
+			nPiecesCompleted: finishTime ? null : 500,
+			position: finishTime ? 1 : null,
+			totalFinished: 3,
+			totalEntries: 4,
+			users: [{ id: 'user-1', name: 'Test User', image: null }],
+			externalParticipants: [],
+			category: {
+				id: Number(id.slice(1)),
+				description: '',
+				type: 'INDIVIDUAL',
+				realStartTime: new Date('2026-07-01T10:00:00Z'),
+				puzzles: [{ pieces: 1000, brand: 'Educa', name: null }],
+			},
+			competition: { id: competitionId, name: `Competition ${competitionId}`, startDate: new Date('2026-07-01'), image_cld_id: null },
+		});
+
+		render(Page, {
+			props: {
+				data: makePageData({
+					lastResults: [
+						makeResult('r1', 7, new Date('2026-07-01T11:00:00Z')),
+						makeResult('r2', 7, null),
+						makeResult('r3', 8, new Date('2026-07-01T11:00:00Z')),
+					],
+				}),
+			},
+		});
+
+		await waitFor(() => {
+			const cards = screen.getByTestId('last-results-section').querySelectorAll('[data-testid^="last-result-card-"]');
+			expect(Array.from(cards).map((c) => c.getAttribute('data-testid'))).toEqual(['last-result-card-7', 'last-result-card-8']);
+			expect(cards[0].querySelectorAll('li')).toHaveLength(2);
+			expect(cards[1].querySelectorAll('li')).toHaveLength(1);
+		});
+	});
+
 	// ── Anonymous landing page ──
 
 	// Note: the anonymous landing page is now at src/routes/+page.svelte (a separate route).

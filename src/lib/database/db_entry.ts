@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { CategoryStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, RegistrationStatus } from '$prisma/enums';
 
 // ---------------------------------------------------------------------------
 // Entry queries — read-only functions for fetching entries and
@@ -116,6 +116,17 @@ export async function getRegistrationsForCompetition(competitionId: number) {
         console.error('Error getting registrations for competition:', error);
         throw error;
     }
+}
+
+/** Minimal lookup for the /e/[entryId] QR resolver: category and competition ids only. */
+export async function getEntryCategoryRef(entryId: string) {
+    return prisma.entry.findUnique({
+        where: { id: entryId },
+        select: {
+            categoryId: true,
+            category: { select: { competitionId: true } }
+        }
+    });
 }
 
 export async function getWaitlistPositions(

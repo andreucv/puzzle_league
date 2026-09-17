@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { CategoryStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, RegistrationStatus } from '$prisma/enums';
 import { prismaMock, mockFn } from '$tests/mocks/prisma';
 
 const mockNotifyCreated = vi.fn().mockReturnValue([]);

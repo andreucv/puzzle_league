@@ -227,6 +227,12 @@
     }
 
     onMount(() => {
+        // Deep link from a scanned entry-card QR (/e/<entryId> resolver): ?category=
+        const categoryParam = parseInt(page.url.searchParams.get('category') ?? '');
+        if (!isNaN(categoryParam) && sortedCategories.some((c) => c.id === categoryParam)) {
+            selectedCategoryId = categoryParam;
+            return;
+        }
         const hash = window.location.hash;
         if (hash?.startsWith('#category-')) {
             const id = parseInt(hash.replace('#category-', ''));

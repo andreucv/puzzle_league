@@ -24,7 +24,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
 
       # `$env/static/private` + `$env/static/public` only export vars present when
@@ -35,8 +35,9 @@ jobs:
       - name: Seed dummy env for the type-check
         run: |
           cat > .env <<'EOF'
-          RESEND_API_KEY=dummy
-          RESEND_FROM_EMAIL=noreply@example.com
+          SCW_SECRET_KEY=dummy
+          SCW_DEFAULT_PROJECT_ID=dummy
+          SCW_FROM_EMAIL=noreply@example.com
           ABLY_API_KEY=dummy:dummy
           CLOUDINARY_CLOUD_NAME=dummy
           CLOUDINARY_API_KEY=dummy

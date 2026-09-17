@@ -1,4 +1,4 @@
-import { RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
+import { RegistrationStatus } from '$prisma/enums';
 import CheckCircleIcon from '@iconify-svelte/mdi/check-circle';
 import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
 import ClockAlertOutlineIcon from '@iconify-svelte/mdi/clock-alert-outline';

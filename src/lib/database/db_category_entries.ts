@@ -1,6 +1,6 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import type { Prisma } from '$lib/.prisma/generated/prisma/client';
-import { RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
+import type { Prisma } from '$prisma/client';
+import { RegistrationStatus } from '$prisma/enums';
 
 // ---------------------------------------------------------------------------
 // Category-scoped entry queries

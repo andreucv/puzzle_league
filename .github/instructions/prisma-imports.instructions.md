@@ -4,12 +4,12 @@ applyTo: "**/*.ts,**/*.svelte"
 
 # Prisma Import Rules
 
-This project uses Prisma 7 with a custom output directory at `src/lib/.prisma/generated/prisma/`.
+This project uses Prisma 7 with a custom output directory at `prisma/generated/prisma/` (gitignored, aliased as `$prisma`; standalone tsx scripts in `scripts/`, `e2e/`, and `loadtest/` use relative paths instead since they run without SvelteKit aliases).
 The generated code is split into multiple entry points. **You must import from the correct entry point** depending on what you need and where you need it.
 
 ## Why this matters
 
-The main `client.ts` entry point (`$lib/.prisma/generated/prisma/client`) imports `@prisma/client/runtime/client`, which is a **CommonJS module**. When SvelteKit builds for production with `adapter-vercel`, Vite externalizes `@prisma/client` instead of bundling it. At runtime, Node.js ESM cannot resolve named exports from CJS modules, causing the build to crash with errors like:
+The main `client.ts` entry point (`$prisma/client`) imports `@prisma/client/runtime/client`, which is a **CommonJS module**. When SvelteKit builds for production with `adapter-vercel`, Vite externalizes `@prisma/client` instead of bundling it. At runtime, Node.js ESM cannot resolve named exports from CJS modules, causing the build to crash with errors like:
 
 ```
 SyntaxError: Named export 'CategoryType' not found. The requested module '@prisma/client' is a CommonJS module
@@ -39,10 +39,10 @@ When you need an enum as a **runtime value** (e.g., for `z.nativeEnum()`, `Objec
 
 ```ts
 // ✅ CORRECT — pure ESM, safe everywhere
-import { Role, CategoryType, CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
+import { Role, CategoryType, CompetitionStatus } from '$prisma/enums';
 
 // ❌ WRONG — pulls in CJS runtime, breaks production build
-import { Role } from '$lib/.prisma/generated/prisma/client';
+import { Role } from '$prisma/client';
 import { CategoryType } from '@prisma/client';
 ```
 
@@ -52,12 +52,12 @@ When you only need TypeScript types (models, enums as types, `Prisma` namespace 
 
 ```ts
 // ✅ CORRECT — stripped at compile time, never appears in build output
-import type { User, Competition, Category } from '$lib/.prisma/generated/prisma/browser';
+import type { User, Competition, Category } from '$prisma/browser';
 import type { CategoryType } from '@prisma/client';
-import type { Prisma } from '$lib/.prisma/generated/prisma/client';
+import type { Prisma } from '$prisma/client';
 
 // ❌ WRONG — imports as runtime value unnecessarily
-import { type User, Prisma } from '$lib/.prisma/generated/prisma/client';
+import { type User, Prisma } from '$prisma/client';
 // (only wrong if Prisma is used solely for type annotations)
 ```
 
@@ -67,7 +67,7 @@ The `PrismaClient` class must be imported from `client.ts`, but this should **on
 
 ```ts
 // ✅ CORRECT — isolated to one file
-import { PrismaClient } from '$lib/.prisma/generated/prisma/client';
+import { PrismaClient } from '$prisma/client';
 ```
 
 ### 4. Client-side `.svelte` files
@@ -89,7 +89,7 @@ Svelte components should **never** import runtime values from Prisma. Only use `
 
 | What you need | Where to import from |
 |---------------|---------------------|
-| Enum value (`Role`, `CategoryType`, etc.) | `$lib/.prisma/generated/prisma/enums` |
+| Enum value (`Role`, `CategoryType`, etc.) | `$prisma/enums` |
 | Model type (`User`, `Competition`, etc.) | `import type` from `browser` or `@prisma/client` |
 | `Prisma` namespace (for type annotations only) | `import type { Prisma }` from `client` |
 | `PrismaClient` class | `client` (only in `create_prisma_client.ts`) |

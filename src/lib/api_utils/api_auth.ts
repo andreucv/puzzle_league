@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/create_prisma_client';
-import { Role } from '$lib/.prisma/generated/prisma/enums';
+import { Role } from '$prisma/enums';
 import {
   getCompetitionAccess,
   requireCategoryJudge as requireCategoryJudgeAccess,

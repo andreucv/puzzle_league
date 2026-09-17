@@ -1,6 +1,6 @@
 import type { NotificationIntent } from './dispatcher';
-import { NotificationType, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
-import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
+import { NotificationType, RegistrationStatus } from '$prisma/enums';
+import type { CategoryType } from '$prisma/browser';
 import { getCategoryTypeName } from '$lib/utils/category_utils';
 
 interface RegistrationEntry {

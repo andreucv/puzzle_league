@@ -15,6 +15,16 @@
       ]
     },
     {
+      "version": "1.1.0",
+      "status": "released",
+      "date": "2026-09-17",
+      "title": "Print category entries to identify the tables",
+      "summary": "Now you can print the category entries of your competition, so they can be found at tables when participants arrive.",
+      "highlights": [
+        "New redesign of the Last Records found in the home page"
+      ]
+    },
+    {
       "version": "0.6.0",
       "status": "released",
       "date": "2026-06-14",

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { t } from '$lib/translations';
     import CompetitionCard from "./CompetitionCard.svelte";
-    import type { Competition } from "$lib/.prisma/generated/prisma/browser";
+    import type { Competition } from "$prisma/browser";
 
     interface Props {
         competitions: Competition[];

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Notification as DbNotification } from '$lib/.prisma/generated/prisma/browser';
+    import type { Notification as DbNotification } from '$prisma/browser';
     import Icon from '@iconify/svelte';
     import Card from '$lib/components/common/card/Card.svelte';
     import { t } from '$lib/translations';

@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { NotificationType } from '$prisma/enums';
 import { getPostHogClient } from '$lib/server/posthog';
 import { EmailChannel } from './email_channel';
 

@@ -1,5 +1,5 @@
 import type { NotificationIntent } from './dispatcher';
-import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { NotificationType } from '$prisma/enums';
 
 interface RejectedTagEntry {
 	creatorId: string;

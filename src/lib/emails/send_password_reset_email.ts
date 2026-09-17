@@ -1,5 +1,5 @@
-import { RESEND_API_KEY, RESEND_FROM_EMAIL } from '$env/static/private';
-import { Resend } from 'resend';
+import { SCW_FROM_EMAIL } from '$env/static/private';
+import { sendScalewayEmail } from './scaleway_email';
 import { buildMultiLanguageEmail } from './email_template';
 import type { EmailTranslation } from './email_translations';
 
@@ -8,13 +8,11 @@ const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
 	google: 'Google',
 };
 
-const resend = new Resend(RESEND_API_KEY);
-
 export type SendPasswordResetEmailResult =
 	| { success: true }
 	| { success: false; error: string };
 
-/** Shared send logic: builds HTML from translations, sends via Resend, and normalises errors. */
+/** Shared send logic: builds HTML from translations, sends via Scaleway, and normalises errors. */
 async function sendPasswordEmail(
 	to: string,
 	translations: EmailTranslation[],
@@ -25,8 +23,8 @@ async function sendPasswordEmail(
 		const html = buildMultiLanguageEmail(translations, actionUrl);
 		const subject = translations.map((t) => t.title).join(' / ');
 
-		await resend.emails.send({
-			from: RESEND_FROM_EMAIL,
+		await sendScalewayEmail({
+			from: SCW_FROM_EMAIL,
 			to,
 			subject,
 			html,

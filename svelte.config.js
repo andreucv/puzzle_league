@@ -12,7 +12,7 @@ const config = {
 		// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
 		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
 		adapter: adapter({
-            runtime: 'nodejs20.x',
+            runtime: 'nodejs24.x',
         }),
 		// Required for PostHog session replay to work correctly with SSR
 		paths: {
@@ -22,7 +22,9 @@ const config = {
 		// instead of fragile `../../../tests/...` relative paths. svelte-kit sync
 		// propagates this into .svelte-kit/tsconfig.json so `pnpm check` resolves it.
 		alias: {
-			$tests: 'src/tests'
+			$tests: 'src/tests',
+			// Generated Prisma client lives outside src/ (output in prisma/schema.prisma)
+			$prisma: 'prisma/generated/prisma'
 		}
 	},
 };

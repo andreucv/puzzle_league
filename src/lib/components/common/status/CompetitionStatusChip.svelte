@@ -5,7 +5,7 @@
     import CancelIcon from '@iconify-svelte/mdi/cancel';
 
     import { t } from '$lib/translations';
-    import type { CompetitionStatus } from '$lib/.prisma/generated/prisma/browser';
+    import type { CompetitionStatus } from '$prisma/browser';
 
     // Map competition status to display data, mirroring CategoryStatusChip.svelte style.
     function getCompetitionStatusBadge(status: CompetitionStatus): { label: string; classes: string; icon: typeof CheckCircleIcon } {

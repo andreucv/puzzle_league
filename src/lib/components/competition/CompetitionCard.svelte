@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Competition } from "$lib/.prisma/generated/prisma/browser";
+    import type { Competition } from "$prisma/browser";
     import { cldUrl } from '$lib/utils/cld_url';
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import MapMarkerRadiusIcon from '@iconify-svelte/mdi/map-marker-radius';

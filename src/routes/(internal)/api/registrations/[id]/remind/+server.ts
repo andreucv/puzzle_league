@@ -1,6 +1,6 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { prisma } from '$lib/database/create_prisma_client';
-import { RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
+import { RegistrationStatus } from '$prisma/enums';
 import { notificationsForPaymentReminder } from '$lib/notifications/registration_notifications';
 import { dispatchNotifications } from '$lib/notifications/dispatcher';
 import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/registration';

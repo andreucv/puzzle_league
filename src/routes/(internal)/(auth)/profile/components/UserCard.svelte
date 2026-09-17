@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Avatar, Portal, Switch, Tooltip } from "@skeletonlabs/skeleton-svelte";
-    import type { RoleAssignment } from '$lib/.prisma/generated/prisma/browser';
+    import type { RoleAssignment } from '$prisma/browser';
     import { t, locale, locales, setLocale } from '$lib/translations';
     import { enhance } from '$app/forms';
     import { invalidateAll } from '$app/navigation';

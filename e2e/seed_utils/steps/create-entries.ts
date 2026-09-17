@@ -1,5 +1,5 @@
 import type { SeedContext, EntrySeedInput, SeededEntry } from '../types';
-import { RegistrationStatus } from '../../../src/lib/.prisma/generated/prisma/enums';
+import { RegistrationStatus } from '../../../prisma/generated/prisma/enums';
 
 /**
  * Creates registration entries for a category.

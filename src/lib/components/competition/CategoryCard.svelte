@@ -3,7 +3,7 @@
     import { formatTime } from '$lib/utils/date_utils';
     import { getCategoryTypeName } from '$lib/utils/category_utils';
     import { t } from '$lib/translations';
-    import type { Category, Puzzle } from '$lib/.prisma/generated/prisma/browser';
+    import type { Category, Puzzle } from '$prisma/browser';
     import Card from '$lib/components/common/card/Card.svelte';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
     import CategoryStatusChip from '$lib/components/category/CategoryStatusChip.svelte';

@@ -11,6 +11,7 @@
     import InformationOutlineIcon from '@iconify-svelte/mdi/information-outline';
     import { t } from '$lib/translations';
     import { untrack } from 'svelte';
+    import { page } from '$app/state';
     import type { CategoryData } from '$lib/types/category';
     import type { CategoryStatusChangedEvent, CategoryAutoStopChangedEvent } from '$lib/events/types';
     import type { CategoryAction, CategoryActionResult } from '$lib/components/during-competition/category-actions';
@@ -20,6 +21,15 @@
 
     // Extract competition ID once (stable for the page lifetime, comes from route param)
     const competitionId = untrack(() => data.props.competition.id);
+
+    // Deep link from a scanned entry-card QR (/e/<entryId> resolver): ?category=&entry=.
+    // Consumed once at init; unknown ids are simply never matched, so the page behaves normally.
+    const deepLink = untrack(() => {
+        const searchParams = page.url.searchParams;
+        const categoryId = parseInt(searchParams.get('category') ?? '');
+        const entryId = searchParams.get('entry');
+        return entryId && !isNaN(categoryId) ? { categoryId, entryId } : null;
+    });
 
     const competition = $derived(data.props.competition);
     const isOrganizer = $derived(data.props.userRole === 'organizer');
@@ -219,6 +229,7 @@
                         {isOrganizer}
                         {autoStopAvailable}
                         liveVersion={categoryVersions.get(cat.id) ?? null}
+                        initialSelectedEntryId={deepLink?.categoryId === cat.id ? deepLink.entryId : null}
                         onCategoryActionComplete={handleCategoryActionComplete}
                         onAutoStopToggled={handleAutoStopToggled}
                     />
@@ -246,6 +257,7 @@
                         {isOrganizer}
                         {autoStopAvailable}
                         liveVersion={categoryVersions.get(cat.id) ?? null}
+                        initialSelectedEntryId={deepLink?.categoryId === cat.id ? deepLink.entryId : null}
                         onCategoryActionComplete={handleCategoryActionComplete}
                         onAutoStopToggled={handleAutoStopToggled}
                     />

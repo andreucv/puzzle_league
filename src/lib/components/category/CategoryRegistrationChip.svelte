@@ -1,7 +1,7 @@
 <script lang="ts">
     import { getCategoryTypeName, getCategoryTypeIcon } from '$lib/utils/category_utils';
     import { getRegistrationStatusChipClass, getRegistrationStatusIcon } from '$lib/utils/registration_utils';
-    import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
+    import type { CategoryType } from '$prisma/browser';
     import { t } from '$lib/translations';
 
     let { categoryType, registrationStatus = null }: { categoryType: string; registrationStatus?: string | null } = $props();

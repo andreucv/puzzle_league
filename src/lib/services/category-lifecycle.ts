@@ -1,8 +1,8 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { CategoryStatus, CompetitionStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
+import { CategoryStatus, CompetitionStatus, RegistrationStatus } from '$prisma/enums';
 import { publishCompetitionEvent } from '$lib/events/server/ably';
 import { dispatchNotifications } from '$lib/notifications/dispatcher';
-import { NotificationType } from '$lib/.prisma/generated/prisma/enums';
+import { NotificationType } from '$prisma/enums';
 import { notificationsForTableAssignment, notificationsForPaymentReminder } from '$lib/notifications/registration_notifications';
 import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/registration';
 import type { AutoStopScheduler } from './auto-stop-scheduler';

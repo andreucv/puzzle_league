@@ -3,7 +3,7 @@ import { startCategory, CategoryNotFoundError } from '$lib/services/category-lif
 import { getAutoStopScheduler } from '$lib/services/auto-stop-singleton';
 import { getPostHogClient } from '$lib/server/posthog';
 import { requireCompetitionRole } from '$lib/api_utils/api_auth';
-import { Role } from '$lib/.prisma/generated/prisma/enums';
+import { Role } from '$prisma/enums';
 import { prisma } from '$lib/database/create_prisma_client';
 
 export const POST = async (event: RequestEvent) => {

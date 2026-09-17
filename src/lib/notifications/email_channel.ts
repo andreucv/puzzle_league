@@ -14,7 +14,7 @@ function toEmailData(data: NotificationIntent['data']): Record<string, string> {
 
 /**
  * The email adapter at the notification dispatch seam. A thin wrapper over the
- * existing {@link sendEmail} (locale resolution, multi-language templates, Resend
+ * existing {@link sendEmail} (locale resolution, multi-language templates, Scaleway
  * — all unchanged). Synchronous, in-process, best-effort: `sendEmail` swallows
  * its own per-recipient failures, so a non-zero `failed` count here only reflects
  * an outright rejection of the send call.

@@ -1,6 +1,6 @@
 import { prisma, accelerateEnabled } from '$lib/database/create_prisma_client';
-import { Role } from '$lib/.prisma/generated/prisma/enums';
-import type { PrismaClient } from '$lib/.prisma/generated/prisma/client';
+import { Role } from '$prisma/enums';
+import type { PrismaClient } from '$prisma/client';
 
 // ---------------------------------------------------------------------------
 // Types

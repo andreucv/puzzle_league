@@ -1,6 +1,6 @@
-import { CategoryStatus, CompetitionStatus, EntryTagStatus, RegistrationStatus } from '$lib/.prisma/generated/prisma/enums';
-import type { Prisma } from '$lib/.prisma/generated/prisma/client';
-import type { Competition, Category } from '$lib/.prisma/generated/prisma/browser';
+import { CategoryStatus, CompetitionStatus, EntryTagStatus, RegistrationStatus } from '$prisma/enums';
+import type { Prisma } from '$prisma/client';
+import type { Competition, Category } from '$prisma/browser';
 import { prisma, accelerateEnabled } from '$lib/database/create_prisma_client';
 
 // ---------------------------------------------------------------------------
@@ -338,22 +338,6 @@ export async function getMonthCompetitions(month: number, year: number) {
         return competitions;
     } catch (error) {
         console.error('Error getting current month competitions:', error);
-        throw error;
-    }
-}
-
-export async function getOrganisedCompetitions(creatorId: string) {
-    try {
-        const competitions = await prisma.competition.findMany({
-            where: { creatorId },
-            orderBy: {
-                startDate: 'desc'
-            }
-        });
-
-        return competitions;
-    } catch (error) {
-        console.error('Error getting organised competitions:', error);
         throw error;
     }
 }

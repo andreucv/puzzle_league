@@ -2,7 +2,7 @@
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import { t } from '$lib/translations';
     import CategoryCard from '$lib/components/competition/CategoryCard.svelte';
-    import type { Category, Puzzle } from '$lib/.prisma/generated/prisma/browser';
+    import type { Category, Puzzle } from '$prisma/browser';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
     type CategoryWithCounts = Omit<Category, 'autoStopMessageId'> & { autoStop?: boolean; totalEntries: number; finishedEntries: number; reservedSlots?: number };

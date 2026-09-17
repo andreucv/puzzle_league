@@ -2,7 +2,7 @@
     import { Progress } from '@skeletonlabs/skeleton-svelte';
     import { getCategoryTypeName, getCategoryTypeIcon, getCategoryStatusVisual } from '$lib/utils/category_utils';
     import { getCapacityLevel, type CapacityLevel } from '$lib/utils/capacity';
-    import type { CategoryType } from '$lib/.prisma/generated/prisma/browser';
+    import type { CategoryType } from '$prisma/browser';
     import { t } from '$lib/translations';
     import AccountGroupOutlineIcon from '@iconify-svelte/mdi/account-group-outline';
 

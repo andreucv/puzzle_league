@@ -41,6 +41,7 @@
         isOrganizer,
         autoStopAvailable = true,
         liveVersion,
+        initialSelectedEntryId = null,
         onCategoryActionComplete,
         onAutoStopToggled
     }: {
@@ -48,6 +49,8 @@
         isOrganizer: boolean;
         autoStopAvailable?: boolean;
         liveVersion?: string | null;
+        /** Deep-link (QR scan): entry to preselect once this card's records load. */
+        initialSelectedEntryId?: string | null;
         onCategoryActionComplete?: (categoryId: number, action: CategoryAction, result: CategoryActionResult & { ok: true }) => void;
         onAutoStopToggled?: (categoryId: number, armed: boolean) => void;
     } = $props();
@@ -679,6 +682,7 @@
                 initialOpen={true}
                 forceOpen={records.searchQuery.trim() !== '' && records.filteredPending.length > 0}
                 {isSearching}
+                initialSelectedId={initialSelectedEntryId}
             />
 
             <EntryList
@@ -692,6 +696,7 @@
                 emptyMessage={$t('during_competition.no_finished_records')}
                 forceOpen={records.searchQuery.trim() !== '' && records.filteredFinished.length > 0}
                 {isSearching}
+                initialSelectedId={initialSelectedEntryId}
             />
         {/if}
 
@@ -711,6 +716,7 @@
                 alwaysShow={true}
                 forceOpen={records.searchQuery.trim() !== '' && records.filteredUnresolved.length > 0}
                 {isSearching}
+                initialSelectedId={initialSelectedEntryId}
             />
 
             <EntryList
@@ -725,6 +731,7 @@
                 emptyMessage={$t('during_competition.no_finished_records')}
                 forceOpen={records.searchQuery.trim() !== '' && records.filteredResolved.length > 0}
                 {isSearching}
+                initialSelectedId={initialSelectedEntryId}
             />
         {/if}
 

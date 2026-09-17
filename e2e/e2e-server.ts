@@ -83,6 +83,11 @@ async function main() {
         DATABASE_URL: testDbUrl,
         DATABASE_ACCELERATE_URL: testDbUrl,
         BETTER_AUTH_URL: `http://localhost:${PREVIEW_PORT}`,
+        // Never hit Scaleway from e2e: emails are logged by scaleway_email.mock.ts instead.
+        MOCK_EMAILS: 'true',
+        // Inlined at build time: skips Vercel Analytics/Speed Insights (/_vercel/* 404s outside Vercel)
+        // and PostHog (keeps test traffic out of the project and off the /ingest proxy).
+        VITE_DISABLE_ANALYTICS: 'true',
     };
 
     await prepareDatabase(testDbUrl, env);

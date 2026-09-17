@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { User, Category, CategoryType } from '$lib/.prisma/generated/prisma/browser';
+    import type { User, Category, CategoryType } from '$prisma/browser';
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
     import { enhance } from '$app/forms';
     import { invalidate } from '$app/navigation';

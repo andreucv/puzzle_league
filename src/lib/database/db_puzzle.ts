@@ -1,4 +1,4 @@
-import type { Prisma } from '$lib/.prisma/generated/prisma/client';
+import type { Prisma } from '$prisma/client';
 import { prisma } from '$lib/database/create_prisma_client';
 
 export async function getPuzzles() {

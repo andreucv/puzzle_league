@@ -1,5 +1,5 @@
 import { prisma } from '$lib/database/create_prisma_client';
-import { EntryTagStatus, ParticipantTagType } from '$lib/.prisma/generated/prisma/enums';
+import { EntryTagStatus, ParticipantTagType } from '$prisma/enums';
 
 // ---------------------------------------------------------------------------
 // Participant tags are a fixed enum (ParticipantTagType). There is no tag

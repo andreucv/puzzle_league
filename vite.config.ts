@@ -55,7 +55,6 @@ export default defineConfig({
 				'src/tests/**',
 				'src/**/*.svelte', // markup-only; the unit layer asserts behaviour, not template lines
 				'src/**/*.d.ts',
-				'src/lib/.prisma/**', // generated Prisma client
 				'src/app.d.ts',
 				'src/app.html', // HTML shell, not parseable as JS
 				'**/.DS_Store', // macOS cruft caught by the src/** glob
@@ -75,15 +74,21 @@ export default defineConfig({
 			'$app/environment': '/src/tests/mocks/app_environment.ts',
 			'$app/stores': '/src/tests/mocks/app_stores.ts',
 			$tests: '/src/tests',
+			$prisma: '/prisma/generated/prisma',
 		},
 	},
-    // To enable hot module reloading, we need to enable polling because of docker environment
 	server: {
 		watch: {
-			usePolling: true,
+			// Polling is only needed for HMR inside Docker (no native FS events). On native
+			// checkouts it stat-polls the whole tree and starves the transform pipeline
+			// (measured: >240s cold start with polling vs 5.5s without). Opt in via env.
+			usePolling: process.env.VITE_POLLING === 'true',
+			// Generated code never needs HMR; `prisma generate` mid-dev would otherwise
+			// trigger a full-reload storm.
+			ignored: ['**/prisma/generated/**'],
 		},
 		fs: {
-			allow: ['prisma/generated'] // Allow access to parent directory for better-auth and prisma client
+			allow: ['prisma/generated'] // Serve the generated Prisma client (enums/browser imports in components)
 		},
 		warmup: {
 			ssrFiles: ['./src/hooks.server.ts']

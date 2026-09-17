@@ -1,6 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
-import type { PrismaClient } from '../../../src/lib/.prisma/generated/prisma/client';
+import type { PrismaClient } from '../../../prisma/generated/prisma/client';
 import type { SeedContext, AuthUserSeedInput, SeededAuthUser } from '../types';
 
 /**

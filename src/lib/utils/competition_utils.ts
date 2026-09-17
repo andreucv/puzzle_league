@@ -1,4 +1,4 @@
-import { CompetitionStatus } from '$lib/.prisma/generated/prisma/enums';
+import { CompetitionStatus } from '$prisma/enums';
 
 export function getCompetitionStatusLabel(status: CompetitionStatus): string {
     const statusLabels: Record<CompetitionStatus, string> = {

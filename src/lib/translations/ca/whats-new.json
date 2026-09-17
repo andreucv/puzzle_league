@@ -15,6 +15,16 @@
       ]
     },
     {
+      "version": "1.0.0",
+      "status": "released",
+      "date": null,
+      "title": "Imprimeix les targetes d'inscripcions per organitzar les taules",
+      "summary": "Ara pots imprimir les targetes d'inscripcions de les categories de la teva competició, així els participants podran trobar la seva taula.",
+      "highlights": [
+        "Nou disseny dels últims resultats a la pàgina principal."
+      ]
+    },
+    {
       "version": "0.6.0",
       "status": "released",
       "date": "2026-06-14",

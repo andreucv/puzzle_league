@@ -97,4 +97,18 @@ describe('EntryList', () => {
 		renderList({ records, initialOpen: false, forceOpen: true });
 		expect(screen.getByTestId('record-row-r1')).toBeInTheDocument();
 	});
+
+	it('initialSelectedId opens the list and preselects the matching record', async () => {
+		const records = [makeRecord('r1'), makeRecord('r2')];
+		renderList({ records, initialOpen: false, initialSelectedId: 'r2' });
+		// List opened and the selected row exposes its action button (same UI as a manual tap)
+		expect(await screen.findByTestId('finish-record-r2')).toBeInTheDocument();
+		expect(screen.queryByTestId('finish-record-r1')).not.toBeInTheDocument();
+	});
+
+	it('initialSelectedId not in records is ignored', () => {
+		const records = [makeRecord('r1')];
+		renderList({ records, initialOpen: false, initialSelectedId: 'nope' });
+		expect(screen.queryByTestId('record-row-r1')).not.toBeInTheDocument();
+	});
 });

@@ -10,6 +10,7 @@
     import { invalidate } from '$app/navigation';
     import { t, locale } from '$lib/translations';
     import DownloadIcon from '@iconify-svelte/mdi/download';
+    import PrinterIcon from '@iconify-svelte/mdi/printer';
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
     import Card from '$lib/components/common/card/Card.svelte';
     import ManageRegistrationStatus from './components/ManageRegistrationStatus.svelte';
@@ -45,6 +46,30 @@
     let messageDismissTimer: ReturnType<typeof setTimeout> | null = null;
     let messageProgressKey = $state(0);
     let generatingPdf = $state(false);
+    let printingCards = $state(false);
+    let printingCategoryId: number | null = $state(null);
+
+    function printableCount(category: any): number {
+        return category.entries.filter((r: any) => r.status === 'CONFIRMED' && r.tableNumber != null).length;
+    }
+    let anyPrintable = $derived(categoriesWithRegistrations.some((c: any) => printableCount(c) > 0));
+
+    async function handlePrintEntryCards(category?: any) {
+        if (category) printingCategoryId = category.id;
+        else printingCards = true;
+        try {
+            const { downloadEntryCardsPdf } = await import('$lib/utils/pdf_entry_cards');
+            await downloadEntryCardsPdf({
+                competitionName: competition.name,
+                categories: category ? [category] : categoriesWithRegistrations,
+                origin: window.location.origin,
+                translate: $t
+            });
+        } finally {
+            printingCategoryId = null;
+            printingCards = false;
+        }
+    }
 
     async function handleDownloadPdf() {
         generatingPdf = true;
@@ -203,22 +228,39 @@
         <ManageRegistrationStatus competition_id={competition.id} competition_registration_status={registrationOpen} hasCategories={categoriesWithRegistrations.length > 0} onStatusChange={(status) => registrationOpen = status} />
     </div>
 
-    <!-- Download PDF -->
+    <!-- Download PDF / Print all entry cards -->
     {#if categoriesWithRegistrations.length > 0}
-        <button
-            type="button"
-            class="btn preset-outlined-surface-500 gap-2 w-full"
-            disabled={generatingPdf}
-            onclick={handleDownloadPdf}
-            data-testid="download-pdf"
-        >
-            {#if generatingPdf}
-                <LoadingIcon width="1.1rem" height="1.1rem" class="animate-spin" />
-            {:else}
-                <DownloadIcon width="1.1rem" height="1.1rem" />
-            {/if}
-            {$t('manage_registrations.download_pdf')}
-        </button>
+        <div class="flex flex-col sm:flex-row gap-2">
+            <button
+                type="button"
+                class="btn preset-outlined-surface-500 gap-2 flex-1"
+                disabled={generatingPdf}
+                onclick={handleDownloadPdf}
+                data-testid="download-pdf"
+            >
+                {#if generatingPdf}
+                    <LoadingIcon width="1.1rem" height="1.1rem" class="animate-spin" />
+                {:else}
+                    <DownloadIcon width="1.1rem" height="1.1rem" />
+                {/if}
+                {$t('manage_registrations.download_pdf')}
+            </button>
+            <button
+                type="button"
+                class="btn preset-outlined-surface-500 gap-2 flex-1"
+                disabled={printingCards || !anyPrintable}
+                title={!anyPrintable ? $t('manage_registrations.print_entry_cards_hint') : undefined}
+                onclick={() => handlePrintEntryCards()}
+                data-testid="print-all-entry-cards"
+            >
+                {#if printingCards}
+                    <LoadingIcon width="1.1rem" height="1.1rem" class="animate-spin" />
+                {:else}
+                    <PrinterIcon width="1.1rem" height="1.1rem" />
+                {/if}
+                {$t('manage_registrations.print_all_entry_cards')}
+            </button>
+        </div>
     {/if}
 
     <!-- User Search -->
@@ -351,6 +393,25 @@
                             />
                         {/if}
                     </div>
+                </div>
+
+                <!-- Print entry cards: enabled once tables are published -->
+                <div class="border-t border-surface-200 dark:border-surface-700">
+                    <button
+                        type="button"
+                        class="btn preset-outlined-surface-500 gap-2 w-full"
+                        disabled={printingCategoryId !== null || printableCount(category) === 0}
+                        title={printableCount(category) === 0 ? $t('manage_registrations.print_entry_cards_hint') : undefined}
+                        onclick={() => handlePrintEntryCards(category)}
+                        data-testid="print-entry-cards-{category.id}"
+                    >
+                        {#if printingCategoryId === category.id}
+                            <LoadingIcon width="1.1rem" height="1.1rem" class="animate-spin" />
+                        {:else}
+                            <PrinterIcon width="1.1rem" height="1.1rem" />
+                        {/if}
+                        {$t('manage_registrations.print_entry_cards')}
+                    </button>
                 </div>
             {/if}
             {/if}

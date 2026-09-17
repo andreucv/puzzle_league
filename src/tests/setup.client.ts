@@ -20,3 +20,8 @@ if (!Element.prototype.animate) {
 if (!Element.prototype.getAnimations) {
 	Element.prototype.getAnimations = (() => []) as unknown as typeof Element.prototype.getAnimations;
 }
+
+// jsdom doesn't implement scrollIntoView (used by EntryList's deep-link autoselect).
+if (!Element.prototype.scrollIntoView) {
+	Element.prototype.scrollIntoView = () => {};
+}

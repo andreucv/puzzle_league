@@ -118,6 +118,17 @@ export async function getRegistrationsForCompetition(competitionId: number) {
     }
 }
 
+/** Minimal lookup for the /e/[entryId] QR resolver: category and competition ids only. */
+export async function getEntryCategoryRef(entryId: string) {
+    return prisma.entry.findUnique({
+        where: { id: entryId },
+        select: {
+            categoryId: true,
+            category: { select: { competitionId: true } }
+        }
+    });
+}
+
 export async function getWaitlistPositions(
     competitionId: number,
     entryIds: string[]

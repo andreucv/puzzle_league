@@ -480,6 +480,48 @@ describe('CategoryCard', () => {
 	});
 
 	// =====================================================================
+	// Deep-link autoselect (QR scan → ?category=&entry=)
+	// =====================================================================
+	describe('Deep-link autoselect', () => {
+		const pendingRecord = {
+			id: 'rec-1',
+			tableNumber: 1,
+			finishTime: null,
+			nPiecesCompleted: null,
+			status: 'ACTIVE',
+			users: [{ id: 'u1', name: 'Alice', email: 'a@t.com', image: null }],
+			externalParticipants: []
+		};
+		const liveCategory = {
+			status: 'LIVE',
+			realStartTime: '2026-01-01T10:00:00Z',
+			totalEntries: 1,
+			finishedEntries: 0
+		};
+
+		it('initialSelectedEntryId preselects the entry once records load (no click needed)', async () => {
+			fetchMock = mockFetchRecords([], [pendingRecord]);
+			vi.stubGlobal('fetch', fetchMock);
+			renderCard(liveCategory, { initialSelectedEntryId: 'rec-1' });
+
+			await waitFor(() => {
+				expect(screen.getByTestId('finish-record-rec-1')).toBeInTheDocument();
+			});
+		});
+
+		it('unknown initialSelectedEntryId is ignored', async () => {
+			fetchMock = mockFetchRecords([], [pendingRecord]);
+			vi.stubGlobal('fetch', fetchMock);
+			renderCard(liveCategory, { initialSelectedEntryId: 'deleted-entry' });
+
+			await waitFor(() => {
+				expect(screen.getByTestId('record-row-rec-1')).toBeInTheDocument();
+			});
+			expect(screen.queryByTestId('finish-record-rec-1')).not.toBeInTheDocument();
+		});
+	});
+
+	// =====================================================================
 	// "Just marked" confirmation banner (LIVE finish only)
 	// =====================================================================
 	describe('Just-finished banner', () => {

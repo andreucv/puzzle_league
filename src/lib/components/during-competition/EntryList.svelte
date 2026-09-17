@@ -3,7 +3,7 @@
     import LoadingIcon from '@iconify-svelte/mdi/loading';
     import ChevronUpIcon from '@iconify-svelte/mdi/chevron-up';
     import ChevronDownIcon from '@iconify-svelte/mdi/chevron-down';
-    import { untrack } from 'svelte';
+    import { tick, untrack } from 'svelte';
     import { slide } from 'svelte/transition';
     import { flip } from 'svelte/animate';
     import type { RecordActionMode, RecordActionHandler } from './types';
@@ -21,7 +21,8 @@
         initialOpen = false,
         alwaysShow = false,
         forceOpen = false,
-        isSearching = false
+        isSearching = false,
+        initialSelectedId = null
     }: {
         icon: any;
         label: string;
@@ -36,6 +37,8 @@
         alwaysShow?: boolean;
         forceOpen?: boolean;
         isSearching?: boolean;
+        /** Deep-link (QR scan): preselect this record once it appears in `records`. */
+        initialSelectedId?: string | null;
     } = $props();
 
     // Disable transitions during search to prevent viewport jitter from continuous
@@ -50,6 +53,21 @@
 
     $effect(() => {
         if (forceOpen) open = true;
+    });
+
+    // Apply the deep-link selection once, when the record shows up (records load async).
+    let initialSelectionConsumed = false;
+    $effect(() => {
+        if (initialSelectionConsumed || !initialSelectedId || loading) return;
+        if (!records.some((r) => r.id === initialSelectedId)) return;
+        initialSelectionConsumed = true;
+        selectedRecord = initialSelectedId;
+        open = true;
+        tick().then(() => {
+            document
+                .querySelector(`[data-testid="record-row-${initialSelectedId}"]`)
+                ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
     });
 
     function toggleSelection(id: string) {

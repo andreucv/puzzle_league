@@ -1161,7 +1161,12 @@
     "anonymous_participant": "Anonymous Participant",
     "filter_by_tag": "Filter:",
     "tag_filter_all": "All",
-    "profile_hidden": "This profile is private"
+    "profile_hidden": "This profile is private",
+    "landing_rank_of": "of {{total}}",
+    "landing_top": "top {{percent}}%",
+    "landing_dnf_encourage": "So close — {{count}} to go next time",
+    "landing_dnf_generic": "Every piece counts — back for more next time",
+    "ordinal": { "one": "st", "two": "nd", "few": "rd", "other": "th" }
   },
   "category_status": {
     "not_started": "Not Started",

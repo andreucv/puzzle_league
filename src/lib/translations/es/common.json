@@ -1159,7 +1159,12 @@
     "anonymous_participant": "Participante Anónimo",
     "filter_by_tag": "Filtrar:",
     "tag_filter_all": "Todos",
-    "profile_hidden": "Este perfil es privado"
+    "profile_hidden": "Este perfil es privado",
+    "landing_rank_of": "de {{total}}",
+    "landing_top": "top {{percent}}%",
+    "landing_dnf_encourage": "¡Casi! Te faltaron {{count}} piezas",
+    "landing_dnf_generic": "Cada pieza cuenta — a por la próxima",
+    "ordinal": { "one": "º", "two": "º", "few": "º", "other": "º" }
   },
   "category_status": {
     "not_started": "No Iniciada",

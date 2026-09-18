@@ -460,10 +460,6 @@
     function validateCategoryField(draft: CategoryDraft, field: string, value: any) {
         const errors = draft.errors;
         switch (field) {
-            case 'description':
-                if (value && value.length > 60) errors.description = $t('competition.form_error.max_length.category_description');
-                else delete errors.description;
-                break;
             case 'type':
                 if (!value) errors.type = $t('competition.form_error.required.category_type');
                 else delete errors.type;
@@ -1188,24 +1184,6 @@
                                         <span class="invalid text-error-500 text-sm">{cat.errors.price}</span>
                                     {/if}
                                 </div>
-                                <!-- Category Description -->
-                                <div class="label">
-                                    <span class="text-sm font-medium">{$t('competition.create.category_description')}</span>
-                                    <input
-                                        type="text"
-                                        class="input bg-surface-50-950"
-                                        class:input-error={cat.errors?.description}
-                                        data-testid="description-update-{i}"
-                                        bind:value={cat.description}
-                                        placeholder={$t('competition.create.category_description_placeholder')}
-                                        minlength="3"
-                                        maxlength="60"
-                                        oninput={(e) => validateCategoryField(cat, 'description', (e.target as HTMLInputElement).value)}
-                                    />
-                                    {#if cat.errors?.description}
-                                        <span class="invalid text-error-500 text-sm">{cat.errors.description}</span>
-                                    {/if}
-                                </div>
                             </div>
 
                             <!-- Sub-prize tags -->
@@ -1396,24 +1374,6 @@
                                     />
                                     {#if cat.errors?.price}
                                         <span class="invalid text-error-500 text-sm">{cat.errors.price}</span>
-                                    {/if}
-                                </div>
-                                <!-- Category Description -->
-                                <div class="label">
-                                    <span class="text-sm font-medium">{$t('competition.create.category_description')}</span>
-                                    <input
-                                        type="text"
-                                        class="input bg-surface-50-950"
-                                        class:input-error={cat.errors?.description}
-                                        data-testid="description-create-{i}"
-                                        bind:value={cat.description}
-                                        placeholder={$t('competition.create.category_description_placeholder')}
-                                        minlength="3"
-                                        maxlength="60"
-                                        oninput={(e) => validateCategoryField(cat, 'description', (e.target as HTMLInputElement).value)}
-                                    />
-                                    {#if cat.errors?.description}
-                                        <span class="invalid text-error-500 text-sm">{cat.errors.description}</span>
                                     {/if}
                                 </div>
                                 <!-- Category Subname -->

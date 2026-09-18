@@ -45,7 +45,10 @@ export function notificationsForRegistrationCreated(
 
 	if (otherUserIds.length === 0) return [];
 
-	const categoryName = entry.category.description || entry.category.type;
+	const typeLabel = getCategoryTypeName(entry.category.type as CategoryType);
+	const categoryName = entry.category.subname
+		? `@:${typeLabel} - ${entry.category.subname}`
+		: `@:${typeLabel}`;
 	const competitionName = entry.category.competition.name;
 	const link = competitionDetailsLink(entry.category);
 
@@ -89,6 +92,11 @@ export function notificationsForRegistrationWaitlisted(entry: SubmittedRegistrat
 	const userIds = entry.users.map((user) => user.id);
 	if (userIds.length === 0) return [];
 
+	const typeLabel = getCategoryTypeName(entry.category.type as CategoryType);
+	const categoryName = entry.category.subname
+		? `@:${typeLabel} - ${entry.category.subname}`
+		: `@:${typeLabel}`;
+
 	return [
 		{
 			userIds,
@@ -96,7 +104,7 @@ export function notificationsForRegistrationWaitlisted(entry: SubmittedRegistrat
 			title: 'notifications.titles.registration_waitlisted',
 			message: 'notifications.messages.registration_waitlisted',
 			link: competitionDetailsLink(entry.category),
-			data: { categoryName: entry.category.description ?? entry.category.type },
+			data: { categoryName },
 		},
 	];
 }

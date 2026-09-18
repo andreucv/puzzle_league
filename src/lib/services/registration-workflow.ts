@@ -235,7 +235,7 @@ async function runNotificationWork(label: string, work: () => Promise<void>): Pr
 	}
 }
 
-function buildSummary(entries: Array<{ categoryId: number; category: { description: string | null; type: string } }>): RegistrationSummary {
+function buildSummary(entries: Array<{ categoryId: number; category: { subname: string | null; type: string } }>): RegistrationSummary {
 	const perCategoryMap = new Map<number, { name: string; type: string; count: number }>();
 	for (const entry of entries) {
 		const existing = perCategoryMap.get(entry.categoryId);
@@ -243,7 +243,7 @@ function buildSummary(entries: Array<{ categoryId: number; category: { descripti
 			existing.count++;
 		} else {
 			perCategoryMap.set(entry.categoryId, {
-				name: entry.category.description || entry.category.type,
+				name: entry.category.subname || entry.category.type,
 				type: entry.category.type,
 				count: 1,
 			});
@@ -322,7 +322,7 @@ export async function submitRegistration({
 				if (existingCount + batchCount > maxEntries) {
 					throw new RegistrationWorkflowError(
 						'VALIDATION_FAILED',
-						`Maximum registrations reached for category ${category.description || category.type} (${maxEntries})`,
+						`Maximum registrations reached for category ${category.subname || category.type} (${maxEntries})`,
 					);
 				}
 			}
@@ -375,7 +375,7 @@ export async function submitRegistration({
 					const uniqueNames = [...new Set(duplicateUsers.map((user) => user.name))];
 					throw new RegistrationWorkflowError(
 						'VALIDATION_FAILED',
-						`User(s) already registered in category ${category.description || category.type}: ${uniqueNames.join(', ')}`,
+						`User(s) already registered in category ${category.subname || category.type}: ${uniqueNames.join(', ')}`,
 					);
 				}
 			}
@@ -393,12 +393,12 @@ export async function submitRegistration({
 			if (category.maxPartySize && totalPartySize > category.maxPartySize) {
 				throw new RegistrationWorkflowError(
 					'VALIDATION_FAILED',
-					`Party size (${totalPartySize}) exceeds maximum for category ${category.description || category.type} (${category.maxPartySize})`,
+					`Party size (${totalPartySize}) exceeds maximum for category ${category.subname || category.type} (${category.maxPartySize})`,
 				);
 			}
 
 			if (category.status !== CategoryStatus.NOT_STARTED) {
-				throw new RegistrationWorkflowError('INVALID_STATUS', `Registration closed for category: ${category.description || category.type}`);
+				throw new RegistrationWorkflowError('INVALID_STATUS', `Registration closed for category: ${category.subname || category.type}`);
 			}
 
 			let initialStatus: RegistrationStatus = actor.isOrganizer || isFreeRegistration(category, competition)

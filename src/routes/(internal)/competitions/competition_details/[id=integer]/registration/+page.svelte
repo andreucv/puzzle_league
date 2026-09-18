@@ -406,7 +406,7 @@
             const waitlistedCount = Math.max(0, slots.length - Math.max(0, spotsLeft));
             if (waitlistedCount > 0) {
                 const typeName = $t(getCategoryTypeName(category.type));
-                const name = category.description ? `${typeName} (${category.description})` : typeName;
+                const name = category.subname ? `${typeName} (${category.subname})` : typeName;
                 result.push({ name, waitlistedCount });
             }
         }
@@ -436,7 +436,7 @@
             if (payableCount <= 0) continue;
 
             const typeName = $t(getCategoryTypeName(category.type));
-            const description = category.description ? `${typeName} (${category.description})` : typeName;
+            const description = category.subname ? `${typeName} (${category.subname})` : typeName;
             // Price per slot (tags can make slots in the same category cost differently)
             for (let i = 0; i < payableCount; i++) {
                 const unitPrice = getSlotUnitPrice(category, slots[i]);

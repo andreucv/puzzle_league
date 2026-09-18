@@ -107,7 +107,7 @@
                     {:else}
                         <div class="shrink-0 w-10 h-10 rounded-lg flex flex-col items-center justify-center leading-none bg-surface-200 text-surface-700 dark:bg-surface-700 dark:text-surface-200">
                             <span class="text-base font-bold tabular-nums">{result.position}</span>
-                            <span class="text-[9px] font-semibold text-surface-500 dark:text-surface-400">/{result.totalFinished}</span>
+                            <span class="text-[9px] font-semibold text-surface-500 dark:text-surface-400">/{result.totalEntries}</span>
                         </div>
                     {/if}
 
@@ -124,10 +124,11 @@
                             {:else}
                                 <span class="text-lg font-bold leading-none tabular-nums text-primary-700 dark:text-primary-300">{v.elapsed}</span>
                                 {#if result.position}
-                                    {@const top = topPercent(result.position, result.totalFinished)}
+                                    <!-- Out of every confirmed entry in the category, not just finishers -->
+                                    {@const top = topPercent(result.position, result.totalEntries)}
                                     <span class="text-xs text-surface-500 dark:text-surface-400 truncate">
                                         <strong class="font-bold text-surface-900 dark:text-surface-50">{ordinal(result.position)}</strong>
-                                        {$t('results.landing_rank_of', { total: result.totalFinished })}{#if top < 100}{' · '}{$t('results.landing_top', { percent: top })}{/if}
+                                        {$t('results.landing_rank_of', { total: result.totalEntries })}{#if top < 100}{' · '}{$t('results.landing_top', { percent: top })}{/if}
                                     </span>
                                 {/if}
                             {/if}

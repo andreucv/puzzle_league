@@ -196,7 +196,8 @@ pnpm release                          # bump package.json + CHANGELOG.md, commit
 # promote the draft whats-new.json entry (en/es/ca) → released, then commit it
 git push origin test                  # release commit + What's New
 # → preview build = final QA of the exact release
-# then merge the test → main PR  → single prod build; CI tags + releases (Stage 2c)
+# then merge the test → main
+git checkout main && git merge test && git push origin main # main and test share same history and same commits (no new commit from PR merge)
 ```
 
 ### Step 2c — Tag the merge commit + publish the GitHub Release (on merge to `main`)
@@ -361,5 +362,5 @@ pnpm release:dry                      # preview
 pnpm release                          # bump + CHANGELOG, commit (no tag)
 # promote draft whats-new.json (en/es/ca) → released, commit
 git push origin test                  # release commit + What's New
-# merge the test → main PR            # single prod build; CI tags + releases
+git checkout main && git merge test && git push origin main
 ```

@@ -553,6 +553,7 @@
     "empty_spots": "lugares vacíos",
     "organizer_mode": "Modo organizador - los organizadores pueden crear inscripciones sin límite y se confirman automáticamente.",
     "registration_not_available": "Las inscripciones no están disponibles para esta categoría.",
+    "category_registration_closed": "La inscripción está cerrada para esta categoría.",
     "status_confirmed": "Confirmado",
     "status_pending_confirmation": "Pendiente de confirmación",
     "status_waitlisted": "En lista de espera",
@@ -958,6 +959,9 @@
     "open_registration": "Abrir",
     "add_categories_first": "Añade categorías antes de abrir la inscripción.",
     "toggle_error": "Error al actualizar el estado de la inscripción.",
+    "category_registration_open": "Abierta",
+    "category_registration_closed": "Cerrada",
+    "category_registration_toggle": "Abrir o cerrar la inscripción de esta categoría",
     "unexpected_error": "Ha ocurrido un error inesperado."
   },
   "notifications": {

@@ -584,7 +584,7 @@
             <Card>
                 <!-- Category header -->
                 <div class="flex justify-between items-start">
-                    <CategoryCardTitle type={category.type} subname={category.description} />
+                    <CategoryCardTitle type={category.type} subname={category.subname} />
                     <div class="flex items-center gap-2 flex-wrap justify-end">
                         <span class="badge preset-tonal text-xs flex items-center gap-1 p-2">
                             <AccountMultipleIcon width="1rem" height="1rem" />

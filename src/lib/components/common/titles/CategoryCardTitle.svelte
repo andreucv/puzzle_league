@@ -3,7 +3,7 @@
     import type { CategoryType } from '$prisma/browser';
     import { t } from '$lib/translations';
 
-    let { type, subname }: { type: CategoryType, subname: string } = $props();
+    let { type, subname }: { type: CategoryType, subname?: string | null } = $props();
     const CategoryTypeIcon = $derived(getCategoryTypeIcon(type));
     const label = $derived($t(getCategoryTypeName(type)));
 </script>

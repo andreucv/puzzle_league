@@ -228,7 +228,7 @@ model Puzzle {
 
 model Category {
   id                Int                       @id @default(autoincrement())
-  description       String
+  description       String // Not used for now: no longer shown or edited in the UI (saved as ''). Use `subname` to label a category.
   subname           String?
   type              CategoryType
   maxPartySize      Int?

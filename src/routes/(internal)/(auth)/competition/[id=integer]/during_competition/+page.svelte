@@ -10,6 +10,7 @@
     import WifiOffIcon from '@iconify-svelte/mdi/wifi-off';
     import InformationOutlineIcon from '@iconify-svelte/mdi/information-outline';
     import { t } from '$lib/translations';
+    import { getCategoryTypeName } from '$lib/utils/category_utils';
     import { untrack } from 'svelte';
     import { page } from '$app/state';
     import type { CategoryData } from '$lib/types/category';
@@ -137,7 +138,7 @@
             const cat = staticCategories.find(c => c.id === event.categoryId);
             showSuccessToast(
                 $t('during_competition.auto_stop'),
-                cat?.description ?? ''
+                cat ? [$t(getCategoryTypeName(cat.type)), cat.subname].filter(Boolean).join(' · ') : ''
             );
         }
     });

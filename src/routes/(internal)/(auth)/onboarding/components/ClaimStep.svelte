@@ -1,5 +1,6 @@
 <script lang="ts">
     import { t } from '$lib/translations';
+    import { getCategoryTypeName } from '$lib/utils/category_utils';
     import { enhance } from '$app/forms';
     import Card from '$lib/components/common/card/Card.svelte';
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
@@ -122,7 +123,7 @@
                                     {#each intent.entries as record}
                                         <span class="badge preset-tonal-primary text-xs p-1.5">
                                             <Icon icon="mdi:trophy-outline" width="0.8rem" height="0.8rem" />
-                                            {record.category.competition.name} — {record.category.description}
+                                            {record.category.competition.name} — {[$t(getCategoryTypeName(record.category.type)), record.category.subname].filter(Boolean).join(' · ')}
                                         </span>
                                     {/each}
                                 </div>

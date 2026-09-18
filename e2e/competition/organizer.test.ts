@@ -192,7 +192,6 @@ async function enableMultiDay(page: Page) {
 async function addCategory(page: Page, index: number, category: CategoryData) {
     await page.getByTestId('add-category').click();
     await page.locator(`#category-type-create-${index}`).selectOption(category.type);
-    await page.getByTestId(`description-create-${index}`).fill(category.description);
     await page.getByTestId(`start-time-create-${index}`).fill(category.start_time);
     await page.getByTestId(`end-time-create-${index}`).fill(category.end_time);
     await page.getByTestId(`max-parties-create-${index}`).fill(category.max_parties);
@@ -208,7 +207,6 @@ async function addCategory(page: Page, index: number, category: CategoryData) {
 async function addMultiDayCategory(page: Page, index: number, category: MultiDayCategoryData) {
     await page.getByTestId('add-category').click();
     await page.locator(`#category-type-create-${index}`).selectOption(category.type);
-    await page.getByTestId(`description-create-${index}`).fill(category.description);
 
     await selectDateOnPicker(page.getByTestId(`category-start-date-create-${index}`), category.start_date);
     if (category.start_date.toDateString() !== category.end_date.toDateString()) {
@@ -364,7 +362,6 @@ test.describe('Multi-day competition', () => {
         await enableMultiDay(page);
 
         await addCategoryWithType(page, 0, 'Individual');
-        await page.getByTestId('description-create-0').fill('Valid Category');
         await page.getByTestId('start-time-create-0').fill('10:00');
         await page.getByTestId('end-time-create-0').fill('12:00');
         await page.getByTestId('max-parties-create-0').fill('10');

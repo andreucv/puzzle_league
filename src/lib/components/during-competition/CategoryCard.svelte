@@ -434,7 +434,7 @@
     <div class="space-y-3">
         <!-- Header: category name + action buttons -->
         <div class="flex items-center justify-between gap-2">
-            <CategoryCardTitle type={category.type} subname={category.subname ?? category.description} />
+            <CategoryCardTitle type={category.type} subname={category.subname} />
 
             {#if isOrganizer}
                 <div class="flex items-center gap-2">

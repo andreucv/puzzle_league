@@ -1,7 +1,6 @@
 <script lang="ts">
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
     import { formatTime } from '$lib/utils/date_utils';
-    import { getCategoryTypeName } from '$lib/utils/category_utils';
     import { t } from '$lib/translations';
     import type { Category, Puzzle } from '$prisma/browser';
     import Card from '$lib/components/common/card/Card.svelte';
@@ -63,13 +62,9 @@
 <Card>
     <!-- Header: Icon + Category type + Status badge -->
     <div class="flex items-center justify-between gap-2">
-        <CategoryCardTitle type={category.type} subname={category.subname ?? ''} />
+        <CategoryCardTitle type={category.type} subname={category.subname} />
         <CategoryStatusChip category_status={category.status}/>
     </div>
-
-    {#if category.description !== getCategoryTypeName(category.type).toUpperCase()}
-        <p class="text-surface-600-400 text-sm">{category.description}</p>
-    {/if}
 
     <!-- Time block -->
     <div class="flex items-center gap-2">

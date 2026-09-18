@@ -4,6 +4,7 @@ import { getCompetitionAccess } from '$lib/services/competition-access';
 import { isTagClaimableInCategory } from '$lib/database/db_participant_tags';
 import { notificationsForTagRejected } from '$lib/notifications/tag_notifications';
 import { dispatchNotifications } from '$lib/notifications/dispatcher';
+import { getCategoryTypeName } from '$lib/utils/category_utils';
 
 // ---------------------------------------------------------------------------
 // Errors
@@ -59,7 +60,7 @@ async function loadEntryTag(entryTagId: string) {
 					category: {
 						select: {
 							id: true,
-							description: true,
+							subname: true,
 							type: true,
 							competitionId: true,
 							competition: { select: { name: true, registrationOpen: true } },
@@ -119,7 +120,10 @@ export async function rejectEntryTag(entryTagId: string, actor: EntryTagActor) {
 			creatorId: entryTag.entry.creatorId,
 			competitionId: category.competitionId,
 			competitionName: category.competition.name,
-			categoryName: category.description || category.type,
+			// @: prefix marks the value as a translation key to be resolved at render time
+			categoryName: category.subname
+				? `@:${getCategoryTypeName(category.type)} - ${category.subname}`
+				: `@:${getCategoryTypeName(category.type)}`,
 		}),
 	);
 

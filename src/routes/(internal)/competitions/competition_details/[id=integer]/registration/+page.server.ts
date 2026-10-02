@@ -5,6 +5,8 @@ import { isRegistrationWorkflowError, submitRegistration, unregisterRegistration
 import { redirect } from "@sveltejs/kit";
 import { getCompetitionAccess } from "$lib/services/competition-access";
 import { getAvailableTagsByCategory } from "$lib/database/db_participant_tags";
+import { getPendingFollowedCategoryIds } from "$lib/services/category-follows";
+import { isRegistrationScheduleAvailable } from "$lib/services/registration-open-scheduler";
 
 export const load: PageServerLoad = async (event) => {
     const user = event.locals.user;
@@ -23,12 +25,13 @@ export const load: PageServerLoad = async (event) => {
         throw redirect(302, '/competitions/explore_competitions');
     }
 
-    const [existingEntries, registeredUserIds, categoriesWithCounts, competitionAccess, availableTagsByCategory] = await Promise.all([
+    const [existingEntries, registeredUserIds, categoriesWithCounts, competitionAccess, availableTagsByCategory, followedCategoryIds] = await Promise.all([
         getCategoryEntriesFromCompetition(competitionId, user.id),
         getRegisteredUserIdsByCategory(competitionId),
         getCompetitionCategories(competitionId),
         getCompetitionAccess(competitionId, user.id),
-        getAvailableTagsByCategory(competitionId)
+        getAvailableTagsByCategory(competitionId),
+        getPendingFollowedCategoryIds(competitionId, user.id)
     ]);
 
     const waitlistedEntryIds = (existingEntries || [])
@@ -44,6 +47,8 @@ export const load: PageServerLoad = async (event) => {
         isOrganizer: competitionAccess.canManageCompetition,
         availableTagsByCategory,
         waitlistPositions,
+        followedCategoryIds,
+        followAvailable: isRegistrationScheduleAvailable(),
     };
 };
 

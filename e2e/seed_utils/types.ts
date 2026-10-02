@@ -55,6 +55,7 @@ export interface CompetitionSeedInput {
     startDate: Date;
     endDate: Date;
     creatorId: string;
+    /** Applied to every category (registration is per category; there is no competition flag). */
     registrationOpen?: boolean;
     categories: CategorySeedInput[];
     showPaymentWarning?: boolean;

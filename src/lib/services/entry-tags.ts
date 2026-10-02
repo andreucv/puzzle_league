@@ -63,7 +63,8 @@ async function loadEntryTag(entryTagId: string) {
 							subname: true,
 							type: true,
 							competitionId: true,
-							competition: { select: { name: true, registrationOpen: true } },
+							registrationOpen: true,
+							competition: { select: { name: true } },
 						},
 					},
 				},
@@ -171,7 +172,7 @@ export async function changeEntryTag(entryTagId: string, tag: ParticipantTagType
 		if (entryTag.status === EntryTagStatus.CONFIRMED) {
 			throw new EntryTagError('INVALID_STATUS', 'A confirmed tag can only be changed by an organizer');
 		}
-		if (!category.competition.registrationOpen) {
+		if (!category.registrationOpen) {
 			throw new EntryTagError('REGISTRATION_CLOSED', 'Registration is closed');
 		}
 	}
@@ -198,7 +199,7 @@ export async function removeEntryTag(entryTagId: string, actor: EntryTagActor) {
 		if (entryTag.status === EntryTagStatus.CONFIRMED) {
 			throw new EntryTagError('INVALID_STATUS', 'A confirmed tag can only be removed by an organizer');
 		}
-		if (!category.competition.registrationOpen) {
+		if (!category.registrationOpen) {
 			throw new EntryTagError('REGISTRATION_CLOSED', 'Registration is closed');
 		}
 	}

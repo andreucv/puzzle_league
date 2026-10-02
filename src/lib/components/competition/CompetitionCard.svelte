@@ -9,6 +9,7 @@
     import CategoryCapacityRow from '$lib/components/competition/CategoryCapacityRow.svelte';
     import CompetitionStatusChip from '$lib/components/competition/CompetitionStatusChip.svelte';
     import { t, locale } from '$lib/translations';
+    import { hasOpenRegistration } from '$lib/utils/registration_utils';
 
     interface Props {
         competition: Competition & {
@@ -16,6 +17,8 @@
                 id: number;
                 type: string;
                 subname?: string | null;
+                status: string;
+                registrationOpen: boolean;
                 startTime: Date;
                 endTime: Date;
                 maxParties?: number | null;
@@ -158,7 +161,7 @@
                 <!-- Registration status (only when user is not registered) -->
                 {#if !isUserRegistered && competition.status === 'NOT_STARTED'}
                     <div class="flex items-center gap-1.5 flex-wrap mb-2">
-                        {#if competition.registrationOpen}
+                        {#if hasOpenRegistration(competition.categories)}
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-300 rounded-full text-xs font-semibold animate-pulse">
                                 <DoorOpenIcon width="1rem" height="1rem" class="text-success-700 dark:text-success-300" />
                                 {$t('landing_page.registration_status.registration_open')}

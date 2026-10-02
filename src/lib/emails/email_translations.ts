@@ -18,6 +18,7 @@ const NOTIFICATION_TYPE_KEY: Record<string, string> = {
 	EXTERNAL_PARTICIPANT_CLAIMED: 'external_participant_claimed',
 	TABLE_ASSIGNED: 'table_assigned',
 	PAYMENT_REMINDER: 'payment_reminder',
+	CATEGORY_REGISTRATION_OPENED: 'category_registration_opened',
 	GENERAL: 'general',
 };
 

@@ -1,19 +1,21 @@
 <script lang="ts">
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
     import { formatTime } from '$lib/utils/date_utils';
-    import { t } from '$lib/translations';
+    import { t, locale } from '$lib/translations';
     import type { Category, Puzzle } from '$prisma/browser';
     import Card from '$lib/components/common/card/Card.svelte';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
     import CategoryStatusChip from '$lib/components/category/CategoryStatusChip.svelte';
 
     import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
+    import LockIcon from '@iconify-svelte/mdi/lock';
     import CurrencyEurIcon from '@iconify-svelte/mdi/currency-eur';
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import AccountPlusOutlineIcon from '@iconify-svelte/mdi/account-plus-outline';
     import AccountBoxPlusOutlineIcon from '@iconify-svelte/mdi/account-box-plus-outline';
     import FormatListBulletedIcon from '@iconify-svelte/mdi/format-list-bulleted';
     import EntryRegistrationStatusBadge from '$lib/components/registration/EntryRegistrationStatusBadge.svelte';
+    import CategoryFollowButton from '$lib/components/registration/CategoryFollowButton.svelte';
 
     import AccountGroupOutlineIcon from '@iconify-svelte/mdi/account-group-outline';
     import TableFurnitureIcon from '@iconify-svelte/mdi/table-furniture';
@@ -34,7 +36,8 @@
         externalParticipants = null,
         seatsAvailable = undefined,
         totalEntries = undefined,
-        waitlistPositions = {}
+        waitlistPositions = {},
+        follow = null
     }: {
         category: CategoryWithPuzzles;
         isCreator?: boolean;
@@ -47,12 +50,17 @@
         seatsAvailable?: number;
         totalEntries?: number;
         waitlistPositions?: Record<string, number>;
+        /** "Notify me when registration opens" bell; set only when actionable (`canFollowCategory`). */
+        follow?: { following: boolean; loggedIn: boolean; loginHref: string } | null;
     } = $props();
 
     const normalizedEntries = $derived(
         records.length > 0
             ? records
             : [{ status: registrationStatus, users: party ?? [], externalParticipants: externalParticipants ?? [] }]
+    );
+    const hasUserEntries = $derived(
+        normalizedEntries.some((entry) => (entry.users?.length ?? 0) > 0 || (entry.externalParticipants?.length ?? 0) > 0)
     );
 
     // Table numbers are actionable only before/while the category runs, not once finished.
@@ -184,6 +192,26 @@
                 <FormatListBulletedIcon width="1rem" height="1rem" />
                 {$t('competition_details.view_live_results')}
             </a>
+        {:else if category.status === 'NOT_STARTED' && !category.registrationOpen && !hasUserEntries}
+            <!-- Closed category: replaces the spots/open footer with the closed state + "notify me" bell -->
+            <div class="flex flex-col gap-2 mt-auto" data-testid="category-closed-footer-{category.id}">
+                <div class="flex items-center justify-end">
+                    {#if category.registrationOpensAt}
+                        <span class="badge preset-tonal-warning text-xs flex items-center gap-1">
+                            <ClockOutlineIcon width="0.8rem" height="0.8rem" />
+                            {$t('competition_details.opens_at', { date: new Date(category.registrationOpensAt).toLocaleString($locale, { dateStyle: 'medium', timeStyle: 'short' }) })}
+                        </span>
+                    {:else}
+                        <span class="badge preset-tonal-surface text-xs flex items-center gap-1">
+                            <LockIcon width="0.8rem" height="0.8rem" />
+                            {$t('competition_details.closed')}
+                        </span>
+                    {/if}
+                </div>
+                {#if follow}
+                    <CategoryFollowButton categoryId={category.id} following={follow.following} loggedIn={follow.loggedIn} loginHref={follow.loginHref} />
+                {/if}
+            </div>
         {:else}
         <a href="/competitions/competition_details/{category.competitionId}/registration" class="block mt-auto -mb-0.5 hover:opacity-80 transition-opacity overflow-hidden">
             {#if normalizedEntries.some((entry) => (entry.users?.length ?? 0) > 0 || (entry.externalParticipants?.length ?? 0) > 0)}

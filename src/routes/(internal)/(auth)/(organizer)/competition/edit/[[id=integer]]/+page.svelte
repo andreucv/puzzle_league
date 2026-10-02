@@ -1574,7 +1574,9 @@
             {#if isEdit}
                 <p class="text-xs text-surface-500">{$t('competition.publish.strip_changes_immediate')}</p>
             {/if}
-            <!-- Open registration toggle -->
+            <!-- Open registration toggle: create only (opens every new category). Once the
+                 competition exists, registration is opened per category from manage-registrations. -->
+            {#if !isEdit}
             <div class="flex items-center gap-3">
                 <button
                     type="button"
@@ -1595,6 +1597,7 @@
                     <span class="text-xs text-surface-500">{$t('competition.create.registration_open_help')}</span>
                 </div>
             </div>
+            {/if}
         </div>
 
         <!-- Submit Buttons -->

@@ -516,6 +516,8 @@
     "view_registration": "Ver tu inscripción",
     "register_now": "Inscribirse",
     "open": "Abierto",
+    "closed": "Inscripción cerrada",
+    "opens_at": "Abre el {{date}}",
     "registered_count": "{{current}} / {{max}} inscritos",
     "registered_no_limit": "{{current}} inscritos"
   },
@@ -554,6 +556,7 @@
     "organizer_mode": "Modo organizador - los organizadores pueden crear inscripciones sin límite y se confirman automáticamente.",
     "registration_not_available": "Las inscripciones no están disponibles para esta categoría.",
     "category_registration_closed": "La inscripción está cerrada para esta categoría.",
+    "category_registration_opens_at": "La inscripción abre el {{date}}.",
     "status_confirmed": "Confirmado",
     "status_pending_confirmation": "Pendiente de confirmación",
     "status_waitlisted": "En lista de espera",
@@ -872,6 +875,13 @@
     "judges_copied": "Jueces copiados a todas las categorías.",
     "error": "Ha ocurrido un error. Inténtalo de nuevo."
   },
+  "category_follow": {
+    "notify_me": "Avísame cuando se abra",
+    "following": "Te avisaremos",
+    "stop": "Dejar de seguir",
+    "login_to_notify": "Inicia sesión para recibir el aviso",
+    "follow_error": "No se ha podido actualizar el aviso"
+  },
   "manage_registrations": {
     "confirm_error": "Error al confirmar la inscripción",
     "confirmed": "Confirmada",
@@ -952,17 +962,29 @@
     "pdf_confirmed_date": "Fecha de confirmación",
     "pdf_generated_at": "Generado el {{date}}",
     "registration_label": "La inscripción está",
-    "status_open": "abierta",
     "status_closed": "cerrada",
-    "updating": "Actualizando...",
-    "close_registration": "Cerrar",
-    "open_registration": "Abrir",
-    "add_categories_first": "Añade categorías antes de abrir la inscripción.",
+    "registration_open_count": "Inscripción abierta en {{open}} de {{total}} categorías",
+    "close_registration": "Cerrar inscripción",
+    "open_registration": "Abrir inscripción",
+    "close_all_registration": "Cerrar la inscripción de todas las categorías",
+    "close_all_confirm_message": "Todas las categorías que no hayan empezado dejarán de aceptar inscripciones y se cancelarán las aperturas programadas. Vuelve a abrirlas una a una desde su menú Gestionar.",
+    "schedule_registration": "Programar apertura",
+    "change_schedule": "Cambiar apertura programada",
+    "cancel_schedule": "Cancelar apertura programada",
+    "schedule_all_registration": "Programar apertura de todas las categorías cerradas",
+    "schedule_unavailable": "La programación no está disponible en este servidor",
+    "schedule_label": "Abrir la inscripción el",
+    "schedule_all_label": "Abrir todas las categorías cerradas el",
+    "schedule_save": "Programar",
+    "schedule_error": "Error al actualizar la apertura programada.",
+    "opens_at": "Abre {{date}}",
+    "registration_opens_at": "La inscripción abre {{date}}",
     "toggle_error": "Error al actualizar el estado de la inscripción.",
     "category_registration_open": "Abierta",
     "category_registration_closed": "Cerrada",
-    "category_registration_toggle": "Abrir o cerrar la inscripción de esta categoría",
-    "unexpected_error": "Ha ocurrido un error inesperado."
+    "followers_waiting": "{{count}} esperando",
+    "followers_waiting_hint": "{{count}} personas recibirán un aviso cuando se abra la inscripción",
+    "publish_all_tables": "Publicar Todas las Asignaciones de Mesas"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -971,6 +993,8 @@
     "empty_detail": "Aquí te notificaremos cuando ocurra algo importante.",
     "just_now": "ahora mismo",
     "titles": {
+      "registration_opened": "Inscripción abierta",
+      "category_registration_opened": "Inscripción abierta: {{categoryName}}",
       "registration_created": "Nueva inscripción",
       "registration_confirmed": "Inscripción confirmada",
       "registration_confirmed_team": "Inscripción confirmada",
@@ -999,6 +1023,8 @@
       "payment_reminder_team_with_note": "Recordatorio de pago"
     },
     "messages": {
+      "registration_opened": "La inscripción de una categoría de {{competitionName}} se ha abierto según lo programado.",
+      "category_registration_opened": "La inscripción para la categoría {{categoryName}} en {{competitionName}} ya está abierta. Las plazas pueden ser limitadas, así que inscríbete pronto.",
       "registration_created": "Has sido registrado en {{categoryName}} en {{competitionName}} por {{registeredBy}}.",
       "registration_confirmed": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} ha sido confirmada por {{confirmedBy}}.",
       "registration_confirmed_team": "Tu inscripción para la categoría {{categoryName}} en la competición {{competitionName}} ha sido confirmada por {{confirmedBy}}. Tus compañeros de equipo: {{teammateNames}}.",

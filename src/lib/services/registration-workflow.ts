@@ -10,6 +10,7 @@ import {
 } from '$lib/notifications/registration_notifications';
 import { dispatchNotifications } from '$lib/notifications/dispatcher';
 import type { PrismaClient } from '$prisma/client';
+import type { RegistrationOpenScheduler } from './registration-open-scheduler';
 
 type Tx = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
 
@@ -271,14 +272,11 @@ export async function submitRegistration({
 	const entries = await prisma.$transaction(async (tx) => {
 		const competition = await tx.competition.findUnique({
 			where: { id: competitionId },
-			select: { id: true, name: true, registrationOpen: true, showPaymentWarning: true },
+			select: { id: true, name: true, showPaymentWarning: true },
 		});
 
 		if (!competition) {
 			throw new RegistrationWorkflowError('VALIDATION_FAILED', 'Competition not found');
-		}
-		if (!competition.registrationOpen && !actor.isOrganizer) {
-			throw new RegistrationWorkflowError('REGISTRATION_CLOSED', 'Registration is currently closed for this competition');
 		}
 
 		const categoryIds = categorySignups.map((signup) => signup.categoryId);
@@ -402,7 +400,7 @@ export async function submitRegistration({
 			}
 
 			if (!category.registrationOpen && !actor.isOrganizer) {
-				throw new RegistrationWorkflowError('REGISTRATION_CLOSED', `Registration is closed for category: ${category.description || category.type}`);
+				throw new RegistrationWorkflowError('REGISTRATION_CLOSED', `Registration is closed for category: ${category.subname || category.type}`);
 			}
 
 			let initialStatus: RegistrationStatus = actor.isOrganizer || isFreeRegistration(category, competition)
@@ -706,10 +704,9 @@ export async function refuseRegistration({
 }
 
 /**
- * Toggle a single Category's `registrationOpen` flag. Authorizes the actor through
- * `ensureCanManageCompetition` (Competition creator, Admin, or scoped Organizer). This is the
- * per-category counterpart to the competition-wide `registrationOpen` master switch; the two are
- * AND-ed in `submitRegistration`. Emits no notification.
+ * Toggle a single Category's `registrationOpen` flag — the single source of truth for whether
+ * participants can register into it. Authorizes the actor through `ensureCanManageCompetition`
+ * (Competition creator, Admin, or scoped Organizer). Emits no notification.
  */
 export async function toggleCategoryRegistration({
 	categoryId,
@@ -732,12 +729,146 @@ export async function toggleCategoryRegistration({
 
 		await ensureCanManageCompetition(tx, category.competitionId, actor);
 
+		// Any manual open/close supersedes a scheduled opening.
 		const updated = await tx.category.update({
 			where: { id: categoryId },
-			data: { registrationOpen: !category.registrationOpen },
+			data: { registrationOpen: !category.registrationOpen, registrationOpensAt: null },
 			select: { id: true, registrationOpen: true },
 		});
 
 		return updated;
+	});
+}
+
+/**
+ * Close registration for every NOT_STARTED Category of a Competition and cancel any scheduled
+ * openings. There is deliberately no "open all" counterpart: opening is always a per-category
+ * decision (now or scheduled). Emits no notification.
+ */
+export async function closeAllCategoryRegistrations({
+	competitionId,
+	actor,
+}: {
+	competitionId: number;
+	actor: RegistrationActor;
+}): Promise<{ closedCount: number }> {
+	assertActor(actor);
+
+	return prisma.$transaction(async (tx) => {
+		await ensureCanManageCompetition(tx, competitionId, actor);
+
+		const { count } = await tx.category.updateMany({
+			where: {
+				competitionId,
+				status: CategoryStatus.NOT_STARTED,
+				OR: [{ registrationOpen: true }, { registrationOpensAt: { not: null } }],
+			},
+			data: { registrationOpen: false, registrationOpensAt: null },
+		});
+
+		return { closedCount: count };
+	});
+}
+
+function assertFutureOpensAt(opensAt: Date): void {
+	if (!(opensAt instanceof Date) || isNaN(opensAt.getTime()) || opensAt.getTime() <= Date.now()) {
+		throw new RegistrationWorkflowError('VALIDATION_FAILED', 'The opening time must be in the future');
+	}
+}
+
+/**
+ * Schedule a closed, NOT_STARTED Category to open registration at `opensAt` (replaces any previous
+ * schedule). Publishes the QStash message before saving, so a failed publish never leaves a
+ * schedule that cannot fire; a message whose `opensAt` no longer matches is ignored by the webhook.
+ */
+export async function scheduleCategoryRegistrationOpening({
+	categoryId,
+	opensAt,
+	actor,
+	scheduler,
+}: {
+	categoryId: number;
+	opensAt: Date;
+	actor: RegistrationActor;
+	scheduler: RegistrationOpenScheduler;
+}): Promise<{ id: number; registrationOpensAt: Date }> {
+	assertActor(actor);
+	assertFutureOpensAt(opensAt);
+
+	await prisma.$transaction(async (tx) => {
+		const category = await tx.category.findUnique({
+			where: { id: categoryId },
+			select: { id: true, competitionId: true, status: true, registrationOpen: true },
+		});
+		if (!category) {
+			throw new RegistrationWorkflowError('ENTRY_NOT_FOUND', 'Category not found');
+		}
+		await ensureCanManageCompetition(tx, category.competitionId, actor);
+		if (category.status !== CategoryStatus.NOT_STARTED || category.registrationOpen) {
+			throw new RegistrationWorkflowError('INVALID_STATUS', 'Only closed, not-started categories can be scheduled to open');
+		}
+	});
+
+	await scheduler.publish(categoryId, opensAt);
+	await prisma.category.update({ where: { id: categoryId }, data: { registrationOpensAt: opensAt } });
+
+	return { id: categoryId, registrationOpensAt: opensAt };
+}
+
+/** Schedule every closed, NOT_STARTED Category of a Competition to open at `opensAt`. */
+export async function scheduleAllCategoryRegistrationOpenings({
+	competitionId,
+	opensAt,
+	actor,
+	scheduler,
+}: {
+	competitionId: number;
+	opensAt: Date;
+	actor: RegistrationActor;
+	scheduler: RegistrationOpenScheduler;
+}): Promise<{ scheduledCount: number }> {
+	assertActor(actor);
+	assertFutureOpensAt(opensAt);
+
+	const categories = await prisma.$transaction(async (tx) => {
+		await ensureCanManageCompetition(tx, competitionId, actor);
+		return tx.category.findMany({
+			where: { competitionId, status: CategoryStatus.NOT_STARTED, registrationOpen: false },
+			select: { id: true },
+		});
+	});
+
+	// ponytail: one QStash message per category; a single competition-level message if categories get numerous.
+	for (const { id } of categories) {
+		await scheduler.publish(id, opensAt);
+	}
+	await prisma.category.updateMany({
+		where: { id: { in: categories.map((c) => c.id) } },
+		data: { registrationOpensAt: opensAt },
+	});
+
+	return { scheduledCount: categories.length };
+}
+
+/** Cancel a Category's scheduled opening. The in-flight QStash message becomes a no-op. */
+export async function cancelCategoryRegistrationOpening({
+	categoryId,
+	actor,
+}: {
+	categoryId: number;
+	actor: RegistrationActor;
+}): Promise<void> {
+	assertActor(actor);
+
+	await prisma.$transaction(async (tx) => {
+		const category = await tx.category.findUnique({
+			where: { id: categoryId },
+			select: { id: true, competitionId: true },
+		});
+		if (!category) {
+			throw new RegistrationWorkflowError('ENTRY_NOT_FOUND', 'Category not found');
+		}
+		await ensureCanManageCompetition(tx, category.competitionId, actor);
+		await tx.category.update({ where: { id: categoryId }, data: { registrationOpensAt: null } });
 	});
 }

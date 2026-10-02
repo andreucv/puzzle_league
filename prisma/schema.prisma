@@ -40,6 +40,7 @@ model User {
   createdExternalParticipants        ExternalParticipant[]                  @relation("ExternalParticipantCreator")
   claimedExternalParticipants        ExternalParticipant[]                  @relation("ExternalParticipantClaimer")
   categoryJudgeAssignments           CategoryJudgeAssignment[]
+  categoryFollows                    CategoryFollow[]
 
   @@unique([email])
   @@map("user")
@@ -151,6 +152,8 @@ enum NotificationType {
   ROLE_REQUEST_REJECTED
   AUTO_STOP_SUCCESS
   AUTO_STOP_FAILED
+  REGISTRATION_OPENED
+  CATEGORY_REGISTRATION_OPENED
   EXTERNAL_PARTICIPANT_CLAIMED
   TABLE_ASSIGNED
   PAYMENT_REMINDER
@@ -202,7 +205,6 @@ model Competition {
   paymentMethod          String?
   creatorId              String
   creator                User                                   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  registrationOpen       Boolean                                @default(false)
   showPaymentWarning     Boolean                                @default(false)
 
   @@index([status, startDate])
@@ -227,30 +229,47 @@ model Puzzle {
 }
 
 model Category {
-  id                Int                       @id @default(autoincrement())
-  description       String // Not used for now: no longer shown or edited in the UI (saved as ''). Use `subname` to label a category.
-  subname           String?
-  type              CategoryType
-  maxPartySize      Int?
-  startTime         DateTime
-  endTime           DateTime
-  realStartTime     DateTime?
-  realEndTime       DateTime?
-  extraMinutes      Int                       @default(0)
-  status            CategoryStatus            @default(NOT_STARTED)
-  registrationOpen  Boolean                   @default(true)
-  autoStopMessageId String?
-  maxParties        Int?
-  price             Int                       @default(0)
-  competitionId     Int
-  competition       Competition               @relation(fields: [competitionId], references: [id], onDelete: Cascade)
-  entries           Entry[]
-  puzzles           Puzzle[]
-  judgeAssignments  CategoryJudgeAssignment[]
-  tagCategories     TagCategory[]
+  id                  Int                       @id @default(autoincrement())
+  description         String // Not used for now: no longer shown or edited in the UI (saved as ''). Use `subname` to label a category.
+  subname             String?
+  type                CategoryType
+  maxPartySize        Int?
+  startTime           DateTime
+  endTime             DateTime
+  realStartTime       DateTime?
+  realEndTime         DateTime?
+  extraMinutes        Int                       @default(0)
+  status              CategoryStatus            @default(NOT_STARTED)
+  registrationOpen    Boolean                   @default(false) // Single source of truth for registration open/closed; a Competition is "open" when any NOT_STARTED Category is.
+  registrationOpensAt DateTime? // Scheduled auto-open (QStash webhook); cleared when it fires or on any manual open/close.
+  autoStopMessageId   String?
+  maxParties          Int?
+  price               Int                       @default(0)
+  competitionId       Int
+  competition         Competition               @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  entries             Entry[]
+  puzzles             Puzzle[]
+  judgeAssignments    CategoryJudgeAssignment[]
+  tagCategories       TagCategory[]
+  follows             CategoryFollow[]
 
   @@index([competitionId])
   @@map("category")
+}
+
+/// A user waiting to be notified when a closed Category's registration opens. Kept after notifying
+/// (`notifiedAt` set); following again resets `notifiedAt` to null. Deleted only on unfollow.
+model CategoryFollow {
+  userId     String
+  categoryId Int
+  createdAt  DateTime  @default(now())
+  notifiedAt DateTime?
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([userId, categoryId])
+  @@index([categoryId, notifiedAt])
+  @@map("category_follow")
 }
 
 model Entry {

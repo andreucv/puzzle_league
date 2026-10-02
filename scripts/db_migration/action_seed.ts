@@ -115,10 +115,10 @@ async function main() {
                 startDate: new Date(comp.startDate),
                 endDate: new Date(comp.endDate),
                 status: 'NOT_STARTED',
-                registrationOpen: true,
                 creatorId: dbUsers[comp.creatorIndex].id,
                 categories: {
                     create: cats.map(cat => ({
+                        registrationOpen: true,
                         description: cat.description,
                         type: cat.type as CategoryType,
                         maxPartySize: cat.maxPartySize,

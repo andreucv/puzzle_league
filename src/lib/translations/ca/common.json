@@ -358,6 +358,8 @@
     "view_registration": "Veure la teva inscripció",
     "register_now": "Inscriure's",
     "open": "Obert",
+    "closed": "Inscripció tancada",
+    "opens_at": "S'obre el {{date}}",
     "registered_count": "{{current}} / {{max}} inscrits",
     "registered_no_limit": "{{current}} inscrits"
   },
@@ -396,6 +398,7 @@
     "organizer_mode": "Mode d'organitzador - els organitzadors poden crear inscripcions sense límit i es confirmen automàticament.",
     "registration_not_available": "Les inscripcions no estan disponibles per aquesta categoria.",
     "category_registration_closed": "La inscripció està tancada per aquesta categoria.",
+    "category_registration_opens_at": "La inscripció obre el {{date}}.",
     "status_confirmed": "Confirmat",
     "status_pending_confirmation": "Pendent de confirmació",
     "status_waitlisted": "En llista d'espera",
@@ -872,6 +875,13 @@
     "judges_copied": "Jutges copiats a totes les categories.",
     "error": "S'ha produït un error. Torna-ho a provar."
   },
+  "category_follow": {
+    "notify_me": "Avisa'm quan s'obri",
+    "following": "T'avisarem",
+    "stop": "Deixar de seguir",
+    "login_to_notify": "Inicia sessió per rebre l'avís",
+    "follow_error": "No s'ha pogut actualitzar l'avís"
+  },
   "manage_registrations": {
     "confirm_error": "Error al confirmar la inscripció",
     "confirmed": "Confirmada",
@@ -952,17 +962,29 @@
     "pdf_confirmed_date": "Data de confirmació",
     "pdf_generated_at": "Generat el {{date}}",
     "registration_label": "La inscripció està",
-    "status_open": "oberta",
     "status_closed": "tancada",
-    "updating": "Actualitzant...",
-    "close_registration": "Tancar",
-    "open_registration": "Obrir",
-    "add_categories_first": "Afegeix categories abans d'obrir la inscripció.",
+    "registration_open_count": "Inscripció oberta en {{open}} de {{total}} categories",
+    "close_registration": "Tancar inscripció",
+    "open_registration": "Obrir inscripció",
+    "close_all_registration": "Tancar la inscripció de totes les categories",
+    "close_all_confirm_message": "Totes les categories que no hagin començat deixaran d'acceptar inscripcions i es cancel·laran les obertures programades. Torna-les a obrir una a una des del seu menú Gestionar.",
+    "schedule_registration": "Programar obertura",
+    "change_schedule": "Canviar obertura programada",
+    "cancel_schedule": "Cancel·lar obertura programada",
+    "schedule_all_registration": "Programar obertura de totes les categories tancades",
+    "schedule_unavailable": "La programació no està disponible en aquest servidor",
+    "schedule_label": "Obrir la inscripció el",
+    "schedule_all_label": "Obrir totes les categories tancades el",
+    "schedule_save": "Programar",
+    "schedule_error": "Error en actualitzar l'obertura programada.",
+    "opens_at": "Obre {{date}}",
+    "registration_opens_at": "La inscripció obre {{date}}",
     "toggle_error": "Error en actualitzar l'estat de la inscripció.",
     "category_registration_open": "Oberta",
     "category_registration_closed": "Tancada",
-    "category_registration_toggle": "Obrir o tancar la inscripció d'aquesta categoria",
-    "unexpected_error": "S'ha produït un error inesperat."
+    "followers_waiting": "{{count}} esperant",
+    "followers_waiting_hint": "{{count}} persones rebran un avís quan s'obri la inscripció",
+    "publish_all_tables": "Publicar Totes les Assignacions de Taules"
   },
   "notifications": {
     "title": "Notificacions",
@@ -971,6 +993,8 @@
     "empty_detail": "Aquí et notificarem quan passi alguna cosa important.",
     "just_now": "ara mateix",
     "titles": {
+      "registration_opened": "Inscripció oberta",
+      "category_registration_opened": "Inscripció oberta: {{categoryName}}",
       "registration_created": "Nova inscripció",
       "registration_confirmed": "Inscripció confirmada",
       "registration_confirmed_team": "Inscripció confirmada",
@@ -999,6 +1023,8 @@
       "payment_reminder_team_with_note": "Recordatori de pagament"
     },
     "messages": {
+      "registration_opened": "La inscripció d'una categoria de {{competitionName}} s'ha obert segons el previst.",
+      "category_registration_opened": "La inscripció per a la categoria {{categoryName}} a {{competitionName}} ja és oberta. Les places poden ser limitades, així que inscriu-te aviat.",
       "registration_created": "Has estat registrat a {{categoryName}} a {{competitionName}} per {{registeredBy}}.",
       "registration_confirmed": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} ha estat confirmada per {{confirmedBy}}.",
       "registration_confirmed_team": "La teva inscripció per a la categoria {{categoryName}} a la competició {{competitionName}} ha estat confirmada per {{confirmedBy}}. Els teus companys d'equip: {{teammateNames}}.",

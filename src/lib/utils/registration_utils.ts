@@ -14,6 +14,33 @@ const STATUS_TRANSLATION_KEYS: Record<RegistrationStatus, string> = {
 	[RegistrationStatus.WAITLISTED]: 'registration.status_waitlisted',
 };
 
+/**
+ * A Competition's registration is open when at least one NOT_STARTED Category is open.
+ * `Category.registrationOpen` is the single source of truth (#90); there is no competition flag.
+ */
+export function hasOpenRegistration(categories: { status: string; registrationOpen: boolean }[] | undefined | null): boolean {
+	return !!categories?.some((c) => c.status === 'NOT_STARTED' && c.registrationOpen);
+}
+
+/**
+ * Whether the "notify me when registration opens" bell is actionable for a viewer: follower
+ * notification is available (QStash configured), the Category has not started and is closed, the
+ * viewer cannot manage the Competition (organizers bypass the closed flag) and holds no Entry in it.
+ */
+export function canFollowCategory({
+	category,
+	followAvailable,
+	canManage,
+	hasEntry,
+}: {
+	category: { status: string; registrationOpen: boolean };
+	followAvailable: boolean;
+	canManage: boolean;
+	hasEntry: boolean;
+}): boolean {
+	return followAvailable && category.status === 'NOT_STARTED' && !category.registrationOpen && !canManage && !hasEntry;
+}
+
 export function getRegistrationStatusLabel(status: string | undefined): string {
 	const key = STATUS_TRANSLATION_KEYS[status as RegistrationStatus];
 	return key;

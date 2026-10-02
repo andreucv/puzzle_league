@@ -1,6 +1,7 @@
 import type { PageServerLoad } from "./$types";
 import { getCompetition } from "$lib/database/db_competition";
 import { getRegistrationsForCompetition } from "$lib/database/db_entry";
+import { isRegistrationScheduleAvailable } from "$lib/services/registration-open-scheduler";
 import { error, redirect } from "@sveltejs/kit";
 
 export const load: PageServerLoad = async (event) => {
@@ -24,5 +25,6 @@ export const load: PageServerLoad = async (event) => {
     return {
         competition,
         categoriesWithRegistrations,
+        registrationScheduleAvailable: isRegistrationScheduleAvailable(),
     };
 };

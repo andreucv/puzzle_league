@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import type { RegistrationOpenScheduler } from './registration-open-scheduler';
 import { CategoryStatus, RegistrationStatus } from '$prisma/enums';
 import { prismaMock, mockFn } from '$tests/mocks/prisma';
 
@@ -29,6 +30,10 @@ import {
 	RegistrationWorkflowError,
 	confirmRegistration,
 	refuseRegistration,
+	cancelCategoryRegistrationOpening,
+	closeAllCategoryRegistrations,
+	scheduleAllCategoryRegistrationOpenings,
+	scheduleCategoryRegistrationOpening,
 	submitRegistration,
 	toggleCategoryRegistration,
 	unregisterRegistration,
@@ -47,6 +52,7 @@ function makeTx() {
 			findUnique: mockFn(prismaMock.category.findUnique),
 			findUniqueOrThrow: mockFn(prismaMock.category.findUniqueOrThrow),
 			update: mockFn(prismaMock.category.update),
+			updateMany: mockFn(prismaMock.category.updateMany),
 		},
 		entry: {
 			count: mockFn(prismaMock.entry.count),
@@ -80,7 +86,6 @@ function makeCompetition(overrides: Record<string, unknown> = {}) {
 	return {
 		id: 42,
 		name: 'Speed Cup',
-		registrationOpen: true,
 		showPaymentWarning: true,
 		creatorId: 'organizer-1',
 		...overrides,
@@ -170,9 +175,9 @@ describe('registration workflow', () => {
 		}));
 	});
 
-	it('lets organizer registration override a closed competition and auto-confirm', async () => {
-		const competition = makeCompetition({ registrationOpen: false });
-		const category = makeCategory({ competition });
+	it('lets organizer registration override a closed category and auto-confirm', async () => {
+		const competition = makeCompetition();
+		const category = makeCategory({ competition, registrationOpen: false });
 		const tx = setupSignupTx(category, competition);
 
 		await submitRegistration({
@@ -189,9 +194,9 @@ describe('registration workflow', () => {
 		}));
 	});
 
-	it('rejects participant signup when competition registration is closed', async () => {
-		const competition = makeCompetition({ registrationOpen: false });
-		setupSignupTx(makeCategory({ competition }), competition);
+	it('rejects participant signup when the category registration is closed', async () => {
+		const competition = makeCompetition();
+		setupSignupTx(makeCategory({ competition, registrationOpen: false, subname: 'Adults' }), competition);
 
 		await expect(submitRegistration({
 			competitionId: 42,
@@ -199,37 +204,8 @@ describe('registration workflow', () => {
 			signups: [{ categoryId: 1, teammateIds: [] }],
 		})).rejects.toMatchObject({
 			code: 'REGISTRATION_CLOSED',
-			message: 'Registration is currently closed for this competition',
+			message: 'Registration is closed for category: Adults',
 		});
-	});
-
-	it('rejects participant signup when the category registration is closed but the competition is open', async () => {
-		const competition = makeCompetition({ registrationOpen: true });
-		setupSignupTx(makeCategory({ competition, registrationOpen: false }), competition);
-
-		await expect(submitRegistration({
-			competitionId: 42,
-			actor: { userId: 'user-1', name: 'Alice', isOrganizer: false },
-			signups: [{ categoryId: 1, teammateIds: [] }],
-		})).rejects.toMatchObject({
-			code: 'REGISTRATION_CLOSED',
-			message: 'Registration is closed for category: Individual',
-		});
-	});
-
-	it('lets organizer registration override a closed category', async () => {
-		const competition = makeCompetition({ registrationOpen: true });
-		const tx = setupSignupTx(makeCategory({ competition, registrationOpen: false }), competition);
-
-		await submitRegistration({
-			competitionId: 42,
-			actor: { userId: 'organizer-1', name: 'Organizer', isOrganizer: true },
-			signups: [{ categoryId: 1, teammateIds: [] }],
-		});
-
-		expect(tx.entry.create).toHaveBeenCalledWith(expect.objectContaining({
-			data: expect.objectContaining({ status: RegistrationStatus.CONFIRMED }),
-		}));
 	});
 
 	it('rejects signup when category is not started anymore', async () => {
@@ -359,7 +335,7 @@ describe('registration workflow', () => {
 
 		expect(tx.category.update).toHaveBeenCalledWith(expect.objectContaining({
 			where: { id: 1 },
-			data: { registrationOpen: false },
+			data: { registrationOpen: false, registrationOpensAt: null },
 		}));
 		expect(result).toEqual({ id: 1, registrationOpen: false });
 	});
@@ -377,5 +353,121 @@ describe('registration workflow', () => {
 			actor: { userId: 'user-1', isOrganizer: false },
 		})).rejects.toMatchObject({ code: 'NOT_ALLOWED' });
 		expect(tx.category.update).not.toHaveBeenCalled();
+	});
+
+	it('closes every open NOT_STARTED category of a competition for an authorized organizer', async () => {
+		const tx = makeTx();
+		tx.competition.findUnique.mockResolvedValue({ creatorId: 'organizer-1' });
+		tx.category.updateMany.mockResolvedValue({ count: 2 });
+		mockTransaction.mockImplementation(async (callback) => callback(tx));
+
+		const result = await closeAllCategoryRegistrations({
+			competitionId: 42,
+			actor: { userId: 'organizer-1', isOrganizer: true },
+		});
+
+		expect(tx.category.updateMany).toHaveBeenCalledWith({
+			where: {
+				competitionId: 42,
+				status: CategoryStatus.NOT_STARTED,
+				OR: [{ registrationOpen: true }, { registrationOpensAt: { not: null } }],
+			},
+			data: { registrationOpen: false, registrationOpensAt: null },
+		});
+		expect(result).toEqual({ closedCount: 2 });
+	});
+
+	it('rejects closing all categories by users who cannot manage the competition', async () => {
+		const tx = makeTx();
+		tx.competition.findUnique.mockResolvedValue({ creatorId: 'organizer-1' });
+		tx.roleAssignment.findFirst.mockResolvedValue(null);
+		tx.competitionCoorganizerRoleAssignment.findFirst.mockResolvedValue(null);
+		mockTransaction.mockImplementation(async (callback) => callback(tx));
+
+		await expect(closeAllCategoryRegistrations({
+			competitionId: 42,
+			actor: { userId: 'user-1', isOrganizer: false },
+		})).rejects.toMatchObject({ code: 'NOT_ALLOWED' });
+		expect(tx.category.updateMany).not.toHaveBeenCalled();
+	});
+
+	describe('scheduled opening', () => {
+		const future = () => new Date(Date.now() + 60 * 60 * 1000);
+		const organizer = { userId: 'organizer-1', isOrganizer: true };
+		let scheduler: { publish: Mock<RegistrationOpenScheduler['publish']> };
+
+		beforeEach(() => {
+			scheduler = { publish: vi.fn<RegistrationOpenScheduler['publish']>().mockResolvedValue(undefined) };
+		});
+
+		function setupCategoryTx(category: Record<string, unknown>) {
+			const tx = makeTx();
+			tx.category.findUnique.mockResolvedValue({ id: 1, competitionId: 42, status: CategoryStatus.NOT_STARTED, registrationOpen: false, ...category });
+			tx.competition.findUnique.mockResolvedValue({ creatorId: 'organizer-1' });
+			mockTransaction.mockImplementation(async (callback) => callback(tx));
+			return tx;
+		}
+
+		it('publishes the QStash message, then stores the opening time', async () => {
+			setupCategoryTx({});
+			const opensAt = future();
+
+			await scheduleCategoryRegistrationOpening({ categoryId: 1, opensAt, actor: organizer, scheduler });
+
+			expect(scheduler.publish).toHaveBeenCalledWith(1, opensAt);
+			expect(prismaMock.category.update).toHaveBeenCalledWith({ where: { id: 1 }, data: { registrationOpensAt: opensAt } });
+		});
+
+		it('rejects an opening time in the past without publishing', async () => {
+			setupCategoryTx({});
+
+			await expect(scheduleCategoryRegistrationOpening({
+				categoryId: 1, opensAt: new Date(Date.now() - 1000), actor: organizer, scheduler,
+			})).rejects.toMatchObject({ code: 'VALIDATION_FAILED' });
+			expect(scheduler.publish).not.toHaveBeenCalled();
+		});
+
+		it('rejects scheduling a category that is already open', async () => {
+			setupCategoryTx({ registrationOpen: true });
+
+			await expect(scheduleCategoryRegistrationOpening({
+				categoryId: 1, opensAt: future(), actor: organizer, scheduler,
+			})).rejects.toMatchObject({ code: 'INVALID_STATUS' });
+			expect(scheduler.publish).not.toHaveBeenCalled();
+		});
+
+		it('rejects scheduling by users who cannot manage the competition', async () => {
+			const tx = setupCategoryTx({});
+			tx.roleAssignment.findFirst.mockResolvedValue(null);
+			tx.competitionCoorganizerRoleAssignment.findFirst.mockResolvedValue(null);
+
+			await expect(scheduleCategoryRegistrationOpening({
+				categoryId: 1, opensAt: future(), actor: { userId: 'user-1', isOrganizer: false }, scheduler,
+			})).rejects.toMatchObject({ code: 'NOT_ALLOWED' });
+			expect(scheduler.publish).not.toHaveBeenCalled();
+		});
+
+		it('schedules every closed NOT_STARTED category of the competition', async () => {
+			const tx = setupCategoryTx({});
+			tx.category.findMany.mockResolvedValue([{ id: 1 }, { id: 2 }]);
+			const opensAt = future();
+
+			const result = await scheduleAllCategoryRegistrationOpenings({ competitionId: 42, opensAt, actor: organizer, scheduler });
+
+			expect(tx.category.findMany).toHaveBeenCalledWith(expect.objectContaining({
+				where: { competitionId: 42, status: CategoryStatus.NOT_STARTED, registrationOpen: false },
+			}));
+			expect(scheduler.publish).toHaveBeenCalledTimes(2);
+			expect(prismaMock.category.updateMany).toHaveBeenCalledWith({ where: { id: { in: [1, 2] } }, data: { registrationOpensAt: opensAt } });
+			expect(result).toEqual({ scheduledCount: 2 });
+		});
+
+		it('cancels a scheduled opening by clearing the stored time', async () => {
+			const tx = setupCategoryTx({});
+
+			await cancelCategoryRegistrationOpening({ categoryId: 1, actor: organizer });
+
+			expect(tx.category.update).toHaveBeenCalledWith({ where: { id: 1 }, data: { registrationOpensAt: null } });
+		});
 	});
 });

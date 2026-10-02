@@ -13,7 +13,8 @@
     import PrinterIcon from '@iconify-svelte/mdi/printer';
     import TitleBackButton from '$lib/components/common/buttons/TitleBackButton.svelte';
     import Card from '$lib/components/common/card/Card.svelte';
-    import ManageRegistrationStatus from './components/ManageRegistrationStatus.svelte';
+    import OverflowMenu from '$lib/components/during-competition/OverflowMenu.svelte';
+    import type { OverflowAction } from '$lib/components/during-competition/types';
     import CategoryCardTitle from '$lib/components/common/titles/CategoryCardTitle.svelte';
     import SearchInput from '$lib/components/common/SearchInput.svelte';
     import RegistrationList from '$lib/components/manage_registrations/RegistrationList.svelte';
@@ -22,6 +23,8 @@
     import BellRingOutlineIcon from '@iconify-svelte/mdi/bell-ring-outline';
     import LockOpenVariantIcon from '@iconify-svelte/mdi/lock-open-variant';
     import LockIcon from '@iconify-svelte/mdi/lock';
+    import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
+    import ClockRemoveOutlineIcon from '@iconify-svelte/mdi/clock-remove-outline';
     import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/registration';
 
     let { data } = $props();
@@ -35,58 +38,240 @@
     let startedCategories = $derived(
         categoriesWithRegistrations.filter((c: any) => c.status !== 'NOT_STARTED')
     );
-    // svelte-ignore state_referenced_locally
-    let registrationOpen = $state(data.competition.registrationOpen);
+    // Registration state is per category; the competition is "open" when any active category is.
+    let openCategoryCount = $derived(activeCategories.filter((c: any) => c.registrationOpen).length);
+    let scheduledCategories = $derived(activeCategories.filter((c: any) => !c.registrationOpen && c.registrationOpensAt));
+    let nextOpening = $derived(
+        scheduledCategories.map((c: any) => new Date(c.registrationOpensAt)).sort((a: Date, b: Date) => a.getTime() - b.getTime())[0]
+    );
     let searchFilter = $state('');
+
+    // Inline "schedule opening" form: a category id, 'all' (every closed category), or null when hidden.
+    let schedulingFor: number | 'all' | null = $state(null);
+    let scheduleValue = $state('');
+
+    function formatOpensAt(value: string | Date): string {
+        return new Date(value).toLocaleString($locale, { dateStyle: 'medium', timeStyle: 'short' });
+    }
+    // `datetime-local` works in the organizer's local time as 'YYYY-MM-DDTHH:mm'.
+    function toLocalInput(date: Date): string {
+        return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    }
+    function openScheduleForm(target: number | 'all', current?: string | Date | null) {
+        schedulingFor = target;
+        scheduleValue = current ? toLocalInput(new Date(current)) : '';
+    }
 
     // Loading state for individual actions
     let processingEntryId: string | null = $state(null);
-    let togglingCategoryId: number | null = $state(null);
-    let publishingCategoryId: number | null = $state(null);
-    let confirmingCategoryId: number | null = $state(null);
     let remindingCategoryId: number | null = $state(null);
     let resultMessage = $state<{ success: boolean; message: string } | null>(null);
     let messageDismissTimer: ReturnType<typeof setTimeout> | null = null;
     let messageProgressKey = $state(0);
-    let generatingPdf = $state(false);
-    let printingCards = $state(false);
-    let printingCategoryId: number | null = $state(null);
 
     function printableCount(category: any): number {
         return category.entries.filter((r: any) => r.status === 'CONFIRMED' && r.tableNumber != null).length;
     }
+    function confirmedCount(category: any): number {
+        return category.entries.filter((r: any) => r.status === 'CONFIRMED').length;
+    }
     let anyPrintable = $derived(categoriesWithRegistrations.some((c: any) => printableCount(c) > 0));
+    let tableEligibleCategories = $derived(activeCategories.filter((c: any) => confirmedCount(c) > 0));
 
     async function handlePrintEntryCards(category?: any) {
-        if (category) printingCategoryId = category.id;
-        else printingCards = true;
-        try {
-            const { downloadEntryCardsPdf } = await import('$lib/utils/pdf_entry_cards');
-            await downloadEntryCardsPdf({
-                competitionName: competition.name,
-                categories: category ? [category] : categoriesWithRegistrations,
-                origin: window.location.origin,
-                translate: $t
-            });
-        } finally {
-            printingCategoryId = null;
-            printingCards = false;
-        }
+        const { downloadEntryCardsPdf } = await import('$lib/utils/pdf_entry_cards');
+        await downloadEntryCardsPdf({
+            competitionName: competition.name,
+            categories: category ? [category] : categoriesWithRegistrations,
+            origin: window.location.origin,
+            translate: $t
+        });
     }
 
     async function handleDownloadPdf() {
-        generatingPdf = true;
+        const { downloadRegistrationsPdf } = await import('$lib/utils/pdf_registrations');
+        downloadRegistrationsPdf({
+            competitionName: competition.name,
+            categories: categoriesWithRegistrations,
+            translate: $t,
+            locale: $locale
+        });
+    }
+
+    async function handleCloseAllRegistrations() {
         try {
-            const { downloadRegistrationsPdf } = await import('$lib/utils/pdf_registrations');
-            downloadRegistrationsPdf({
-                competitionName: competition.name,
-                categories: categoriesWithRegistrations,
-                translate: $t,
-                locale: $locale
-            });
-        } finally {
-            generatingPdf = false;
+            const response = await fetch(`/api/competitions/${competition.id}/close_registration`, { method: 'POST' });
+            if (response.ok) {
+                await invalidate('data:manage-registrations');
+            } else {
+                const result = await response.json();
+                showResultMessage({ success: false, message: result.error || $t('manage_registrations.toggle_error') });
+            }
+        } catch {
+            showResultMessage({ success: false, message: $t('manage_registrations.toggle_error') });
         }
+    }
+
+    async function handleSaveSchedule() {
+        const url = schedulingFor === 'all'
+            ? `/api/competitions/${competition.id}/schedule_registration`
+            : `/api/categories/${schedulingFor}/schedule_registration`;
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ opensAt: new Date(scheduleValue).toISOString() }),
+            });
+            if (response.ok) {
+                schedulingFor = null;
+                await invalidate('data:manage-registrations');
+            } else {
+                const result = await response.json();
+                showResultMessage({ success: false, message: result.error || $t('manage_registrations.schedule_error') });
+            }
+        } catch {
+            showResultMessage({ success: false, message: $t('manage_registrations.schedule_error') });
+        }
+    }
+
+    async function handleCancelSchedule(categoryId: number) {
+        try {
+            const response = await fetch(`/api/categories/${categoryId}/schedule_registration`, { method: 'DELETE' });
+            if (response.ok) {
+                await invalidate('data:manage-registrations');
+            } else {
+                const result = await response.json();
+                showResultMessage({ success: false, message: result.error || $t('manage_registrations.schedule_error') });
+            }
+        } catch {
+            showResultMessage({ success: false, message: $t('manage_registrations.schedule_error') });
+        }
+    }
+
+    // ponytail: one request per category, sequential; a batch endpoint if competitions grow large.
+    async function handlePublishAllTables() {
+        let total = 0;
+        let failed = false;
+        for (const category of tableEligibleCategories) {
+            try {
+                const response = await fetch(`/api/categories/${category.id}/publish-tables`, { method: 'POST' });
+                const result = await response.json();
+                if (response.ok && result.success) total += result.assignedCount;
+                else failed = true;
+            } catch {
+                failed = true;
+            }
+        }
+        showResultMessage(failed
+            ? { success: false, message: $t('manage_registrations.publish_tables_error') }
+            : { success: true, message: $t('manage_registrations.publish_tables_success', { count: total }) });
+        await invalidate('data:manage-registrations');
+    }
+
+    function buildGeneralActions(): OverflowAction[] {
+        const hasCategories = categoriesWithRegistrations.length > 0;
+        const actions: OverflowAction[] = [];
+        // No "open all now": opening is a per-category decision, or a scheduled one.
+        if (activeCategories.length > openCategoryCount) {
+            actions.push({
+                kind: 'button',
+                icon: ClockOutlineIcon,
+                label: $t('manage_registrations.schedule_all_registration'),
+                hint: data.registrationScheduleAvailable ? undefined : $t('manage_registrations.schedule_unavailable'),
+                disabled: !data.registrationScheduleAvailable,
+                onClick: () => openScheduleForm('all'),
+                testId: 'schedule-all-registration'
+            });
+        }
+        if (openCategoryCount > 0 || scheduledCategories.length > 0) {
+            actions.push({
+                kind: 'confirm',
+                icon: LockIcon,
+                label: $t('manage_registrations.close_all_registration'),
+                colorClass: 'preset-filled-error-500',
+                confirmTitle: $t('manage_registrations.close_all_registration'),
+                confirmMessage: $t('manage_registrations.close_all_confirm_message'),
+                onConfirm: handleCloseAllRegistrations,
+                testId: 'close-all-registration'
+            });
+        }
+        if (tableEligibleCategories.length > 0) {
+            actions.push({
+                kind: 'confirm',
+                icon: TableFurnitureIcon,
+                label: $t('manage_registrations.publish_all_tables'),
+                colorClass: 'preset-filled-primary-500',
+                confirmTitle: $t('manage_registrations.publish_tables_confirm_title'),
+                confirmMessage: $t('manage_registrations.publish_tables_confirm_message'),
+                onConfirm: handlePublishAllTables,
+                testId: 'publish-all-tables'
+            });
+        }
+        if (hasCategories) {
+            actions.push({ kind: 'button', icon: DownloadIcon, label: $t('manage_registrations.download_pdf'), onClick: handleDownloadPdf, testId: 'download-pdf' });
+            actions.push({
+                kind: 'button',
+                icon: PrinterIcon,
+                label: $t('manage_registrations.print_all_entry_cards'),
+                hint: anyPrintable ? undefined : $t('manage_registrations.print_entry_cards_hint'),
+                disabled: !anyPrintable,
+                onClick: () => handlePrintEntryCards(),
+                testId: 'print-all-entry-cards'
+            });
+        }
+        return actions;
+    }
+
+    function buildCategoryActions(category: any): OverflowAction[] {
+        const actions: OverflowAction[] = [{
+            kind: 'button',
+            icon: category.registrationOpen ? LockIcon : LockOpenVariantIcon,
+            label: category.registrationOpen ? $t('manage_registrations.close_registration') : $t('manage_registrations.open_registration'),
+            onClick: () => handleToggleCategoryRegistration(category.id),
+            testId: `toggle-category-registration-${category.id}`
+        }];
+        if (!category.registrationOpen) {
+            actions.push({
+                kind: 'button',
+                icon: ClockOutlineIcon,
+                label: category.registrationOpensAt ? $t('manage_registrations.change_schedule') : $t('manage_registrations.schedule_registration'),
+                hint: data.registrationScheduleAvailable ? undefined : $t('manage_registrations.schedule_unavailable'),
+                disabled: !data.registrationScheduleAvailable,
+                onClick: () => openScheduleForm(category.id, category.registrationOpensAt),
+                testId: `schedule-category-registration-${category.id}`
+            });
+            if (category.registrationOpensAt) {
+                actions.push({
+                    kind: 'button',
+                    icon: ClockRemoveOutlineIcon,
+                    label: $t('manage_registrations.cancel_schedule'),
+                    onClick: () => handleCancelSchedule(category.id),
+                    testId: `cancel-schedule-${category.id}`
+                });
+            }
+        }
+        if (confirmedCount(category) > 0) {
+            actions.push({
+                kind: 'confirm',
+                icon: TableFurnitureIcon,
+                label: $t('manage_registrations.publish_tables'),
+                colorClass: 'preset-filled-primary-500',
+                confirmTitle: $t('manage_registrations.publish_tables_confirm_title'),
+                confirmMessage: $t('manage_registrations.publish_tables_confirm_message'),
+                onConfirm: () => handlePublishTables(category.id),
+                testId: `publish-tables-${category.id}`
+            });
+            actions.push({
+                kind: 'button',
+                icon: PrinterIcon,
+                label: $t('manage_registrations.print_entry_cards'),
+                hint: printableCount(category) > 0 ? undefined : $t('manage_registrations.print_entry_cards_hint'),
+                disabled: printableCount(category) === 0,
+                onClick: () => handlePrintEntryCards(category),
+                testId: `print-entry-cards-${category.id}`
+            });
+        }
+        return actions;
     }
 
     function showResultMessage(msg: { success: boolean; message: string }) {
@@ -151,13 +336,10 @@
     }
 
     async function handleToggleCategoryRegistration(categoryId: number) {
-        togglingCategoryId = categoryId;
-        const minLoadingTime = new Promise(resolve => setTimeout(resolve, 300));
         try {
             const response = await fetch(`/api/categories/${categoryId}/toggle_registration`, {
                 method: 'POST'
             });
-            await minLoadingTime;
 
             if (response.ok) {
                 await invalidate('data:manage-registrations');
@@ -167,13 +349,10 @@
             }
         } catch {
             showResultMessage({ success: false, message: $t('manage_registrations.toggle_error') });
-        } finally {
-            togglingCategoryId = null;
         }
     }
 
     async function handlePublishTables(categoryId: number) {
-        publishingCategoryId = categoryId;
         try {
             const response = await fetch(`/api/categories/${categoryId}/publish-tables`, {
                 method: 'POST'
@@ -188,8 +367,6 @@
             }
         } catch {
             showResultMessage({ success: false, message: $t('manage_registrations.publish_tables_error') });
-        } finally {
-            publishingCategoryId = null;
         }
     }
 
@@ -248,45 +425,54 @@
         <TitleBackButton href="/competitions/competition_details/{competition?.id}" text={$t('manage_registrations.title')} subtitle={competition.name}/>
     </div>
 
-    <!-- Manage Registration Status -->
-    <div>
-        <ManageRegistrationStatus competition_id={competition.id} competition_registration_status={registrationOpen} hasCategories={categoriesWithRegistrations.length > 0} onStatusChange={(status) => registrationOpen = status} />
-    </div>
-
-    <!-- Download PDF / Print all entry cards -->
-    {#if categoriesWithRegistrations.length > 0}
-        <div class="flex flex-col sm:flex-row gap-2">
-            <button
-                type="button"
-                class="btn preset-outlined-surface-500 gap-2 flex-1"
-                disabled={generatingPdf}
-                onclick={handleDownloadPdf}
-                data-testid="download-pdf"
-            >
-                {#if generatingPdf}
-                    <LoadingIcon width="1.1rem" height="1.1rem" class="animate-spin" />
+    <!-- Competition registration status + general Manage menu -->
+    <Card>
+        <div class="flex items-center justify-between gap-4">
+            <p class="flex items-center gap-2 text-sm">
+                {#if openCategoryCount > 0}
+                    <LockOpenVariantIcon width="1.2rem" height="1.2rem" class="text-success-500 shrink-0" />
+                    <span class="font-semibold text-success-500" data-testid="registration-status" data-open="true">
+                        {$t('manage_registrations.registration_open_count', { open: openCategoryCount, total: activeCategories.length })}
+                    </span>
+                {:else if nextOpening}
+                    <ClockOutlineIcon width="1.2rem" height="1.2rem" class="text-warning-600 dark:text-warning-400 shrink-0" />
+                    <span class="font-semibold text-warning-600 dark:text-warning-400" data-testid="registration-status" data-open="false" data-scheduled="true">
+                        {$t('manage_registrations.registration_opens_at', { date: formatOpensAt(nextOpening) })}
+                    </span>
                 {:else}
-                    <DownloadIcon width="1.1rem" height="1.1rem" />
+                    <LockIcon width="1.2rem" height="1.2rem" class="text-error-500 shrink-0" />
+                    <span>
+                        {$t('manage_registrations.registration_label')}
+                        <span class="font-semibold text-error-500" data-testid="registration-status" data-open="false">{$t('manage_registrations.status_closed')}</span>
+                    </span>
                 {/if}
-                {$t('manage_registrations.download_pdf')}
-            </button>
-            <button
-                type="button"
-                class="btn preset-outlined-surface-500 gap-2 flex-1"
-                disabled={printingCards || !anyPrintable}
-                title={!anyPrintable ? $t('manage_registrations.print_entry_cards_hint') : undefined}
-                onclick={() => handlePrintEntryCards()}
-                data-testid="print-all-entry-cards"
-            >
-                {#if printingCards}
-                    <LoadingIcon width="1.1rem" height="1.1rem" class="animate-spin" />
-                {:else}
-                    <PrinterIcon width="1.1rem" height="1.1rem" />
-                {/if}
-                {$t('manage_registrations.print_all_entry_cards')}
-            </button>
+            </p>
+            <OverflowMenu actions={buildGeneralActions()} label={$t('competition_details.manage')} testId="manage-registrations-menu" />
         </div>
-    {/if}
+        {#if schedulingFor === 'all'}
+            {@render scheduleForm($t('manage_registrations.schedule_all_label'))}
+        {/if}
+    </Card>
+
+    <!-- Inline scheduled-opening form (organizer's local time) -->
+    {#snippet scheduleForm(label: string)}
+        <form
+            class="flex flex-wrap items-end gap-2 mt-3"
+            onsubmit={(e) => { e.preventDefault(); handleSaveSchedule(); }}
+            data-testid="schedule-form"
+        >
+            <label class="label flex-1 min-w-48">
+                <span class="text-sm">{label}</span>
+                <input class="input" type="datetime-local" required min={toLocalInput(new Date())} bind:value={scheduleValue} data-testid="schedule-input" />
+            </label>
+            <button type="submit" class="btn btn-sm preset-filled-primary-500" disabled={!scheduleValue} data-testid="schedule-save">
+                {$t('manage_registrations.schedule_save')}
+            </button>
+            <button type="button" class="btn btn-sm preset-tonal-surface" onclick={() => schedulingFor = null}>
+                {$t('manage_registrations.cancel_button')}
+            </button>
+        </form>
+    {/snippet}
 
     <!-- User Search -->
     <SearchInput bind:filter={searchFilter} placeholder={$t('manage_registrations.search_placeholder')} />
@@ -331,29 +517,42 @@
                         </span>
                     {/if}
                     {#if showActions}
-                        <button
-                            type="button"
-                            class="btn btn-sm gap-1 {category.registrationOpen ? 'preset-tonal-success' : 'preset-tonal-error'}"
-                            disabled={togglingCategoryId === category.id}
-                            onclick={() => handleToggleCategoryRegistration(category.id)}
-                            aria-label={$t('manage_registrations.category_registration_toggle')}
-                            title={$t('manage_registrations.category_registration_toggle')}
-                            data-testid="toggle-category-registration-{category.id}"
+                        {@const scheduled = !category.registrationOpen && category.registrationOpensAt}
+                        <span
+                            class="badge gap-1 {category.registrationOpen ? 'preset-tonal-success' : scheduled ? 'preset-tonal-warning' : 'preset-tonal-error'}"
+                            data-testid="category-registration-status-{category.id}"
+                            data-open={category.registrationOpen}
+                            data-scheduled={!!scheduled}
                         >
-                            {#if togglingCategoryId === category.id}
-                                <LoadingIcon width="1rem" height="1rem" class="animate-spin" />
-                            {:else if category.registrationOpen}
+                            {#if category.registrationOpen}
                                 <LockOpenVariantIcon width="1rem" height="1rem" />
+                                {$t('manage_registrations.category_registration_open')}
+                            {:else if scheduled}
+                                <ClockOutlineIcon width="1rem" height="1rem" />
+                                {$t('manage_registrations.opens_at', { date: formatOpensAt(category.registrationOpensAt) })}
                             {:else}
                                 <LockIcon width="1rem" height="1rem" />
+                                {$t('manage_registrations.category_registration_closed')}
                             {/if}
-                            <span data-testid="category-registration-status" data-open={category.registrationOpen}>
-                                {category.registrationOpen ? $t('manage_registrations.category_registration_open') : $t('manage_registrations.category_registration_closed')}
+                        </span>
+                        {#if category._count?.follows > 0}
+                            <span
+                                class="badge gap-1 preset-tonal-primary"
+                                title={$t('manage_registrations.followers_waiting_hint', { count: category._count.follows })}
+                                data-testid="category-followers-{category.id}"
+                                data-count={category._count.follows}
+                            >
+                                <BellRingOutlineIcon width="1rem" height="1rem" />
+                                {$t('manage_registrations.followers_waiting', { count: category._count.follows })}
                             </span>
-                        </button>
+                        {/if}
+                        <OverflowMenu actions={buildCategoryActions(category)} label={$t('competition_details.manage')} testId="category-menu-{category.id}" />
                     {/if}
                 </div>
             </div>
+            {#if schedulingFor === category.id}
+                <div class="mb-4">{@render scheduleForm($t('manage_registrations.schedule_label'))}</div>
+            {/if}
 
             <RegistrationList
                 entries={category.entries}
@@ -406,61 +605,6 @@
                             />
                         {/if}
                     </div>
-                </div>
-            {/if}
-
-            <!-- Assign tables button: placed at the card level for quick 1-click access -->
-            {@const confirmedCount = category.entries.filter((r: any) => r.status === 'CONFIRMED').length}
-            {#if confirmedCount > 0}
-                <div class="border-t border-surface-200 dark:border-surface-700">
-                    <div class="relative w-full">
-                        <button
-                            type="button"
-                            class="btn preset-filled-primary-500 gap-2 w-full"
-                            disabled={publishingCategoryId === category.id}
-                            onclick={() => confirmingCategoryId = confirmingCategoryId === category.id ? null : category.id}
-                            data-testid="publish-tables"
-                        >
-                            {#if publishingCategoryId === category.id}
-                                <LoadingIcon width="1.1rem" height="1.1rem" class="animate-spin" />
-                            {:else}
-                                <TableFurnitureIcon width="1.1rem" height="1.1rem" />
-                            {/if}
-                            {$t('manage_registrations.publish_tables')}
-                        </button>
-                        {#if confirmingCategoryId === category.id}
-                            <ConfirmPopover
-                                title={$t('manage_registrations.publish_tables_confirm_title')}
-                                message={$t('manage_registrations.publish_tables_confirm_message')}
-                                colorClass="preset-filled-primary-500"
-                                onConfirm={async () => {
-                                    confirmingCategoryId = null;
-                                    await handlePublishTables(category.id);
-                                }}
-                                onCancel={() => confirmingCategoryId = null}
-                                isProcessing={publishingCategoryId === category.id}
-                            />
-                        {/if}
-                    </div>
-                </div>
-
-                <!-- Print entry cards: enabled once tables are published -->
-                <div class="border-t border-surface-200 dark:border-surface-700">
-                    <button
-                        type="button"
-                        class="btn preset-outlined-surface-500 gap-2 w-full"
-                        disabled={printingCategoryId !== null || printableCount(category) === 0}
-                        title={printableCount(category) === 0 ? $t('manage_registrations.print_entry_cards_hint') : undefined}
-                        onclick={() => handlePrintEntryCards(category)}
-                        data-testid="print-entry-cards-{category.id}"
-                    >
-                        {#if printingCategoryId === category.id}
-                            <LoadingIcon width="1.1rem" height="1.1rem" class="animate-spin" />
-                        {:else}
-                            <PrinterIcon width="1.1rem" height="1.1rem" />
-                        {/if}
-                        {$t('manage_registrations.print_entry_cards')}
-                    </button>
                 </div>
             {/if}
             {/if}

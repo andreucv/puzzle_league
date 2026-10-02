@@ -41,7 +41,6 @@ function makeCompetition(id: number, overrides: Record<string, any> = {}) {
 		country: 'ES',
 		postalCode: '08001',
 		image_cld_id: null,
-		registrationOpen: true,
 		categories: [],
 		...overrides,
 	};

@@ -6,6 +6,8 @@
  * - Refuse: paid category, registration open → tests organizer refusing
  * - Waitlist: paid category (maxParties=2), registration open → tests waitlisting + promotion
  * - Auto-Confirm: free category, registration closed → tests auto-confirm flow
+ * - Per-Category: two free categories, registration open → tests closing one category (#90)
+ * - Follow Category: one free category, registration closed → tests the "notify me" bell
  */
 import "dotenv/config";
 import { createSeedContext, createCompetition } from '../seed_utils';
@@ -17,7 +19,7 @@ export default async function seed() {
 
     const ctx = await createSeedContext(databaseUrl);
     const { organizer } = ctx.baseUsers;
-    const { morning } = getTimeSlots();
+    const { morning, afternoon } = getTimeSlots();
 
     const PAID = { showPaymentWarning: true } as const;
 
@@ -49,11 +51,33 @@ export default async function seed() {
             { registrationOpen: false }),
     );
 
+    const perCategory = await createCompetition(ctx,
+        competition(organizer.id, 'Per-Category Registration Competition',
+            'Tests closing registration for a single category',
+            [individual('500 pcs to close', morning), individual('1000 pcs open', afternoon)]),
+    );
+
+    const followCategory = await createCompetition(ctx,
+        competition(organizer.id, 'Follow Category Competition',
+            'Tests following a closed category to be notified when it opens',
+            [individual('500 pcs follow', morning)],
+            { registrationOpen: false }),
+    );
+
     const result = {
         happyPath: { competitionId: happyPath.id, name: happyPath.name },
         refuseRegistration: { competitionId: refuseRegistration.id },
         waitlist: { competitionId: waitlist.id },
         autoConfirm: { competitionId: autoConfirm.id, name: autoConfirm.name },
+        perCategory: {
+            competitionId: perCategory.id,
+            closedCategoryId: perCategory.categories[0].id,
+            openCategoryId: perCategory.categories[1].id,
+        },
+        followCategory: {
+            competitionId: followCategory.id,
+            categoryId: followCategory.categories[0].id,
+        },
     };
 
     console.log('✅ Organizer registration seed complete');

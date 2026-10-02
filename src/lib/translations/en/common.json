@@ -516,6 +516,8 @@
     "view_registration": "View your registration",
     "register_now": "Register now",
     "open": "Open",
+    "closed": "Registration closed",
+    "opens_at": "Opens {{date}}",
     "registered_count": "{{current}} / {{max}} registered",
     "registered_no_limit": "{{current}} registered"
   },
@@ -555,6 +557,7 @@
     "organizer_mode": "Organizer mode — Organizers can create entries without limit and are auto-confirmed.",
     "registration_not_available": "Registration is not available for this category.",
     "category_registration_closed": "Registration is closed for this category.",
+    "category_registration_opens_at": "Registration opens on {{date}}.",
     "status_pending_confirmation": "Pending Confirmation",
     "status_confirmed": "Confirmed",
     "status_waitlisted": "Waitlisted",
@@ -606,6 +609,13 @@
     "copy_to_all": "Copy to all categories",
     "judges_copied": "Judges copied to all categories.",
     "error": "An error occurred. Please try again."
+  },
+  "category_follow": {
+    "notify_me": "Notify me when it opens",
+    "following": "You'll be notified",
+    "stop": "Stop",
+    "login_to_notify": "Log in to be notified",
+    "follow_error": "Could not update the notification"
   },
   "manage_registrations": {
     "title": "Manage Registrations",
@@ -685,17 +695,29 @@
     "pdf_confirmed_date": "Confirmed Date",
     "pdf_generated_at": "Generated on {{date}}",
     "registration_label": "Registration is",
-    "status_open": "open",
     "status_closed": "closed",
-    "updating": "Updating...",
-    "close_registration": "Close",
-    "open_registration": "Open",
-    "add_categories_first": "Add categories before opening registration.",
+    "registration_open_count": "Registration open in {{open}} of {{total}} categories",
+    "close_registration": "Close registration",
+    "open_registration": "Open registration",
+    "close_all_registration": "Close registration for all categories",
+    "close_all_confirm_message": "Every category that hasn't started will stop accepting registrations and any scheduled openings are cancelled. Reopen categories one by one from their Manage menu.",
+    "schedule_registration": "Schedule opening",
+    "change_schedule": "Change scheduled opening",
+    "cancel_schedule": "Cancel scheduled opening",
+    "schedule_all_registration": "Schedule opening for all closed categories",
+    "schedule_unavailable": "Scheduling is not available on this server",
+    "schedule_label": "Open registration on",
+    "schedule_all_label": "Open all closed categories on",
+    "schedule_save": "Schedule",
+    "schedule_error": "Failed to update the scheduled opening.",
+    "opens_at": "Opens {{date}}",
+    "registration_opens_at": "Registration opens {{date}}",
     "toggle_error": "Failed to update registration status.",
     "category_registration_open": "Open",
     "category_registration_closed": "Closed",
-    "category_registration_toggle": "Open or close registration for this category",
-    "unexpected_error": "An unexpected error occurred."
+    "followers_waiting": "{{count}} waiting",
+    "followers_waiting_hint": "{{count}} people will be notified when registration opens",
+    "publish_all_tables": "Publish All Table Assignments"
   },
   "puzzles": {
     "catalog_title": "Puzzle Catalog",
@@ -969,6 +991,8 @@
     "empty_detail": "You'll be notified here when something important happens.",
     "just_now": "just now",
     "titles": {
+      "registration_opened": "Registration opened",
+      "category_registration_opened": "Registration is open: {{categoryName}}",
       "registration_created": "New registration",
       "registration_confirmed": "Registration confirmed",
       "registration_confirmed_team": "Registration confirmed",
@@ -999,6 +1023,8 @@
       "auto_stop_failed": "Auto-stop failed"
     },
     "messages": {
+      "registration_opened": "Registration for a category in {{competitionName}} opened as scheduled.",
+      "category_registration_opened": "Registration for the {{categoryName}} category in {{competitionName}} is now open. Spots may be limited, so register soon.",
       "registration_created": "You have been registered for {{categoryName}} in {{competitionName}} by {{registeredBy}}.",
       "registration_confirmed": "Your registration for the {{categoryName}} category in the {{competitionName}} competition has been confirmed by {{confirmedBy}}.",
       "registration_confirmed_team": "Your registration for the {{categoryName}} category in the {{competitionName}} competition has been confirmed by {{confirmedBy}}. Your teammates: {{teammateNames}}.",

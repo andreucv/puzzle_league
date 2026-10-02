@@ -46,40 +46,64 @@ Notification side effects are local to workflow outcomes and run after the datab
 
 ## Competition Settings That Affect Registration
 
-### `registrationOpen` (competition-wide master) and `Category.registrationOpen` (per-category)
+### `Category.registrationOpen` (per-category, single source of truth)
 
-Registration open/close is gated at two levels that are **AND-ed** together:
+Registration open/close lives **only** on the Category. There is no competition-wide flag: a
+Competition's registration is "open" when at least one `NOT_STARTED` Category is `registrationOpen`
+(`hasOpenRegistration(categories)` in `src/lib/utils/registration_utils.ts`, used by the details
+button, registration page banner, competition cards, and the explore "open registration" filter).
 
-- `Competition.registrationOpen` — the master switch for the whole Competition. Organizers toggle it from the competition-wide control on the manage registrations page.
-- `Category.registrationOpen` (default `true`) — a per-category switch. Organizers toggle it per active Category on the manage registrations page, so a Category that fills up early can be closed while others stay open, and a newly added Category can be opened without re-exposing the others.
+- `Category.registrationOpen` defaults to `false`: new Categories start closed. Organizers open or close each active Category from its **Manage** menu on the manage registrations page.
+- The page-level **Manage** menu offers **Close registration for all categories** (closes every `NOT_STARTED` Category). There is intentionally no "open all": opening is always a per-category decision.
+- The competition create form's "Open registration" toggle is form-only: on create it opens every new Category. It is hidden when editing; Categories added later start closed.
 
-A Participant may submit a new registration into a Category only when **all** hold:
+A Participant may submit a new registration into a Category only when:
 
 ```
-competition.registrationOpen && category.registrationOpen && category.status === NOT_STARTED
+category.registrationOpen && category.status === NOT_STARTED
 ```
 
 "Closed" is independent from "full": reaching `Category.maxParties` still waitlists new entries (it does **not** auto-close); closing is an explicit organizer action.
 
 The competition details page enables the single registration button when:
 
-- the user is logged in **and** at least one `NOT_STARTED` Category is both `registrationOpen` **and** has room (the per-category flag is folded into the "registrable spot" check), **or**
+- the user is logged in **and** at least one `NOT_STARTED` Category is both `registrationOpen` **and** has room, **or**
 - the user is the Competition creator or an Admin (organizer mode)
 
-When the button is disabled, its copy distinguishes the reason from an **effective open** state
-(`competition.registrationOpen` **and** at least one `NOT_STARTED` Category still `registrationOpen`, ignoring capacity): it reads **"closed"** when no Category is open for registration — including when the master switch is open but every Category is individually closed — and **"full"** only when open Categories exist but none has room.
+When the button is disabled, its copy reads **"closed"** when no `NOT_STARTED` Category is open for registration, and **"full"** only when open Categories exist but none has room.
 
 The registration page allows creating entries for a Category when:
 
-- the user is in organizer mode (bypasses both the master and per-category flags), **or**
-- `competition.registrationOpen` **and** `category.registrationOpen` are both true
+- the user is in organizer mode (bypasses the per-category flag), **or** `category.registrationOpen` is true
 - **and** `category.status === NOT_STARTED`
 
-This means the Competition creator / Admin can always register entries through the registration page regardless of either toggle, as long as the Category has not started.
+This means the Competition creator / Admin can always register entries through the registration page regardless of the flag, as long as the Category has not started.
 
-The `submitRegistration` workflow enforces both flags server-side. Direct form submission cannot bypass a closed Competition or a closed Category unless the server-created actor is in organizer mode. The workflow still requires each submitted Category to be `NOT_STARTED`. A closed Category raises `REGISTRATION_CLOSED`.
+The `submitRegistration` workflow enforces the flag server-side: a closed Category raises `REGISTRATION_CLOSED` unless the server-created actor is in organizer mode, and each submitted Category must be `NOT_STARTED`. Non-organizers changing or removing their own `PENDING` tag claim (`entry-tags.ts`) also require the entry's Category to be open.
 
-Toggling is owned by the registration-workflow seam: `toggleCategoryRegistration({ categoryId, actor })` flips `Category.registrationOpen` after authorizing the actor via `ensureCanManageCompetition` (Competition creator, Admin, or scoped Organizer). The per-category endpoint is `POST /api/categories/[id]/toggle_registration`; the competition-wide endpoint `POST /api/competitions/[id]/toggle_registration` performs the same authorization. Toggling emits no notification.
+Writes are owned by the registration-workflow seam and authorize via `ensureCanManageCompetition` (Competition creator, Admin, or scoped Organizer): `toggleCategoryRegistration({ categoryId, actor })` (`POST /api/categories/[id]/toggle_registration`) and `closeAllCategoryRegistrations({ competitionId, actor })` (`POST /api/competitions/[id]/close_registration`). Neither emits a notification.
+
+#### Scheduled opening (`Category.registrationOpensAt`)
+
+Organizers can schedule a closed, `NOT_STARTED` Category to open at a future time — per category from its **Manage** menu ("Schedule opening" / "Change scheduled opening" / "Cancel scheduled opening"), or for every closed Category at once from the page-level menu ("Schedule opening for all closed categories"). The time is entered in the organizer's local time (`datetime-local`) and stored as UTC. Participants see "Registration opens on …" on the registration page; the manage page shows an "Opens …" badge and the next opening in its status line.
+
+Mechanism (modelled on category auto-stop, QStash-backed):
+
+- `scheduleCategoryRegistrationOpening` / `scheduleAllCategoryRegistrationOpenings` authorize via `ensureCanManageCompetition`, require a future time and a closed `NOT_STARTED` Category, **publish** a delayed QStash message (`registration-open-scheduler.ts`), then store `registrationOpensAt`. `cancelCategoryRegistrationOpening` clears it. Endpoints: `POST|DELETE /api/categories/[id]/schedule_registration`, `POST /api/competitions/[id]/schedule_registration`.
+- Messages are never deleted. The body carries `{ categoryId, opensAt }` and the webhook (`POST /api/webhooks/qstash/registration-open`, `registration-open-webhook.ts`) only acts when `opensAt` still equals the stored value — so rescheduling, cancelling, a manual open/close (`toggleCategoryRegistration` clears the schedule) or **close all** (also cancels schedules) turn in-flight messages into no-ops.
+- When due, the webhook sets `registrationOpen = true`, clears the schedule (conditional update, so a concurrent manual change wins) and notifies the Competition creator (`REGISTRATION_OPENED`, in-app). A Category that already started or was opened just has its schedule cleared.
+- **Delay cap:** QStash limits delays per plan (Free: 7 days). Messages are published at most 6 days ahead (`MAX_HOP_MS`); an early delivery re-publishes the next hop until `opensAt`.
+- Without QStash configured (`QSTASH_TOKEN` + `QSTASH_PUBLIC_APP_URL`) the schedule actions are disabled with a hint; manual open/close still works. Local testing needs the ngrok setup used for auto-stop.
+
+#### Category follows ("Notify me when it opens", `CategoryFollow`)
+
+Users can follow a closed Category to be told when its registration opens.
+
+- **Bell visibility** (`canFollowCategory`, `registration_utils.ts`): QStash configured, the Category is `NOT_STARTED` and closed (plain or scheduled), the viewer cannot manage the Competition and holds no Entry in it. Shown in the `CategoryCard` footer on competition details (logged-out visitors see it disabled with a login link) and under the closed / "opens on" message on the registration page.
+- **Follow / unfollow:** `POST|DELETE /api/categories/[id]/follow` (`authenticated` guard) → `followCategory` / `unfollowCategory` (`category-follows.ts`). Following upserts the row and resets `notifiedAt` to null (re-arms a notified follow); it rejects started/open Categories and users with an Entry, and answers 503 without QStash. Unfollowing deletes the row, the only path that deletes one.
+- **Trigger:** when a Category opens — `toggle_registration` returning `registrationOpen: true`, or the scheduled-opening webhook after a successful open — `triggerCategoryFollowersNotification` publishes an immediate QStash message `{ categoryId }` (`category-followers-notifier.ts`). It is best effort: a failed publish is logged and never fails the open; without QStash nothing is published.
+- **Notify webhook** (`POST /api/webhooks/qstash/category-followers`, `category-followers-webhook.ts`): no-op if the Category is no longer open or has started (follows stay pending). Otherwise it reads the pending follows (`notifiedAt = null`), skips users who now hold an Entry, dispatches one `CATEGORY_REGISTRATION_OPENED` intent (email + in-app, linking to the registration page), then sets `notifiedAt` on exactly the follows it read. **At-least-once:** a crash between sending and marking can resend on QStash retry; nothing is lost. Follows are kept after notifying.
+- **Organizer view:** the manage-registrations category header shows "N waiting" (pending follows), hidden at 0.
 
 ### `showPaymentWarning`
 
@@ -261,6 +285,8 @@ The workflow emits notifications at these points:
 - Payment reminders notify platform participants and creators who registered others.
 - Table assignment publishing notifies participants whose table number changed.
 - Tag claim rejection notifies the entry creator (`TAG_REJECTED`); confirmation is not notified.
+- A scheduled opening that fires notifies the Competition creator (`REGISTRATION_OPENED`, in-app only).
+- Any opening (manual or scheduled) notifies the Category's pending followers (`CATEGORY_REGISTRATION_OPENED`, email + in-app), asynchronously via QStash.
 
 ## Participant Tag Claims
 

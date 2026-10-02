@@ -119,8 +119,8 @@ account.
 - **A `TagCategory` row exists for `(tag, categoryId)`** — the master switch. Without it the tag is
   not offered at registration, cannot be assigned by the organizer (server rejects with
   `VALIDATION_FAILED`), and does not appear as a results filter for that category.
-- **`Competition.registrationOpen`** — gates participant-side edits to a `PENDING` claim. Organizers
-  are not gated by it for tag actions.
+- **`Category.registrationOpen`** (of the entry's Category) — gates participant-side edits to a
+  `PENDING` claim. Organizers are not gated by it for tag actions.
 - **`Competition.showPaymentWarning`** — when off (or `Category.price === 0`), registration is "free";
   affects the payment-warning UI but not tag mechanics. The off-platform reconciliation note only
   shows inside the payment-warning popover.

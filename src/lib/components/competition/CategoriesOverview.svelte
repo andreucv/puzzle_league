@@ -2,6 +2,7 @@
     import PuzzleOutlineIcon from '@iconify-svelte/mdi/puzzle-outline';
     import { t } from '$lib/translations';
     import CategoryCard from '$lib/components/competition/CategoryCard.svelte';
+    import { canFollowCategory } from '$lib/utils/registration_utils';
     import type { Category, Puzzle } from '$prisma/browser';
 
     type CategoryWithPuzzles = Category & { puzzles?: Puzzle[] };
@@ -14,15 +15,34 @@
         isMultiDay = false,
         categoriesWithCounts = undefined,
         userRecords = [],
-        waitlistPositions = {}
+        waitlistPositions = {},
+        followAvailable = false,
+        followedCategoryIds = [],
+        loggedIn = false,
+        loginHref = '/login'
     }: {
         categories: CategoryWithPuzzles[],
         isCreator: boolean,
         isMultiDay?: boolean,
         categoriesWithCounts?: CategoryWithCounts[],
         userRecords?: UserEntry[],
-        waitlistPositions?: Record<string, number>
+        waitlistPositions?: Record<string, number>,
+        followAvailable?: boolean,
+        followedCategoryIds?: number[],
+        loggedIn?: boolean,
+        loginHref?: string
     } = $props();
+
+    // "Notify me when registration opens" bell, only where following can lead to a notification.
+    function getFollow(category: CategoryWithPuzzles) {
+        const actionable = canFollowCategory({
+            category,
+            followAvailable,
+            canManage: isCreator,
+            hasEntry: getUserRecords(category.id).length > 0,
+        });
+        return actionable ? { following: followedCategoryIds.includes(category.id), loggedIn, loginHref } : null;
+    }
 
     function getSeatsAvailable(category: CategoryWithPuzzles): number | undefined {
         if (category.maxParties == null) return undefined;
@@ -54,6 +74,7 @@
                 {waitlistPositions}
                 seatsAvailable={getSeatsAvailable(category)}
                 totalEntries={getTotalEntries(category)}
+                follow={getFollow(category)}
             />
         {/each}
     </div>

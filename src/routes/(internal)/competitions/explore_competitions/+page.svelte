@@ -10,6 +10,7 @@
     import CompetitionCard from "$lib/components/competition/CompetitionCard.svelte";
     import GenericTitle from '$lib/components/common/titles/GenericTitle.svelte';
     import type { RoleAssignment } from '$prisma/browser';
+    import { hasOpenRegistration } from '$lib/utils/registration_utils';
 
     let { data } = $props();
 
@@ -130,7 +131,7 @@
         }
 
         if (activePresets.includes('open-registration')) {
-            result = result.filter(c => c.registrationOpen && c.status === 'NOT_STARTED');
+            result = result.filter(c => c.status === 'NOT_STARTED' && hasOpenRegistration(c.categories));
         }
 
         if (activePresets.includes('organized')) {

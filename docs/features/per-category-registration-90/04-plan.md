@@ -93,8 +93,41 @@ performs no authorization.
 - [ ] **Manual verification** (`/run` or `/verify`): as organizer, close one category on the
   manage page and confirm the other stays open; as participant, confirm the closed category is
   blocked while the open one registers; confirm organizer can still register into the closed one.
+  (Organizer→participant path now covered by e2e; organizer-bypass still manual.)
+- [x] **Review follow-ups.** Closed-category error now names `subname || type` (was the unused
+  `description`); categories added to an already-open competition from the edit form start
+  closed (`edit/[[id=integer]]/+page.server.ts`); participant tag-claim edits/removals also require
+  `Category.registrationOpen` (`entry-tags.ts`); e2e
+  `GivenOpenCompetition_WhenOrganizerClosesOneCategory_…` in `e2e/registration/organizer.test.ts`.
+- [x] **Manage-registrations declutter.** Replaced `ManageRegistrationStatus.svelte` and the
+  full-width PDF / print / publish-tables buttons with `OverflowMenu`s (new `kind: 'button'` item
+  with optional `hint`): a page-level Manage menu (competition toggle + master-switch hint, publish
+  all table assignments, download PDF, print all entry cards) and a per-category Manage menu
+  (category toggle, publish tables, print entry cards). Open/closed stays visible as a status line /
+  badge. Bulk "remind all pending" stays inline.
+- [x] **Category-only registration (supersedes the master-AND design).** Dropped
+  `Competition.registrationOpen`; `Category.registrationOpen` (default `false`) is the single source
+  of truth, and "competition open" is derived via `hasOpenRegistration()` (`registration_utils.ts`).
+  Migration `20260918120000_category_only_registration_open` first closes the categories of closed
+  competitions. The general menu's toggle became **Close registration for all categories**
+  (`closeAllCategoryRegistrations` + `POST /api/competitions/[id]/close_registration`, replacing
+  `toggle_registration`); no "open all". The create-form toggle opens every new category; it is
+  hidden on edit. E2E seeds map `registrationOpen` onto categories; `openRegistration` helper opens
+  each category via its menu.
+- [x] **Scheduled opening (QStash, modelled on auto-stop).** `Category.registrationOpensAt` +
+  `NotificationType.REGISTRATION_OPENED` (migration `20260918130000_category_registration_opens_at`).
+  Seam: `scheduleCategoryRegistrationOpening`, `scheduleAllCategoryRegistrationOpenings`,
+  `cancelCategoryRegistrationOpening`; toggle and close-all clear schedules. Publisher
+  `registration-open-scheduler.ts` (6-day hops for QStash's plan delay cap), webhook
+  `registration-open-webhook.ts` + `/api/webhooks/qstash/registration-open` (stale-`opensAt`
+  guard, no message ids stored). UI: per-category and "all closed categories" schedule items with
+  an inline `datetime-local` form; "Opens …" badge/status; participant "Registration opens on …".
+  Unit-tested (webhook + seam); no e2e for publishing because e2e loads the real QStash env.
+- [ ] **Manual QStash check** via ngrok (see memory `local-qstash-cron-testing`): schedule a
+  category ~2 min ahead, confirm it opens and the organizer gets the notification.
 - [x] **Docs.** Updated [registration-workflow.md](../../workflows/registration-workflow.md)
-  `registrationOpen` section to describe the master-AND-per-category gate.
+  `registrationOpen` section to describe category-only registration, close-all, and scheduled
+  opening; `PRODUCT.md` and `ARCHITECTURE.md` (QStash webhooks) updated accordingly.
 - [x] **`graphify update .`** — graph refreshed (3420 nodes, 4636 edges).
 - [ ] **Close-out:** after merge, run **`/feature-doc` (Stage 5)** to write
   `05-workflow.md` — the feature is not done until it exists and matches the shipped code.

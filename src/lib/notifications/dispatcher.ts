@@ -38,6 +38,7 @@ export const EMAIL_ENABLED_TYPES = new Set<NotificationType>([
 	NotificationType.REGISTRATION_REFUSED,
 	NotificationType.REGISTRATION_PROMOTED,
 	NotificationType.PAYMENT_REMINDER,
+	NotificationType.CATEGORY_REGISTRATION_OPENED,
 ]);
 
 function shouldEmail(intent: NotificationIntent): boolean {

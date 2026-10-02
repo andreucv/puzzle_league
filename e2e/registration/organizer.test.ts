@@ -13,6 +13,8 @@ interface OrganizerTestData {
     refuseRegistration: { competitionId: number };
     waitlist: { competitionId: number };
     autoConfirm: { competitionId: number; name: string };
+    perCategory: { competitionId: number; closedCategoryId: number; openCategoryId: number };
+    followCategory: { competitionId: number; categoryId: number };
 }
 
 // ── Seed (per worker; every invocation creates its own unique competitions) ──
@@ -276,5 +278,93 @@ test('GivenFreeCategory_WhenParticipantRegisters_ThenEntryIsAutoConfirmed', asyn
         await expect(confirmedToggle).toBeVisible();
         await confirmedToggle.click();
         await expect(organizerPage.locator('[data-testid="section-confirmed"] [data-testid^="registration-row-entry-"]')).toHaveCount(1);
+    });
+});
+
+// Closing one category keeps the other open; "close all" then closes the rest (#90).
+test('GivenOpenCompetition_WhenOrganizerClosesOneCategory_ThenParticipantCanOnlyRegisterInTheOther', async ({ organizerPage, participantPage }) => {
+    const { competitionId, closedCategoryId, openCategoryId } = testData.perCategory;
+
+    await test.step('organizer closes one category', async () => {
+        await gotoHydrated(organizerPage, `/competition/${competitionId}/manage_registrations`);
+        const closedStatus = organizerPage.getByTestId(`category-registration-status-${closedCategoryId}`);
+        await expect(closedStatus).toHaveAttribute('data-open', 'true');
+        await organizerPage.getByTestId(`category-menu-${closedCategoryId}`).click();
+        await organizerPage.getByTestId(`toggle-category-registration-${closedCategoryId}`).click();
+        await expect(closedStatus).toHaveAttribute('data-open', 'false');
+        await expect(organizerPage.getByTestId(`category-registration-status-${openCategoryId}`)).toHaveAttribute('data-open', 'true');
+    });
+
+    await test.step('participant sees the closed category blocked and registers in the open one', async () => {
+        await gotoHydrated(participantPage, `/competitions/competition_details/${competitionId}/registration`);
+        await expect(participantPage.getByTestId('category-closed-message')).toHaveCount(1);
+        await expect(participantPage.getByTestId(`signup-category-${closedCategoryId}`)).toHaveCount(0);
+
+        await participantPage.getByTestId(`signup-category-${openCategoryId}`).click();
+        await participantPage.getByTestId('submit-all-registrations').click();
+        await expect(participantPage.getByTestId('registration-status-badge')).toHaveAttribute('data-status', 'CONFIRMED');
+    });
+
+    await test.step('organizer closes registration for all categories from the general menu', async () => {
+        await organizerPage.getByTestId('manage-registrations-menu').click();
+        await organizerPage.getByTestId('close-all-registration').click();
+        await organizerPage.getByTestId('confirm-popover-action').click();
+        await expect(organizerPage.getByTestId(`category-registration-status-${openCategoryId}`)).toHaveAttribute('data-open', 'false');
+        await expect(organizerPage.getByTestId('registration-status')).toHaveAttribute('data-open', 'false');
+    });
+
+    await test.step('participant sees registration closed', async () => {
+        await gotoHydrated(participantPage, `/competitions/competition_details/${competitionId}/registration`);
+        await expect(participantPage.getByTestId('registration-closed-warning')).toBeVisible();
+    });
+});
+
+// "Notify me when it opens" bell on a closed category. Sending the notification goes through QStash
+// and is unit-tested; this covers following, the logged-out prompt and the organizer's waiting count.
+test('GivenClosedCategory_WhenParticipantFollowsIt_ThenOrganizerSeesOneWaiting', async ({ page, organizerPage, participantPage }) => {
+    test.skip(!process.env.QSTASH_TOKEN || !process.env.QSTASH_PUBLIC_APP_URL, 'The bell is hidden without QStash');
+    const { competitionId, categoryId } = testData.followCategory;
+    const detailsPath = `/competitions/competition_details/${competitionId}`;
+
+    await test.step('a logged-out visitor sees the bell disabled with a login prompt', async () => {
+        await gotoHydrated(page, detailsPath);
+        await expect(page.getByTestId(`category-closed-footer-${categoryId}`)).toBeVisible();
+        await expect(page.getByTestId(`follow-category-${categoryId}`)).toBeDisabled();
+        await expect(page.getByTestId(`follow-category-login-${categoryId}`)).toBeVisible();
+    });
+
+    await test.step('the organizer is not offered the bell', async () => {
+        await gotoHydrated(organizerPage, detailsPath);
+        await expect(organizerPage.getByTestId(`follow-category-${categoryId}`)).toHaveCount(0);
+    });
+
+    await test.step('participant follows the category and it persists after reload', async () => {
+        await gotoHydrated(participantPage, detailsPath);
+        const bell = participantPage.getByTestId(`follow-category-${categoryId}`);
+        await expect(bell).toHaveAttribute('data-following', 'false');
+        // The bell updates optimistically; wait for the API before navigating away.
+        const followed = participantPage.waitForResponse((r) => r.url().endsWith(`/api/categories/${categoryId}/follow`) && r.request().method() === 'POST');
+        await bell.click();
+        expect((await followed).status()).toBe(200);
+        await expect(bell).toHaveAttribute('data-following', 'true');
+
+        await gotoHydrated(participantPage, `${detailsPath}/registration`);
+        await expect(participantPage.getByTestId(`follow-category-${categoryId}`)).toHaveAttribute('data-following', 'true');
+    });
+
+    await test.step('organizer sees one person waiting', async () => {
+        await gotoHydrated(organizerPage, `/competition/${competitionId}/manage_registrations`);
+        await expect(organizerPage.getByTestId(`category-followers-${categoryId}`)).toHaveAttribute('data-count', '1');
+    });
+
+    await test.step('participant stops following and the organizer count disappears', async () => {
+        const bell = participantPage.getByTestId(`follow-category-${categoryId}`);
+        const unfollowed = participantPage.waitForResponse((r) => r.url().endsWith(`/api/categories/${categoryId}/follow`) && r.request().method() === 'DELETE');
+        await bell.click();
+        expect((await unfollowed).status()).toBe(200);
+        await expect(bell).toHaveAttribute('data-following', 'false');
+
+        await gotoHydrated(organizerPage, `/competition/${competitionId}/manage_registrations`);
+        await expect(organizerPage.getByTestId(`category-followers-${categoryId}`)).toHaveCount(0);
     });
 });

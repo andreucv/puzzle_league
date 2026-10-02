@@ -3,7 +3,7 @@
     import { Avatar } from '@skeletonlabs/skeleton-svelte';
     import { enhance } from '$app/forms';
     import { invalidate } from '$app/navigation';
-    import { t } from '$lib/translations';
+    import { t, locale } from '$lib/translations';
     import { getCategoryTypeName, getCategoryTypeSingularName, getCategoryTypeIcon, getMaxEntriesPerCategory } from '$lib/utils/category_utils';
     import { getRegistrationStatusBorderClass as getStatusBorderClass } from '$lib/utils/registration_utils';
     import RegistrationStatusBadge from '$lib/components/registration/EntryRegistrationStatusBadge.svelte';
@@ -37,6 +37,8 @@
     import ShieldAccountIcon from '@iconify-svelte/mdi/shield-account';
     import { showRichSuccessToast, showErrorToast } from '$lib/utils/toast';
     import type { RegistrationSummary } from '$lib/utils/toast';
+    import { hasOpenRegistration, canFollowCategory } from '$lib/utils/registration_utils';
+    import CategoryFollowButton from '$lib/components/registration/CategoryFollowButton.svelte';
 
     let { data } = $props();
 
@@ -51,18 +53,18 @@
         (data.availableTagsByCategory as Record<number, { tag: string; priceOverride: number | null }[]>) || {}
     );
     let waitlistPositions = $derived((data.waitlistPositions || {}) as Record<string, number>);
+    let followedCategoryIds = $derived((data.followedCategoryIds || []) as number[]);
 
     function getAvailableTags(categoryId: number) {
         return availableTagsByCategory[categoryId] || [];
     }
 
-    let canRegister = $derived(competition?.registrationOpen || isOrganizer);
+    let canRegister = $derived(hasOpenRegistration(categories) || isOrganizer);
 
     function canRegisterForCategory(category: Category): boolean {
         if (category.status !== 'NOT_STARTED') return false;
-        // Organizers bypass both the competition-wide and per-category open flags.
-        if (isOrganizer) return true;
-        return !!competition?.registrationOpen && category.registrationOpen;
+        // Organizers bypass the per-category open flag.
+        return isOrganizer || category.registrationOpen;
     }
 
     function getSpotsLeft(category: Category): number | undefined {
@@ -1041,10 +1043,17 @@
                         </p>
                     {/if}
                 {:else if entries.length === 0 && slots.length === 0}
-                    {#if competition?.registrationOpen && category.status === 'NOT_STARTED' && !category.registrationOpen}
+                    {#if category.status === 'NOT_STARTED' && !category.registrationOpen && category.registrationOpensAt}
+                        <p class="text-sm text-surface-500 italic" data-testid="category-closed-message" data-scheduled="true">
+                            {$t('registration.category_registration_opens_at', { date: new Date(category.registrationOpensAt).toLocaleString($locale, { dateStyle: 'medium', timeStyle: 'short' }) })}
+                        </p>
+                    {:else if category.status === 'NOT_STARTED' && !category.registrationOpen}
                         <p class="text-sm text-surface-500 italic" data-testid="category-closed-message">{$t('registration.category_registration_closed')}</p>
                     {:else}
                         <p class="text-sm text-surface-500 italic">{$t('registration.registration_not_available')}</p>
+                    {/if}
+                    {#if canFollowCategory({ category, followAvailable: data.followAvailable, canManage: isOrganizer, hasEntry: false })}
+                        <CategoryFollowButton categoryId={category.id} following={followedCategoryIds.includes(category.id)} loggedIn={true} />
                     {/if}
                 {/if}
             </Card>

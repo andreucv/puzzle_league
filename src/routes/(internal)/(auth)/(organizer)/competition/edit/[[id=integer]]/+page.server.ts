@@ -1,6 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { Action, Actions, PageServerLoad } from './$types';
 import { updateCompetition, getCompetitionWithCategories } from '$lib/database/db_competition';
+import { hasOpenRegistration } from '$lib/utils/registration_utils';
 import { PARTICIPANT_TAG_TYPES } from '$lib/database/db_participant_tags';
 import { CategoryType, CompetitionStatus } from '$prisma/enums';
 import type { Prisma } from '$prisma/client';
@@ -75,6 +76,7 @@ export const load: PageServerLoad = async (event) => {
             // Convert Date objects to ISO strings for the form
             competitionData = {
                 ...competition,
+                registrationOpen: hasOpenRegistration(competition.categories),
                 startDate: competition.startDate.toISOString(),
                 endDate: competition.endDate.toISOString(),
                 categories: competition.categories.map(cat => ({
@@ -133,8 +135,13 @@ const create_update_competition: Action = async ({ locals, request, params }) =>
     }
     formData.image_cld_id = imageResult.publicId;
 
-    // Remove id from form data as Prisma doesn't allow it in update data
-    const { id, ...competitionData } = formData;
+    // Remove id from form data as Prisma doesn't allow it in update data. `registrationOpen` is
+    // form-only (no Competition column): on create it opens/closes every new category; on edit new
+    // categories keep the closed default and are opened from manage-registrations (#90).
+    const { id, registrationOpen, ...competitionData } = formData;
+    if (!competitionId && registrationOpen && competitionData.categories?.create) {
+        competitionData.categories.create = competitionData.categories.create.map((cat) => ({ ...cat, registrationOpen: true }));
+    }
 
     // Transform puzzleIds into Prisma connect operations for each category
     transformPuzzleIds(competitionData.categories);

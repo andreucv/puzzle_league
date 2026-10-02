@@ -4,6 +4,7 @@ import {
 	registrationWorkflowHttpStatus,
 	toggleCategoryRegistration,
 } from '$lib/services/registration-workflow';
+import { triggerCategoryFollowersNotification } from '$lib/services/category-followers-notifier';
 import { getPostHogClient } from '$lib/server/posthog';
 
 export const POST = async (event: RequestEvent) => {
@@ -23,6 +24,11 @@ export const POST = async (event: RequestEvent) => {
 			categoryId,
 			actor: { userId: user.id, name: user.name ?? undefined, isOrganizer: true },
 		});
+
+		// Notifying followers is an async side effect (QStash); a failed publish never fails the open.
+		if (registrationOpen) {
+			await triggerCategoryFollowersNotification(id);
+		}
 
 		const posthog = getPostHogClient();
 		posthog.capture({

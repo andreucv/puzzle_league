@@ -47,6 +47,7 @@ const ROUTE_GUARDS: [RegExp, RouteGuard][] = [
   [/^\/api\/notifications\/[^/]+\/read$/, { guard: 'authenticated' }],
   [/^\/api\/notifications$/, { guard: 'authenticated' }],
   [/^\/api\/users\/search$/, { guard: 'authenticated' }],
+  [/^\/api\/categories\/[^/]+\/follow$/, { guard: 'authenticated' }],
   [/^\/api\/puzzles\/search$/, { guard: 'authenticated' }],
   [/^\/api\/external-participants\/claim$/, { guard: 'authenticated' }],
   [/^\/api\/external-participants\/unclaimed$/, { guard: 'authenticated' }],
@@ -55,7 +56,8 @@ const ROUTE_GUARDS: [RegExp, RouteGuard][] = [
 
   // ---- Competition-scoped: ORGANIZER ----
   [/^\/api\/competitions\/[^/]+\/cancel$/, { guard: 'competitionOrganizer' }],
-  [/^\/api\/competitions\/[^/]+\/toggle_registration$/, { guard: 'competitionOrganizer' }],
+  [/^\/api\/competitions\/[^/]+\/close_registration$/, { guard: 'competitionOrganizer' }],
+  [/^\/api\/competitions\/[^/]+\/schedule_registration$/, { guard: 'competitionOrganizer' }],
   [/^\/api\/competitions\/[^/]+\/copy-judges$/, { guard: 'competitionOrganizer' }],
 
   // ---- Competition-scoped: JUDGE or ORGANIZER ----
@@ -83,6 +85,8 @@ const ROUTE_GUARDS: [RegExp, RouteGuard][] = [
   [/^\/api\/categories\/[^/]+\/add-time$/, { guard: 'categoryOrganizer' }],
   [/^\/api\/categories\/[^/]+\/publish-tables$/, { guard: 'categoryOrganizer' }],
   [/^\/api\/categories\/[^/]+\/remind-pending$/, { guard: 'categoryOrganizer' }],
+  [/^\/api\/categories\/[^/]+\/toggle_registration$/, { guard: 'categoryOrganizer' }],
+  [/^\/api\/categories\/[^/]+\/schedule_registration$/, { guard: 'categoryOrganizer' }],
 
   // ---- Entry-scoped: JUDGE or ORGANIZER via category chain ----
   [/^\/api\/entries\/[^/]+\/pieces$/, { guard: 'entryJudge' }],

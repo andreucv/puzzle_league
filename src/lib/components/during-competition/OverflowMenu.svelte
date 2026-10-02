@@ -52,7 +52,7 @@
             <div class="fixed inset-0 z-40" onclick={close}></div>
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <!-- svelte-ignore a11y_no_static_element_interactions -->
-            <div class="absolute right-0 top-full mt-1 z-50 bg-surface-50-950 border border-surface-300-700 rounded-lg shadow-lg min-w-56">
+            <div class="absolute right-0 top-full mt-1 z-50 bg-surface-50-950 border border-surface-300-700 rounded-lg shadow-lg min-w-56 max-w-72">
                 <div class="p-1 space-y-1">
                     {#each actions as action (action.testId)}
                         {#if action.kind === 'link'}
@@ -65,6 +65,22 @@
                                 <action.icon width="1rem" height="1rem" />
                                 {action.label}
                             </a>
+                        {:else if action.kind === 'button'}
+                            <button
+                                type="button"
+                                class="flex items-start gap-2 w-full px-3 py-2 text-sm rounded-md hover:bg-surface-200-800 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={action.disabled}
+                                onclick={() => { action.onClick(); close(); }}
+                                data-testid={action.testId}
+                            >
+                                <action.icon class="shrink-0 mt-0.5" width="1rem" height="1rem" />
+                                <span class="whitespace-normal">
+                                    {action.label}
+                                    {#if action.hint}
+                                        <span class="block text-xs text-surface-600 dark:text-surface-400">{action.hint}</span>
+                                    {/if}
+                                </span>
+                            </button>
                         {:else}
                             <ConfirmActionButton
                                 icon={action.icon}

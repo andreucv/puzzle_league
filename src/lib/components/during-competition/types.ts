@@ -24,4 +24,15 @@ export interface OverflowLinkAction {
 	testId: string;
 }
 
-export type OverflowAction = OverflowConfirmAction | OverflowLinkAction;
+export interface OverflowButtonAction {
+	kind: 'button';
+	icon: IconComponent;
+	label: string;
+	/** Optional small helper text rendered under the label. */
+	hint?: string;
+	disabled?: boolean;
+	onClick: () => void;
+	testId: string;
+}
+
+export type OverflowAction = OverflowConfirmAction | OverflowLinkAction | OverflowButtonAction;

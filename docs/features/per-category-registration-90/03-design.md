@@ -165,6 +165,10 @@ via `ensureCanManageCompetition`. No change to waitlist/promotion tests.
 
 ## Resolved decisions
 
+> **Superseded (2026-09-18):** the master-AND model below was replaced by category-only
+> registration — `Competition.registrationOpen` was dropped, "competition open" is derived from its
+> categories, and the general menu offers only "close all". See [04-plan.md](./04-plan.md).
+
 1. **Details-page button copy** — *Resolved by deriving an effective-open state.* The single
    competition-level button reads "closed" (not "full") when no `NOT_STARTED` category is open for
    registration — including when the competition master switch is open but every category is

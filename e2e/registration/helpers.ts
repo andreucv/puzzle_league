@@ -17,11 +17,18 @@ export async function submitAndConfirmPaymentIfNeeded(page: Page): Promise<void>
     }
 }
 
-/** Opens registration for a competition from the manage registrations page. */
+/** Opens registration for every category of a competition from their Manage menus (registration is per category). */
 export async function openRegistration(page: Page, competitionId: number): Promise<void> {
     await gotoHydrated(page, `/competition/${competitionId}/manage_registrations`);
     await expect(page.getByTestId('registration-status')).toHaveAttribute('data-open', 'false');
-    await page.getByTestId('toggle-registration').click();
+
+    const menus = page.locator('[data-testid^="category-menu-"]');
+    for (const menu of await menus.all()) {
+        const categoryId = (await menu.getAttribute('data-testid'))!.replace('category-menu-', '');
+        await menu.click();
+        await page.getByTestId(`toggle-category-registration-${categoryId}`).click();
+        await expect(page.getByTestId(`category-registration-status-${categoryId}`)).toHaveAttribute('data-open', 'true');
+    }
     await expect(page.getByTestId('registration-status')).toHaveAttribute('data-open', 'true');
 }
 

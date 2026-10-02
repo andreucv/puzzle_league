@@ -2,6 +2,8 @@ import type { PageServerLoad } from "./$types";
 import { getCompetitionWithCategories, getCompetitionCategories} from "$lib/database/db_competition";
 import { getCategoryEntriesFromCompetition, getWaitlistPositions } from "$lib/database/db_entry";
 import { getCompetitionAccess } from "$lib/services/competition-access";
+import { getPendingFollowedCategoryIds } from "$lib/services/category-follows";
+import { isRegistrationScheduleAvailable } from "$lib/services/registration-open-scheduler";
 
 
 export const load: PageServerLoad = async ( event ) => {
@@ -28,6 +30,11 @@ export const load: PageServerLoad = async ( event ) => {
             records: recordsPromise,
             waitlistPositions: waitlistPositionsPromise,
             categoriesWithCounts: getCompetitionCategories(competitionId),
+            // Categories the viewer waits on to open ("notify me" bell); hidden without QStash.
+            followedCategoryIds: user
+                ? getPendingFollowedCategoryIds(competitionId, user.id)
+                : Promise.resolve([] as number[]),
+            followAvailable: isRegistrationScheduleAvailable(),
             access: user
                 ? getCompetitionAccess(competitionId, user.id)
                 : Promise.resolve({ isCreator: false, isAdmin: false, isCoorganizer: false, isJudge: false, judgedCategoryIds: [], canManageCompetition: false }),

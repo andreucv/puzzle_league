@@ -107,6 +107,10 @@ export async function getRegistrationsForCompetition(competitionId: number) {
                 },
                 tagCategories: {
                     select: { tag: true }
+                },
+                // Users waiting to be notified when registration opens ("N waiting" chip).
+                _count: {
+                    select: { follows: { where: { notifiedAt: null } } }
                 }
             }
         });

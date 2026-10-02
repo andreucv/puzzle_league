@@ -10,6 +10,7 @@
     import CompetitionTitle from '$lib/components/common/titles/CompetitionName.svelte';
     import OverflowMenu from '$lib/components/during-competition/OverflowMenu.svelte';
     import type { OverflowAction } from '$lib/components/during-competition/types';
+    import { hasOpenRegistration } from '$lib/utils/registration_utils';
     import { goto } from '$app/navigation';
 
     import MapMarkerIcon from '@iconify-svelte/mdi/map-marker';
@@ -75,14 +76,6 @@
             const registered = c.reservedSlots ?? c.totalEntries ?? 0;
             return c.maxParties - registered > 0;
         });
-    }
-
-    // Whether registration is open *somewhere*: at least one not-yet-started category still
-    // accepts registrations (ignoring capacity). Distinguishes "closed" (no open category) from
-    // "full" (open categories exist but none has room) on the single competition-level CTA.
-    function hasOpenRegistrationCategory(categories: CategoryCounts[] | undefined): boolean {
-        if (!categories) return false;
-        return categories.some((c) => c.status === 'NOT_STARTED' && c.registrationOpen);
     }
 </script>
 
@@ -210,7 +203,7 @@
 
 
             <!-- Categories & Actions Section -->
-            {#await Promise.all([data.props.records, data.props.waitlistPositions, data.props.categoriesWithCounts, data.props.access])}
+            {#await Promise.all([data.props.records, data.props.waitlistPositions, data.props.categoriesWithCounts, data.props.access, data.props.followedCategoryIds])}
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {#each { length: 3 } as _}
                         <div class="card preset-outlined-surface-200-800 p-4 space-y-3 animate-pulse">
@@ -228,21 +221,31 @@
                         <div class="h-10 w-40 rounded-lg bg-surface-100-700 animate-pulse"></div>
                     {/each}
                 </div>
-            {:then [userRecords, waitlistPositions, categoriesWithCounts, access]}
+            {:then [userRecords, waitlistPositions, categoriesWithCounts, access, followedCategoryIds]}
                 {@const isOrganizer = access.canManageCompetition}
 
                 <div>
-                    <CategoriesOverview {categories} isCreator={isOrganizer} {isMultiDay} {categoriesWithCounts} userRecords={userRecords ?? []} {waitlistPositions} />
+                    <CategoriesOverview
+                        {categories}
+                        isCreator={isOrganizer}
+                        {isMultiDay}
+                        {categoriesWithCounts}
+                        userRecords={userRecords ?? []}
+                        {waitlistPositions}
+                        followAvailable={data.props.followAvailable}
+                        {followedCategoryIds}
+                        loggedIn={!!currentUser}
+                        loginHref={`/login?redirect=${encodeURIComponent(`/competitions/competition_details/${competition?.id}`)}`}
+                    />
                 </div>
 
                 <!-- Primary CTA: Registration -->
                 {@const hasRegistrations = userRecords && userRecords.length > 0}
                 {@const registrationPath = `/competitions/competition_details/${competition?.id}/registration`}
                 {@const hasOpenSpot = hasRegistrableSpot(categoriesWithCounts)}
-                <!-- Effective open: master switch AND at least one category still open. When the
-                     competition is open but every category is individually closed, this is false
-                     so the button reads "closed" rather than "full". -->
-                {@const effectiveRegistrationOpen = !!competition?.registrationOpen && hasOpenRegistrationCategory(categoriesWithCounts)}
+                <!-- Open when any not-yet-started category is open (ignoring capacity), so the
+                     button reads "closed" (none open) vs "full" (open ones have no room). -->
+                {@const effectiveRegistrationOpen = hasOpenRegistration(categoriesWithCounts)}
                 <div class="flex flex-col items-center gap-2">
                     <RegistrationActionButton
                         loggedIn={!!currentUser}

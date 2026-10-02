@@ -1,4 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// The guards module imports the Prisma singleton, which needs DATABASE_ACCELERATE_URL
+// at import time (absent in CI). These tests only cover the pure path helpers.
+vi.mock('$lib/database/create_prisma_client', () => ({ prisma: {}, accelerateEnabled: false }));
+
 import { extractIntId, extractStringId } from './api_route_guards';
 
 describe('extractIntId', () => {

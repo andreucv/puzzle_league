@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.2.0](https://github.com/andreucv/puzzle_league/compare/v1.1.0...v1.2.0) (2026-10-03)
+
+
+### ✨ Features
+
+* enable individual registrationStatus in categories ([405d574](https://github.com/andreucv/puzzle_league/commit/405d574d5053dee2316d9ce9b4a2515216143d5b))
+* notify all participants in competition or categories ([f603b85](https://github.com/andreucv/puzzle_league/commit/f603b853dfea47e1d3fce0e0d4b9cd20bb96e026))
+* registration status granular per category and follow list button with notification ([45deeb0](https://github.com/andreucv/puzzle_league/commit/45deeb09b3cc1741e138cb934e7b3baa82f21890))
+
+
+### 🐛 Bug Fixes
+
+* dont use category description field anymore ([982d401](https://github.com/andreucv/puzzle_league/commit/982d401f461d037a1a5ad5cd6efff6de0bd704a2))
+* rank is shown against all entries in a category ([bf0e59e](https://github.com/andreucv/puzzle_league/commit/bf0e59e6a113ac33c2bd5c920cee6d59317bfc3d))
+* show category subname in the category card title for registration ([0e243bb](https://github.com/andreucv/puzzle_league/commit/0e243bb6ad2778885f19a501036c8e263649e4f9))
+
 ## [1.1.0](https://github.com/andreucv/puzzle_league/compare/v1.0.0...v1.1.0) (2026-09-17)
 
 

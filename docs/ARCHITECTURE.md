@@ -59,4 +59,4 @@ Automation includes daily auto-cancel of expired not-started competitions and we
 
 Competition mutations publish Ably events to `competition:{id}`. During-competition pages load an initial state from Prisma, subscribe through an Ably JWT endpoint, apply incremental client-side state updates, and invalidate SvelteKit data after reconnects.
 
-Notifications are persisted in Prisma, rendered from translation keys, and can link users back into relevant pages. Selected registration notification types also send Scaleway emails; email failures are logged without rolling back successful domain mutations.
+Notifications are persisted in Prisma, rendered from translation keys, and can link users back into relevant pages. Selected registration notification types, plus `GENERAL` (used for organizer announcements via `POST /api/competitions/[id]/announce`), also send Scaleway emails; email failures are logged without rolling back successful domain mutations.

@@ -21,6 +21,7 @@
     import ConfirmPopover from '$lib/components/common/ConfirmPopover.svelte';
     import BellRingOutlineIcon from '@iconify-svelte/mdi/bell-ring-outline';
     import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/registration';
+    import BullhornOutlineIcon from '@iconify-svelte/mdi/bullhorn-outline';
 
     let { data } = $props();
 
@@ -42,6 +43,9 @@
     let publishingCategoryId: number | null = $state(null);
     let confirmingCategoryId: number | null = $state(null);
     let remindingCategoryId: number | null = $state(null);
+    // Announcement popover target: 'all' (whole competition) or a category id
+    let announceTarget: 'all' | number | null = $state(null);
+    let announcingTarget: 'all' | number | null = $state(null);
     let resultMessage = $state<{ success: boolean; message: string } | null>(null);
     let messageDismissTimer: ReturnType<typeof setTimeout> | null = null;
     let messageProgressKey = $state(0);
@@ -215,7 +219,61 @@
             remindingCategoryId = null;
         }
     }
+
+    async function handleAnnounce(target: 'all' | number, message?: string) {
+        announceTarget = null;
+        if (!message) return;
+        announcingTarget = target;
+        try {
+            const response = await fetch(`/api/competitions/${competition.id}/announce`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message, categoryId: target === 'all' ? undefined : target }),
+            });
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                showResultMessage({ success: true, message: $t('manage_registrations.announce_success', { count: result.recipientCount }) });
+            } else {
+                showResultMessage({ success: false, message: result.error || $t('manage_registrations.announce_error') });
+            }
+        } catch {
+            showResultMessage({ success: false, message: $t('manage_registrations.announce_error') });
+        } finally {
+            announcingTarget = null;
+        }
+    }
 </script>
+
+{#snippet announceButton(target: 'all' | number, extraClass: string)}
+    <div class="relative {extraClass}">
+        <button
+            type="button"
+            class="btn preset-outlined-surface-500 gap-2 w-full"
+            disabled={announcingTarget !== null}
+            onclick={() => announceTarget = announceTarget === target ? null : target}
+            data-testid={target === 'all' ? 'announce-all' : 'announce-category'}
+        >
+            {#if announcingTarget === target}
+                <LoadingIcon width="1.1rem" height="1.1rem" class="animate-spin" />
+            {:else}
+                <BullhornOutlineIcon width="1.1rem" height="1.1rem" />
+            {/if}
+            {$t(target === 'all' ? 'manage_registrations.announce_all' : 'manage_registrations.announce_category')}
+        </button>
+        {#if announceTarget === target}
+            <ConfirmPopover
+                title={$t('manage_registrations.announce_confirm_title')}
+                message={$t(target === 'all' ? 'manage_registrations.announce_all_confirm_message' : 'manage_registrations.announce_category_confirm_message')}
+                colorClass="preset-filled-primary-500"
+                onConfirm={(message) => handleAnnounce(target, message)}
+                onCancel={() => announceTarget = null}
+                isProcessing={false}
+                inputConfig={{ placeholder: $t('manage_registrations.announce_placeholder'), maxLength: 1000, rows: 6 }}
+            />
+        {/if}
+    </div>
+{/snippet}
 
 <div class="container mx-auto max-w-4xl space-y-4">
     <!-- Header -->
@@ -260,6 +318,7 @@
                 {/if}
                 {$t('manage_registrations.print_all_entry_cards')}
             </button>
+            {@render announceButton('all', 'flex-1')}
         </div>
     {/if}
 
@@ -318,6 +377,12 @@
 
             <!-- Action buttons only for active (NOT_STARTED) categories -->
             {#if showActions}
+            <!-- Announcement to this category's entry creators (e.g. reschedule/cancel) -->
+            {#if category.entries.length > 0}
+                <div class="border-t border-surface-200 dark:border-surface-700">
+                    {@render announceButton(category.id, 'w-full')}
+                </div>
+            {/if}
             <!-- Bulk remind pending button -->
             {@const pendingEntries = category.entries.filter((r: any) => r.status === 'PENDING_CONFIRMATION')}
             {@const eligiblePendingCount = pendingEntries.filter((r: any) => {

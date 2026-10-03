@@ -22,7 +22,7 @@ Profiles support name, location, phone, locale, email verification, password man
 
 Organizers can request permissions, create and edit competitions, add categories, attach puzzles, upload images, set location/date data, configure registration opening, set category prices, and show an off-platform payment warning. Puzzle management includes brand, piece count, barcode, serial number, and image data.
 
-Registration management groups entries by pending, confirmed, and waitlisted status. Organizers can confirm entries, refuse entries, send payment reminders, publish table assignments, and toggle competition registration. Refusing or unregistering an entry may trigger waitlist promotion.
+Registration management groups entries by pending, confirmed, and waitlisted status. Organizers can confirm entries, refuse entries, send payment reminders, publish table assignments, and toggle competition registration. Organizers can also send a free-text announcement (e.g. a rescheduled or cancelled competition/category) by email and in-app notification to the creator of every entry in the whole competition or in a single category; it only sends the message and does not change dates or status. Refusing or unregistering an entry may trigger waitlist promotion.
 
 Competition-day management includes category start/stop/resume/restart/cancel/complete flows, table and entry views, finish-time recording, piece-count recording for unfinished entries, and realtime updates. Organizers can assign and remove judges per category, and can copy judge assignments between categories.
 

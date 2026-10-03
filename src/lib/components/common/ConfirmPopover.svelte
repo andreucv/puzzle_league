@@ -22,6 +22,7 @@
         inputConfig?: {
             placeholder?: string;
             maxLength?: number;
+            rows?: number;
         };
     } = $props();
 
@@ -117,7 +118,7 @@
         {#if inputConfig}
             <textarea
                 class="textarea w-full text-xs bg-white dark:bg-surface-900"
-                rows="2"
+                rows={inputConfig.rows ?? 2}
                 maxlength={inputConfig.maxLength ?? 200}
                 placeholder={inputConfig.placeholder ?? ''}
                 bind:value={inputValue}

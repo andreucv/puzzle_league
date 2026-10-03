@@ -26,6 +26,7 @@
     import ClockOutlineIcon from '@iconify-svelte/mdi/clock-outline';
     import ClockRemoveOutlineIcon from '@iconify-svelte/mdi/clock-remove-outline';
     import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/registration';
+    import BullhornOutlineIcon from '@iconify-svelte/mdi/bullhorn-outline';
 
     let { data } = $props();
 
@@ -65,6 +66,15 @@
     // Loading state for individual actions
     let processingEntryId: string | null = $state(null);
     let remindingCategoryId: number | null = $state(null);
+    // Inline announcement form: 'all' (whole competition), a category id, or null when hidden.
+    let announceTarget: 'all' | number | null = $state(null);
+    let announceMessage = $state('');
+    let announcing = $state(false);
+
+    function openAnnounceForm(target: 'all' | number) {
+        announceTarget = target;
+        announceMessage = '';
+    }
     let resultMessage = $state<{ success: boolean; message: string } | null>(null);
     let messageDismissTimer: ReturnType<typeof setTimeout> | null = null;
     let messageProgressKey = $state(0);
@@ -218,6 +228,13 @@
                 onClick: () => handlePrintEntryCards(),
                 testId: 'print-all-entry-cards'
             });
+            actions.push({
+                kind: 'button',
+                icon: BullhornOutlineIcon,
+                label: $t('manage_registrations.announce_all'),
+                onClick: () => openAnnounceForm('all'),
+                testId: 'announce-all'
+            });
         }
         return actions;
     }
@@ -269,6 +286,15 @@
                 disabled: printableCount(category) === 0,
                 onClick: () => handlePrintEntryCards(category),
                 testId: `print-entry-cards-${category.id}`
+            });
+        }
+        if (category.entries.length > 0) {
+            actions.push({
+                kind: 'button',
+                icon: BullhornOutlineIcon,
+                label: $t('manage_registrations.announce_category'),
+                onClick: () => openAnnounceForm(category.id),
+                testId: `announce-category-${category.id}`
             });
         }
         return actions;
@@ -417,7 +443,70 @@
             remindingCategoryId = null;
         }
     }
+
+    async function handleAnnounce() {
+        const target = announceTarget;
+        const message = announceMessage.trim();
+        if (target === null || !message) return;
+        announcing = true;
+        try {
+            const response = await fetch(`/api/competitions/${competition.id}/announce`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message, categoryId: target === 'all' ? undefined : target }),
+            });
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                announceTarget = null;
+                showResultMessage({ success: true, message: $t('manage_registrations.announce_success', { count: result.recipientCount }) });
+            } else {
+                showResultMessage({ success: false, message: result.error || $t('manage_registrations.announce_error') });
+            }
+        } catch {
+            showResultMessage({ success: false, message: $t('manage_registrations.announce_error') });
+        } finally {
+            announcing = false;
+        }
+    }
 </script>
+
+<!-- Inline announcement form (e.g. reschedule/cancel notice to entry creators) -->
+{#snippet announceForm(target: 'all' | number)}
+    <form
+        class="space-y-2 mt-3"
+        onsubmit={(e) => { e.preventDefault(); handleAnnounce(); }}
+        data-testid="announce-form"
+    >
+        <p class="text-sm font-semibold">{$t('manage_registrations.announce_confirm_title')}</p>
+        <p class="text-xs text-surface-600 dark:text-surface-400">
+            {$t(target === 'all' ? 'manage_registrations.announce_all_confirm_message' : 'manage_registrations.announce_category_confirm_message')}
+        </p>
+        <textarea
+            class="textarea w-full text-sm"
+            rows="5"
+            maxlength="1000"
+            required
+            placeholder={$t('manage_registrations.announce_placeholder')}
+            bind:value={announceMessage}
+            disabled={announcing}
+            data-testid="announce-input"
+        ></textarea>
+        <div class="flex justify-end gap-2">
+            <button type="button" class="btn btn-sm preset-tonal-surface" disabled={announcing} onclick={() => announceTarget = null}>
+                {$t('manage_registrations.cancel_button')}
+            </button>
+            <button type="submit" class="btn btn-sm preset-filled-primary-500 gap-1" disabled={announcing || !announceMessage.trim()} data-testid="announce-send">
+                {#if announcing}
+                    <LoadingIcon width="1rem" height="1rem" class="animate-spin" />
+                {:else}
+                    <BullhornOutlineIcon width="1rem" height="1rem" />
+                {/if}
+                {$t('manage_registrations.confirm_button')}
+            </button>
+        </div>
+    </form>
+{/snippet}
 
 <div class="container mx-auto max-w-4xl space-y-4">
     <!-- Header -->
@@ -451,6 +540,9 @@
         </div>
         {#if schedulingFor === 'all'}
             {@render scheduleForm($t('manage_registrations.schedule_all_label'))}
+        {/if}
+        {#if announceTarget === 'all'}
+            {@render announceForm('all')}
         {/if}
     </Card>
 
@@ -552,6 +644,9 @@
             </div>
             {#if schedulingFor === category.id}
                 <div class="mb-4">{@render scheduleForm($t('manage_registrations.schedule_label'))}</div>
+            {/if}
+            {#if announceTarget === category.id}
+                <div class="mb-4">{@render announceForm(category.id)}</div>
             {/if}
 
             <RegistrationList

@@ -29,6 +29,8 @@ vi.mock('$lib/notifications/dispatcher', () => ({
 import {
 	RegistrationWorkflowError,
 	confirmRegistration,
+	notifyWaitlistPromotions,
+	promoteWaitlistedAfterCapacityChange,
 	refuseRegistration,
 	cancelCategoryRegistrationOpening,
 	closeAllCategoryRegistrations,
@@ -259,6 +261,48 @@ describe('registration workflow', () => {
 		expect(tx.entry.delete).toHaveBeenCalledWith({ where: { id: 'entry-1' } });
 		expect(result.promotedEntry).toEqual(promotedEntry);
 		expect(mockNotifyPromotion).toHaveBeenCalledWith(promotedEntry);
+	});
+
+	it('promotes waitlisted entries FIFO until a raised capacity is full again', async () => {
+		const tx = makeTx();
+		// maxParties raised to 4 with 2 reserved and 3 waitlisted: the 2 oldest are promoted.
+		tx.entry.count
+			.mockResolvedValueOnce(2)
+			.mockResolvedValueOnce(3)
+			.mockResolvedValueOnce(4);
+		tx.entry.findFirst
+			.mockResolvedValueOnce({ id: 'waitlisted-1' })
+			.mockResolvedValueOnce({ id: 'waitlisted-2' });
+		tx.category.findUniqueOrThrow.mockResolvedValue({
+			price: 500,
+			competition: { showPaymentWarning: true },
+		});
+		tx.entry.update.mockImplementation(async ({ where, data }: any) => makeEntry({ id: where.id, status: data.status }));
+
+		const promoted = await promoteWaitlistedAfterCapacityChange(tx as any, 1, 4);
+
+		expect(promoted.map((entry) => entry.id)).toEqual(['waitlisted-1', 'waitlisted-2']);
+		expect(promoted.every((entry) => entry.status === RegistrationStatus.PENDING_CONFIRMATION)).toBe(true);
+		expect(tx.entry.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+			orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+		}));
+
+		await notifyWaitlistPromotions(promoted);
+
+		expect(mockNotifyPromotion).toHaveBeenCalledTimes(2);
+		expect(mockDispatch).toHaveBeenCalledOnce();
+	});
+
+	it('does not promote anyone when capacity is still full after a category edit', async () => {
+		const tx = makeTx();
+		tx.entry.count.mockResolvedValue(3);
+
+		const promoted = await promoteWaitlistedAfterCapacityChange(tx as any, 1, 2);
+		await notifyWaitlistPromotions(promoted);
+
+		expect(promoted).toEqual([]);
+		expect(tx.entry.update).not.toHaveBeenCalled();
+		expect(mockDispatch).not.toHaveBeenCalled();
 	});
 
 	it('promotes waitlisted entry when organizer refuses a confirmed entry', async () => {

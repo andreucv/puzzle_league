@@ -2,6 +2,11 @@ import { CategoryStatus, CompetitionStatus, EntryTagStatus, RegistrationStatus }
 import type { Prisma } from '$prisma/client';
 import type { Competition, Category } from '$prisma/browser';
 import { prisma, accelerateEnabled } from '$lib/database/create_prisma_client';
+import {
+    notifyWaitlistPromotions,
+    promoteWaitlistedAfterCapacityChange,
+    type PromotedEntry,
+} from '$lib/services/registration-workflow';
 
 // ---------------------------------------------------------------------------
 // Single competition queries
@@ -770,11 +775,18 @@ export async function updateCompetition(
         const result = await prisma.$transaction(async (tx) => {
             // Update the competition
             let updatedCompetition: Competition;
+            const promotedEntries: PromotedEntry[] = [];
             if (competitionId) {
                 updatedCompetition = await tx.competition.update({
                     where: { id: competitionId },
                     data: competition
                 });
+
+                // Edited categories may have gained slots: promote waitlisted entries FIFO (#126).
+                const categoryUpdates = (competition.categories?.update ?? []) as { where: { id: number }; data: { maxParties?: number | null } }[];
+                for (const { where, data } of categoryUpdates) {
+                    promotedEntries.push(...await promoteWaitlistedAfterCapacityChange(tx, where.id, data.maxParties ?? null));
+                }
             } else {
                 // For create, strip update/delete from categories and remove undefined values
                 const createData = { ...competition } as any;
@@ -794,8 +806,11 @@ export async function updateCompetition(
 
             return {
                 competition: updatedCompetition,
+                promotedEntries,
             };
         });
+
+        await notifyWaitlistPromotions(result.promotedEntries);
 
         return {
             success: true,

@@ -170,6 +170,8 @@ The "reserved slots are full" check uses `PENDING_CONFIRMATION + CONFIRMED`, not
 | Organizer refuses a waitlisted Entry | Entry is deleted; no slot is released |
 | Participant unregisters a pending or confirmed Entry | Entry is deleted; oldest waitlisted Entry may be promoted |
 | Participant unregisters a waitlisted Entry | Entry is deleted; no slot is released |
+| Organizer edits a Category (e.g. raises `maxParties`) | Oldest waitlisted Entries are promoted until reserved slots are full again |
+| Organizer edits a Category and lowers `maxParties` | No status change; existing reservations are never demoted |
 | Organizer sends a payment reminder | No status change |
 | Organizer publishes table assignments | No status change |
 
@@ -196,13 +198,16 @@ flowchart TD
     Confirmed -->|"Organizer refuses<br/>or Participant unregisters"| NoEntry
     Waitlisted -->|"Organizer refuses<br/>or Participant unregisters"| NoEntry
 
-    Waitlisted -->|"Reserved slot released<br/>paid behavior<br/>oldest waitlisted promoted"| Pending
-    Waitlisted -->|"Reserved slot released<br/>free behavior<br/>oldest waitlisted promoted"| Confirmed
+    Waitlisted -->|"Reserved slot released<br/>or capacity raised<br/>paid behavior<br/>oldest waitlisted promoted"| Pending
+    Waitlisted -->|"Reserved slot released<br/>or capacity raised<br/>free behavior<br/>oldest waitlisted promoted"| Confirmed
 ```
 
 ## Waitlist Promotion
 
-Promotion only happens when a reserved slot is released. A reserved slot is released when a `PENDING_CONFIRMATION` or `CONFIRMED` Entry is deleted by refusal or unregistering.
+Promotion happens when capacity becomes available:
+
+- A reserved slot is released: a `PENDING_CONFIRMATION` or `CONFIRMED` Entry is deleted by refusal or unregistering. One Entry is promoted.
+- An organizer saves the competition edit form: every edited Category runs promotion repeatedly (`promoteWaitlistedAfterCapacityChange`) until reserved slots reach `maxParties` or the waitlist is empty. This runs inside the `updateCompetition` transaction; notifications are sent after it commits. Lowering `maxParties` below the reserved count demotes nobody.
 
 Promotion does not happen when a `WAITLISTED` Entry is deleted because it did not reserve capacity.
 

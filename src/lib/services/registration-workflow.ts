@@ -200,6 +200,33 @@ async function promoteNextWaitlisted(
 	});
 }
 
+/**
+ * Promote waitlisted Entries FIFO until the Category's reserved slots are full again.
+ * Called after an organizer edits a Category, so a raised `maxParties` releases waitlisted
+ * Entries. Lowering `maxParties` never demotes existing reservations.
+ */
+export async function promoteWaitlistedAfterCapacityChange(
+	tx: Tx,
+	categoryId: number,
+	maxParties: number | null,
+): Promise<PromotedEntry[]> {
+	const promoted: PromotedEntry[] = [];
+	let next = await promoteNextWaitlisted(tx, categoryId, maxParties);
+	while (next) {
+		promoted.push(next);
+		next = await promoteNextWaitlisted(tx, categoryId, maxParties);
+	}
+	return promoted;
+}
+
+/** Send waitlist promotion notifications. Call after the promoting transaction commits. */
+export async function notifyWaitlistPromotions(promotedEntries: PromotedEntry[]): Promise<void> {
+	if (promotedEntries.length === 0) return;
+	await runNotificationWork('waitlist promotion', async () => {
+		await dispatchNotifications(promotedEntries.flatMap((entry) => notificationsForWaitlistPromotion(entry)));
+	});
+}
+
 async function ensureCanManageCompetition(tx: Tx, competitionId: number, actor: RegistrationActor): Promise<void> {
 	const competition = await tx.competition.findUnique({
 		where: { id: competitionId },

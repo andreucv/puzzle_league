@@ -356,6 +356,15 @@ only on preview until promoted.
 
 ### The release ritual, in one place
 
+`pnpm release:ritual` (`scripts/release.ts`) runs the steps below interactively:
+
+1. It checks that you are on `test`, the tree is clean, and `test` is up to date.
+2. It shows the dry run, then cuts the release. It skips this step if HEAD is already the `chore(release): X.Y.Z` commit.
+3. It prompts for the What's New copy (en/es/ca), showing the CHANGELOG section as a reference, and commits it as a released entry. It can promote the current draft; otherwise the draft is kept.
+4. It asks for confirmation before pushing `test`, and again before fast-forwarding and pushing `main`.
+
+The manual equivalent:
+
 ```bash
 # on `test`, with the test → main PR open
 pnpm release:dry                      # preview

@@ -23,6 +23,7 @@
 		"format:check": "prettier --check .",
 		"release": "commit-and-tag-version --skip.tag",
 		"release:dry": "commit-and-tag-version --skip.tag --dry-run",
+		"release:ritual": "tsx scripts/release.ts",
 		"postinstall": "svelte-kit sync && prisma generate"
 	},
 	"devDependencies": {

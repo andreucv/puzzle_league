@@ -2,6 +2,7 @@ import { expect, test, AUTH_FILES } from '../fixtures';
 import type { Page, Locator } from '@playwright/test';
 import { gotoHydrated } from '../utils/navigation';
 import type { CompetitionData, CategoryData, MultiDayCategoryData } from '../types';
+import { COMBOBOX_NO_AUTOFILL } from '../../src/lib/utils/country_utils';
 
 // Every test creates its own competition through the UI, so the suite needs
 // no seed and the tests are independent.
@@ -151,6 +152,8 @@ async function fillCompetitionDetails(page: Page, data: CompetitionData) {
     await page.locator('textarea[name="description"]').fill(data.description);
 
     if (data.country) {
+        // Browser autofill must stay suppressed on the combobox input (#118).
+        await expect(page.getByTestId('country-input')).toHaveAttribute('autocomplete', COMBOBOX_NO_AUTOFILL);
         await page.getByTestId('country-trigger').click();
         await page.getByTestId('country-input').fill('Spain');
         await page.getByRole('option', { name: '🇪🇸 Spain' }).click();

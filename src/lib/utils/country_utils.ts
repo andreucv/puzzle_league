@@ -1,9 +1,19 @@
 // This file provides utility functions for handling country data
 
+import type { FullAutoFill } from 'svelte/elements';
+
 interface Country {
   code: string;
   phonePrefix?: string;
 }
+
+/**
+ * `autocomplete` value for text-input comboboxes (country, phone prefix).
+ * Chrome ignores Zag's default `autocomplete="off"` on address-like fields and shows its own
+ * autofill popup, whose choice the combobox never selects (#118). A non-`off` token suppresses it.
+ * Cast because the token is intentionally outside the standard `FullAutoFill` union.
+ */
+export const COMBOBOX_NO_AUTOFILL = 'no-autofill' as FullAutoFill;
 
 /**
  * Get a localized country name for an ISO 3166-1 alpha-2 code using Intl.DisplayNames.

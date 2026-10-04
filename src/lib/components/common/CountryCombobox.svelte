@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
-    import { countries, getCountryFlag, getLocalizedCountryName } from '$lib/utils/country_utils';
+    import { countries, getCountryFlag, getLocalizedCountryName, COMBOBOX_NO_AUTOFILL } from '$lib/utils/country_utils';
 
     let {
         value = $bindable<string[]>([]),
@@ -73,6 +73,7 @@
         <Combobox.Control>
             <Combobox.Input
                 class="input text-sm px-3 py-2 bg-transparent border-none w-full"
+                autocomplete={COMBOBOX_NO_AUTOFILL}
                 data-testid={testId}
             />
             <Combobox.Trigger />

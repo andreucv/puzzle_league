@@ -12,7 +12,7 @@
     import type { CategoryType } from '$prisma/browser';
     import { FileUpload, Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
     import { cldUrl } from '$lib/utils/cld_url';
-    import { countries, getCountryFlag, getLocalizedCountryName } from '$lib/utils/country_utils';
+    import { countries, getCountryFlag, getLocalizedCountryName, COMBOBOX_NO_AUTOFILL } from '$lib/utils/country_utils';
     import { totalCapacity, enablementPrice, isFreeEligible } from '$lib/utils/competition_pricing';
     import { getPosthog } from '$lib/analytics/posthog';
     import { showSuccessToast } from '$lib/utils/toast';
@@ -754,7 +754,7 @@
                             placeholder={$t('competition.create.select_country')}
                         >
                             <Combobox.Control>
-                                <Combobox.Input class="input text-sm px-3 py-2 bg-transparent border-none w-full" data-testid="country-input" />
+                                <Combobox.Input class="input text-sm px-3 py-2 bg-transparent border-none w-full" autocomplete={COMBOBOX_NO_AUTOFILL} data-testid="country-input" />
                                 <Combobox.Trigger data-testid="country-trigger" />
                             </Combobox.Control>
                             <Portal>

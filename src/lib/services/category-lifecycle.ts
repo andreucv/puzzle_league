@@ -3,9 +3,10 @@ import { CategoryStatus, CompetitionStatus, RegistrationStatus } from '$prisma/e
 import { publishCompetitionEvent } from '$lib/events/server/ably';
 import { dispatchNotifications } from '$lib/notifications/dispatcher';
 import { NotificationType } from '$prisma/enums';
-import { notificationsForTableAssignment, notificationsForPaymentReminder } from '$lib/notifications/registration_notifications';
+import { notificationsForPaymentReminder } from '$lib/notifications/registration_notifications';
 import { PAYMENT_REMINDER_COOLDOWN_MS } from '$lib/constants/registration';
 import type { AutoStopScheduler } from './auto-stop-scheduler';
+import { scheduleTableReminder, type TableReminderScheduler } from './table-reminder-scheduler';
 
 interface AutoStopOptions {
 	scheduler?: AutoStopScheduler;
@@ -468,12 +469,16 @@ export async function setAutoStop(
 
 /**
  * Assign sequential table numbers to all confirmed entries in a category,
- * compacting any gaps. Notifies only participants whose table number changed.
+ * compacting any gaps. Notifies nobody: participants get a single table reminder
+ * one hour before the category starts, scheduled here (#103).
  */
-export async function publishTableAssignments(categoryId: number) {
+export async function publishTableAssignments(
+	categoryId: number,
+	{ scheduler }: { scheduler?: TableReminderScheduler | null } = {}
+) {
 	const category = await prisma.category.findUnique({
 		where: { id: categoryId },
-		include: { competition: { select: { name: true } } }
+		select: { id: true }
 	});
 
 	if (!category) throw new CategoryNotFoundError(categoryId);
@@ -481,21 +486,12 @@ export async function publishTableAssignments(categoryId: number) {
 	const entries = await prisma.entry.findMany({
 		where: { categoryId, status: RegistrationStatus.CONFIRMED },
 		orderBy: [{ confirmedAt: 'asc' }, { createdAt: 'asc' }],
-		select: {
-			id: true,
-			tableNumber: true,
-			creatorId: true,
-			users: { select: { id: true, name: true } },
-			externalParticipants: { select: { name: true } }
-		}
+		select: { id: true }
 	});
 
 	if (entries.length === 0) {
-		return { assignedCount: 0, notifiedCount: 0 };
+		return { assignedCount: 0 };
 	}
-
-	// Build a map of previous table numbers for change detection
-	const previousTables = new Map(entries.map((r) => [r.id, r.tableNumber]));
 
 	// Reassign table numbers sequentially (compacting any gaps)
 	await prisma.$transaction(
@@ -507,21 +503,9 @@ export async function publishTableAssignments(categoryId: number) {
 		)
 	);
 
-	const entriesWithTables = entries.map((record, index) => ({
-		...record,
-		tableNumber: index + 1
-	}));
+	await scheduleTableReminder(categoryId, { db: prisma as any, scheduler });
 
-	// Only notify users whose table number actually changed
-	const changedEntries = entriesWithTables.filter(
-		(r) => r.tableNumber !== previousTables.get(r.id)
-	);
-
-	if (changedEntries.length > 0) {
-		await dispatchNotifications(notificationsForTableAssignment(changedEntries, category));
-	}
-
-	return { assignedCount: entries.length, notifiedCount: changedEntries.length };
+	return { assignedCount: entries.length };
 }
 
 /**

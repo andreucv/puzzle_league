@@ -918,7 +918,7 @@
     "table_number_short": "T{{number}}",
     "publish_tables": "Publicar Assignació de Taules",
     "publish_tables_confirm_title": "Publicar assignació de taules",
-    "publish_tables_confirm_message": "Això reassignarà els números de taula seqüencialment i enviarà una notificació dins l'aplicació a tots els participants confirmats. Continuar?",
+    "publish_tables_confirm_message": "Això reassignarà els números de taula seqüencialment. Els participants confirmats rebran una notificació amb la seva taula una hora abans de l'inici de la categoria. Continuar?",
     "publish_tables_success": "Assignació de taules publicada per a {{count}} registres.",
     "publish_tables_error": "Error en publicar l'assignació de taules.",
     "print_entry_cards": "Imprimir Targetes de Participació",

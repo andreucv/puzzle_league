@@ -243,6 +243,7 @@ model Category {
   registrationOpen    Boolean                   @default(false) // Single source of truth for registration open/closed; a Competition is "open" when any NOT_STARTED Category is.
   registrationOpensAt DateTime? // Scheduled auto-open (QStash webhook); cleared when it fires or on any manual open/close.
   autoStopMessageId   String?
+  tableReminderSentAt DateTime? // Set once when the 1h-before-start table reminder is sent (QStash webhook, #103); never reset.
   maxParties          Int?
   price               Int                       @default(0)
   competitionId       Int

@@ -7,6 +7,8 @@ import { CategoryType, CompetitionStatus } from '$prisma/enums';
 import type { Prisma } from '$prisma/client';
 import { getPostHogClient } from '$lib/server/posthog';
 import { getCompetitionAccess } from '$lib/services/competition-access';
+import { scheduleTableReminder } from '$lib/services/table-reminder-scheduler';
+import { prisma } from '$lib/database/create_prisma_client';
 import { env } from '$env/dynamic/private';
 
 // Capacity unit rate (euros per slot) for the enablement-price priming (P1).
@@ -152,11 +154,24 @@ const create_update_competition: Action = async ({ locals, request, params }) =>
     // Auto-compute competition startDate/endDate from category datetimes
     autoComputeDateBounds(competitionData);
 
+    // Snapshot stored start times so a moved Category gets its table reminder rescheduled (#103).
+    const previousStartTimes = competitionId
+        ? new Map((await prisma.category.findMany({ where: { competitionId }, select: { id: true, startTime: true } }))
+            .map((c) => [c.id, c.startTime.getTime()]))
+        : new Map<number, number>();
+
     // competitionData is reshaped into Prisma's nested-write form by the transforms above.
     const result = await updateCompetition(competitionId, competitionData as unknown as Prisma.CompetitionUpdateInput);
 
     if (!result.success) {
         return message(form, {success: false, message: "Something went wrong"});
+    }
+
+    for (const { where, data } of competitionData.categories?.update ?? []) {
+        const previous = previousStartTimes.get(where.id);
+        if (previous !== undefined && new Date(data.startTime).getTime() !== previous) {
+            await scheduleTableReminder(where.id, { db: prisma as any });
+        }
     }
 
     const posthog = getPostHogClient();

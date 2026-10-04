@@ -15,7 +15,7 @@ export const POST = async (event: RequestEvent) => {
 			return json({ error: 'No confirmed records to assign tables to' }, { status: 400 });
 		}
 
-		return json({ success: true, assignedCount: result.assignedCount, notifiedCount: result.notifiedCount });
+		return json({ success: true, assignedCount: result.assignedCount });
 	} catch (error) {
 		if (error instanceof CategoryNotFoundError) {
 			return json({ error: error.message }, { status: 404 });

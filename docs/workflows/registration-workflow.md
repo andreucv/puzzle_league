@@ -241,7 +241,7 @@ Entries are grouped by status:
 Bulk actions on the Category card:
 
 - "Remind all pending" sends payment reminders to eligible `PENDING_CONFIRMATION` Entries.
-- "Publish tables" assigns sequential table numbers to `CONFIRMED` Entries, ordered by `confirmedAt ASC`, then `createdAt ASC`.
+- "Publish tables" assigns sequential table numbers to `CONFIRMED` Entries, ordered by `confirmedAt ASC`, then `createdAt ASC`. It notifies nobody; it schedules the Category's table reminder (see Notifications).
 
 Bulk reminder and publish-table controls are shown only for `NOT_STARTED` Categories in the main manage view. Per-Entry actions are rendered by the Entry status sections.
 
@@ -290,7 +290,7 @@ The workflow emits notifications at these points:
 - Organizer refusal notifies participants and, when applicable, the creator — except the acting organizer, who is never notified of their own removal (#123).
 - Waitlist promotion notifies participants according to whether the promoted Entry is now confirmed or pending.
 - Payment reminders notify platform participants and creators who registered others.
-- Table assignment publishing notifies participants whose table number changed.
+- Table assignments are notified once per Category, one hour before `startTime` (`TABLE_ASSIGNED`, email + in-app), with the table numbers stored at that moment, via a delayed QStash message (#103). It's scheduled when tables are published or a tabled Category's `startTime` changes. Nothing is sent when no `CONFIRMED` Entry has a table, the Category is not `NOT_STARTED`, or tables were published less than one hour before the start. `Category.tableReminderSentAt` makes it send-once; later republishes or time changes never notify again.
 - Tag claim rejection notifies the entry creator (`TAG_REJECTED`); confirmation is not notified.
 - A scheduled opening that fires notifies the Competition creator (`REGISTRATION_OPENED`, in-app only).
 - Any opening (manual or scheduled) notifies the Category's pending followers (`CATEGORY_REGISTRATION_OPENED`, email + in-app), asynchronously via QStash.

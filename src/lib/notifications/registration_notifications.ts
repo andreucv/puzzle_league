@@ -499,7 +499,7 @@ interface TableAssignmentCategory {
 
 /**
  * TABLE_ASSIGNED intents for every user on each record.
- * Built after the organizer publishes / compacts table assignments.
+ * Built by the table-reminder webhook one hour before the Category starts (#103).
  */
 export function notificationsForTableAssignment(
 	records: TableAssignmentRecord[],

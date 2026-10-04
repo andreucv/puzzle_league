@@ -124,6 +124,32 @@ describe('notificationsForRegistrationRefused', () => {
 
 		expect(intents[0]).toMatchObject({ actorName: 'OrganizerJohn' });
 	});
+
+	it('Given the actor is a participant removing their own entry, then the actor is not notified', () => {
+		const intents = notificationsForRegistrationRefused(
+			makeEntryData({
+				creatorId: 'user-1',
+				users: [
+					{ id: 'user-1', name: 'Alice' },
+					{ id: 'user-2', name: 'Bob' },
+				],
+			}) as never,
+			'Alice',
+			'user-1',
+		);
+
+		expect(recipients(intents)).toEqual(['user-2']);
+	});
+
+	it('Given the actor is the non-participant creator, then the creator intent is skipped', () => {
+		const intents = notificationsForRegistrationRefused(
+			makeEntryData({ creatorId: 'creator-1', users: [{ id: 'user-1', name: 'Alice' }] }) as never,
+			'Organizer',
+			'creator-1',
+		);
+
+		expect(recipients(intents)).toEqual(['user-1']);
+	});
 });
 
 // ══════════════════════════════════════════════════════════════════════════

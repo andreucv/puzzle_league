@@ -194,10 +194,14 @@ export function notificationsForRegistrationConfirmed(
  * 1. Every real platform user on the entry receives a notification.
  * 2. Creator NOT a participant → creator receives a separate notification.
  * 3. External-only entries (no platform users) → creator receives the notification.
+ *
+ * The acting user (e.g. an organizer removing their own Entry) is never notified,
+ * mirroring notificationsForRegistrationCreated.
  */
 export function notificationsForRegistrationRefused(
 	entry: RegistrationEntry,
 	actorName?: string,
+	actorUserId?: string,
 ): NotificationIntent[] {
 	const typeLabel = getCategoryTypeName(entry.category.type as CategoryType);
 	const categoryName = entry.category.subname
@@ -254,7 +258,7 @@ export function notificationsForRegistrationRefused(
 		});
 	}
 
-	return intents;
+	return intents.filter((intent) => !intent.userIds.includes(actorUserId ?? ''));
 }
 
 // ---------------------------------------------------------------------------

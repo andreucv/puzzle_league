@@ -287,7 +287,7 @@ The workflow emits notifications at these points:
 - New pending teammate Entries notify other platform users as registration created.
 - New waitlisted Entries notify participants as registration waitlisted.
 - Organizer confirmation notifies participants and, when applicable, the creator.
-- Organizer refusal notifies participants and, when applicable, the creator.
+- Organizer refusal notifies participants and, when applicable, the creator — except the acting organizer, who is never notified of their own removal (#123).
 - Waitlist promotion notifies participants according to whether the promoted Entry is now confirmed or pending.
 - Payment reminders notify platform participants and creators who registered others.
 - Table assignment publishing notifies participants whose table number changed.

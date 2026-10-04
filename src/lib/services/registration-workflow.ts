@@ -717,7 +717,7 @@ export async function refuseRegistration({
 	});
 
 	await runNotificationWork('registration refusal', async () => {
-		await dispatchNotifications(notificationsForRegistrationRefused(result.entry, actor.name));
+		await dispatchNotifications(notificationsForRegistrationRefused(result.entry, actor.name, actor.userId));
 	});
 
 	const promotedEntry = result.promotedEntry;

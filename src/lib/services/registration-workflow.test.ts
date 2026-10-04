@@ -327,7 +327,7 @@ describe('registration workflow', () => {
 
 		expect(result.entry).toEqual(refusedEntry);
 		expect(result.promotedEntry).toEqual(promotedEntry);
-		expect(mockNotifyRefused).toHaveBeenCalledWith(refusedEntry, 'Organizer');
+		expect(mockNotifyRefused).toHaveBeenCalledWith(refusedEntry, 'Organizer', 'organizer-1');
 		expect(mockNotifyPromotion).toHaveBeenCalledWith(promotedEntry, 'Organizer');
 	});
 

@@ -9,7 +9,15 @@
     import CategoryCapacityRow from '$lib/components/competition/CategoryCapacityRow.svelte';
     import CompetitionStatusChip from '$lib/components/competition/CompetitionStatusChip.svelte';
     import { t, locale } from '$lib/translations';
-    import { hasOpenRegistration } from '$lib/utils/registration_utils';
+    import EntryRegistrationStatusBadge from '$lib/components/registration/EntryRegistrationStatusBadge.svelte';
+    import {
+        hasOpenRegistration,
+        isUserEntry,
+        countUserEntryStatuses,
+        getMostUrgentStatus,
+        formatStatusBreakdown,
+        selectCardCategories
+    } from '$lib/utils/registration_utils';
 
     interface Props {
         competition: Competition & {
@@ -24,6 +32,7 @@
                 maxParties?: number | null;
                 entries?: Array<{
                     status?: string;
+                    creatorId?: string | null;
                     tableNumber?: number | null;
                     users?: Array<{
                         id: string;
@@ -66,26 +75,21 @@
     const monthAbbr = competitionDate.toLocaleString(locale.get(), { month: 'short' });
     const year = competitionDate.getFullYear();
 
-    // Check if current user is registered in a category
-    function isUserInCategory(category: any): boolean {
-        if (!currentUserId || !category.entries) return false;
-        return category.entries.some((entry: any) =>
-            entry.users?.some((user: any) => user.id === currentUserId)
-        );
-    }
-
-    // Get the registration status for the current user in a category
-    function getUserRegistrationStatus(category: any): string | null {
-        if (!currentUserId || !category.entries) return null;
-        const entry = category.entries.find((r: any) =>
-            r.users?.some((u: any) => u.id === currentUserId)
-        );
-        return entry?.status ?? null;
-    }
-
-    // Check if user is registered in any category of this competition
+    // Check if the user has an entry (as participant or creator) in any category of this competition
     const isUserRegistered = $derived(
-        competition.categories?.some((c: any) => isUserInCategory(c)) ?? false
+        competition.categories?.some((c) => c.entries?.some((e) => isUserEntry(e, currentUserId))) ?? false
+    );
+
+    // Category rows: the user's categories always (up to 3), others fill up to 2 rows, rest behind "+N more"
+    const categorySelection = $derived(selectCardCategories(competition.categories ?? [], currentUserId));
+    const hiddenStatusCounts = $derived(
+        countUserEntryStatuses(categorySelection.hidden.flatMap((c) => c.entries ?? []), currentUserId)
+    );
+    const hiddenMostUrgentStatus = $derived(getMostUrgentStatus(hiddenStatusCounts));
+    const hiddenEntriesLabel = $derived(
+        hiddenStatusCounts
+            ? $t('competition_card.your_hidden_entries', { breakdown: formatStatusBreakdown(hiddenStatusCounts, $t) })
+            : ''
     );
 
     // Table number assigned to the current user's entry (when available)
@@ -175,21 +179,26 @@
                     </div>
                 {/if}
 
-                <!-- Per-category capacity rows (capped at 2, then "+N more") -->
+                <!-- Per-category capacity rows (user's categories first-class, then "+N more") -->
                 {#if competition.categories && competition.categories.length > 0 && !noShowCategories}
-                    {@const visibleCategories = competition.categories.slice(0, 2)}
-                    {@const extraCategories = competition.categories.length - visibleCategories.length}
+                    {@const visibleCategories = categorySelection.visible}
+                    {@const extraCategories = categorySelection.hidden.length}
                     <div class="flex flex-col gap-1">
                         {#each visibleCategories as category (category.id)}
                             <CategoryCapacityRow
                                 {category}
                                 competitionStatus={competition.status}
-                                registrationStatus={getUserRegistrationStatus(category)}
+                                statusCounts={countUserEntryStatuses(category.entries, currentUserId)}
                             />
                         {/each}
                         {#if extraCategories > 0}
-                            <span class="text-xs text-surface-500 dark:text-surface-400 pl-[1.4rem]">
+                            <span class="flex items-center gap-1 text-xs text-surface-500 dark:text-surface-400 pl-[1.4rem]">
                                 {$t('competition_card.more_categories', { count: extraCategories })} ›
+                                {#if hiddenStatusCounts && hiddenMostUrgentStatus}
+                                    <span role="img" class="inline-flex" title={hiddenEntriesLabel} aria-label={hiddenEntriesLabel} data-testid="hidden-entry-status">
+                                        <EntryRegistrationStatusBadge status={hiddenMostUrgentStatus} compact count={hiddenStatusCounts[hiddenMostUrgentStatus]} />
+                                    </span>
+                                {/if}
                             </span>
                         {/if}
                     </div>

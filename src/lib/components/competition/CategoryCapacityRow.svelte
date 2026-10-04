@@ -5,6 +5,13 @@
     import type { CategoryType } from '$prisma/browser';
     import { t } from '$lib/translations';
     import AccountGroupOutlineIcon from '@iconify-svelte/mdi/account-group-outline';
+    import EntryRegistrationStatusBadge from '$lib/components/registration/EntryRegistrationStatusBadge.svelte';
+    import {
+        formatStatusBreakdown,
+        getMostUrgentStatus,
+        getPresentStatuses,
+        type RegistrationStatusCounts
+    } from '$lib/utils/registration_utils';
 
     type CategoryShape = {
         type: string;
@@ -26,11 +33,12 @@
     let {
         category,
         competitionStatus,
-        registrationStatus = null
+        statusCounts = null
     }: {
         category: CategoryShape;
         competitionStatus: string;
-        registrationStatus?: string | null;
+        // The current user's entries in this category, counted per RegistrationStatus
+        statusCounts?: RegistrationStatusCounts | null;
     } = $props();
 
     const TypeIcon = $derived(getCategoryTypeIcon(category.type as CategoryType));
@@ -39,11 +47,15 @@
         !!category.subname && category.subname !== getCategoryTypeName(category.type as CategoryType).toUpperCase()
     );
 
-    // Registration count is success-colored when the user is registered, primary otherwise
-    const isRegistered = $derived(!!registrationStatus);
-    const countColorClass = $derived(
-        isRegistered ? 'text-success-600 dark:text-success-400' : 'text-primary-700 dark:text-primary-300'
+    // The user's entry statuses: all of them (lifecycle order) from sm up, only the most urgent below sm
+    const presentStatuses = $derived(getPresentStatuses(statusCounts));
+    const mostUrgentStatus = $derived(getMostUrgentStatus(statusCounts));
+    const entriesLabel = $derived(
+        statusCounts ? $t('competition_card.your_entries', { breakdown: formatStatusBreakdown(statusCounts, $t) }) : ''
     );
+
+    // Capacity count stays neutral: the status markers carry the user's own registration
+    const countColorClass = 'text-primary-700 dark:text-primary-300';
 
     // Leading category-status icon, shown only once the competition is live (STARTED)
     const showCategoryStatus = $derived(competitionStatus === 'STARTED' && !!category.status);
@@ -79,8 +91,20 @@
         {/if}
     </div>
 
-    <!-- Right: capacity (bar or plain count); count color signals the user's own registration -->
+    <!-- Right: the user's entry statuses, then capacity (bar or plain count) -->
     <div class="flex items-center gap-1.5 shrink-0">
+        {#if statusCounts && mostUrgentStatus}
+            <span role="img" class="flex items-center" title={entriesLabel} aria-label={entriesLabel} data-testid="user-entry-status">
+                <span class="hidden sm:inline-flex items-center gap-1" data-testid="user-entry-status-full">
+                    {#each presentStatuses as status (status)}
+                        <EntryRegistrationStatusBadge {status} compact count={statusCounts[status]} />
+                    {/each}
+                </span>
+                <span class="inline-flex sm:hidden" data-testid="user-entry-status-mobile">
+                    <EntryRegistrationStatusBadge status={mostUrgentStatus} compact count={statusCounts[mostUrgentStatus]} />
+                </span>
+            </span>
+        {/if}
         {#if showBar}
             <div class="flex items-center gap-1.5" title={$t('competition_card.capacity_title', { current: reserved, max })}>
                 <!-- Bar is decorative; hidden on small screens where N/max already states capacity -->

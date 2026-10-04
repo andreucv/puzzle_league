@@ -23,7 +23,7 @@ function renderRow(
         props: {
             category: makeCategory(categoryOverrides),
             competitionStatus: "NOT_STARTED",
-            registrationStatus: null,
+            statusCounts: null,
             ...propsOverrides,
         },
     });
@@ -71,28 +71,42 @@ describe("CategoryCapacityRow", () => {
         });
     });
 
-    describe("registration indicator", () => {
-        // The user's own registration is now signalled by colouring the capacity count
-        // success-green (countColorClass), not by a separate titled indicator element.
-        it("colours the count as registered when the user is confirmed", () => {
-            const { container } = renderRow(
-                {},
-                { registrationStatus: "CONFIRMED" },
+    describe("user entry status (#120)", () => {
+        const counts = (c = 0, p = 0, w = 0) => ({ CONFIRMED: c, PENDING_CONFIRMATION: p, WAITLISTED: w });
+        const statusesIn = (el: Element) =>
+            Array.from(el.querySelectorAll("[data-testid='registration-status-badge']")).map(
+                (b) => (b as HTMLElement).dataset.status,
             );
-            expect(container.querySelector(".text-success-600")).not.toBeNull();
+
+        it("shows no marker when the user has no entries", () => {
+            renderRow({}, { statusCounts: null });
+            expect(screen.queryByTestId("user-entry-status")).toBeNull();
         });
 
-        it("colours the count as registered when the user is pending confirmation", () => {
-            const { container } = renderRow(
-                {},
-                { registrationStatus: "PENDING_CONFIRMATION" },
-            );
-            expect(container.querySelector(".text-success-600")).not.toBeNull();
+        it("keeps the capacity count neutral whatever the status", () => {
+            renderRow({ maxParties: 10, _count: { entries: 10 } }, { statusCounts: counts(0, 0, 1) });
+            const count = screen.getByText("10/10");
+            expect(count.className).toContain("text-primary-700");
+            expect(count.className).not.toContain("text-success-600");
         });
 
-        it("does not colour the count as registered when the user is not registered", () => {
-            const { container } = renderRow({}, { registrationStatus: null });
-            expect(container.querySelector(".text-success-600")).toBeNull();
+        it("lists every status in lifecycle order from sm up", () => {
+            renderRow({}, { statusCounts: counts(1, 2, 1) });
+            const full = screen.getByTestId("user-entry-status-full");
+            expect(statusesIn(full)).toEqual(["CONFIRMED", "PENDING_CONFIRMATION", "WAITLISTED"]);
+            expect(full.textContent?.replace(/\s/g, "")).toBe("2");
+        });
+
+        it("shows only the most urgent status with its own count on mobile", () => {
+            renderRow({}, { statusCounts: counts(1, 2, 0) });
+            const mobile = screen.getByTestId("user-entry-status-mobile");
+            expect(statusesIn(mobile)).toEqual(["PENDING_CONFIRMATION"]);
+            expect(mobile.textContent?.trim()).toBe("2");
+        });
+
+        it("labels the markers for assistive tech", () => {
+            renderRow({}, { statusCounts: counts(0, 0, 1) });
+            expect(screen.getByRole("img", { name: "competition_card.your_entries" })).toBeInTheDocument();
         });
     });
 

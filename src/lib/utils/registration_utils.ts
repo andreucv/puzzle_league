@@ -89,6 +89,98 @@ export function getRegistrationStatusChipClass(status: string | null): string {
 	return 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400';
 }
 
+/** Registration lifecycle order (confirmed → pending → waitlisted), used to list a user's statuses. */
+export const REGISTRATION_STATUS_LIFECYCLE: RegistrationStatus[] = [
+	RegistrationStatus.CONFIRMED,
+	RegistrationStatus.PENDING_CONFIRMATION,
+	RegistrationStatus.WAITLISTED,
+];
+
+/** Most urgent first: waitlisted > pending > confirmed. */
+const REGISTRATION_STATUS_URGENCY: RegistrationStatus[] = [...REGISTRATION_STATUS_LIFECYCLE].reverse();
+
+export type RegistrationStatusCounts = Record<RegistrationStatus, number>;
+
+type UserEntryLike = {
+	status?: string;
+	creatorId?: string | null;
+	users?: { id: string }[];
+};
+
+/** An Entry belongs to the user when they are one of its participants or its creator (#120). */
+export function isUserEntry(entry: UserEntryLike, userId: string | null | undefined): boolean {
+	if (!userId) return false;
+	return entry.creatorId === userId || !!entry.users?.some((u) => u.id === userId);
+}
+
+/** Counts the user's entries per RegistrationStatus; null when the user has none. */
+export function countUserEntryStatuses(
+	entries: UserEntryLike[] | null | undefined,
+	userId: string | null | undefined,
+): RegistrationStatusCounts | null {
+	const counts: RegistrationStatusCounts = {
+		[RegistrationStatus.CONFIRMED]: 0,
+		[RegistrationStatus.PENDING_CONFIRMATION]: 0,
+		[RegistrationStatus.WAITLISTED]: 0,
+	};
+	let total = 0;
+	for (const entry of entries ?? []) {
+		if (!isUserEntry(entry, userId)) continue;
+		const status = entry.status as RegistrationStatus;
+		if (!(status in counts)) continue;
+		counts[status]++;
+		total++;
+	}
+	return total > 0 ? counts : null;
+}
+
+/** The most urgent status with at least one entry, or null. */
+export function getMostUrgentStatus(counts: RegistrationStatusCounts | null): RegistrationStatus | null {
+	if (!counts) return null;
+	return REGISTRATION_STATUS_URGENCY.find((status) => counts[status] > 0) ?? null;
+}
+
+/** Statuses with at least one entry, in lifecycle order. */
+export function getPresentStatuses(counts: RegistrationStatusCounts | null): RegistrationStatus[] {
+	if (!counts) return [];
+	return REGISTRATION_STATUS_LIFECYCLE.filter((status) => counts[status] > 0);
+}
+
+/** "1 Confirmed · 2 Pending confirmation" — the breakdown used in titles and aria-labels. */
+export function formatStatusBreakdown(
+	counts: RegistrationStatusCounts | null,
+	translate: (key: string, params?: Record<string, unknown>) => string,
+): string {
+	return getPresentStatuses(counts)
+		.map((status) =>
+			translate('competition_card.entries_breakdown_item', {
+				count: counts![status],
+				status: translate(STATUS_TRANSLATION_KEYS[status]),
+			}),
+		)
+		.join(' · ');
+}
+
+/**
+ * Picks the category rows a competition card shows, keeping the input order: every category
+ * holding the user's entries (up to maxUser), then other categories until maxTotal rows.
+ * The rest go behind "+N more".
+ */
+export function selectCardCategories<T extends { entries?: UserEntryLike[] }>(
+	categories: T[],
+	userId: string | null | undefined,
+	maxUser = 3,
+	maxTotal = 2,
+): { visible: T[]; hidden: T[] } {
+	const hasUserEntry = (c: T) => !!c.entries?.some((e) => isUserEntry(e, userId));
+	const userCategories = categories.filter(hasUserEntry).slice(0, maxUser);
+	const fillCount = Math.max(0, maxTotal - userCategories.length);
+	const others = categories.filter((c) => !hasUserEntry(c)).slice(0, fillCount);
+	const visible = categories.filter((c) => userCategories.includes(c) || others.includes(c));
+	const hidden = categories.filter((c) => !visible.includes(c));
+	return { visible, hidden };
+}
+
 export function getRegistrationStatusIconColor(status: string): string {
 	switch (status) {
 		case 'CONFIRMED': return 'text-success-600';

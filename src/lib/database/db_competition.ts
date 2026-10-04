@@ -475,14 +475,12 @@ export async function getOtherUpcomingCompetitions(userId: string, limit: number
             startDate: {
                 gte: new Date()
             },
-            // Exclude competitions where the user appears on any Entry
+            // Exclude competitions where the user has any Entry (as participant or creator)
             NOT: {
                 categories: {
                     some: {
                         entries: {
-                            some: {
-                                users: { some: { id: userId } }
-                            }
+                            some: userEntryFilter(userId)
                         }
                     }
                 }
@@ -509,19 +507,18 @@ export async function getOtherUpcomingCompetitions(userId: string, limit: number
 // User-scoped competition queries
 // ---------------------------------------------------------------------------
 
-// Helper function to get competitions where user is registered
+// An Entry is the user's when they are one of its participants or its creator (#120)
+function userEntryFilter(userId: string): Prisma.EntryWhereInput {
+    return { OR: [{ users: { some: { id: userId } } }, { creatorId: userId }] };
+}
+
+// Helper function to get competitions where user has an entry (participant or creator)
 async function getUserRegisteredCompetitions(userId: string, statusFilter?: CompetitionStatus | CompetitionStatus[]) {
     const whereClause: any = {
         categories: {
             some: {
                 entries: {
-                    some: {
-                        users: {
-                            some: {
-                                id: userId
-                            }
-                        }
-                    }
+                    some: userEntryFilter(userId)
                 }
             }
         }
@@ -538,13 +535,7 @@ async function getUserRegisteredCompetitions(userId: string, statusFilter?: Comp
                 orderBy: { startTime: 'asc' },
                 include: {
                     entries: {
-                        where: {
-                            users: {
-                                some: {
-                                    id: userId
-                                }
-                            }
-                        },
+                        where: userEntryFilter(userId),
                         include: {
                             users: {
                                 select: {
@@ -869,6 +860,7 @@ export async function getExploreCompetitionsData(userId?: string) {
     type ViewerEntry = {
         categoryId: number;
         status: RegistrationStatus;
+        creatorId: string;
         tableNumber: number | null;
         users: { id: string; name: string; image: string | null }[];
     };
@@ -899,10 +891,11 @@ export async function getExploreCompetitionsData(userId?: string) {
         // (CompetitionCard) keep reading category.entries for registration status.
         userId
             ? prisma.entry.findMany({
-                where: { users: { some: { id: userId } } },
+                where: userEntryFilter(userId),
                 select: {
                     categoryId: true,
                     status: true,
+                    creatorId: true,
                     tableNumber: true,
                     users: { select: { id: true, name: true, image: true } },
                 },

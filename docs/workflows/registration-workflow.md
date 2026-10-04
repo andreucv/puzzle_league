@@ -272,6 +272,8 @@ PENDING_CONFIRMATION + CONFIRMED
 
 `getCompetitionCategories` exposes this as `reservedSlots` while preserving `totalEntries` as confirmed Entries for During Competition views. Public details, public registration, and manage registrations should use reserved slots when showing seats filled or spots left.
 
+On competition cards (home and explore, whenever a current user is known), each category row shows the user's own Entry statuses as compact `EntryRegistrationStatusBadge` markers (#120). An Entry is the user's when they are a participant **or** its creator (`isUserEntry` in `registration_utils.ts`; `userEntryFilter` in `db_competition.ts`). From `sm` up, a row lists every status in lifecycle order (confirmed → pending → waitlisted) with a count when there's more than one; below `sm`, only the most urgent (waitlisted > pending > confirmed). The capacity count stays neutral. Categories with the user's entries are always shown (up to 3); the "+N more" line carries the most urgent status of hidden entries. See `docs/features/home-registration-status-120/`.
+
 ## Notifications
 
 The workflow emits notifications at these points:

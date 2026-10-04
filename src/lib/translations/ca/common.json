@@ -5,6 +5,9 @@
   },
   "page": {},
   "competition_card": {
+    "your_entries": "Les teves inscripcions: {{breakdown}}",
+    "your_hidden_entries": "Les teves inscripcions en altres categories: {{breakdown}}",
+    "entries_breakdown_item": "{{status}}: {{count}}",
     "days_ago": "fa {{count}}d",
     "in_until_days": "En {{count}}d",
     "tomorrow": "Demà",

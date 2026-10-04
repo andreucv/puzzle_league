@@ -12,7 +12,7 @@ Puzzle League is a platform for organizing and participating in speed puzzling c
 
 ## Participant Experience
 
-Anonymous users land on a public home page and can explore competitions. Authenticated users get a dashboard with current registration statuses, live competitions, upcoming registered competitions, recent results, and other upcoming competitions they have not joined.
+Anonymous users land on a public home page and can explore competitions. Authenticated users get a dashboard with current registration statuses, live competitions, upcoming registered competitions, recent results, and other upcoming competitions they have not joined. "Registered" here means the user has an Entry as participant or as its creator, and each card shows the status of those entries per category (confirmed, pending confirmation, waitlisted).
 
 Participants can view competition details, categories, schedules, registration status, and results. Registration creates an `Entry` for each selected category. Depending on capacity and payment configuration, entries become confirmed, pending organizer confirmation, or waitlisted. Participants can unregister, and released reserved slots can promote the oldest waitlisted entry. On a closed, not-started category, a logged-in participant can click **Notify me when it opens** (competition details and registration page) to get one email and an in-app notification the first time it opens; logged-out visitors see the bell disabled with a login prompt. The bell is hidden for organizers, for participants already registered in that category, and when QStash isn't configured.
 

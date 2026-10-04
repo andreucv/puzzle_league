@@ -23,6 +23,9 @@
     "other": "Other"
   },
   "competition_card": {
+    "your_entries": "Your entries: {{breakdown}}",
+    "your_hidden_entries": "Your entries in other categories: {{breakdown}}",
+    "entries_breakdown_item": "{{status}}: {{count}}",
     "days_ago": "{{count}}d ago",
     "in_until_days": "In {{count}}d",
     "tomorrow": "Tomorrow",
